@@ -11,7 +11,7 @@
 __all__ = ['ProjectOption','ProjectCard']
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, Unicode, Enum
+from sqlalchemy.types import Integer, String, Enum
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
@@ -32,7 +32,7 @@ class ProjectOption(DeclarativeBase):
     cardID = Column(Integer, ForeignKey('prj_cards_cv.id'), nullable=False)
     
     # Value Columns
-    value = Column(Unicode, nullable=False)
+    value = Column(String, nullable=False)
     
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='projectOptions')
@@ -60,7 +60,7 @@ class ProjectCard(DeclarativeBase):
     id = Column(Integer, autoincrement=True, primary_key=True)
     
     # Value Columns
-    name = Column(Unicode, nullable=False)
+    name = Column(String, nullable=False)
     valueType = Column(valueTypeEnum, nullable=False)
     
     # Relationship Properties

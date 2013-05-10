@@ -11,7 +11,7 @@
 __all__ = ['ModelInstance']
 
 from sqlalchemy import Column
-from sqlalchemy.types import Integer, DateTime, Unicode
+from sqlalchemy.types import Integer, DateTime, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -29,8 +29,8 @@ class ModelInstance(DeclarativeBase):
     id = Column(Integer, autoincrement=True, primary_key=True)
     
     # Value Columns
-    name = Column(Unicode, nullable=False)
-    location = Column(Unicode)
+    name = Column(String, nullable=False)
+    location = Column(String)
     beginDate = Column(DateTime)
     endDate = Column(DateTime)
     
@@ -39,6 +39,7 @@ class ModelInstance(DeclarativeBase):
     mapTable = relationship('MapTable', back_populates='model')
     timeseries = relationship('TimeSeries', back_populates='model')
     indexMaps = relationship('IndexMap', back_populates='model')
+    precipEvents = relationship('PrecipEvent', back_populates='model')
 
     def __init__(self, name, location='', beginDate=None, endDate=None):
         '''

@@ -10,93 +10,108 @@
 
 import os, sys
 from datetime import datetime
-__all__ = ['Event','Value','Gage']
 
-from sqlalchemy import Table, ForeignKey, Column
-from sqlalchemy.types import Unicode, Integer, DateTime, String
-from sqlalchemy.orm import relation, synonym, relationship, backref
+__all__ = ['PrecipEvent','PrecipValue','PrecipGage']
+
+from sqlalchemy import ForeignKey, Column
+from sqlalchemy.types import Integer, DateTime, String, Float
+from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
 
 
-class Event(DeclarativeBase):
-    """
+class PrecipEvent(DeclarativeBase):
+    '''
     classdocs
-
-    """
+    '''
     __tablename__ = 'gag_events'
-
+    
+    # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    created = Column(DateTime, default=datetime.now)
-    modelID = Column(Integer, ForeignKey('models.id')); #TODO - foreign key
-    eventDesc = Column(String, unique=True, nullable=False) #TODO - is unique needed?
-    #numGages
-    nrGag = Column(Integer);
-    #numPeriods
-    nrPds = Column(Integer); 
+    modelID = Column(Integer, ForeignKey('model_instances.id'))
     
+    # Value Columns
+    description = Column(String, nullable=False)
+    nrGag = Column(Integer, nullable=False)
+    nrPds = Column(Integer, nullable=False)
     
+    # Relationship Properties
+    model = relationship('ModelInstance', backpopulates='precipEvents')
+    values = relationship('PrecipValue', backpopulates='event')
     
-    Relation = relation('OtherClass', backref='otherColumn', cascade='all, delete, delete-orphan')
-    
-    def __init__(self, eventDesc, numGages, numPeriods):
+    def __init__(self, description, numGages, numPeriods):
         '''
         Constructor
         '''
         #TODO - add validation
-        self.eventDesc = eventDesc
+        self.description = description
         self.nrGag = numGages
         self.nrPds = numPeriods
         
 
     def __repr__(self):
-        return '<Event: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds);
+        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds);
     
     
-class Value(DeclarativeBase):
-    """
+class PrecipValue(DeclarativeBase):
+    '''
     classdocs
-
-    """
-    __tablename__ = 'example'
-
-    __id = Column(Integer, autoincrement=True, primary_key=True)
-    __name = Column(String, unique=True, nullable=False)
-    __created = Column(DateTime, default=datetime.now)
+    '''
+    __tablename__ = 'gag_values'
     
-    exRelation = relation('OtherClass', backref='otherColumn', cascade='all, delete, delete-orphan')
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    eventID = Column(Integer, ForeignKey('gag_events.id'))
+    coordID = Column(Integer, ForeignKey('gag_coord.id'))
     
-    def __init__(self, name):
+    # Value Columns
+    valueType = Column(String, nullable=False)
+    dateTime = Column(DateTime, nullable=False)
+    value = Column(Float, nullable=False)
+    
+    # Relationship Properties
+    event = relationship('PrecipEvent', backpopulates='values')
+    gage = relationship('PrecipGage', backpopulates='values')
+
+    def __init__(self, valueType, dateTime, value):
         '''
         Constructor
         '''
-        self.__name = name
+        self.valueType = valueType
+        self.dateTime = dateTime
+        self.value = value
         
 
     def __repr__(self):
-        return '<Example: Name=%s>' % self.exName
+        return '<PrecipValue: Type=%s, DateTime=%s, Value=%s>' % (self.valueType, self.dateTime, self.value)
     
 
     
-class Gage(DeclarativeBase):
-    """
+class PrecipGage(DeclarativeBase):
+    '''
     classdocs
-
-    """
-    __tablename__ = 'example'
-
-    __id = Column(Integer, autoincrement=True, primary_key=True)
-    __name = Column(Unicode(16), unique=True, nullable=False)
-    __created = Column(DateTime, default=datetime.now)
+    '''
+    __tablename__ = 'gag_coord'
     
-    exRelation = relation('OtherClass', backref='otherColumn', cascade='all, delete, delete-orphan')
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)
     
-    def __init__(self, name):
+    # Value Columns
+    description = Column(String)
+    utmNorthing = Column(Float, nullable=False)
+    utmEasting = Column(Float, nullable=False)
+    
+    # Relationship Properties
+    values = relationship('PrecipValues', backpopulates='gage')
+    
+    def __init__(self, description, utmNorthing, utmEasting):
         '''
         Constructor
         '''
-        self.__name = name
+        self.description = description
+        self.utmNorthing = utmNorthing
+        self.utmEasting = utmEasting
         
 
     def __repr__(self):
-        return '<Example: Name=%s>' % self.exName
+        return '<PrecipGage: Description=%s, UTM Northing=%s, UTM Easting=%s>' % (self.description, self.utmNorthing, self.utmEasting)

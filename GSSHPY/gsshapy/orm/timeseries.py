@@ -17,10 +17,10 @@ from sqlalchemy.orm import relationship
 from gsshapy.orm import DeclarativeBase
 
 class TimeSeries(DeclarativeBase):
-    """
+    '''
     classdocs
 
-    """
+    '''
     __tablename__ = 'time_series'
     
     # Primary and Foreign Keys
@@ -50,10 +50,9 @@ class TimeSeries(DeclarativeBase):
 
 
 class TimeSeriesValue(DeclarativeBase):
-    """
+    '''
     classdocs
-
-    """
+    '''
     __tablename__ = 'time_series_values'
     
     # Primary and Foreign Keys

@@ -11,7 +11,7 @@
 __all__ = ['MapTable','MTValue', 'MTIndex','Contaminant','Sediment']
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, Enum, Float, Unicode
+from sqlalchemy.types import Integer, Enum, Float, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
@@ -86,8 +86,8 @@ class MTIndex(DeclarativeBase):
     
     # Value Columns
     index = Column(Integer, nullable=False)
-    description1 = Column(Unicode(40))
-    description2 = Column(Unicode(40))
+    description1 = Column(String(40))
+    description2 = Column(String(40))
     
     # Relationship Properties
     values = relationship('MTValue', back_populates='index')
@@ -150,8 +150,8 @@ class Contaminant(DeclarativeBase):
     id = Column(Integer, autoincrement=True, primary_key=True)
     
     # Value Columns
-    name = Column(Unicode, nullable=False)
-    outFile = Column(Unicode, nullable = False)
+    name = Column(String, nullable=False)
+    outFile = Column(String, nullable = False)
     precipConc = Column(Float, nullable=False)
     partition = Column(Float, nullable=False)
 
@@ -184,10 +184,10 @@ class Sediment(DeclarativeBase):
     mapTableID = Column(Integer, ForeignKey('cmt_map_tables.id'), nullable=False)
     
     # Value Columns
-    description = Column(Unicode, nullable=False)
+    description = Column(String, nullable=False)
     specificGravity = Column(Float, nullable=False)
     particleDiameter = Column(Float,nullable=False)
-    outFile = Column(Unicode, nullable=False)
+    outFile = Column(String, nullable=False)
     
     # Relationship Properties
     mapTable = relationship('MapTable', back_populates='sediment')
