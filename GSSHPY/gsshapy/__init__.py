@@ -8,6 +8,6 @@ maker = sessionmaker(autoflush=True, autocommit=False)
 DBSession = scoped_session(maker)
 
 def init_model(engine):
-    """Call me before using any of the tables or classes in the model."""
+    """Call this before using any of the tables or classes in the model."""
     DBSession.configure(bind=engine)
 
