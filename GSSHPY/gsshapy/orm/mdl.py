@@ -11,10 +11,11 @@
 __all__ = ['ModelInstance']
 
 from sqlalchemy import Column
-from sqlalchemy.types import Integer, DateTime, String
+from sqlalchemy.types import Integer, DateTime, Unicode
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from model.gsshapy import DeclarativeBase
+from gsshapy.orm import DeclarativeBase
 
 
 class ModelInstance(DeclarativeBase):
@@ -28,8 +29,8 @@ class ModelInstance(DeclarativeBase):
     id = Column(Integer, autoincrement=True, primary_key=True)
     
     # Value Columns
-    name = Column(String, nullable=False)
-    location = Column(String)
+    name = Column(Unicode, nullable=False)
+    location = Column(Unicode)
     beginDate = Column(DateTime)
     endDate = Column(DateTime)
     
@@ -37,7 +38,8 @@ class ModelInstance(DeclarativeBase):
     projectOptions = relationship('ProjectOption', back_populates='model')
     mapTable = relationship('MapTable', back_populates='model')
     timeseries = relationship('TimeSeries', back_populates='model')
-    
+    indexMaps = relationship('IndexMap', back_populates='model')
+
     def __init__(self, name, location='', beginDate=None, endDate=None):
         '''
         Constructor

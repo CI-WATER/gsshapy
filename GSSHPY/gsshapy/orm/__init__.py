@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 '''
 ********************************************************************************
-* Name: GSSHAPY
+* Name: gsshapy.orm
 * Author: Nathan Swain
 * Created On: Mar 18, 2013
 * Copyright: (c) Brigham Young University 2013
@@ -45,5 +44,6 @@ from prj import *
 from idx import *
 from cmt import *
 from timeseries import *
+from gag.py import *
 
 

@@ -1,6 +1,20 @@
-# -*- coding: utf-8 -*-
-"""Setup the Tethys application"""
+'''
+Created on May 10, 2013
 
+@author: swainn
+'''
+
+if __name__ == '__main__':
+    from gsshapy.orm import *
+    from sqlalchemy import create_engine
+    
+    engine = create_engine('postgresql+pg8000://sdc50@localhost:5432/post_gssha_test')
+    metadata.create_all(engine)
+    
+    
+
+"""Bootstrap data for Tethys application"""
+'''
 from tethys import model
 from datetime import date
 
@@ -354,4 +368,6 @@ DBSession.add(mdls)
 DBSession.commit()
     
 
+
+'''
 

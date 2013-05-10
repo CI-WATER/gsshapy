@@ -1,6 +1,6 @@
 '''
 ********************************************************************************
-* Name: IndexMapModel
+* Name: TimeSeriesModel
 * Author: Nathan Swain
 * Created On: Mar 18, 2013
 * Copyright: (c) Brigham Young University 2013
@@ -14,7 +14,7 @@ from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
 
-from model.gsshapy import DeclarativeBase
+from gsshapy.orm import DeclarativeBase
 
 class TimeSeries(DeclarativeBase):
     """
@@ -31,10 +31,11 @@ class TimeSeries(DeclarativeBase):
     name = Column(String, nullable=False)
     fileExtension = Column(String, nullable=False)
     numValues = Column(Integer)
+    # valueUnits = Column(String)
     
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='timeseries')
-    values = relationship('TimeSeriesValue', back_populates='timeseries')
+    values = relationship('TimeSeriesValue', back_populates='timeseries', cascade='all, delete, delete-orphan')
     
     def __init__(self, name, fileExtension, numValues):
         '''
@@ -74,4 +75,4 @@ class TimeSeriesValue(DeclarativeBase):
         self.value = value
         
     def __repr__(self):
-        return '<TimeSeriesValue: Name=%s, Time=%s, Value=%s>' % (self.name, self.simTime, self.value)
+        return '<TimeSeriesValue: Time=%s, Value=%s>' % (self.simTime, self.value)

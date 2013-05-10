@@ -10,11 +10,11 @@
 
 __all__ = ['IndexMap']
 
-from sqlalchemy import Column
-from sqlalchemy.types import Integer, String
+from sqlalchemy import Column, ForeignKey
+from sqlalchemy.types import Integer, Unicode
 from sqlalchemy.orm import relationship
 
-from model.gsshapy import DeclarativeBase
+from gsshpy.orm import DeclarativeBase
 
 
 class IndexMap(DeclarativeBase):
@@ -26,14 +26,17 @@ class IndexMap(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
+    modelID = Column(Integer, ForeignKey('model_instances.id'))
     
     # Value Columns
-    name = Column(String, nullable=False)
-    filename = Column(String, nullable=False)
-    rasterMap = Column(String) # Custom column to store rasters
+    name = Column(Unicode, nullable=False)
+    filename = Column(Unicode, nullable=False)
+    rasterMap = Column(Unicode) # Custom column to store rasters
     
     # Relationship Properties
     mapTables = relationship('MapTable', back_populates='indexMap')
+    indices = relationship('MTIndex', back_populates='indexMap')
+    model = relationship('ModelInstance', back_populates='indexMaps')
     
     def __init__(self, name, filename, rasterMap):
         '''

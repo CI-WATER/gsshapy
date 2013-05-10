@@ -11,10 +11,10 @@
 __all__ = ['MapTable','MTValue', 'MTIndex','Contaminant','Sediment']
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, Enum, Float, String
+from sqlalchemy.types import Integer, Enum, Float, Unicode
 from sqlalchemy.orm import relationship
 
-from model.gsshapy import DeclarativeBase
+from gsshapy.orm import DeclarativeBase
 
 # Controlled Vocabulary Lists
 mapTableNameEnum = Enum('ROUGHNESS','INTERCEPTION','RETENTION','GREEN_AMPT_INFILTRATION',\
@@ -58,8 +58,8 @@ class MapTable(DeclarativeBase):
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='mapTable')
     indexMap = relationship('IndexMap', back_populates='mapTables')
-    values = relationship('MTValue', back_populates='mapTable')
-    sediment = relationship('Sediment', back_populates='mapTable')
+    values = relationship('MTValue', back_populates='mapTable', cascade='all, delete, delete-orphan')
+    sediment = relationship('Sediment', back_populates='mapTable', cascade='all, delete, delete-orphan')
     
     def __init__(self, name, numIDs=None, maxNumCells=None, numSed=None, numContam=None):
         '''
@@ -82,14 +82,17 @@ class MTIndex(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
+    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'), nullable=False)
     
     # Value Columns
     index = Column(Integer, nullable=False)
-    description1 = Column(String(40))
-    description2 = Column(String(40))
+    description1 = Column(Unicode(40))
+    description2 = Column(Unicode(40))
     
     # Relationship Properties
-    value = relationship('MTValue', back_populates='index')
+    values = relationship('MTValue', back_populates='index')
+    indexMap = relationship('IndexMap', back_populates='indices')
+    
     
     def __init__(self, index, description1='', description2=''):
         '''
@@ -122,7 +125,7 @@ class MTValue(DeclarativeBase):
     # Relationship Properties
     mapTable = relationship('MapTable', back_populates='values')
     contaminant = relationship('Contaminant', back_populates='value')
-    index = relationship('MTIndex', back_populates='value')
+    index = relationship('MTIndex', back_populates='values')
     
     def __init__(self, variable, value=None):
         '''
@@ -147,8 +150,8 @@ class Contaminant(DeclarativeBase):
     id = Column(Integer, autoincrement=True, primary_key=True)
     
     # Value Columns
-    name = Column(String, nullable=False)
-    outFile = Column(String, nullable = False)
+    name = Column(Unicode, nullable=False)
+    outFile = Column(Unicode, nullable = False)
     precipConc = Column(Float, nullable=False)
     partition = Column(Float, nullable=False)
 
@@ -181,10 +184,10 @@ class Sediment(DeclarativeBase):
     mapTableID = Column(Integer, ForeignKey('cmt_map_tables.id'), nullable=False)
     
     # Value Columns
-    description = Column(String, nullable=False)
+    description = Column(Unicode, nullable=False)
     specificGravity = Column(Float, nullable=False)
     particleDiameter = Column(Float,nullable=False)
-    outFile = Column(String, nullable=False)
+    outFile = Column(Unicode, nullable=False)
     
     # Relationship Properties
     mapTable = relationship('MapTable', back_populates='sediment')
@@ -200,5 +203,3 @@ class Sediment(DeclarativeBase):
     
     def __repr__(self):
         return '<Sediment: Name=%s>' % (self.description, self.specificGravity, self.particleDiameter, self.outFile)
-    
-    

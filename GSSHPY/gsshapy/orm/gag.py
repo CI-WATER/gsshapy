@@ -1,6 +1,6 @@
 '''
 ********************************************************************************
-* Name: gag
+* Name: PrecipitationModel
 * Author: Nathan Swain
 * Created On: Mar 6, 2013
 * Copyright: (c) Brigham Young University 2013
@@ -16,7 +16,7 @@ from sqlalchemy import Table, ForeignKey, Column
 from sqlalchemy.types import Unicode, Integer, DateTime, String
 from sqlalchemy.orm import relation, synonym, relationship, backref
 
-from gsshapy import DeclarativeBase, metadata, DBSession
+from gsshapy.orm import DeclarativeBase
 
 
 class Event(DeclarativeBase):
