@@ -1,4 +1,6 @@
 *.class
 *.pyc
 *.pyo
+*.project
+*.pydevproject
 */.git/*
