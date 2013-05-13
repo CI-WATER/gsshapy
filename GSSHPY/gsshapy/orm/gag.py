@@ -50,7 +50,7 @@ class PrecipEvent(DeclarativeBase):
         
 
     def __repr__(self):
-        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds);
+        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds)
     
     
 class PrecipValue(DeclarativeBase):

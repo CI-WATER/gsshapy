@@ -40,6 +40,7 @@ class ModelInstance(DeclarativeBase):
     timeseries = relationship('TimeSeries', back_populates='model')
     indexMaps = relationship('IndexMap', back_populates='model')
     precipEvents = relationship('PrecipEvent', back_populates='model')
+    streamLinks = relationship('StreamLinks', back_populates='model')
 
     def __init__(self, name, location='', beginDate=None, endDate=None):
         '''
