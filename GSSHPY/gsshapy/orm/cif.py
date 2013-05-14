@@ -2,7 +2,7 @@
 ********************************************************************************
 * Name: StreamNetwork
 * Author: Nathan Swain
-* Created On: Mar 6, 2013
+* Created On: May 12, 2013
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
@@ -11,7 +11,17 @@
 import os, sys
 from datetime import datetime
 
-__all__ = ['PrecipEvent','PrecipValue','PrecipGage']
+__all__ = ['StreamNetwork', 
+           'StreamLink', 
+           'UpstreamLink', 
+           'Node', 
+           'Wier', 
+           'Culvert', 
+           'Reservoir', 
+           'ReservoirPoint', 
+           'BreakpointCS', 
+           'Breakpoint', 
+           'TrapezoidalCS']
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String, Float, Boolean
@@ -25,7 +35,7 @@ class StreamNetwork(DeclarativeBase):
     '''
     classdocs
     '''
-    __tablename__ = 'cif_contants'
+    __tablename__ = 'cif_stream_networks'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
@@ -66,7 +76,7 @@ class StreamLink(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'))
+    modelID = Column(Integer, ForeignKey('cif_stream_networks.id'))
     
     # Value Columns
     linkType = Column(String, nullable=False)
@@ -84,6 +94,7 @@ class StreamLink(DeclarativeBase):
     reservoirs = relationship('Reservoir', back_populates='streamLink')
     breakpointCS = relationship('BreakpointCS', back_populates='streamLink')
     trapezoidalCS = relationship('TrapezoidalCS', back_populates='streamLink')
+    streamGridCells = relationship('StreamGridCell', back_populates='streamLink')
     
     def __init__(self, linkType, numElements, dx, downstreamLinkID, numUpstreamLinks):
         '''
@@ -138,7 +149,7 @@ class Node(DeclarativeBase):
     linkID = Column(Integer, ForeignKey('cif_links.id'))
     
     # Value Columns
-    linkNodeID = Column(Integer, nullable=False)
+    linkNode = Column(Integer, nullable=False)
     x = Column(Float, nullable=False)
     y = Column(Float, nullable=False)
     elevation = Column(Float, nullable=False)
@@ -148,18 +159,18 @@ class Node(DeclarativeBase):
     streamLink = relationship('StreamLink', back_populates='nodes')
 
     
-    def __init__(self, linkNodeID, x, y, elevation):
+    def __init__(self, linkNode, x, y, elevation):
         '''
         Constructor
         '''
-        self.linkNodeID = linkNodeID
+        self.linkNode = linkNode
         self.x = x
         self.y = y
         self.elevation = elevation
         
 
     def __repr__(self):
-        return '<Node: LinkNodeID=%s, X=%s, Y=%s, Elevation=%s>' % (self.linkNodeID, self.x, self.y, self.elevation)
+        return '<Node: LinkNode=%s, X=%s, Y=%s, Elevation=%s>' % (self.linkNodeID, self.x, self.y, self.elevation)
     
         
     
@@ -281,7 +292,7 @@ class Reservoir(DeclarativeBase):
     
     # Relationship Properties
     streamLink = relationship('StreamLink', back_populates='reservoirs')
-    reservoirPoints = relationship('ReservoirPoints', back_populates='reservoir')
+    reservoirPoints = relationship('ReservoirPoint', back_populates='reservoir')
     
     def __init__(self, initialWSE, minWSE, maxWSE):
         '''
@@ -296,7 +307,7 @@ class Reservoir(DeclarativeBase):
     
 
 
-class ReservoirPoints(DeclarativeBase):
+class ReservoirPoint(DeclarativeBase):
     '''
     classdocs
     '''
