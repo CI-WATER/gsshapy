@@ -2,7 +2,7 @@
 ********************************************************************************
 * Name: GridToStream
 * Author: Nathan Swain
-* Created On: May 12, 2013
+* Created On: May 14, 2013
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
@@ -11,10 +11,10 @@
 import os, sys
 from datetime import datetime
 
-__all__ = ['StreamGridCell']
+__all__ = ['StreamGridCell', 'StreamGridNode']
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, String, Float, Boolean
+from sqlalchemy.types import Integer, Float
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase

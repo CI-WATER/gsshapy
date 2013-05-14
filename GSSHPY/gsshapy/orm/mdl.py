@@ -41,6 +41,7 @@ class ModelInstance(DeclarativeBase):
     indexMaps = relationship('IndexMap', back_populates='model')
     precipEvents = relationship('PrecipEvent', back_populates='model')
     streamNetwork = relationship('StreamNetwork', back_populates='model')
+    hmet = relationship('HMET', back_populates='model')
 
     def __init__(self, name, location='', beginDate=None, endDate=None):
         '''
