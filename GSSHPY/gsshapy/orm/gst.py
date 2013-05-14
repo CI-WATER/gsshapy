@@ -11,7 +11,8 @@
 import os, sys
 from datetime import datetime
 
-__all__ = ['StreamGridCell', 'StreamGridNode']
+__all__ = ['StreamGridCell',
+           'StreamGridNode']
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float
