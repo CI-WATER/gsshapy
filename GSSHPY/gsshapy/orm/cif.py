@@ -14,10 +14,48 @@ from datetime import datetime
 __all__ = ['PrecipEvent','PrecipValue','PrecipGage']
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, DateTime, String, Float
+from sqlalchemy.types import Integer, String, Float, Boolean
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+
+
+    
+class StreamNetwork(DeclarativeBase):
+    '''
+    classdocs
+    '''
+    __tablename__ = 'cif_contants'
+    
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    modelID = Column(Integer, ForeignKey('model_instances.id'))
+    
+    # Value Columns
+    alpha = Column(Float)
+    beta = Column(Float)
+    theta = Column(Float)
+    numLinks = Column(Integer)
+    maxNodes = Column(Integer)
+    
+    # Relationship Properties
+    model = relationship('ModelInstance', back_populates='streamNetwork')
+    streamLinks = relationship('StreamLink', back_populates='streamNetwork')
+    
+    def __init__(self, alpha, beta, theta, numLinks, maxNodes):
+        '''
+        Constructor
+        '''
+        self.alpha = alpha
+        self.beta = beta
+        self.theta = theta
+        self.numLinks = numLinks
+        self.maxNodes = maxNodes
+
+    def __repr__(self):
+        return '<StreamNetwork: Alpha=%s, Beta=%s, Theta=%s, NumLinks=%s, MaxNodes=%s>' % (self.alpha, self.beta, self.theta, self.numLinks, self.maxNodes)
+    
+
 
 
 class StreamLink(DeclarativeBase):
@@ -34,51 +72,39 @@ class StreamLink(DeclarativeBase):
     linkType = Column(String, nullable=False)
     numElements = Column(Integer, nullable=False)
     dx = Column(Float)
+    downstreamLinkID = Column(Integer, nullable=False)
+    numUpstreamLinks = Column(Integer, nullable=False)
 
     # Relationship Properties
-    model = relationship('ModelInstances', back_populates='streamLinks')
-    connectivity = relationship('Connectivity', back_populates='streamLink')
+    streamNetwork = relationship('StreamNetwork', back_populates='streamLinks')
+    upstreamLinks = relationship('UpstreamLink', back_populates='streamLink')
+    nodes = relationship('Node', back_populates='streamLink')
+    weirs = relationship('Weir', back_populates='streamLink')
+    culverts = relationship('Culvert', back_populates='streamLink')
+    reservoirs = relationship('Reservoir', back_populates='streamLink')
+    breakpointCS = relationship('BreakpointCS', back_populates='streamLink')
+    trapezoidalCS = relationship('TrapezoidalCS', back_populates='streamLink')
     
-    def __init__(self, linkType, numElements, dx):
+    def __init__(self, linkType, numElements, dx, downstreamLinkID, numUpstreamLinks):
         '''
         Constructor
         '''
         self.linkType = linkType
         self.numElements = numElements
-        self.dx = dx      
+        self.dx = dx
+        self.downstreamLinkID = downstreamLinkID
+        self.numUpstreamLinks = numUpstreamLinks      
         
 
     def __repr__(self):
-        return '<StreamLink: LinkType=%s, NumberElements=%s, DX=%s>' % (self.linkType, self.numElements, self.dx)
+        return '<StreamLink: LinkType=%s, NumberElements=%s, DX=%s, DownstreamLinkID=%s, NumUpstreamLinks=%s>' % (
+                self.linkType,
+                self.numElements, 
+                self.dx, 
+                self.downstreamLinkID, 
+                self.numUpstreamLinks)
     
 
-class Connectivity(DeclarativeBase):
-    '''
-    classdocs
-    '''
-    __tablename__ = 'cif_connectivity'
-    
-    # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    linkID = Column(Integer, ForeignKey('cif_links.id'))
-
-    # Value Columns
-    downstreamLinkID = Column(Integer, nullable=False)
-    numUpstreamLinks = Column(Integer, nullable=False)
-    
-    # Relationship Properties
-    streamLink = relationship('StreamLink', back_populates='connectivity')
-    upstreamLinks = relationship('UpstreamLink', back_populates='connectivity')
-    
-    def __init__(self, downstreamLinkID, numUpstreamLinks):
-        '''
-        Constructor
-        '''
-        self.downstreamLinkID = downstreamLinkID
-        self.numUpstreamLinks = numUpstreamLinks
-
-    def __repr__(self):
-        return '<PrecipEvent: DownstreamLinkID=%s, NumUpstreamLinks=%s, UpstreamLinks=%s>' % (self.downstreamLinkID, self.numUpstreamLinks, self.upstreamLinks)
     
 class UpstreamLink(DeclarativeBase):
     '''
@@ -94,10 +120,11 @@ class UpstreamLink(DeclarativeBase):
     upstreamLinkID = Column(Integer, nullable=False)
     
     # Relationship Properties
-    connectivity = relationship('Connectivity', back_populates='upstreamLinks')
+    streamLink = relationship('StreamLink', back_populates='upstreamLinks')
     
     def __init__(self, upstreamLinkID):
         self.upstreamLinkID = upstreamLinkID
+        
 
     
 class Node(DeclarativeBase):
@@ -111,47 +138,30 @@ class Node(DeclarativeBase):
     linkID = Column(Integer, ForeignKey('cif_links.id'))
     
     # Value Columns
-
+    linkNodeID = Column(Integer, nullable=False)
+    x = Column(Float, nullable=False)
+    y = Column(Float, nullable=False)
+    elevation = Column(Float, nullable=False)
+    
     
     # Relationship Properties
+    streamLink = relationship('StreamLink', back_populates='nodes')
 
     
-    def __init__(self):
+    def __init__(self, linkNodeID, x, y, elevation):
         '''
         Constructor
         '''
-       
+        self.linkNodeID = linkNodeID
+        self.x = x
+        self.y = y
+        self.elevation = elevation
         
 
     def __repr__(self):
-        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds)
+        return '<Node: LinkNodeID=%s, X=%s, Y=%s, Elevation=%s>' % (self.linkNodeID, self.x, self.y, self.elevation)
     
-    
-class Structure(DeclarativeBase):
-    '''
-    classdocs
-    '''
-    __tablename__ = 'cif_structures'
-    
-    # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-
-    
-    # Value Columns
-
-    
-    # Relationship Properties
-
-    
-    def __init__(self):
-        '''
-        Constructor
-        '''
-       
         
-
-    def __repr__(self):
-        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds)
     
 class Weir(DeclarativeBase):
     '''
@@ -161,24 +171,47 @@ class Weir(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-
+    linkID = Column(Integer, ForeignKey('cif_links.id'))
     
     # Value Columns
-
+    crestLength = Column(Float)
+    crestLowElevation = Column(Float)
+    dischargeCoeffForward = Column(Float)
+    dischargeCoeffReverse = Column(Float)
+    crestLowLocation = Column(Float)
+    steepSlope = Column(Float)
+    shallowSlope = Column(Float)
     
     # Relationship Properties
+    streamLink = relationship('StreamLink', back_populates='weirs')
 
     
-    def __init__(self):
+    def __init__(self, crestLength, crestLowElevation, dischargeCoeffForward, dischargeCoeffReverse, crestLowLocation, steepSlope, shallowSlope):
         '''
         Constructor
         '''
+        self.crestLength = crestLength
+        self.crestLowElevation = crestLowElevation
+        self.dischargeCoeffForward = dischargeCoeffForward
+        self.dischargeCoeffReverse = dischargeCoeffReverse
+        self.crestLowLocation = crestLowLocation
+        self.steepSlope = steepSlope
+        self.shallowSlope = shallowSlope
        
         
 
     def __repr__(self):
-        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds)
+        return '<Weir: CrestLenght=%s, CrestLowElevation=%s, DischargeCoeffForward=%s, DischargeCoeffReverse=%s, CrestLowLocation=%s, SteepSlope=%s, ShallowSlope=%s>' % (
+               self.crestLength,
+               self.crestLowElevation,
+               self.dischargeCoeffForward,
+               self.dischargeCoeffReverse,
+               self.crestLowLocation,
+               self.steepSlope,
+               self.shallowSlope)
     
+    
+
 class Culvert(DeclarativeBase):
     '''
     classdocs
@@ -187,24 +220,50 @@ class Culvert(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
+    linkID = Column(Integer, ForeignKey('cif_links.id'))
 
-    
     # Value Columns
-
+    upstreamInvert = Column(Float)
+    downstreamInvert = Column(Float)
+    inletDischargeCoeff = Column(Float)
+    reverseFlowDischargeCoeff = Column(Float)
+    slope = Column(Float)
+    length = Column(Float)
+    roughness = Column(Float)
+    widthOrDiameter = Column(Float)
+    height = Column(Float)
     
     # Relationship Properties
-
+    streamLink = relationship('StreamLink', back_populates='culverts')
     
-    def __init__(self):
+    def __init__(self, upstreamInvert, downstreamInvert, inletDischargeCoeff, reverseFlowDischargeCoeff, slope, length, roughness, widthOrDiameter, height):
         '''
         Constructor
         '''
-       
-        
+        self.upstreamInvert = upstreamInvert
+        self.downstreamInvert = downstreamInvert
+        self.inletDischargeCoeff = inletDischargeCoeff
+        self.reverseFlowDischargeCoeff = reverseFlowDischargeCoeff
+        self.slope = slope
+        self.length = length
+        self.roughness = roughness
+        self.widthOrDiameter = widthOrDiameter
+        self.height = height        
 
     def __repr__(self):
-        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds)
+        return '<Culvert: UpstreamInvert=%s, DownstreamInvert=%s, InletDischargeCoeff=%s, ReverseFlowDischargeCoeff=%s, Slope=%s, Length=%s, Roughness=%s, WidthOrDiameter=%s, Height=%s>' % (
+                self.upstreamInvert,
+                self.downstreamInvert,
+                self.inletDischargeCoeff,
+                self.reverseFlowDischargeCoeff,
+                self.slope,
+                self.length,
+                self.roughness,
+                self.widthOrDiameter,
+                self.height)
     
+
+
 class Reservoir(DeclarativeBase):
     '''
     classdocs
@@ -213,24 +272,30 @@ class Reservoir(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-
+    linkID = Column(Integer, ForeignKey('cif_links.id'))
     
     # Value Columns
-
+    initWSE = Column(Float)
+    minWSE = Column(Float)
+    maxWSE = Column(Float)
     
     # Relationship Properties
-
+    streamLink = relationship('StreamLink', back_populates='reservoirs')
+    reservoirPoints = relationship('ReservoirPoints', back_populates='reservoir')
     
-    def __init__(self):
+    def __init__(self, initialWSE, minWSE, maxWSE):
         '''
         Constructor
         '''
-       
-        
+        self.initWSE = initialWSE
+        self.minWES = minWSE
+        self.maxWSE = maxWSE
 
     def __repr__(self):
-        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds)
+        return '<Reservoir: InitialWSE=%s, MinWSE=%s, MaxWSE=%s>' % (self.initWSE, self.minWES, self.maxWSE)
     
+
+
 class ReservoirPoints(DeclarativeBase):
     '''
     classdocs
@@ -239,24 +304,28 @@ class ReservoirPoints(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-
+    reservoirID = Column(Integer, ForeignKey('cif_resrvoirs.id'))
     
     # Value Columns
-
+    cellI = Column(Integer, nullable=False)
+    cellJ = Column(Integer, nullable=False)
     
     # Relationship Properties
-
+    reservoir = relationship('Reservoir', back_populates='reservoirPoints')
     
-    def __init__(self):
+    def __init__(self, cellI, cellJ):
         '''
         Constructor
         '''
-       
-        
+        self.cellI = cellI
+        self.cellJ = cellJ       
 
     def __repr__(self):
-        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds)
+        return '<ReservoirPoint: CellI=%s, CellJ=%s>' % (self.cellI, self.cellJ)
     
+
+
+
 class BreakpointCS(DeclarativeBase):
     '''
     classdocs
@@ -265,25 +334,44 @@ class BreakpointCS(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-
+    linkID = Column(Integer, ForeignKey('cif_links.id'))
     
     # Value Columns
-
+    mannings_n = Column(Float)
+    numPairs = Column(Integer)
+    numInterp = Column(Float)
+    mRiver = Column(Float)
+    kRiver = Column(Float)
+    erode = Column(Boolean)
+    subsurface = Column(Boolean)
     
     # Relationship Properties
-
+    streamLink = relationship('StreamLink', back_populates='breakpointCS')
+    breakpoints = relationship('Breakpoint', back_populates='crossSection')
     
-    def __init__(self):
+    def __init__(self, mannings_n, numPairs, numInterp, mRiver, kRiver, erode, subsurface):
         '''
         Constructor
         '''
-       
-        
+        self.mannings_n = mannings_n
+        self.numPairs = numPairs
+        self.numInterp = numInterp
+        self.mRiver = mRiver
+        self.kRiver = kRiver
+        self.erode = erode
+        self.subsurface =subsurface
 
     def __repr__(self):
-        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds)
+        return '<BreakpointCrossSection: Mannings-n=%s, NumPairs=%s, NumInterp=%s, M-River=%s, K-River=%s, Erode=%s, Subsurface=%s>' % (
+                self.mannings_n, 
+                self.numPairs, 
+                self.numInterp, 
+                self.mRiver, 
+                self.kRiver, 
+                self.erode, 
+                self.subsurface)
     
-class BCSPoints(DeclarativeBase):
+class Breakpoint(DeclarativeBase):
     '''
     classdocs
     '''
@@ -291,23 +379,27 @@ class BCSPoints(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-
+    crossSectionID = Column(Integer, ForeignKey('cif_breakpoint.id'))
     
     # Value Columns
-
+    x = Column(Float, nullable=False)
+    y = Column(Float, nullable=False)
     
     # Relationship Properties
-
+    crossSection = relationship('BreakpointCS', back_populates='breakpoints')
     
-    def __init__(self):
+    def __init__(self, x, y):
         '''
         Constructor
         '''
-       
-        
+        self.x = x
+        self.y = y
 
     def __repr__(self):
-        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds)
+        return '<Breakpoint: X=%s, Y=%s>' % (self.x, self.y)
+    
+    
+
     
 class TrapezoidalCS(DeclarativeBase):
     '''
@@ -317,47 +409,42 @@ class TrapezoidalCS(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-
+    linkID = Column(Integer, ForeignKey('cif_links.id'))
     
     # Value Columns
-
+    mannings_n = Column(Float)
+    bottomWidth = Column(Float)
+    bankfullDepth = Column(Float)
+    sideSlope = Column(Float)
+    mRiver = Column(Float)
+    kRiver = Column(Float)
+    erode = Column(Boolean)
+    subsurface = Column(Boolean)
     
     # Relationship Properties
-
+    streamLink = relationship('StreamLink', back_populates='trapezoidalCS')
     
-    def __init__(self):
+    def __init__(self, manning_n, bottomWidth, bankfullDepth, sideSlope, mRiver, kRiver, erode, subsurface):
         '''
         Constructor
         '''
-       
-        
+        self.mannings_n = manning_n
+        self.bottomWidth = bottomWidth
+        self.bankfullDepth = bankfullDepth
+        self.sideSlope = sideSlope
+        self.mRiver = mRiver
+        self.kRiver = kRiver
+        self.erode = erode
+        self.subsurface = subsurface
 
     def __repr__(self):
-        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds)
-    
-class Constants(DeclarativeBase):
-    '''
-    classdocs
-    '''
-    __tablename__ = 'cif_contants'
-    
-    # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-
-    
-    # Value Columns
-
-    
-    # Relationship Properties
-
-    
-    def __init__(self):
-        '''
-        Constructor
-        '''
-       
+        return '<TrapezoidalCS: Mannings-n=%s, BottomWidth=%s, BankfullDepth=%s, SideSlope=%s, M-River=%s, K-River=%s, Erode=%s, Subsurface=%s>' % (
+                self.mannings_n,
+                self.bottomWidth,
+                self.bankfullDepth,
+                self.sideSlope,
+                self.mRiver,
+                self.kRiver,
+                self.erode,
+                self.subsurface)
         
-
-    def __repr__(self):
-        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds)
-    
