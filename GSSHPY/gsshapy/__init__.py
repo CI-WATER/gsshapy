@@ -19,4 +19,6 @@ DBSession = scoped_session(maker)
 def init_model(engine):
     """Call this before using any of the tables or classes in the model."""
     DBSession.configure(bind=engine)
+    
+from orm import *
 
