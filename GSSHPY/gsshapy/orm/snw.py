@@ -95,7 +95,7 @@ class OrthographicGage(DeclarativeBase):
     elev2 = Column(Float, nullable=False)
     
     # Relationship Properties
-    orthoMeasurement = relationship('OEValue', back_populates='orthographicGage')
+    orthoMeasurement = relationship('OrthoMeasurement', back_populates='orthographicGage')
     model = relationship('ModelInstance', back_populates='orthographicGage')
     
     def __init__(self, numSites, elevBase, elev2):

@@ -102,7 +102,7 @@ class PrecipGage(DeclarativeBase):
     utmEasting = Column(Float, nullable=False)
     
     # Relationship Properties
-    values = relationship('PrecipValues', back_populates='gage')
+    values = relationship('PrecipValue', back_populates='gage')
     
     def __init__(self, description, utmNorthing, utmEasting):
         '''

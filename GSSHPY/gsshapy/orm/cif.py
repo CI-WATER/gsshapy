@@ -125,7 +125,7 @@ class UpstreamLink(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    linkID = Column(Integer, ForeignKey('cif_connectivity.linkID'))
+    linkID = Column(Integer, ForeignKey('cif_links.id'))
     
     # Value Columns
     upstreamLinkID = Column(Integer, nullable=False)
@@ -315,7 +315,7 @@ class ReservoirPoint(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    reservoirID = Column(Integer, ForeignKey('cif_resrvoirs.id'))
+    reservoirID = Column(Integer, ForeignKey('cif_reservoirs.id'))
     
     # Value Columns
     cellI = Column(Integer, nullable=False)

@@ -9,6 +9,8 @@
 '''
 
 import unittest
+from datetime import date
+
 from gsshapy.orm import *
 from sqlalchemy import create_engine
 
@@ -17,6 +19,14 @@ class TestGSSHAORM (unittest.TestCase):
         # Create a database for loading purposes
         self.testEngine = create_engine('sqlite:///:memory', echo=True)
         metadata.create_all(self.testEngine)
+        
+    def test_model_instance(self):
+        self.mdl = ModelInstance("Park City Basic", "Park City, UT", date(2013,1,1), date(2013,1,2))
+        self.assertIsInstance(self.mdl, ModelInstance)
+        self.assertEqual(self.mdl.name, "Park City Basic")
+        self.assertEqual(self.mdl.location, "Park City, UT")
+        self.assertEqual(self.mdl.beginDate, date(2013,1,1))
+        self.assertEqual(self.mdl.endDate, date(2013,1,2))
 
 
 
