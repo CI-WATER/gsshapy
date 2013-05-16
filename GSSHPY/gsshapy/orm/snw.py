@@ -11,7 +11,9 @@
 import os, sys
 from datetime import datetime
 
-__all__ = ['']
+__all__ = ['ElevationNWSFRS',
+           'OrthographicGage',
+           'OrthoMeasurement']
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, DateTime
@@ -77,11 +79,11 @@ class ElevationNWSRFS(DeclarativeBase):
     
     
 
-class OrthographicEffect(DeclarativeBase):
+class OrthographicGage(DeclarativeBase):
     '''
     classdocs
     '''
-    __tablename__ = 'snw_orthographic_effects'
+    __tablename__ = 'snw_orthographic_gages'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)    
@@ -93,8 +95,8 @@ class OrthographicEffect(DeclarativeBase):
     elev2 = Column(Float, nullable=False)
     
     # Relationship Properties
-    values = relationship('OEValue', back_populates='orthographicEffect')
-    model = relationship('ModelInstance', back_populates='orthographicEffect')
+    orthoMeasurement = relationship('OEValue', back_populates='orthographicGage')
+    model = relationship('ModelInstance', back_populates='orthographicGage')
     
     def __init__(self, numSites, elevBase, elev2):
         '''
@@ -105,36 +107,36 @@ class OrthographicEffect(DeclarativeBase):
         self.elev2 = elev2
 
     def __repr__(self):
-        return '<OrthographicEffect: NumSites=%s, ElevBase=%s, Elev2=%s>' % (self.numSites, self.elevBase, self.elev2)
+        return '<OrthographicGage: NumSites=%s, ElevBase=%s, Elev2=%s>' % (self.numSites, self.elevBase, self.elev2)
     
     
     
 
-class OEValue(DeclarativeBase):
+class OrthoMeasuremnt(DeclarativeBase):
     '''
     classdocs
     '''
-    __tablename__ = 'snw_orthographic_effects'
+    __tablename__ = 'snw_orthographic_measurements'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    oeID = Column(Integer, ForeignKey('snw_orthographic_effects.id'))
+    oeID = Column(Integer, ForeignKey('snw_orthographic_gages.id'))
     
     # Value Columns
     dateTime = Column(DateTime, nullable=False)
     temp2 = Column(Float, nullable=False)
     
     # Relationship Properties
-    orthographicEffect = relationship('OrthographicEffect', back_populates='values')
+    orthographicGage = relationship('OrthographicGage', back_populates='orthoMeasurement')
     
     
     def __init__(self, dateTime, temp2):
         '''
         Constructor
         '''
-        self.oeDateTime = dateTime
+        self.dateTime = dateTime
         self.temp2 = temp2
 
     def __repr__(self):
-        return '<OEValue: DateTime=%s, Temp2=%s>' % (self.dateTime, self.temp2)
+        return '<OrthoMeasurement: DateTime=%s, Temp2=%s>' % (self.dateTime, self.temp2)
     
