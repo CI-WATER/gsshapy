@@ -44,6 +44,12 @@ from prj import *
 from idx import *
 from cmt import *
 from timeseries import *
-from gag.py import *
+from gag import *
+from cif import *
+from hmet import *
+from gst import *
+from spn import *
+from gpi import *
+from snw import *
 
 

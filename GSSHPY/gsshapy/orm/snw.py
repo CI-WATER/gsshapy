@@ -11,7 +11,7 @@
 import os, sys
 from datetime import datetime
 
-__all__ = ['ElevationNWSFRS',
+__all__ = ['ElevationNWSRFS',
            'OrthographicGage',
            'OrthoMeasurement']
 
@@ -112,7 +112,7 @@ class OrthographicGage(DeclarativeBase):
     
     
 
-class OrthoMeasuremnt(DeclarativeBase):
+class OrthoMeasurement(DeclarativeBase):
     '''
     classdocs
     '''

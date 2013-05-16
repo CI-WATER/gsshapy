@@ -1,15 +1,30 @@
 '''
-Created on May 10, 2013
-
-@author: swainn
+********************************************************************************
+* Name: ORMTests
+* Author: Nathan Swain
+* Created On: May 16, 2013
+* Copyright: (c) Brigham Young University 2013
+* License: BSD 2-Clause
+********************************************************************************
 '''
 
+import unittest
+from gsshapy.orm import *
+from sqlalchemy import create_engine
+
+class TestGSSHAORM (unittest.TestCase):
+    def setUp(self):
+        # Create a database for loading purposes
+        self.testEngine = create_engine('sqlite:///:memory', echo=True)
+        metadata.create_all(self.testEngine)
+
+
+
+
 if __name__ == '__main__':
-    from gsshapy.orm import *
-    from sqlalchemy import create_engine
+    unittest.main()
     
-    engine = create_engine('postgresql+pg8000://sdc50@localhost:5432/post_gssha_test')
-    metadata.create_all(engine)
+#engine = create_engine('postgresql+pscopg2://sdc50@localhost:5432/post_gssha_test')
     
     
 

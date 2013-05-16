@@ -36,8 +36,8 @@ class PrecipEvent(DeclarativeBase):
     nrPds = Column(Integer, nullable=False)
     
     # Relationship Properties
-    model = relationship('ModelInstance', backpopulates='precipEvents')
-    values = relationship('PrecipValue', backpopulates='event')
+    model = relationship('ModelInstance', back_populates='precipEvents')
+    values = relationship('PrecipValue', back_populates='event')
     
     def __init__(self, description, numGages, numPeriods):
         '''
@@ -70,8 +70,8 @@ class PrecipValue(DeclarativeBase):
     value = Column(Float, nullable=False)
     
     # Relationship Properties
-    event = relationship('PrecipEvent', backpopulates='values')
-    gage = relationship('PrecipGage', backpopulates='values')
+    event = relationship('PrecipEvent', back_populates='values')
+    gage = relationship('PrecipGage', back_populates='values')
 
     def __init__(self, valueType, dateTime, value):
         '''
@@ -102,7 +102,7 @@ class PrecipGage(DeclarativeBase):
     utmEasting = Column(Float, nullable=False)
     
     # Relationship Properties
-    values = relationship('PrecipValues', backpopulates='gage')
+    values = relationship('PrecipValues', back_populates='gage')
     
     def __init__(self, description, utmNorthing, utmEasting):
         '''
