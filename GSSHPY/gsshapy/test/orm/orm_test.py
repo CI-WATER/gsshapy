@@ -19,7 +19,8 @@ from sqlalchemy import create_engine
 class TestGSSHAORM (unittest.TestCase):
     def setUp(self):
         # Create a database for loading purposes
-        testEngine = create_engine('sqlite:///:memory', echo=True)
+        testEngine = create_engine('postgresql://swainn:(|w@ter@localhost:5432/gsshapy')
+        #testEngine = create_engine('sqlite:///:memory', echo=True)
         metadata.create_all(testEngine)
         init_model(testEngine)
         
@@ -29,7 +30,9 @@ class TestGSSHAORM (unittest.TestCase):
         # DB Commit
         DBSession.add(self.data.mdl)
         DBSession.commit()
-  
+    
+    def test_this(self):
+        self.x = 5
     
 
 if __name__ == '__main__':
