@@ -43,6 +43,8 @@ class ModelInstance(DeclarativeBase):
     streamNetwork = relationship('StreamNetwork', back_populates='model')
     pipeNetwork = relationship('PipeNetwork', back_populates='model')
     hmet = relationship('HMET', back_populates='model')
+    elevationNWSRFS = relationship('ElevationNWSRFS', back_populates='model')
+    orthographicEffect = relationship('OrthographicEffect', back_populates='model')
 
     def __init__(self, name, location='', beginDate=None, endDate=None):
         '''
