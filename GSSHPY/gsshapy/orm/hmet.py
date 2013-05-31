@@ -11,13 +11,42 @@
 import os, sys
 from datetime import datetime
 
-__all__ = ['HMET']
+__all__ = ['HMETConfiguration','HMET']
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, Float, DateTime
+from sqlalchemy.types import Integer, String, Float, DateTime
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+
+class HMETConfiguration(DeclarativeBase):
+    '''
+    classdocs
+    '''
+    __tablename__ = 'hmet_files'
+    
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    modelID = Column(Integer, ForeignKey('model_instances.id'))
+    
+    # Value Columns
+    name = Column(String, nullable=False)
+    description = Column(String)
+    
+    # Relationship Properties
+    model = relationship('ModelInstance', back_populates='hmetConfigs')
+    hmetRecords = relationship('HMET', back_populates='hmetConfig')
+    
+    def __init__(self, name, description):
+        '''
+        Constructor
+        '''
+        self.name = name
+        self.description = description
+        
+
+    def __repr__(self):
+        return '<HMETConfiguration: Name=%s, Description=%s>' % (self.name, self.description)
 
 
 class HMET(DeclarativeBase):
@@ -28,7 +57,7 @@ class HMET(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'))
+    hmetConfigID = Column(Integer, ForeignKey('hmet_files.id'))
     
     # Value Columns
     hmetDateTime = Column(DateTime, nullable=False)
@@ -41,7 +70,7 @@ class HMET(DeclarativeBase):
     globalRad = Column(Float, nullable=False)
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='hmet')
+    hmetConfig = relationship('HMETConfiguration', back_populates='hmetRecords')
     
     def __init__(self, hmetDateTime, barometricPress, relHumidity, totalSkyCover, windSpeed, dryBulbTemp, directRad, globalRad):
         '''

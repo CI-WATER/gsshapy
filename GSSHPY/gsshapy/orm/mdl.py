@@ -35,17 +35,16 @@ class ModelInstance(DeclarativeBase):
     endDate = Column(DateTime)
     
     # Relationship Properties
-    projectOptions = relationship('ProjectOption', back_populates='model')
-    mapTable = relationship('MapTable', back_populates='model')
-    timeseries = relationship('TimeSeries', back_populates='model')
+    projectConfigs = relationship('ProjectConfiguration', back_populates='model')
+    precipConfigs = relationship('PrecipConfiguration', back_populates='model')
+    mapTableConfigs = relationship('MapTableConfiguration', back_populates='model')
+    snowConfigs = relationship('SnowConfiguration', back_populates='model')
     indexMaps = relationship('IndexMap', back_populates='model')
-    precipEvents = relationship('PrecipEvent', back_populates='model')
     streamNetwork = relationship('StreamNetwork', back_populates='model')
     pipeNetwork = relationship('PipeNetwork', back_populates='model')
-    hmet = relationship('HMET', back_populates='model')
-    elevationNWSRFS = relationship('ElevationNWSRFS', back_populates='model')
-    orthographicGage = relationship('OrthographicGage', back_populates='model')
-
+    hmetConfigs = relationship('HMETConfiguration', back_populates='model')
+    timeseries = relationship('TimeSeries', back_populates='model')
+    
     def __init__(self, name, location='', beginDate=None, endDate=None):
         '''
         Constructor

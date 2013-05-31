@@ -8,7 +8,7 @@
 ********************************************************************************
 '''
 
-__all__ = ['MapTable','MTValue', 'MTIndex','Contaminant','Sediment']
+__all__ = ['MapTableConfiguration','MapTable','MTValue', 'MTIndex','Contaminant','Sediment']
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Enum, Float, String
@@ -35,6 +35,34 @@ varNameEnum = Enum('ROUGH','STOR_CAPY','INTER_COEF','RETENTION_DEPTH','HYDR_COND
                       'SW_PART','SOLUBILITY',\
                       name='cmt_variable_names')
 
+class MapTableConfiguration(DeclarativeBase):
+    '''
+    classdocs
+    '''
+    __tablename__ = 'cmt_files'
+    
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    modelID = Column(Integer, ForeignKey('model_instances.id'))
+    
+    # Value Columns
+    name = Column(String, nullable=False)
+    description = Column(String)
+    
+    # Relationship Properties
+    model = relationship('ModelInstance', back_populates='mapTableConfigs')
+    mapTables = relationship('MapTable', back_populates='mapTableConfig')
+    
+    def __init__(self, name, description):
+        '''
+        Constructor
+        '''
+        self.name = name
+        self.description = description
+        
+
+    def __repr__(self):
+        return '<MapTableConfiguration: Name=%s, Description=%s>' % (self.name, self.description)
 
 class MapTable(DeclarativeBase):
     """
@@ -45,7 +73,7 @@ class MapTable(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'), nullable=False)
+    mapTableConfigID = Column(Integer, ForeignKey('cmt_files.id'), nullable=False)
     idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'), nullable=False)
     
     # Value Columns
@@ -56,7 +84,7 @@ class MapTable(DeclarativeBase):
     numContam = Column(Integer)
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='mapTable')
+    mapTableConfig = relationship('MapTableConfiguration', back_populates='mapTables')
     indexMap = relationship('IndexMap', back_populates='mapTables')
     values = relationship('MTValue', back_populates='mapTable', cascade='all, delete, delete-orphan')
     sediment = relationship('Sediment', back_populates='mapTable', cascade='all, delete, delete-orphan')

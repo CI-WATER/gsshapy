@@ -11,15 +11,46 @@
 import os, sys
 from datetime import datetime
 
-__all__ = ['ElevationNWSRFS',
+__all__ = ['SnowConfiguration',
+           'ElevationNWSRFS',
            'OrthographicGage',
            'OrthoMeasurement']
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, Float, DateTime
+from sqlalchemy.types import Integer, String, Float, DateTime
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+
+class SnowConfiguration(DeclarativeBase):
+    '''
+    classdocs
+    '''
+    __tablename__ = 'snw_configurations'
+    
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    modelID = Column(Integer, ForeignKey('model_instances.id'))
+    
+    # Value Columns
+    name = Column(String, nullable=False)
+    description = Column(String)
+    
+    # Relationship Properties
+    model = relationship('ModelInstance', back_populates='snowConfigs')
+    elevationNWSRFS = relationship('ElevationNWSRFS', back_populates='snowConfig')
+    orthoGages = relationship('OrthographicGage', back_populates='snowConfig')
+    
+    def __init__(self, name, description):
+        '''
+        Constructor
+        '''
+        self.name = name
+        self.description = description
+        
+
+    def __repr__(self):
+        return '<SnowConfiguration: Name=%s, Description=%s>' % (self.name, self.description)
 
 
 class ElevationNWSRFS(DeclarativeBase):
@@ -30,7 +61,7 @@ class ElevationNWSRFS(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'))
+    snowConfigID = Column(Integer, ForeignKey('snw_configurations.id'))
     
     # Value Columns
     lowerElev = Column(Integer, nullable=False)
@@ -45,7 +76,7 @@ class ElevationNWSRFS(DeclarativeBase):
     plwhc = Column(Float, nullable=False)
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='elevationNWSRFS')
+    snowConfig = relationship('SnowConfiguration', back_populates='elevationNWSRFS')
     
     def __init__(self, lowerElev, upperElev, mfMin, mfMax, scf, frUse, tipm, nmf, fua, plwhc):
         '''
@@ -87,7 +118,7 @@ class OrthographicGage(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)    
-    modelID = Column(Integer, ForeignKey('model_instances.id'))
+    modelID = Column(Integer, ForeignKey('snw_configurations.id'))
     
     # Value Columns
     numSites = Column(Integer, nullable=False)
@@ -95,8 +126,9 @@ class OrthographicGage(DeclarativeBase):
     elev2 = Column(Float, nullable=False)
     
     # Relationship Properties
-    orthoMeasurement = relationship('OrthoMeasurement', back_populates='orthographicGage')
-    model = relationship('ModelInstance', back_populates='orthographicGage')
+    snowConfig = relationship('SnowConfiguration', back_populates='orthoGages')
+    orthoMeasurement = relationship('OrthoMeasurement', back_populates='orthoGage')
+    
     
     def __init__(self, numSites, elevBase, elev2):
         '''
@@ -120,14 +152,14 @@ class OrthoMeasurement(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    oeID = Column(Integer, ForeignKey('snw_orthographic_gages.id'))
+    orthoGageID = Column(Integer, ForeignKey('snw_orthographic_gages.id'))
     
     # Value Columns
     dateTime = Column(DateTime, nullable=False)
     temp2 = Column(Float, nullable=False)
     
     # Relationship Properties
-    orthographicGage = relationship('OrthographicGage', back_populates='orthoMeasurement')
+    orthoGage = relationship('OrthographicGage', back_populates='orthoMeasurement')
     
     
     def __init__(self, dateTime, temp2):

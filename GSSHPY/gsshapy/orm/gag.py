@@ -11,13 +11,43 @@
 import os, sys
 from datetime import datetime
 
-__all__ = ['PrecipEvent','PrecipValue','PrecipGage']
+__all__ = ['PrecipConfiguration','PrecipEvent','PrecipValue','PrecipGage']
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, DateTime, String, Float
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+
+class PrecipConfiguration(DeclarativeBase):
+    '''
+    classdocs
+    '''
+    __tablename__ = 'gag_files'
+    
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    modelID = Column(Integer, ForeignKey('model_instances.id'))
+    
+    # Value Columns
+    name = Column(String, nullable=False)
+    description = Column(String)
+    
+    # Relationship Properties
+    model = relationship('ModelInstance', back_populates='precipConfigs')
+    events = relationship('PrecipEvent', back_populates='precipConfig')
+    
+    def __init__(self, name, description):
+        '''
+        Constructor
+        '''
+        self.name = name
+        self.description = description
+        
+
+    def __repr__(self):
+        return '<PrecipConfiguration: Name=%s, Description=%s>' % (self.name, self.description)
+    
 
 
 class PrecipEvent(DeclarativeBase):
@@ -28,7 +58,7 @@ class PrecipEvent(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'))
+    modelID = Column(Integer, ForeignKey('gag_files.id'))
     
     # Value Columns
     description = Column(String, nullable=False)
@@ -36,7 +66,7 @@ class PrecipEvent(DeclarativeBase):
     nrPds = Column(Integer, nullable=False)
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='precipEvents')
+    precipConfig = relationship('PrecipConfiguration', back_populates='events')
     values = relationship('PrecipValue', back_populates='event')
     
     def __init__(self, description, numGages, numPeriods):
