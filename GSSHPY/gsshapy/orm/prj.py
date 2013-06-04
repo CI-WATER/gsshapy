@@ -8,42 +8,19 @@
 ********************************************************************************
 '''
 
-__all__ = ['ProjectConfiguration','ProjectOption','ProjectCard']
+__all__ = ['ProjectOption','ProjectCard']
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String, Enum
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.scenario import scenarioProject #Association Table
 
 # Controlled Vocabulary List
 valueTypeEnum = Enum('STRING','PATH','INTEGER','FLOAT','DATE','BOOLEAN','TIME', name='prj_card_names')
 
-
-class ProjectConfiguration(DeclarativeBase):
-    """
-    classdocs
-    """
-    __tablename__ = 'prj_project_files'
-    # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'), nullable=False)
-    
-    # Value Columns
-    name = Column(String, nullable=False)
-    description = Column(String)
-    
-    # Relationship Properties
-    model = relationship('ModelInstance', back_populates='projectConfigs')
-    projectOptions = relationship('ProjectOption', back_populates='projectConfig')
-    
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
-        
-    def __repr__(self):
-        return '<ProjectCongfiguration: Name=%s, Description=%s>' % (self.name, self.description)
-        
+     
 class ProjectOption(DeclarativeBase):
     """
     classdocs
@@ -52,14 +29,15 @@ class ProjectOption(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    prjConfigID = Column(Integer, ForeignKey('prj_project_files.id'), nullable=False)
+    modelID = Column(Integer, ForeignKey('model_instances.id'), nullable=False)
     cardID = Column(Integer, ForeignKey('prj_cards_cv.id'), nullable=False)
     
     # Value Columns
     value = Column(String, nullable=False)
     
     # Relationship Properties
-    projectConfig = relationship('ProjectConfiguration', back_populates='projectOptions')
+    model = relationship('ModelInstance', back_populates='projectOptions')
+    scenarios = relationship('Scenario', secondary=scenarioProject, back_populates='projectOptions')
     card = relationship('ProjectCard', back_populates='values')
     
     def __init__(self, value):

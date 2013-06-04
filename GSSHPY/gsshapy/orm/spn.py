@@ -19,6 +19,7 @@ from sqlalchemy.types import Integer, Float
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.scenario import scenarioPipeNetwork
 
 
     
@@ -36,6 +37,7 @@ class PipeNetwork(DeclarativeBase):
     
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='pipeNetwork')
+    scenarios = relationship('Scenario', secondary=scenarioPipeNetwork, back_populates='pipeNetworks')
     superLinks = relationship('SuperLink', back_populates='pipeNetwork')
     superJunctions = relationship('SuperJunction', back_populates='pipeNetwork')
     

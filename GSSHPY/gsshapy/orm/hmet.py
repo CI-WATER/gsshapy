@@ -1,6 +1,6 @@
 '''
 ********************************************************************************
-* Name: Hydro-MeteorologicalSupport
+* Name: Hydro-Meteorological Tables
 * Author: Nathan Swain
 * Created On: May 14, 2013
 * Copyright: (c) Brigham Young University 2013
@@ -11,19 +11,20 @@
 import os, sys
 from datetime import datetime
 
-__all__ = ['HMETConfiguration','HMET']
+__all__ = ['HMETCollection','HMETRecord']
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String, Float, DateTime
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.scenario import scenarioHMET
 
-class HMETConfiguration(DeclarativeBase):
+class HMETCollection(DeclarativeBase):
     '''
     classdocs
     '''
-    __tablename__ = 'hmet_files'
+    __tablename__ = 'hmet_collections'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
@@ -34,8 +35,9 @@ class HMETConfiguration(DeclarativeBase):
     description = Column(String)
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='hmetConfigs')
-    hmetRecords = relationship('HMET', back_populates='hmetConfig')
+    model = relationship('ModelInstance', back_populates='hmetCollections')
+    scenarios = relationship('Scenario', secondary=scenarioHMET, back_populates='hmetCollections')
+    hmetRecords = relationship('HMETRecord', back_populates='hmetCollection')
     
     def __init__(self, name, description):
         '''
@@ -49,15 +51,15 @@ class HMETConfiguration(DeclarativeBase):
         return '<HMETConfiguration: Name=%s, Description=%s>' % (self.name, self.description)
 
 
-class HMET(DeclarativeBase):
+class HMETRecord(DeclarativeBase):
     '''
     classdocs
     '''
-    __tablename__ = 'hmet'
+    __tablename__ = 'hmet_records'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    hmetConfigID = Column(Integer, ForeignKey('hmet_files.id'))
+    hmetConfigID = Column(Integer, ForeignKey('hmet_collections.id'))
     
     # Value Columns
     hmetDateTime = Column(DateTime, nullable=False)
@@ -70,7 +72,7 @@ class HMET(DeclarativeBase):
     globalRad = Column(Float, nullable=False)
     
     # Relationship Properties
-    hmetConfig = relationship('HMETConfiguration', back_populates='hmetRecords')
+    hmetCollection = relationship('HMETCollection', back_populates='hmetRecords')
     
     def __init__(self, hmetDateTime, barometricPress, relHumidity, totalSkyCover, windSpeed, dryBulbTemp, directRad, globalRad):
         '''

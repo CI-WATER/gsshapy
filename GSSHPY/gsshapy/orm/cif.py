@@ -28,9 +28,8 @@ from sqlalchemy.types import Integer, String, Float, Boolean
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.scenario import scenarioStreamNetwork
 
-
-    
 class StreamNetwork(DeclarativeBase):
     '''
     classdocs
@@ -50,6 +49,7 @@ class StreamNetwork(DeclarativeBase):
     
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='streamNetwork')
+    scenarios = relationship('Scenario', secondary=scenarioStreamNetwork, back_populates='streamNetworks')
     streamLinks = relationship('StreamLink', back_populates='streamNetwork')
     
     def __init__(self, alpha, beta, theta, numLinks, maxNodes):
@@ -65,8 +65,6 @@ class StreamNetwork(DeclarativeBase):
     def __repr__(self):
         return '<StreamNetwork: Alpha=%s, Beta=%s, Theta=%s, NumLinks=%s, MaxNodes=%s>' % (self.alpha, self.beta, self.theta, self.numLinks, self.maxNodes)
     
-
-
 
 class StreamLink(DeclarativeBase):
     '''
