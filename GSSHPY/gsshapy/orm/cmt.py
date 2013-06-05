@@ -56,7 +56,7 @@ class MapTable(DeclarativeBase):
     numContam = Column(Integer)
     
     # Relationship Properties
-    model = relationship('ModelInsance', back_populates='mapTables')
+    model = relationship('ModelInstance', back_populates='mapTables')
     scenarios = relationship('Scenario', secondary=scenarioMapTable, back_populates='mapTables')
     indexMap = relationship('IndexMap', back_populates='mapTables')
     values = relationship('MTValue', back_populates='mapTable', cascade='all, delete, delete-orphan')

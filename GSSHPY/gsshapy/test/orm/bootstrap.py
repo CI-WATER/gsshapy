@@ -11,14 +11,15 @@
 from gsshapy.orm import *
 from datetime import date
 
-class orm_test_data(object):
-    '''
-    classdocs
-    '''
-    
+def orm_test_data(DBSession):
     # Define Model Instance
     # Define the model instance
-    mdl = ModelInstance("Park City Basic", "Park City, UT", date(2013,1,1), date(2013,1,2))
+    
+    mdl = ModelInstance("Park City Basic", "Park City, UT", date(2013,6,5))
+    
+    # Define a default scenario for this model
+    scn1 = Scenario(name='DEFAULT', description='This is the default scenario for testing purposes.', created=date(2013,6,5), base=True)
+    scn1.model = mdl
     
     # Load the project file
     projectFile = [('WATERSHED_MASK', '"parkcity.msk"','PATH'), 
@@ -58,17 +59,17 @@ class orm_test_data(object):
                    ('IN_HYD_LOCATION', '"parkcity.ihl"','PATH'),
                    ('OUT_HYD_LOCATION', '"parkcity.ohl"','PATH')]
     
-    
-    print projectFile
-    
     for p in projectFile:
-        crd = ProjectCard(p[0], p[2])
-        prj = ProjectOption(p[1])
+        crd = ProjectCard(name=p[0], valueType=p[2])
+        prj = ProjectOption(value=p[1])
         prj.card = crd
         prj.model = mdl
+        prj.scenarios.append(scn1)
+    
+        
         
     # Load Index Maps
-    
+    """
     luse = IndexMap('LandUse', '"luse.idx"','')
     luse.model = mdl
     soil = IndexMap('Soil', '"soil.idx"','')
@@ -368,6 +369,47 @@ class orm_test_data(object):
         val = TimeSeriesValue(v[0],v[1])
         val.timeseries = otl
         
-        
+    """
+    """
+    Test for multiple scenario functionality
+    """
     
+    # Add model definition to the session
+    DBSession.add(mdl) 
+    
+    # Define the new scenario for this model
+    scn2 = Scenario(name='Test Scenario', description='This is a test scenario', created=date(2013,6,5), base=False)
+    scn2.model = mdl
+     
+    # Get all the project options from the default scenario
+    prjOptions = DBSession.query(ProjectCard, ProjectOption).\
+                 join(ProjectOption.card).\
+                 filter(ProjectOption.scenarios.contains(scn1)).\
+                 all()
+
+    # Append new scenario ID to all the existing project options
+    # less the cards to be removed
+    for crd, opt in prjOptions:
+        if crd.name != 'QUIET' and opt.value != '"combo.idx"':
+            opt.scenarios.append(scn2)
         
+    # Add new cards to the second scenario
+    newProjectCards =[('NEW_CARD_1', 'NEWVAL1','BOOLEAN'),
+                      ('NEW_CARD_2', 'NEWVAL2','PATH'),
+                      ('NEW_CARD_3', 'NEWVAL3','INTEGER'),
+                      ('NEW_CARD_4', 'NEWVAL4', 'FLOAT')]
+    
+    for p in newProjectCards:
+        crd = ProjectCard(name=p[0], valueType=p[2])
+        prj = ProjectOption(value=p[1])
+        prj.card = crd
+        prj.model = mdl
+        prj.scenarios.append(scn2)
+            
+      
+    
+    # DB Commit
+    DBSession.add(mdl)    
+
+    
+    

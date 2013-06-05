@@ -11,25 +11,24 @@
 import unittest
 from datetime import date
 
-from gsshapy import *
+from gsshapy import init_model, DBSession, metadata
 from gsshapy.orm import *
-#from gsshapy.test.orm.bootstrap import *
+from gsshapy.test.orm.bootstrap import orm_test_data
 from sqlalchemy import create_engine
 
 class TestGSSHAORM (unittest.TestCase):
     def setUp(self):
         # Create a database for loading purposes
-        testEngine = create_engine('postgresql://swainn:(|w@ter@localhost:5432/gsshapy2')
+        testEngine = create_engine('postgresql://swainn:(|w@ter@localhost:5432/gsshapy_testing')
         #testEngine = create_engine('sqlite:///:memory', echo=True)
         metadata.create_all(testEngine)
         init_model(testEngine)
         
         # Bootstrap Data for testing
-        # self.data = orm_test_data()
+        orm_test_data(DBSession)
         
-        # DB Commit
-        #DBSession.add(self.data.mdl)
-        #DBSession.commit()
+        DBSession.commit()
+        
     
     def test_this(self):
         self.x = 5

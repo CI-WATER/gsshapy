@@ -27,7 +27,7 @@ class NWSRFSRecord(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    model = Column(Integer, ForeignKey('model_instances.id'))
+    modelID = Column(Integer, ForeignKey('model_instances.id'))
     
     # Value Columns
     lowerElev = Column(Integer, nullable=False)

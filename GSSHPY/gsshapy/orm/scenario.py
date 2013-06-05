@@ -8,9 +8,6 @@
 ********************************************************************************
 '''
 
-import os, sys
-from datetime import datetime
-
 __all__ = ['Scenario', 
            'scenarioProject', 
            'scenarioPrecip',
@@ -18,7 +15,7 @@ __all__ = ['Scenario',
            'scenarioStreamNetwork',
            'scenarioPipeNetwork',
            'scenarioHMET',
-           'scenarioTimeSeries'
+           'scenarioTimeSeries',
            'scenarioNWSRFS',
            'scenarioOrthoGage']
 
@@ -101,7 +98,7 @@ class Scenario(DeclarativeBase):
     hmetCollections = relationship('HMETCollection', secondary=scenarioHMET, back_populates='scenarios')
     timeSeries = relationship('TimeSeries', secondary=scenarioTimeSeries, back_populates='scenarios')
     nwsrfsRecords = relationship('NWSRFSRecord', secondary=scenarioNWSRFS, back_populates='scenarios')
-    orthoGages = relationship('OrhtographicGage', secondary=scenarioOrthoGage, back_populates='scenarios')
+    orthoGages = relationship('OrthographicGage', secondary=scenarioOrthoGage, back_populates='scenarios')
     
     def __init__(self, name, description, created, base):
         '''
