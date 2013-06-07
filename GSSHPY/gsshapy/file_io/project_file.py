@@ -28,22 +28,25 @@ class ProjectFile(object):
         '''
         self.session = session
         self.scenario = scenario
-        self.data = self.__retrieve(session, scenario)
         
     
     def write(self, path):
         '''
         Project File Write Method
         '''
+        self.data = self.retrieve()
+        
+        # Initiate write on each ProjectOption
+        for crd, opt in self.data:
+            print opt.write()
         
         
         
-    def __retrieve(self, session, scenario):
+    def retrieve(self):
         '''
         Retrieve project file cards from the database
         '''
-        return session.query(ProjectCard, ProjectOption).\
+        return self.session.query(ProjectCard, ProjectOption).\
                             join(ProjectOption.card).\
-                            filter(ProjectOption.scenarios.contains(scenario)).\
+                            filter(ProjectOption.scenarios.contains(self.scenario)).\
                             all()
-        

@@ -48,7 +48,11 @@ class ProjectOption(DeclarativeBase):
         
 
     def __repr__(self):
-        return '<ProjectOption: Value=%s>' % (self.value) 
+        return '<ProjectOption: Value=%s>' % (self.value)
+    
+    def write(self):
+        n = 25 - len(self.card.name)
+        return '%s%s%s\n' % (self.card.name,' '*n, self.value)
     
     
 class ProjectCard(DeclarativeBase):
