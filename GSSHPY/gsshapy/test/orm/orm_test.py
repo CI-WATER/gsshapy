@@ -22,12 +22,12 @@ class TestGSSHAORM (unittest.TestCase):
         testEngine = create_engine('postgresql://swainn:(|w@ter@localhost:5432/gsshapy_alternate')
         #testEngine = create_engine('sqlite:///:memory', echo=True)
         metadata.create_all(testEngine)
-        init_model(testEngine)
+        #init_model(testEngine)
         
         # Bootstrap Data for testing
-        orm_test_data(DBSession)
+        #orm_test_data(DBSession)
         
-        DBSession.commit()
+        #DBSession.commit()
         
     
     def test_this(self):

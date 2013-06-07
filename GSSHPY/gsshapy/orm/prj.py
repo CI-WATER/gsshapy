@@ -35,27 +35,23 @@ class ProjectFile(DeclarativeBase):
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
     modelID = Column(Integer, ForeignKey('model_instances.id'), nullable=False)
+    mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
     
     # Value Columns
-    name = Column(String)
-    description = Column(String)
-    created = Column(DateTime)
     
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='projectFiles')
     scenarios = relationship('Scenario', back_populates='projectFile')
+    mapTableFiles = relationship('MapTableFile', back_populates='projectFile')
     projectOptions = relationship('ProjectOption', secondary=assocProject, back_populates='projectFiles')
     
-    def __init__(self, name='', description='', created=None):
+    def __init__(self):
         '''
         Constructor
         '''
-        self.name = name
-        self.description = description
-        self.created = created
         
     def __repr__(self):
-        return '<ProjectFile: Name=%s, Description=%s>' % (self.name, self.description)
+        return '<ProjectFile>'
     
     def write(self, session, path):
         '''
@@ -74,9 +70,9 @@ class ProjectFile(DeclarativeBase):
 
      
 class ProjectOption(DeclarativeBase):
-    """
+    '''
     classdocs
-    """
+    '''
     __tablename__ = 'prj_project_options'
     
     # Primary and Foreign Keys
@@ -113,10 +109,10 @@ class ProjectOption(DeclarativeBase):
     
     
 class ProjectCard(DeclarativeBase):
-    """
+    '''
     classdocs
 
-    """
+    '''
     __tablename__ = 'prj_cards_cv'
     
     # Primary and Foreign Keys

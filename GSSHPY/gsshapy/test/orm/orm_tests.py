@@ -1,29 +1,24 @@
 '''
 ********************************************************************************
-* Name: Project File Write Tests
+* Name: ORM Tests
 * Author: Nathan Swain
-* Created On: June 5, 2013
+* Created On: June 7, 2013
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
 '''
 
 from sqlalchemy import create_engine
-from gsshapy.orm import *
+from gsshapy.orm import metadata
+from gsshapy import DBSession
+from gsshapy.test.orm.bootstrap import orm_test_data
 
 # Define the session
 engine = create_engine('postgresql://swainn:(|w@ter@localhost:5432/gsshapy_testing')
-maker = sessionmaker(bind=engine)
-DBSession = maker()
+metadata.create_all(engine)
 
-'''
-Project File
-'''
+DBSession.configure(bind=engine)
 
-# Get scenario object from the database
-projectFile = DBSession.query(ProjectFile).filter(ProjectFile.id == 2).one()
+orm_test_data(DBSession)
 
-projectFile.write(DBSession, '/Users/swainn/testing/write/')
-
-
-
+DBSession.commit()

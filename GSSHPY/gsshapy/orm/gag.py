@@ -18,7 +18,6 @@ from sqlalchemy.types import Integer, DateTime, String, Float
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.scenario import scenarioPrecip
 
 class PrecipEvent(DeclarativeBase):
     '''
@@ -37,7 +36,6 @@ class PrecipEvent(DeclarativeBase):
     
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='precipEvents')
-    scenarios = relationship('Scenario', secondary=scenarioPrecip, back_populates='precipEvents')
     values = relationship('PrecipValue', back_populates='event')
     
     def __init__(self, description, numGages, numPeriods):

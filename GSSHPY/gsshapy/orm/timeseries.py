@@ -15,7 +15,6 @@ from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.scenario import scenarioTimeSeries
 
 class TimeSeries(DeclarativeBase):
     '''
@@ -36,7 +35,6 @@ class TimeSeries(DeclarativeBase):
     
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='timeSeries')
-    scenarios = relationship('Scenario', secondary=scenarioTimeSeries, back_populates='timeSeries')
     values = relationship('TimeSeriesValue', back_populates='timeSeries', cascade='all, delete, delete-orphan')
     
     def __init__(self, name, fileExtension, numValues):

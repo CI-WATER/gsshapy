@@ -8,14 +8,18 @@
 ********************************************************************************
 '''
 
-__all__ = ['MapTable','MTValue', 'MTIndex','Contaminant','Sediment']
+__all__ = ['MapTableFile',
+           'MapTable',
+           'MTValue',
+           'MTIndex',
+           'Contaminant',
+           'Sediment']
 
-from sqlalchemy import ForeignKey, Column
+from sqlalchemy import ForeignKey, Column, Table
 from sqlalchemy.types import Integer, Enum, Float, String
 from sqlalchemy.orm import relationship
 
-from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.scenario import scenarioMapTable
+from gsshapy.orm import DeclarativeBase, metadata
 
 # Controlled Vocabulary Lists
 mapTableNameEnum = Enum('ROUGHNESS','INTERCEPTION','RETENTION','GREEN_AMPT_INFILTRATION',\
@@ -36,16 +40,45 @@ varNameEnum = Enum('ROUGH','STOR_CAPY','INTER_COEF','RETENTION_DEPTH','HYDR_COND
                       'SW_PART','SOLUBILITY',\
                       name='cmt_variable_names')
 
-class MapTable(DeclarativeBase):
-    """
-    classdocs
+assocMapTable = Table('assoc_map_table_files_values', metadata,
+    Column('mapTableFileID', Integer, ForeignKey('cmt_map_table_files.id')),
+    Column('projectOptionID', Integer, ForeignKey('cmt_map_table_values.id'))
+    )
 
-    """
-    __tablename__ = 'cmt_map_tables'
+class MapTableFile(DeclarativeBase):
+    '''
+    classdocs
+    '''
+    __tablename__ = 'cmt_map_table_files'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
     modelID = Column(Integer, ForeignKey('model_instances.id'), nullable=False)
+    
+    # Value Columns
+    
+    # Relationship Properties
+    model = relationship('ModelInstance', back_populates='mapTableFiles')
+    projectFile = relationship('ProjectFile', back_populates='mapTableFiles')
+    mapTableValues = relationship('MTValue', secondary=assocMapTable, back_populates='mapTableFiles')
+    
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        
+    def __repr__(self):
+        return '<MapTableFile>'
+
+class MapTable(DeclarativeBase):
+    '''
+    classdocs
+
+    '''
+    __tablename__ = 'cmt_map_tables'
+    
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)
     idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'), nullable=False)
     
     # Value Columns
@@ -56,8 +89,6 @@ class MapTable(DeclarativeBase):
     numContam = Column(Integer)
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='mapTables')
-    scenarios = relationship('Scenario', secondary=scenarioMapTable, back_populates='mapTables')
     indexMap = relationship('IndexMap', back_populates='mapTables')
     values = relationship('MTValue', back_populates='mapTable', cascade='all, delete, delete-orphan')
     sediment = relationship('Sediment', back_populates='mapTable', cascade='all, delete, delete-orphan')
@@ -107,10 +138,10 @@ class MTIndex(DeclarativeBase):
         return '<MTIndex: Index=%s, Description1=%s, Description2=%s>' % (self.index, self.description1, self.description2)
 
 class MTValue(DeclarativeBase):
-    """
+    '''
     classdocs
 
-    """
+    '''
     __tablename__ = 'cmt_map_table_values'
     
     # Primary and Foreign Keys
@@ -124,9 +155,11 @@ class MTValue(DeclarativeBase):
     value = Column(Float, nullable=False)
     
     # Relationship Properties
+    mapTableFiles = relationship('MapTableFile', secondary=assocMapTable, back_populates='mapTableValues')
     mapTable = relationship('MapTable', back_populates='values')
-    contaminant = relationship('Contaminant', back_populates='value')
     index = relationship('MTIndex', back_populates='values')
+    contaminant = relationship('Contaminant', back_populates='value')
+    
     
     def __init__(self, variable, value=None):
         '''
@@ -141,10 +174,10 @@ class MTValue(DeclarativeBase):
 
 
 class Contaminant(DeclarativeBase):
-    """
+    '''
     classdocs
 
-    """
+    '''
     __tablename__ = 'cmt_contaminants'
     
     # Primary and Foreign Keys
@@ -174,10 +207,10 @@ class Contaminant(DeclarativeBase):
 
     
 class Sediment(DeclarativeBase):
-    """
+    '''
     classdocs
 
-    """
+    '''
     __tablename__ = 'cmt_sediments'
     
     # Primary and Foreign Keys

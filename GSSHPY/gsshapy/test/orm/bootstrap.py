@@ -22,7 +22,7 @@ def orm_test_data(DBSession):
     scn1.model = mdl
     
     # Load the project file
-    projectFile1 = ProjectFile(name='Project File 1', description='This is a test of this way to handle changes.', created=date(2013,6,7))
+    projectFile1 = ProjectFile()
     projectFile1.model = mdl
     
     prjData = [('WATERSHED_MASK', '"parkcity.msk"','PATH'), 
@@ -73,7 +73,7 @@ def orm_test_data(DBSession):
     scn1.projectFile = projectFile1
         
     # Load Index Maps
-    """
+    
     luse = IndexMap('LandUse', '"luse.idx"','')
     luse.model = mdl
     soil = IndexMap('Soil', '"soil.idx"','')
@@ -314,7 +314,8 @@ def orm_test_data(DBSession):
         val = MTValue(v[1], v[2])
         val.mapTable = infilTbl
         val.index = idx[v[0]-1]
-        
+    
+    '''    
     # Load Outlet Hydrograph as a Time Series
     otl = TimeSeries('Outlet Hydrograph','otl', 48)
     otl.model = mdl
@@ -373,7 +374,7 @@ def orm_test_data(DBSession):
         val = TimeSeriesValue(v[0],v[1])
         val.timeseries = otl
         
-    """
+    '''
     """
     Test for multiple scenario functionality
     """
@@ -386,7 +387,7 @@ def orm_test_data(DBSession):
     scn2.model = mdl
     
     # Define a new project file for this scenario.
-    projectFile2 = ProjectFile(name='Project File 2', description='A second project file that is different than the first one')
+    projectFile2 = ProjectFile()
     projectFile2.model = mdl
     
     # Get all the project options belonging to the first Project File as a starting point from the default scenario

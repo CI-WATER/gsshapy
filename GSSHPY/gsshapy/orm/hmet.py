@@ -18,7 +18,6 @@ from sqlalchemy.types import Integer, String, Float, DateTime
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.scenario import scenarioHMET
 
 class HMETCollection(DeclarativeBase):
     '''
@@ -36,7 +35,6 @@ class HMETCollection(DeclarativeBase):
     
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='hmetCollections')
-    scenarios = relationship('Scenario', secondary=scenarioHMET, back_populates='hmetCollections')
     hmetRecords = relationship('HMETRecord', back_populates='hmetCollection')
     
     def __init__(self, name, description):

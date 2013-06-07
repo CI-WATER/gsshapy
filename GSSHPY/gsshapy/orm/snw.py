@@ -17,7 +17,6 @@ from sqlalchemy.types import Integer, Float, DateTime
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.scenario import scenarioNWSRFS, scenarioOrthoGage
 
 class NWSRFSRecord(DeclarativeBase):
     '''
@@ -43,7 +42,6 @@ class NWSRFSRecord(DeclarativeBase):
     
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='nwsrfsRecords')
-    scenarios = relationship('Scenario', secondary=scenarioNWSRFS, back_populates='nwsrfsRecords')
     
     def __init__(self, lowerElev, upperElev, mfMin, mfMax, scf, frUse, tipm, nmf, fua, plwhc):
         '''
@@ -94,7 +92,6 @@ class OrthographicGage(DeclarativeBase):
     
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='orthoGages')
-    scenarios = relationship('Scenario', secondary=scenarioOrthoGage, back_populates='orthoGages')
     orthoMeasurement = relationship('OrthoMeasurement', back_populates='orthoGage')
     
     
