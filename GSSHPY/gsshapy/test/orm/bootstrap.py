@@ -15,16 +15,17 @@ def orm_test_data(DBSession):
     # Define Model Instance
     # Define the model instance
     
-    mdl = ModelInstance("Park City Basic", "Park City, UT", date(2013,6,5))
+    mdl = ModelInstance(name="Park City Basic", description="Park City, UT", created=date(2013,6,5))
     
-    # Define a default scenario for this model
+    # Define a scenario for this model
     scn1 = Scenario(name='Scenario 1', description='This is the first scenario for testing purposes.', created=date(2013,6,5))
     scn1.model = mdl
     
-    # Load the project file
-    projectFile1 = ProjectFile()
-    projectFile1.model = mdl
+    # Define a project file object for this model
+    prjFile1 = ProjectFile()
+    prjFile1.model = mdl
     
+    # Load project file data
     prjData = [('WATERSHED_MASK', '"parkcity.msk"','PATH'), 
                    ('#LandSoil', '"parkcity.lsf"','PATH'),
                    ('PROJECTION_FILE', '"parkcity_prj.pro"','PATH'),
@@ -67,23 +68,31 @@ def orm_test_data(DBSession):
         opt = ProjectOption(value=p[1])
         opt.card = crd
         opt.model = mdl
-        opt.projectFiles.append(projectFile1)
+        opt.projectFiles.append(prjFile1)
     
-    # Assign project file 1 to the first scenario
-    scn1.projectFile = projectFile1
+    # Assign the project file to the scenario
+    scn1.projectFile = prjFile1
         
-    # Load Index Maps
+    '''
+    Mapping Tables
+    '''
     
-    luse = IndexMap('LandUse', '"luse.idx"','')
+    # Define mapping table file for this model and assign to project file
+    cmtFile = MapTableFile()
+    cmtFile.model = mdl
+    prjFile1.mapTableFile = cmtFile
+    
+    # Define Index Maps for this model
+    luse = IndexMap(name='LandUse', filename='"luse.idx"',rasterMap='')
     luse.model = mdl
-    soil = IndexMap('Soil', '"soil.idx"','')
+    soil = IndexMap(name='Soil', filename='"soil.idx"',rasterMap='')
     soil.model = mdl
-    combo = IndexMap('Combination', '"combo.idx"','')
+    combo = IndexMap(name='Combination', filename='"combo.idx"',rasterMap='')
     combo.model = mdl
     
-    # Load Mapping Tables
     
-    roughTbl = MapTable('ROUGHNESS', 7, -1, -1, -1) # Roughness
+    # Define ROUGHNESS Mapping Table for this model and assign index map
+    roughTbl = MapTable(name='ROUGHNESS', numIDs=7, maxNumCells=-1, numSed=-1, numContam=-1)
     roughTbl.model = mdl
     roughTbl.indexMap = luse
     
@@ -106,20 +115,21 @@ def orm_test_data(DBSession):
     # Load Indexes
     idx = []
     for i in roughIdxs:
-        mtIDX = MTIndex(i[0], i[1], i[2])
+        mtIDX = MTIndex(index=i[0], description1=i[1], description2=i[2])
         mtIDX.indexMap = luse
         idx.append(mtIDX)
         
     # Load Variables
     for v in roughValues:
-        val = MTValue(v[1], v[2])
+        val = MTValue(variable=v[1], value=v[2])
         val.mapTable = roughTbl
-        val.index = idx[v[0]]
+        val.index = idx[v[0]] 
+        val.mapTableFiles.append(cmtFile)
         
         
         
-    
-    infilTbl = MapTable('GREEN_AMPT_INFILTRATION', 19, -1, -1, -1) # Infiltration
+    # Define INFILTRATION mapping table for this model and assign to index map
+    infilTbl = MapTable(name='GREEN_AMPT_INFILTRATION', numIDs=19, maxNumCells=-1, numSed=-1, numContam=-1)
     infilTbl.model = mdl
     infilTbl.indexMap = combo
     
@@ -280,18 +290,19 @@ def orm_test_data(DBSession):
     # Load Indexes
     idx = []
     for i in infilIdxs:
-        mtIDX = MTIndex(i[0], i[1], i[2])
+        mtIDX = MTIndex(index=i[0], description1=i[1], description2=i[2])
         mtIDX.indexMap = combo
         idx.append(mtIDX)
         
     # Load Variables
     for v in infilValues:
-        val = MTValue(v[1], v[4])
+        val = MTValue(variable=v[1], value=v[4])
         val.mapTable = infilTbl
         val.index = idx[v[0]-1]
-
-    gaMoisTbl = MapTable('GREEN_AMPT_INITIAL_SOIL_MOISTURE', 3, -1, -1, -1) # Initial moisture
-    gaMoisTbl.model = mdl
+        val.mapTableFiles.append(cmtFile)
+    
+    # Define INITIAL MOISUTURE mapping table for this model and assign index map
+    gaMoisTbl = MapTable(name='GREEN_AMPT_INITIAL_SOIL_MOISTURE', numIDs=3, maxNumCells=-1, numSed=-1, numContam=-1)
     gaMoisTbl.indexMap = soil
     
     gaMoisIdxs = [(1,'Clay loam', ''),
@@ -305,15 +316,16 @@ def orm_test_data(DBSession):
     # Load Indexes
     idx = []
     for i in gaMoisIdxs:
-        mtIDX = MTIndex(i[0], i[1], i[2])
+        mtIDX = MTIndex(index=i[0], description1=i[1], description2=i[2])
         mtIDX.indexMap = soil
         idx.append(mtIDX)
         
     # Load Variables
     for v in gaMoisValues:
-        val = MTValue(v[1], v[2])
-        val.mapTable = infilTbl
+        val = MTValue(variable=v[1], value=v[2])
+        val.mapTable = gaMoisTbl
         val.index = idx[v[0]-1]
+        val.mapTableFiles.append(cmtFile)
     
     '''    
     # Load Outlet Hydrograph as a Time Series
@@ -387,20 +399,20 @@ def orm_test_data(DBSession):
     scn2.model = mdl
     
     # Define a new project file for this scenario.
-    projectFile2 = ProjectFile()
-    projectFile2.model = mdl
+    prj2 = ProjectFile()
+    prj2.model = mdl
     
     # Get all the project options belonging to the first Project File as a starting point from the default scenario
     prjOptions = DBSession.query(ProjectCard, ProjectOption).\
                  join(ProjectOption.card).\
-                 filter(ProjectOption.projectFiles.contains(projectFile1)).\
+                 filter(ProjectOption.projectFiles.contains(prjFile1)).\
                  all()
 
     # Assign all the options to the new project file
     # less the cards to be removed
     for crd, opt in prjOptions:
         if crd.name != 'QUIET' and opt.value != '"combo.idx"':
-            opt.projectFiles.append(projectFile2)
+            opt.projectFiles.append(prj2)
         
     # Add new cards to the second scenario
     newProjectCards =[('NEW_CARD_1', 'NEWVAL1','BOOLEAN'),
@@ -413,10 +425,10 @@ def orm_test_data(DBSession):
         opt = ProjectOption(value=p[1])
         opt.card = crd
         opt.model = mdl
-        opt.projectFiles.append(projectFile2)
+        opt.projectFiles.append(prj2)
             
     # Assign the second project file to the second scenario
-    scn2.projectFile = projectFile2  
+    scn2.projectFile = prj2  
     
     # DB Commit
     DBSession.add(mdl)    

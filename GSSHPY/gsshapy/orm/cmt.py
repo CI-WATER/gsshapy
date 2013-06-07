@@ -40,9 +40,10 @@ varNameEnum = Enum('ROUGH','STOR_CAPY','INTER_COEF','RETENTION_DEPTH','HYDR_COND
                       'SW_PART','SOLUBILITY',\
                       name='cmt_variable_names')
 
+# Association table for many-to-many relationship between MapTableFile and MTValue
 assocMapTable = Table('assoc_map_table_files_values', metadata,
     Column('mapTableFileID', Integer, ForeignKey('cmt_map_table_files.id')),
-    Column('projectOptionID', Integer, ForeignKey('cmt_map_table_values.id'))
+    Column('mapTableValueID', Integer, ForeignKey('cmt_map_table_values.id'))
     )
 
 class MapTableFile(DeclarativeBase):
@@ -59,7 +60,7 @@ class MapTableFile(DeclarativeBase):
     
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='mapTableFiles')
-    projectFile = relationship('ProjectFile', back_populates='mapTableFiles')
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile') # One-to-one Relationship
     mapTableValues = relationship('MTValue', secondary=assocMapTable, back_populates='mapTableFiles')
     
     def __init__(self):
@@ -83,6 +84,7 @@ class MapTable(DeclarativeBase):
     
     # Value Columns
     name = Column(mapTableNameEnum, nullable=False)
+    '''Consider removing num fields in refactoring'''
     numIDs = Column(Integer)
     maxNumCells = Column(Integer)
     numSed = Column(Integer)

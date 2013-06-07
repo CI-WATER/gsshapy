@@ -42,7 +42,7 @@ class ProjectFile(DeclarativeBase):
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='projectFiles')
     scenarios = relationship('Scenario', back_populates='projectFile')
-    mapTableFiles = relationship('MapTableFile', back_populates='projectFile')
+    mapTableFile = relationship('MapTableFile', back_populates='projectFile')
     projectOptions = relationship('ProjectOption', secondary=assocProject, back_populates='projectFiles')
     
     def __init__(self):
