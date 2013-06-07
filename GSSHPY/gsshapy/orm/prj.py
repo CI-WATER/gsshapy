@@ -61,9 +61,16 @@ class ProjectFile(DeclarativeBase):
         '''
         Project File Write Method
         '''
-        # Initiate write on each ProjectOption that belongs to this ProjectFile
-        for opt in self.projectOptions:
-            print opt.write()
+        # Initiate project file
+        fileName = 'test.prj'
+        fullPath = '%s%s' % (path, fileName)
+        
+        with open(fullPath, 'w') as f:
+            f.write('GSSHAPROJECT\n')
+        
+            # Initiate write on each ProjectOption that belongs to this ProjectFile
+            for opt in self.projectOptions:
+                f.write(opt.write())
 
      
 class ProjectOption(DeclarativeBase):
@@ -94,8 +101,15 @@ class ProjectOption(DeclarativeBase):
         return '<ProjectOption: Value=%s>' % (self.value)
     
     def write(self):
-        n = 25 - len(self.card.name)
-        return '%s%s%s\n' % (self.card.name,' '*n, self.value)
+        # Determine number of spaces between card and value for nice alignment
+        numSpaces = 25 - len(self.card.name)
+        
+        # Handle special case of boolans
+        if self.card.valueType == 'BOOLEAN':
+            line = '%s\n' % (self.card.name)
+        else:
+            line ='%s%s%s\n' % (self.card.name,' '*numSpaces, self.value)
+        return line
     
     
 class ProjectCard(DeclarativeBase):

@@ -23,7 +23,7 @@ Project File
 # Get scenario object from the database
 projectFile = DBSession.query(ProjectFile).filter(ProjectFile.id == 1).one()
 
-projectFile.write(DBSession, '/Users/swainn/testing/write')
+projectFile.write(DBSession, '/Users/swainn/testing/write/')
 
 
 
