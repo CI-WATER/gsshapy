@@ -18,11 +18,14 @@ def orm_test_data(DBSession):
     mdl = ModelInstance("Park City Basic", "Park City, UT", date(2013,6,5))
     
     # Define a default scenario for this model
-    scn1 = Scenario(name='DEFAULT', description='This is the default scenario for testing purposes.', created=date(2013,6,5), base=True)
+    scn1 = Scenario(name='Scenario 1', description='This is the first scenario for testing purposes.', created=date(2013,6,5))
     scn1.model = mdl
     
     # Load the project file
-    projectFile = [('WATERSHED_MASK', '"parkcity.msk"','PATH'), 
+    projectFile1 = ProjectFile(name='Project File 1', description='This is a test of this way to handle changes.', created=date(2013,6,7))
+    projectFile1.model = mdl
+    
+    prjData = [('WATERSHED_MASK', '"parkcity.msk"','PATH'), 
                    ('LandSoil', '"parkcity.lsf"','PATH'),
                    ('PROJECTION_FILE', '"parkcity_prj.pro"','PATH'),
                    ('NON_ORTHO_CHANNELS', 'TRUE','BOOLEAN'),
@@ -59,14 +62,15 @@ def orm_test_data(DBSession):
                    ('IN_HYD_LOCATION', '"parkcity.ihl"','PATH'),
                    ('OUT_HYD_LOCATION', '"parkcity.ohl"','PATH')]
     
-    for p in projectFile:
+    for p in prjData:
         crd = ProjectCard(name=p[0], valueType=p[2])
-        prj = ProjectOption(value=p[1])
-        prj.card = crd
-        prj.model = mdl
-        prj.scenarios.append(scn1)
+        opt = ProjectOption(value=p[1])
+        opt.card = crd
+        opt.model = mdl
+        opt.projectFiles.append(projectFile1)
     
-        
+    # Assign project file 1 to the first scenario
+    scn1.projectFile = projectFile1
         
     # Load Index Maps
     """
@@ -378,20 +382,24 @@ def orm_test_data(DBSession):
     DBSession.add(mdl) 
     
     # Define the new scenario for this model
-    scn2 = Scenario(name='Test Scenario', description='This is a test scenario', created=date(2013,6,5), base=False)
+    scn2 = Scenario(name='Scenario 2', description='This the second test scenario', created=date(2013,6,5))
     scn2.model = mdl
-     
-    # Get all the project options from the default scenario
+    
+    # Define a new project file for this scenario.
+    projectFile2 = ProjectFile(name='Project File 2', description='A second project file that is different than the first one')
+    projectFile2.model = mdl
+    
+    # Get all the project options belonging to the first Project File as a starting point from the default scenario
     prjOptions = DBSession.query(ProjectCard, ProjectOption).\
                  join(ProjectOption.card).\
-                 filter(ProjectOption.scenarios.contains(scn1)).\
+                 filter(ProjectOption.projectFiles.contains(projectFile1)).\
                  all()
 
-    # Append new scenario ID to all the existing project options
+    # Assign all the options to the new project file
     # less the cards to be removed
     for crd, opt in prjOptions:
         if crd.name != 'QUIET' and opt.value != '"combo.idx"':
-            opt.scenarios.append(scn2)
+            opt.projectFiles.append(projectFile2)
         
     # Add new cards to the second scenario
     newProjectCards =[('NEW_CARD_1', 'NEWVAL1','BOOLEAN'),
@@ -401,12 +409,13 @@ def orm_test_data(DBSession):
     
     for p in newProjectCards:
         crd = ProjectCard(name=p[0], valueType=p[2])
-        prj = ProjectOption(value=p[1])
-        prj.card = crd
-        prj.model = mdl
-        prj.scenarios.append(scn2)
+        opt = ProjectOption(value=p[1])
+        opt.card = crd
+        opt.model = mdl
+        opt.projectFiles.append(projectFile2)
             
-      
+    # Assign the second project file to the second scenario
+    scn2.projectFile = projectFile2  
     
     # DB Commit
     DBSession.add(mdl)    

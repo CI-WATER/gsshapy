@@ -34,7 +34,8 @@ class ModelInstance(DeclarativeBase):
     
     # Relationship Properties
     scenarios = relationship('Scenario', back_populates='model')
-    projectOptions = relationship('ProjectOption', back_populates='model')
+    projectFiles = relationship('ProjectFile', back_populates='model')
+    
     precipEvents = relationship('PrecipEvent', back_populates='model')
     mapTables = relationship('MapTable', back_populates='model')
     indexMaps = relationship('IndexMap', back_populates='model')

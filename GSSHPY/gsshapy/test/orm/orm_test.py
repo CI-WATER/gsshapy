@@ -19,7 +19,7 @@ from sqlalchemy import create_engine
 class TestGSSHAORM (unittest.TestCase):
     def setUp(self):
         # Create a database for loading purposes
-        testEngine = create_engine('postgresql://swainn:(|w@ter@localhost:5432/gsshapy_testing')
+        testEngine = create_engine('postgresql://swainn:(|w@ter@localhost:5432/gsshapy_alternate')
         #testEngine = create_engine('sqlite:///:memory', echo=True)
         metadata.create_all(testEngine)
         init_model(testEngine)

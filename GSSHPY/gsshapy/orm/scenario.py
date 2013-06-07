@@ -8,8 +8,7 @@
 ********************************************************************************
 '''
 
-__all__ = ['Scenario', 
-           'scenarioProject', 
+__all__ = ['Scenario',
            'scenarioPrecip',
            'scenarioMapTable',
            'scenarioStreamNetwork',
@@ -26,12 +25,6 @@ from sqlalchemy.orm import  relationship
 from gsshapy.orm import DeclarativeBase, metadata
 
 # Many-to-many association tables between scenario table and other tables
-
-scenarioProject = Table('assoc_scenario_project', metadata,
-    Column('scenarioID', Integer, ForeignKey('scenarios.id')),
-    Column('prjOptionID', Integer, ForeignKey('prj_project_options.id'))
-    )
-
 scenarioPrecip = Table('assoc_scenario_precip', metadata,
     Column('scenarioID', Integer, ForeignKey('scenarios.id')),
     Column('precipEventID', Integer, ForeignKey('gag_events.id'))
@@ -81,16 +74,17 @@ class Scenario(DeclarativeBase):
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
     modelID = Column(Integer, ForeignKey('model_instances.id'))
+    projectFileID = Column(Integer, ForeignKey('prj_project_files.id'))
     
     # Value Columns
     name = Column(String, nullable=False)
     description = Column(String)
     created = Column(DateTime, nullable=False)
-    base = Column(Boolean, nullable=False)
     
     # Relationship Properties
     model = relationship('ModelInstance', back_populates='scenarios')
-    projectOptions = relationship('ProjectOption', secondary=scenarioProject, back_populates='scenarios')
+    projectFile = relationship('ProjectFile', back_populates='scenarios')
+    
     precipEvents = relationship('PrecipEvent', secondary=scenarioPrecip, back_populates='scenarios')
     mapTables = relationship('MapTable', secondary=scenarioMapTable, back_populates='scenarios')
     streamNetworks = relationship('StreamNetwork', secondary=scenarioStreamNetwork, back_populates='scenarios')
@@ -100,14 +94,13 @@ class Scenario(DeclarativeBase):
     nwsrfsRecords = relationship('NWSRFSRecord', secondary=scenarioNWSRFS, back_populates='scenarios')
     orthoGages = relationship('OrthographicGage', secondary=scenarioOrthoGage, back_populates='scenarios')
     
-    def __init__(self, name, description, created, base):
+    def __init__(self, name, description, created):
         '''
         Constructor
         '''
         self.name = name
         self.description = description
         self.created = created
-        self.base = base
         
 
     def __repr__(self):
