@@ -70,6 +70,79 @@ class MapTableFile(DeclarativeBase):
         
     def __repr__(self):
         return '<MapTableFile>'
+    
+    def write(self, session, path, name):
+        '''
+        Map Table Write Algorithm
+        '''
+        
+        # Retrieve all the map table values that belong to this mapping table file
+        cmtValues = self.mapTableValues
+        
+        # Obtain list of all possible mapping tables from the enumeration object defined at the top of this file
+        allMapTables = mapTableNameEnum.enums
+        
+        # Determine the unique set of mapping table and index map objects that describe the values
+        idxList = []
+        for val in cmtValues:
+            idxList.append(val.mapTable.indexMap)
+            
+        idxMaps = set(idxList)
+
+        # Initiate mapping table file
+        fullPath = '%s%s%s' % (path, name, '.cmt')
+        
+        # Write to file
+        with open(fullPath, 'w') as f:
+            f.write('GSSHA_INDEX_MAP_TABLES\n')
+            
+            for idx in idxMaps:
+                f.write('INDEX_MAP                %s "%s"\n' % (idx.filename, idx.name))
+                
+            for m in allMapTables:
+                try:
+                    # Retrieve the current mapping table if it is used by this mapping mapping table file
+                    mt = session.query(MapTable).\
+                                join(MTValue.mapTable).\
+                                filter(MTValue.mapTableFiles.contains(self)).\
+                                filter(MapTable.name == m).\
+                                one()
+                    # Write mapping table header and global variables           
+                    f.write('%s "%s"\n' % (mt.name, mt.indexMap.name))
+                    f.write('NUM_IDS %s\n' % (mt.numIDs))
+                    
+                    # Retrieve the indices for the current mapping table and mapping table file
+                    indexes = session.query(MTIndex).\
+                                join(MTValue.index).\
+                                filter(MTValue.mapTable == mt).\
+                                filter(MTValue.mapTableFiles.contains(self)).\
+                                order_by(MTIndex.index).\
+                                all()
+                                
+                    for idx in indexes:
+                        print idx
+                        
+                        # Retrieve values for the current index
+                        values = session.query(MTValue, MTIndex).\
+                                join(MTValue.index).\
+                                filter(MTIndex == idx).\
+                                filter(MTValue.mapTable == mt).\
+                                fliter(MTValue.mapTableFiles.contains(self)).\
+                                order_by(MTValue.variable).\
+                                all()
+                        
+                        print values
+                    
+                    # Now what do we do? Need to pivot the data from these objects into the correct format
+
+                    
+                    f.write('ID%sDESCRIPTION1%sDESCRIPTION2\n' % (' '*4, ' '*28))
+                
+                except:
+                    # Do we need to write anything if the table is not used in this simulation?
+                    f.write('%s "%s"\n' % (m, ''))
+                    f.write('NUM_IDS %s\n' % (0))
+                    f.write('ID%sDESCRIPTION1%sDESCRIPTION2\n' % (' '*4, ' '*28))
 
 class MapTable(DeclarativeBase):
     '''
@@ -172,6 +245,17 @@ class MTValue(DeclarativeBase):
         
     def __repr__(self):
         return '<MTValue: %s=%s>' % (self.variable, self.value)
+    
+    def write(self):
+        '''
+        write function
+        '''
+        return {'MapTable': self.mapTable.name,
+                'Index': self.index.index,
+                'Description1': self.index.description1,
+                'Description2': self.index.description2,
+                'Variable': self.variable,
+                'Value': self.value}
 
 
 

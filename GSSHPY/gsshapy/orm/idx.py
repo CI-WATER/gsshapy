@@ -47,4 +47,4 @@ class IndexMap(DeclarativeBase):
         self.rasterMap = rasterMap
         
     def __repr__(self):
-        return '<IndexMap: Name=%s, Path=%s>' % (self.name, self.filename)
+        return '<IndexMap: Name=%s, Filename=%s>' % (self.name, self.filename)

@@ -53,13 +53,12 @@ class ProjectFile(DeclarativeBase):
     def __repr__(self):
         return '<ProjectFile>'
     
-    def write(self, session, path):
+    def write(self, session, path, name):
         '''
         Project File Write Method
         '''
         # Initiate project file
-        fileName = 'test.prj'
-        fullPath = '%s%s' % (path, fileName)
+        fullPath = '%s%s%s' % (path, name, '.prj')
         
         with open(fullPath, 'w') as f:
             f.write('GSSHAPROJECT\n')
