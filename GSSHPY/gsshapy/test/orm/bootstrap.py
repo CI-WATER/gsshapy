@@ -89,6 +89,8 @@ def orm_test_data(DBSession):
     soil.model = mdl
     combo = IndexMap(name='Combination', filename='"combo.idx"',rasterMap='')
     combo.model = mdl
+    sediment = IndexMap(name='SkiTracks', filename='SkiTracks.idx', rasterMap='')
+    combo.model = mdl
     
     
     # Define ROUGHNESS Mapping Table for this model and assign index map
@@ -303,6 +305,7 @@ def orm_test_data(DBSession):
     
     # Define INITIAL MOISUTURE mapping table for this model and assign index map
     gaMoisTbl = MapTable(name='GREEN_AMPT_INITIAL_SOIL_MOISTURE', numIDs=3, maxNumCells=-1, numSed=-1, numContam=-1)
+    gaMoisTbl.model = mdl
     gaMoisTbl.indexMap = soil
     
     gaMoisIdxs = [(1,'Clay loam', ''),
@@ -325,6 +328,82 @@ def orm_test_data(DBSession):
         val = MTValue(variable=v[1], value=v[2])
         val.mapTable = gaMoisTbl
         val.index = idx[v[0]-1]
+        val.mapTableFiles.append(cmtFile)
+        
+    # Define SEDIMENTS mapping table for this model and assign index map
+    sedTbl = MapTable(name='SEDIMENTS', numIDs=-1, maxNumCells=-1, numSed=3, numContam=-1)
+    
+    sedValues = [('Sand', 2.650000, 0.250000, 'Sand'),
+                 ('Silt', 2.650000, 0.160000, 'Silt'),
+                 ('Clay', 2.650000, 0.001000, 'Clay')]
+    
+    sediments = []
+    
+    # Load Variables 
+    for v in sedValues:
+        sed = MTSediment(description=v[0], specificGravity=v[1], particleDiameter=v[2], outputFilename=v[3])
+        sed.mapTable = sedTbl
+        sed.mapTableFiles.append(cmtFile)
+        sediments.append(sed)
+        
+    # Define SOIL EROSION PROPERTY table
+    soilErosionTbl = MapTable(name='SOIL_EROSION_PROPS', numIDs=4, maxNumCells=-1, numSed=3, numContam=-1)
+    soilErosionTbl.indexMap = sediment
+    
+    seIdxs = [(13, 'Soil erosoin properties ID', ''),
+              (14, 'Soil erosoin properties ID', ''),
+              (15, 'Soil erosion properties ID', ''),
+              (100, 'Soil erosion properties ID', '')]
+    
+    seValues = [(0, 'SPLASH_COEF', 10.800000),
+                (1, 'SPLASH_COEF', 20.500000),
+                (2, 'SPLASH_COEF', 18.500000),
+                (3, 'SPLASH_COEF', 20.500000),
+                (0, 'DETACH_COEF', 0.000400),
+                (1, 'DETACH_COEF', 0.000400),
+                (2, 'DETACH_COEF', 0.000400),
+                (3, 'DETACH_COEF', 0.000400),
+                (0, 'DETACH_EXP', 0.650000),
+                (1, 'DETACH_EXP', 0.650000),
+                (2, 'DETACH_EXP', 0.650000),
+                (3, 'DETACH_EXP', 0.650000),
+                (0, 'DETACH_CRIT', 0.100000),
+                (1, 'DETACH_CRIT', 0.100000),
+                (2, 'DETACH_CRIT', 0.100000),
+                (3, 'DETACH_CRIT', 0.100000),
+                (0, 'SED_COEF', 0.120000),
+                (1, 'SED_COEF', 0.110000),
+                (2, 'SED_COEF', 0.130000),
+                (3, 'SED_COEF', 0.110000),
+                (0, 'XSEDIMENT', 0.650000, sediments[0]),
+                (1, 'XSEDIMENT', 0.450000, sediments[0]),
+                (2, 'XSEDIMENT', 0.200000, sediments[0]),
+                (3, 'XSEDIMENT', 0.340000, sediments[0]),
+                (0, 'XSEDIMENT', 0.200000, sediments[1]),
+                (1, 'XSEDIMENT', 0.350000, sediments[1]),
+                (2, 'XSEDIMENT', 0.650000, sediments[1]),
+                (3, 'XSEDIMENT', 0.330000, sediments[1]),
+                (0, 'XSEDIMENT', 0.150000, sediments[2]),
+                (1, 'XSEDIMENT', 0.200000, sediments[2]),
+                (2, 'XSEDIMENT', 0.150000, sediments[2]),
+                (3, 'XSEDIMENT', 0.330000, sediments[2])]
+    
+    # Load Indexes
+    idx = []
+    for i in seIdxs:
+        mtIDX = MTIndex(index=i[0], description1=i[1], description2=i[2])
+        mtIDX.indexMap = sediment
+        idx.append(mtIDX)
+        
+    # Load Variables
+    for v in seValues:
+        val = MTValue(variable=v[1], value=v[2])
+        
+        if v[1] == 'XSEDIMENT':
+            val.sediment = v[3]
+        
+        val.mapTable = soilErosionTbl
+        val.index = idx[v[0]]
         val.mapTableFiles.append(cmtFile)
     
     '''    

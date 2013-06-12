@@ -13,7 +13,7 @@ __all__ = ['MapTableFile',
            'MTValue',
            'MTIndex',
            'Contaminant',
-           'Sediment']
+           'MTSediment']
 
 from sqlalchemy import ForeignKey, Column, Table
 from sqlalchemy.types import Integer, Enum, Float, String
@@ -27,14 +27,14 @@ mapTableNameEnum = Enum('ROUGHNESS','INTERCEPTION','RETENTION','GREEN_AMPT_INFIL
                        'RICHARDS_EQN_INFILTRATION_HAVERCAMP','EVAPOTRANSPIRATION','WELL_TABLE',\
                        'OVERLAND_BOUNDARY','TIME_SERIES_INDEX','GROUNDWATER','GROUNDWATER_BOUNDARY',\
                        'AREA_REDUCTION','WETLAND_PROPERTIES','MULTI_LAYER_SOIL','SOIL_EROSION_PROPS',\
-                       'CONTAMINANT_TRANSPORT','SEDIMENT',\
+                       'CONTAMINANT_TRANSPORT','SEDIMENTS',\
                        name='cmt_table_names')
 
 varNameEnum = Enum('ROUGH','STOR_CAPY','INTER_COEF','RETENTION_DEPTH','HYDR_COND','CAPIL_HEAD',\
                       'POROSITY','PORE_INDEX','RESID_SAT','FIELD_CAPACITY','WILTING_PT','SOIL_MOISTURE',\
                       'IMPERVIOUS_AREA','HYD_COND','SOIL_MOIST','DEPTH','LAMBDA',\
                       'BUB_PRESS','DELTA_Z','ALPHA','BETA','AHAV','ALBEDO','VEG_HEIGHT','V_RAD_COEFF',\
-                      'CANOPY_RESIST','SPLASH_COEFF','DETACH_EXP','DETACH_CRIT','SED_COEF','XSEDIMENTS',\
+                      'CANOPY_RESIST','SPLASH_COEF', 'DETACH_COEF','DETACH_EXP','DETACH_CRIT','SED_COEF','XSEDIMENT',\
                       'TC_COEFF','TC_INDEX','TC_CRIT','SPLASH_K','DETACH_ERODE','DETACH_INDEX',\
                       'SED_K','DISPERSION','DECAY','UPTAKE','LOADING','GW_CONC','INIT_CONC',\
                       'SW_PART','SOLUBILITY',\
@@ -44,6 +44,11 @@ varNameEnum = Enum('ROUGH','STOR_CAPY','INTER_COEF','RETENTION_DEPTH','HYDR_COND
 assocMapTable = Table('assoc_map_table_files_values', metadata,
     Column('mapTableFileID', Integer, ForeignKey('cmt_map_table_files.id')),
     Column('mapTableValueID', Integer, ForeignKey('cmt_map_table_values.id'))
+    )
+
+assocSediment = Table('assoc_map_table_files_sediments', metadata,
+    Column('mapTableFileID', Integer, ForeignKey('cmt_map_table_files.id')),
+    Column('sedimentID', Integer, ForeignKey('cmt_sediments.id'))
     )
 
 class MapTableFile(DeclarativeBase):
@@ -62,6 +67,7 @@ class MapTableFile(DeclarativeBase):
     model = relationship('ModelInstance', back_populates='mapTableFiles')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile') # One-to-one Relationship
     mapTableValues = relationship('MTValue', secondary=assocMapTable, back_populates='mapTableFiles')
+    mapTableSediments = relationship('MTSediment', secondary=assocSediment, back_populates='mapTableFiles')
     
     def __init__(self):
         '''
@@ -70,6 +76,11 @@ class MapTableFile(DeclarativeBase):
         
     def __repr__(self):
         return '<MapTableFile>'
+    
+    def sediments_table(self, session, mapTable, mapTableFile):
+        '''
+        Special function for handling special case of sediment mapping table.
+        '''
     
     def generic_map_table_pivot(self, session, mapTable, mapTableFile):
         '''
@@ -154,36 +165,46 @@ class MapTableFile(DeclarativeBase):
         
         # Write to file
         with open(fullPath, 'w') as f:
+
+            # Write first line to file
             f.write('GSSHA_INDEX_MAP_TABLES\n')
             
+            # Write list of index maps
             for idx in idxMaps:
                 f.write('INDEX_MAP%s%s "%s"\n' % (' '*16, idx.filename, idx.name))
-                
+            
+            # Populate each mapping table in the file by looping through a list of possilbe names   
             for currentMapTableName in possibleMapTableNames:
-                try:
-                    # Retrieve the current mapping table if it is used by this mapping mapping table file
-                    currentMapTable = session.query(MapTable).\
-                                        join(MTValue.mapTable).\
-                                        filter(MTValue.mapTableFiles.contains(self)).\
-                                        filter(MapTable.name == currentMapTableName).\
-                                        one()
-                    
-                    # Write mapping table header and global variables to file           
-                    f.write('%s "%s"\n' % (currentMapTable.name, currentMapTable.indexMap.name))
-                    f.write('NUM_IDS %s\n' % (currentMapTable.numIDs))
-                    
-                    # Retrieve the map table values from the database and pivot into the correct format
-                    valueLines = self.generic_map_table_pivot(session, currentMapTable, self)
-                    
-                    # Write map table value lines to file
-                    for valLine in valueLines:
-                        f.write(valLine)
+                # Switch statement
+                if currentMapTableName == 'SEDIMENTS': # Sediment mapping table case
+                    pass
                 
-                except:
-                    # Do we need to write anything if the table is not used in this simulation?
-                    f.write('%s "%s"\n' % (currentMapTableName, ''))
-                    f.write('NUM_IDS %s\n' % (0))
-                    f.write('ID%sDESCRIPTION1%sDESCRIPTION2\n' % (' '*4, ' '*28))
+                else: # Generic mapping table case
+                        
+                    try:
+                        # Retrieve the current mapping table if it is used by this mapping mapping table file
+                        currentMapTable = session.query(MapTable).\
+                                            join(MTValue.mapTable).\
+                                            filter(MTValue.mapTableFiles.contains(self)).\
+                                            filter(MapTable.name == currentMapTableName).\
+                                            one()
+                        
+                        # Write mapping table header and global variables to file           
+                        f.write('%s "%s"\n' % (currentMapTable.name, currentMapTable.indexMap.name))
+                        f.write('NUM_IDS %s\n' % (currentMapTable.numIDs))
+                        
+                        # Retrieve the map table values from the database and pivot into the correct format
+                        valueLines = self.generic_map_table_pivot(session, currentMapTable, self)
+                        
+                        # Write map table value lines to file
+                        for valLine in valueLines:
+                            f.write(valLine)
+                    
+                    except:
+                        # Do we need to write anything if the table is not used in this simulation?
+                        f.write('%s "%s"\n' % (currentMapTableName, ''))
+                        f.write('NUM_IDS %s\n' % (0))
+                        f.write('ID%sDESCRIPTION1%sDESCRIPTION2\n' % (' '*4, ' '*28))
 
 class MapTable(DeclarativeBase):
     '''
@@ -194,7 +215,7 @@ class MapTable(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'), nullable=False)
+    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'))
     
     # Value Columns
     name = Column(mapTableNameEnum, nullable=False)
@@ -207,7 +228,7 @@ class MapTable(DeclarativeBase):
     # Relationship Properties
     indexMap = relationship('IndexMap', back_populates='mapTables')
     values = relationship('MTValue', back_populates='mapTable', cascade='all, delete, delete-orphan')
-    sediment = relationship('Sediment', back_populates='mapTable', cascade='all, delete, delete-orphan')
+    sediments = relationship('MTSediment', back_populates='mapTable', cascade='all, delete, delete-orphan')
     
     def __init__(self, name, numIDs=None, maxNumCells=None, numSed=None, numContam=None):
         '''
@@ -265,6 +286,7 @@ class MTValue(DeclarativeBase):
     mapTableID = Column(Integer, ForeignKey('cmt_map_tables.id'), nullable=False)
     mapTableIndexID = Column(Integer, ForeignKey('cmt_indexes.id'), nullable=False)
     contaminantID = Column(Integer, ForeignKey('cmt_contaminants.id'))
+    sedimentID = Column(Integer, ForeignKey('cmt_sediments.id'))
     
     # Value Columns
     variable = Column(varNameEnum, nullable=False)
@@ -274,7 +296,8 @@ class MTValue(DeclarativeBase):
     mapTableFiles = relationship('MapTableFile', secondary=assocMapTable, back_populates='mapTableValues')
     mapTable = relationship('MapTable', back_populates='values')
     index = relationship('MTIndex', back_populates='values')
-    contaminant = relationship('Contaminant', back_populates='value')
+    contaminant = relationship('Contaminant', back_populates='values')
+    sediment = relationship('MTSediment', back_populates='values')
     
     
     def __init__(self, variable, value=None):
@@ -317,7 +340,7 @@ class Contaminant(DeclarativeBase):
     partition = Column(Float, nullable=False)
 
     # Relationship Properties
-    value = relationship('MTValue', back_populates='contaminant')
+    values = relationship('MTValue', back_populates='contaminant')
     
     def __init__(self, name, outFile, precipConc, partition):
         '''
@@ -333,7 +356,7 @@ class Contaminant(DeclarativeBase):
 
 
     
-class Sediment(DeclarativeBase):
+class MTSediment(DeclarativeBase):
     '''
     classdocs
 
@@ -348,19 +371,21 @@ class Sediment(DeclarativeBase):
     description = Column(String, nullable=False)
     specificGravity = Column(Float, nullable=False)
     particleDiameter = Column(Float,nullable=False)
-    outFile = Column(String, nullable=False)
+    outputFilename = Column(String, nullable=False)
     
     # Relationship Properties
-    mapTable = relationship('MapTable', back_populates='sediment')
+    mapTable = relationship('MapTable', back_populates='sediments')
+    mapTableFiles = relationship('MapTableFile', secondary=assocSediment, back_populates='mapTableSediments')
+    values = relationship('MTValue', back_populates='sediment')
     
-    def __init__(self, description, specificGravity, particleDiameter, outputFileName):
+    def __init__(self, description, specificGravity, particleDiameter, outputFilename):
         '''
         Constructor
         '''
         self.description = description
         self.specificGravity = specificGravity
         self.particleDiameter = particleDiameter
-        self.outFile = outputFileName
+        self.outputFilename = outputFilename
     
     def __repr__(self):
         return '<Sediment: Name=%s>' % (self.description, self.specificGravity, self.particleDiameter, self.outFile)
