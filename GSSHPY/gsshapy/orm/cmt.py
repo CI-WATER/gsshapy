@@ -71,6 +71,65 @@ class MapTableFile(DeclarativeBase):
     def __repr__(self):
         return '<MapTableFile>'
     
+    def generic_map_table_pivot(self, session, mapTable, mapTableFile):
+        '''
+        This function retrives the values of a mapping table from the database
+        and pivots them into the format that is required by the mapping table
+        file. This function returns a list of strings that can be printed to
+        the file directly.
+        '''
+        # Retrieve the indices for the current mapping table and mapping table file
+        indexes = session.query(MTIndex).\
+                    join(MTValue.index).\
+                    filter(MTValue.mapTable == mapTable).\
+                    filter(MTValue.mapTableFiles.contains(mapTableFile)).\
+                    order_by(MTIndex.index).\
+                    all()
+        
+        lines = []
+        
+        # Construct value string/line for each index
+        for idx in indexes:
+            # Retrieve values for the current index
+            values = session.query(MTValue).\
+                    filter(MTValue.mapTableFiles.contains(mapTableFile)).\
+                    filter(MTValue.mapTable == mapTable).\
+                    filter(MTValue.index == idx).\
+                    order_by(MTValue.variable).\
+                    all()
+                                  
+            #Value string
+            valString = ''
+            
+            # Define valString    
+            for val in values:
+                numString = '%.6f' % val.value # Format value with trailing zeros up to 6 digits
+                valString = '%s%s%s' %(valString, numString, ' '*3)
+            
+            # Determine spacing for aesthetics (so each column lines up)
+            spacing1 = 6 - len(str(idx.index))
+            spacing2 = 40 - len(idx.description1)
+            spacing3 = 40 - len(idx.description2)
+            
+            # Compile each mapping table line
+            line = '%s%s%s%s%s%s%s\n' % (idx.index, ' '*spacing1, idx.description1, ' '*spacing2, idx.description2, ' '*spacing3, valString)
+            
+            # Compile each lines into a list
+            lines.append(line)
+        
+        # Define varString for the header line
+        varString = ''
+        
+        for val in values:
+            varString = '%s%s%s' %(varString, val.variable, ' '*2)
+            
+        # Compile the mapping table header
+        header = 'ID%sDESCRIPTION1%sDESCRIPTION2%s%s\n' % (' '*4, ' '*28, ' '*28, varString)
+        
+        # Prepend the header line to the list of lines
+        lines.insert(0, header)
+        return lines
+    
     def write(self, session, path, name):
         '''
         Map Table Write Algorithm
@@ -80,7 +139,8 @@ class MapTableFile(DeclarativeBase):
         cmtValues = self.mapTableValues
         
         # Obtain list of all possible mapping tables from the enumeration object defined at the top of this file
-        allMapTables = mapTableNameEnum.enums
+        # Note: to add to/modify the list of map table names, edit the mapTableNameEnum list.
+        possibleMapTableNames = mapTableNameEnum.enums
         
         # Determine the unique set of mapping table and index map objects that describe the values
         idxList = []
@@ -97,50 +157,31 @@ class MapTableFile(DeclarativeBase):
             f.write('GSSHA_INDEX_MAP_TABLES\n')
             
             for idx in idxMaps:
-                f.write('INDEX_MAP                %s "%s"\n' % (idx.filename, idx.name))
+                f.write('INDEX_MAP%s%s "%s"\n' % (' '*16, idx.filename, idx.name))
                 
-            for m in allMapTables:
+            for currentMapTableName in possibleMapTableNames:
                 try:
                     # Retrieve the current mapping table if it is used by this mapping mapping table file
-                    mt = session.query(MapTable).\
-                                join(MTValue.mapTable).\
-                                filter(MTValue.mapTableFiles.contains(self)).\
-                                filter(MapTable.name == m).\
-                                one()
-                    # Write mapping table header and global variables           
-                    f.write('%s "%s"\n' % (mt.name, mt.indexMap.name))
-                    f.write('NUM_IDS %s\n' % (mt.numIDs))
+                    currentMapTable = session.query(MapTable).\
+                                        join(MTValue.mapTable).\
+                                        filter(MTValue.mapTableFiles.contains(self)).\
+                                        filter(MapTable.name == currentMapTableName).\
+                                        one()
                     
-                    # Retrieve the indices for the current mapping table and mapping table file
-                    indexes = session.query(MTIndex).\
-                                join(MTValue.index).\
-                                filter(MTValue.mapTable == mt).\
-                                filter(MTValue.mapTableFiles.contains(self)).\
-                                order_by(MTIndex.index).\
-                                all()
-                                
-                    for idx in indexes:
-                        print idx
-                        
-                        # Retrieve values for the current index
-                        values = session.query(MTValue, MTIndex).\
-                                join(MTValue.index).\
-                                filter(MTIndex == idx).\
-                                filter(MTValue.mapTable == mt).\
-                                fliter(MTValue.mapTableFiles.contains(self)).\
-                                order_by(MTValue.variable).\
-                                all()
-                        
-                        print values
+                    # Write mapping table header and global variables to file           
+                    f.write('%s "%s"\n' % (currentMapTable.name, currentMapTable.indexMap.name))
+                    f.write('NUM_IDS %s\n' % (currentMapTable.numIDs))
                     
-                    # Now what do we do? Need to pivot the data from these objects into the correct format
-
+                    # Retrieve the map table values from the database and pivot into the correct format
+                    valueLines = self.generic_map_table_pivot(session, currentMapTable, self)
                     
-                    f.write('ID%sDESCRIPTION1%sDESCRIPTION2\n' % (' '*4, ' '*28))
+                    # Write map table value lines to file
+                    for valLine in valueLines:
+                        f.write(valLine)
                 
                 except:
                     # Do we need to write anything if the table is not used in this simulation?
-                    f.write('%s "%s"\n' % (m, ''))
+                    f.write('%s "%s"\n' % (currentMapTableName, ''))
                     f.write('NUM_IDS %s\n' % (0))
                     f.write('ID%sDESCRIPTION1%sDESCRIPTION2\n' % (' '*4, ' '*28))
 
