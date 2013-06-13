@@ -8,16 +8,42 @@
 ********************************************************************************
 '''
 
-import os, sys
-from datetime import datetime
+__all__ = ['PrecipFile',
+           'PrecipEvent',
+           'PrecipValue',
+           'PrecipGage']
 
-__all__ = ['PrecipEvent','PrecipValue','PrecipGage']
-
-from sqlalchemy import ForeignKey, Column
+from sqlalchemy import ForeignKey, Column, Table
 from sqlalchemy.types import Integer, DateTime, String, Float
 from sqlalchemy.orm import  relationship
 
-from gsshapy.orm import DeclarativeBase
+from gsshapy.orm import DeclarativeBase, metadata
+
+assocPrecip = Table('assoc_precipitation_files_events', metadata,
+    Column('precipFileID', Integer, ForeignKey('gag_precipitation_files.id')),
+    Column('precipEventID', Integer, ForeignKey('gag_events.id'))
+    )
+
+class PrecipFile(DeclarativeBase):
+    '''
+    classdocs
+    '''
+    __tablename__ = 'gag_precipitation_files'
+    
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    modelID = Column(Integer, ForeignKey('model_instances.id'), nullable=False)
+    
+    # Value Columns
+    
+    # Relationship Properties
+    model = relationship('ModelInstance', back_populates='precipFiles')
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='precipFile') # One-to-one Relationship
+    precipEvents = relationship('PrecipEvent', secondary=assocPrecip, back_populates='precipFiles')
+        
+    def __repr__(self):
+        return '<PrecipitationFile>'
+    
 
 class PrecipEvent(DeclarativeBase):
     '''
@@ -27,7 +53,6 @@ class PrecipEvent(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'))
     
     # Value Columns
     description = Column(String, nullable=False)
@@ -35,8 +60,8 @@ class PrecipEvent(DeclarativeBase):
     nrPds = Column(Integer, nullable=False)
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='precipEvents')
     values = relationship('PrecipValue', back_populates='event')
+    precipFiles = relationship('PrecipFile', secondary=assocPrecip, back_populates='precipEvents')
     
     def __init__(self, description, numGages, numPeriods):
         '''

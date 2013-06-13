@@ -13,7 +13,7 @@ __all__ = ['ProjectFile',
            'ProjectCard']
 
 from sqlalchemy import ForeignKey, Column, Table
-from sqlalchemy.types import Integer, String, Enum, DateTime
+from sqlalchemy.types import Integer, String, Enum
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase, metadata
@@ -36,6 +36,7 @@ class ProjectFile(DeclarativeBase):
     id = Column(Integer, autoincrement=True, primary_key=True)
     modelID = Column(Integer, ForeignKey('model_instances.id'), nullable=False)
     mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
+    precipFileID = Column(Integer, ForeignKey('gag_precipitation_files.id'))
     
     # Value Columns
     
@@ -43,13 +44,9 @@ class ProjectFile(DeclarativeBase):
     model = relationship('ModelInstance', back_populates='projectFiles')
     scenarios = relationship('Scenario', back_populates='projectFile')
     mapTableFile = relationship('MapTableFile', back_populates='projectFile')
+    precipFile = relationship('PrecipFile', back_populates='projectFile')
     projectOptions = relationship('ProjectOption', secondary=assocProject, back_populates='projectFiles')
-    
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        
+         
     def __repr__(self):
         return '<ProjectFile>'
     

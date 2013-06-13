@@ -36,8 +36,8 @@ class ModelInstance(DeclarativeBase):
     scenarios = relationship('Scenario', back_populates='model')
     projectFiles = relationship('ProjectFile', back_populates='model')
     mapTableFiles = relationship('MapTableFile', back_populates='model')
+    precipFiles = relationship('PrecipFile', back_populates='model')
     
-    precipEvents = relationship('PrecipEvent', back_populates='model')
     indexMaps = relationship('IndexMap', back_populates='model')
     streamNetwork = relationship('StreamNetwork', back_populates='model')
     pipeNetwork = relationship('PipeNetwork', back_populates='model')

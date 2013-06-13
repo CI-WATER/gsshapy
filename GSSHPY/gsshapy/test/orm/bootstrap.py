@@ -529,6 +529,13 @@ def orm_test_data(DBSession):
         val.index = idx[v[0]]
         val.mapTableFiles.append(cmtFile)
     
+    #----------------------------
+    # Define a precipitation file
+    #----------------------------
+    gagFile = PrecipFile
+    
+    
+    
     
     '''    
     # Load Outlet Hydrograph as a Time Series

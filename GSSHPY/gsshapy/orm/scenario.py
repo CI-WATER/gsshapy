@@ -10,11 +10,11 @@
 
 __all__ = ['Scenario']
 
-from sqlalchemy import ForeignKey, Column, Table
-from sqlalchemy.types import Integer, DateTime, String, Boolean
+from sqlalchemy import ForeignKey, Column
+from sqlalchemy.types import Integer, DateTime, String
 from sqlalchemy.orm import  relationship
 
-from gsshapy.orm import DeclarativeBase, metadata
+from gsshapy.orm import DeclarativeBase
 
 
 class Scenario(DeclarativeBase):
