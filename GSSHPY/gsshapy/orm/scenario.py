@@ -30,6 +30,7 @@ class Scenario(DeclarativeBase):
     
     # Value Columns
     name = Column(String, nullable=False)
+    shortName = Column(String, nullable=False)
     description = Column(String)
     created = Column(DateTime, nullable=False)
     
@@ -37,22 +38,31 @@ class Scenario(DeclarativeBase):
     model = relationship('ModelInstance', back_populates='scenarios')
     projectFile = relationship('ProjectFile', back_populates='scenarios')
     
-    def __init__(self, name, description, created):
+    def __init__(self, name, shortName, description, created):
         '''
         Constructor
         '''
         self.name = name
+        self.shortName = shortName
         self.description = description
         self.created = created
         
 
     def __repr__(self):
-        return '<Scenario: Model Name=%s, Name=%s, Description=%s, Created=%s, Base=%s>' % (
+        return '<Scenario: ModelName=%s, Name=%s, ShortName=%s, Description=%s, Created=%s>' % (
                     self.model.name, 
-                    self.name, 
+                    self.name,
+                    self.shortName, 
                     self.description, 
-                    self.created, 
-                    self.base)
+                    self.created)
+    
+    def write(self, session, path):
+        
+        # The short name will be used as the prefix to all the files that will be written
+        name = self.shortName
+        
+        # Initiate writing by using writeAll method on the project file
+        self.projectFile.writeAll(session, path, name)
         
 
     

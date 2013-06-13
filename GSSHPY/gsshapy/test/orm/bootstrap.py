@@ -12,18 +12,24 @@ from gsshapy.orm import *
 from datetime import date
 
 def orm_test_data(DBSession):
+    #----------------------
     # Define Model Instance
-    # Define the model instance
+    #----------------------
     
     mdl = ModelInstance(name="Park City Basic", description="Park City, UT", created=date(2013,6,5))
     
+    #---------------------------------
     # Define a scenario for this model
-    scn1 = Scenario(name='Scenario 1', description='This is the first scenario for testing purposes.', created=date(2013,6,5))
+    #---------------------------------
+    scn1 = Scenario(name='Scenario 1', shortName='gssha_hawk_1', description='This is the first scenario for testing purposes.', created=date(2013,6,5))
     scn1.model = mdl
     
-    # Define a project file object for this model
+    #-----------------------------------------------
+    # Define a project file object for this scenario
+    #-----------------------------------------------
     prjFile1 = ProjectFile()
     prjFile1.model = mdl
+    scn1.projectFile = prjFile1
     
     # Load project file data
     prjData = [('WATERSHED_MASK', '"parkcity.msk"','PATH'), 
@@ -69,32 +75,33 @@ def orm_test_data(DBSession):
         opt.card = crd
         opt.model = mdl
         opt.projectFiles.append(prjFile1)
-    
-    # Assign the project file to the scenario
-    scn1.projectFile = prjFile1
         
-    '''
-    Mapping Tables
-    '''
-    
-    # Define mapping table file for this model and assign to project file
+    #----------------------------------------------------
+    # Define the mapping table file for this project file
+    #----------------------------------------------------
     cmtFile = MapTableFile()
     cmtFile.model = mdl
     prjFile1.mapTableFile = cmtFile
     
+    #---------------------------------
     # Define Index Maps for this model
+    #---------------------------------
     luse = IndexMap(name='LandUse', filename='"luse.idx"',rasterMap='')
     luse.model = mdl
     soil = IndexMap(name='Soil', filename='"soil.idx"',rasterMap='')
     soil.model = mdl
     combo = IndexMap(name='Combination', filename='"combo.idx"',rasterMap='')
     combo.model = mdl
-    sediment = IndexMap(name='SkiTracks', filename='SkiTracks.idx', rasterMap='')
-    combo.model = mdl
+    sediment = IndexMap(name='SkiTracks', filename='"SkiTracks.idx"', rasterMap='')
+    sediment.model = mdl
+    dairy = IndexMap(name='lu_dairy', filename='"LU_wDairy.idx"', rasterMap='')
+    dairy.model = mdl
     
     
+    #-------------------------------------------------------------------
     # Define ROUGHNESS Mapping Table for this model and assign index map
-    roughTbl = MapTable(name='ROUGHNESS', numIDs=7, maxNumCells=-1, numSed=-1, numContam=-1)
+    #-------------------------------------------------------------------
+    roughTbl = MapTable(name='ROUGHNESS', numIDs=7)
     roughTbl.model = mdl
     roughTbl.indexMap = luse
     
@@ -130,8 +137,10 @@ def orm_test_data(DBSession):
         
         
         
+    #-------------------------------------------------------------------------
     # Define INFILTRATION mapping table for this model and assign to index map
-    infilTbl = MapTable(name='GREEN_AMPT_INFILTRATION', numIDs=19, maxNumCells=-1, numSed=-1, numContam=-1)
+    #-------------------------------------------------------------------------
+    infilTbl = MapTable(name='GREEN_AMPT_INFILTRATION', numIDs=19)
     infilTbl.model = mdl
     infilTbl.indexMap = combo
     
@@ -303,8 +312,11 @@ def orm_test_data(DBSession):
         val.index = idx[v[0]-1]
         val.mapTableFiles.append(cmtFile)
     
+    
+    #---------------------------------------------------------------------------
     # Define INITIAL MOISUTURE mapping table for this model and assign index map
-    gaMoisTbl = MapTable(name='GREEN_AMPT_INITIAL_SOIL_MOISTURE', numIDs=3, maxNumCells=-1, numSed=-1, numContam=-1)
+    #---------------------------------------------------------------------------
+    gaMoisTbl = MapTable(name='GREEN_AMPT_INITIAL_SOIL_MOISTURE', numIDs=3)
     gaMoisTbl.model = mdl
     gaMoisTbl.indexMap = soil
     
@@ -331,7 +343,7 @@ def orm_test_data(DBSession):
         val.mapTableFiles.append(cmtFile)
         
     # Define SEDIMENTS mapping table for this model and assign index map
-    sedTbl = MapTable(name='SEDIMENTS', numIDs=-1, maxNumCells=-1, numSed=3, numContam=-1)
+    sedTbl = MapTable(name='SEDIMENTS', numSed=3)
     
     sedValues = [('Sand', 2.650000, 0.250000, 'Sand'),
                  ('Silt', 2.650000, 0.160000, 'Silt'),
@@ -345,13 +357,16 @@ def orm_test_data(DBSession):
         sed.mapTable = sedTbl
         sed.mapTableFiles.append(cmtFile)
         sediments.append(sed)
-        
+    
+    #-----------------------------------    
     # Define SOIL EROSION PROPERTY table
-    soilErosionTbl = MapTable(name='SOIL_EROSION_PROPS', numIDs=4, maxNumCells=-1, numSed=3, numContam=-1)
+    #-----------------------------------
+    soilErosionTbl = MapTable(name='SOIL_EROSION_PROPS', numIDs=4, numSed=3)
+    soilErosionTbl.model = mdl
     soilErosionTbl.indexMap = sediment
     
-    seIdxs = [(13, 'Soil erosoin properties ID', ''),
-              (14, 'Soil erosoin properties ID', ''),
+    seIdxs = [(13, 'Soil erosion properties ID', ''),
+              (14, 'Soil erosion properties ID', ''),
               (15, 'Soil erosion properties ID', ''),
               (100, 'Soil erosion properties ID', '')]
     
@@ -405,6 +420,115 @@ def orm_test_data(DBSession):
         val.mapTable = soilErosionTbl
         val.index = idx[v[0]]
         val.mapTableFiles.append(cmtFile)
+    
+    #-----------------------------------------------
+    # Define the CONTAMINANT TRANSPORT mapping table
+    #-----------------------------------------------
+    contamTbl = MapTable(name='CONTAMINANT_TRANSPORT', numContam=2)
+    contamTbl.model = mdl
+    
+    # Define contaminants
+    nitrogen = MTContaminant(name='Nitrogen', outputFilename='"\Nitrogen"', precipConc=0.00, partition=2.70, numIDs=4)
+    nitrogen.indexMap = dairy
+    phosphorous = MTContaminant(name='Phosphorous', outputFilename='"\Phosphorous"', precipConc=0.00, partition=18.00, numIDs=4)
+    phosphorous.indexMap = dairy
+    
+    # Define indices for index map(s)
+    dairyIdxs = [(7, 'forest', ''),                              
+                 (9, 'grass', ''),
+                 (13, 'row crop', ''),
+                 (111, 'dairy', '')]
+    
+    # Load Indexes
+    idx = []
+    for i in dairyIdxs:
+        mtIDX = MTIndex(index=i[0], description1=i[1], description2=i[2])
+        mtIDX.indexMap = dairy
+        idx.append(mtIDX)
+    
+    # Data
+    nitroValues =  [(1,'DISPERSION',0),
+                    (2,'DISPERSION',0),
+                    (3,'DISPERSION',0),
+                    (0,'DISPERSION',0),
+                    (0,'DECAY',0),
+                    (1,'DECAY',0),
+                    (2,'DECAY',0),
+                    (3,'DECAY',0),
+                    (0,'UPTAKE',0.1),
+                    (1,'UPTAKE',0.1),
+                    (2,'UPTAKE',0.1),
+                    (3,'UPTAKE',0.1),
+                    (0,'LOADING',4499),
+                    (1,'LOADING',4847),
+                    (2,'LOADING',2169),
+                    (3,'LOADING',15854),
+                    (0,'GW_CONC',1),
+                    (1,'GW_CONC',1),
+                    (2,'GW_CONC',1),
+                    (3,'GW_CONC',0),
+                    (0,'INIT_CONC',0),
+                    (1,'INIT_CONC',0),
+                    (2,'INIT_CONC',0),
+                    (3,'INIT_CONC',0),
+                    (0,'SW_PART',2.7),
+                    (1,'SW_PART',2.7),
+                    (2,'SW_PART',2.7),
+                    (3,'SW_PART',2.7),
+                    (0,'SOLUBILITY',360000),
+                    (1,'SOLUBILITY',360000),
+                    (2,'SOLUBILITY',360000),
+                    (3,'SOLUBILITY',360000)]
+    
+    phosphoValues = [(1,'DISPERSION',0),
+                    (2,'DISPERSION',0),
+                    (3,'DISPERSION',0),
+                    (0,'DISPERSION',0),
+                    (0,'DECAY',0),
+                    (1,'DECAY',0),
+                    (2,'DECAY',0),
+                    (3,'DECAY',0),
+                    (0,'UPTAKE',0.01),
+                    (1,'UPTAKE',0.01),
+                    (2,'UPTAKE',0.01),
+                    (3,'UPTAKE',0.01),
+                    (0,'LOADING',710),
+                    (1,'LOADING',901),
+                    (2,'LOADING',629),
+                    (3,'LOADING',3115),
+                    (0,'GW_CONC',1),
+                    (1,'GW_CONC',1),
+                    (2,'GW_CONC',1),
+                    (3,'GW_CONC',1),
+                    (0,'INIT_CONC',0),
+                    (1,'INIT_CONC',0),
+                    (2,'INIT_CONC',0),
+                    (3,'INIT_CONC',0),
+                    (0,'SW_PART',18),
+                    (1,'SW_PART',18),
+                    (2,'SW_PART',18),
+                    (3,'SW_PART',18),
+                    (0,'SOLUBILITY',220000),
+                    (1,'SOLUBILITY',220000),
+                    (2,'SOLUBILITY',220000),
+                    (3,'SOLUBILITY',220000)]
+    
+    # Load Nitrogen Variables
+    for v in nitroValues:
+        val = MTValue(variable=v[1], value=v[2])
+        val.contaminant = nitrogen
+        val.mapTable = contamTbl
+        val.index = idx[v[0]]
+        val.mapTableFiles.append(cmtFile)
+        
+    # Load Phosphorous Variables
+    for v in phosphoValues:
+        val = MTValue(variable=v[1], value=v[2])
+        val.contaminant = phosphorous
+        val.mapTable = contamTbl
+        val.index = idx[v[0]]
+        val.mapTableFiles.append(cmtFile)
+    
     
     '''    
     # Load Outlet Hydrograph as a Time Series
@@ -474,7 +598,7 @@ def orm_test_data(DBSession):
     DBSession.add(mdl) 
     
     # Define the new scenario for this model
-    scn2 = Scenario(name='Scenario 2', description='This the second test scenario', created=date(2013,6,5))
+    scn2 = Scenario(name='Scenario 2', shortName='gssha_hawk_2', description='This the second test scenario', created=date(2013,6,5))
     scn2.model = mdl
     
     # Define a new project file for this scenario.

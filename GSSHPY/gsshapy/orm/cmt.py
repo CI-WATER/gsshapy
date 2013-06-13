@@ -12,7 +12,7 @@ __all__ = ['MapTableFile',
            'MapTable',
            'MTValue',
            'MTIndex',
-           'Contaminant',
+           'MTContaminant',
            'MTSediment']
 
 from sqlalchemy import ForeignKey, Column, Table
@@ -77,12 +77,143 @@ class MapTableFile(DeclarativeBase):
     def __repr__(self):
         return '<MapTableFile>'
     
-    def sediments_table(self, session, mapTable, mapTableFile):
-        '''
-        Special function for handling special case of sediment mapping table.
-        '''
     
-    def generic_map_table_pivot(self, session, mapTable, mapTableFile):
+    
+    def _writeGeneric(self, session, fileObject, mapTableName):
+        '''
+        This method writes a mapping table in the generic format to file. The method will handle 
+        both empty and filled cases of generic formatted mapping tables.
+        '''
+        # Try retreiving the data for the table with the current name. On exception the table is not
+        # being used by this project file it will write an empty version.
+        try:
+            # Retrieve the current mapping table (This will fail if it is not used by this mapping table file)
+            currentMapTable = session.query(MapTable).\
+                                join(MTValue.mapTable).\
+                                filter(MTValue.mapTableFiles.contains(self)).\
+                                filter(MapTable.name == mapTableName).\
+                                one()
+            
+            # Write mapping name          
+            fileObject.write('%s "%s"\n' % (currentMapTable.name, currentMapTable.indexMap.name))
+            
+            # Write mappting table global variables
+            if currentMapTable.numIDs != None:
+                fileObject.write('NUM_IDS %s\n' % (currentMapTable.numIDs))
+            
+            if currentMapTable.maxNumCells != None:
+                fileObject.write('MAX_NUMBER_CELLS %s\n' % (currentMapTable.maxNumCells))
+            
+            if currentMapTable.numSed != None:
+                fileObject.write('NUM_SED %s\n' % (currentMapTable.numSed))
+                
+            if currentMapTable.numContam != None:
+                fileObject.write('NUM_CONTAM %s\n' % currentMapTable.numContam)
+            
+            # Retrieve the map table values from the database and pivot into the correct format
+            valueLines = self._genericPivot(session, currentMapTable, None)
+            
+            # Write map table value lines to file
+            for valLine in valueLines:
+                fileObject.write(valLine)
+        
+        # If the mapping table is empty, the query will throw an error. The error is handled by
+        # writing an empty form of the table. 
+        except:
+            'Do Nothing'
+#             # NOTE: Is it necessary to write out empty tables?  
+#             fileObject.write('%s "%s"\n' % (mapTableName, ''))
+#             fileObject.write('NUM_IDS %s\n' % (0))
+#             fileObject.write('ID%sDESCRIPTION1%sDESCRIPTION2\n' % (' '*4, ' '*28))
+
+    def _writeContaminant(self, session, fileObject):
+        '''
+        This method writes the contaminant transport mapping table case.
+        '''
+        try:
+            # Retrieve the data for the contaminant mapping table
+            contamMapTable = session.query(MapTable).\
+                                    join(MTValue.mapTable).\
+                                    filter(MTValue.mapTableFiles.contains(self)).\
+                                    filter(MapTable.name == 'CONTAMINANT_TRANSPORT').\
+                                    one()
+                                    
+            # Write the contaminant mapping table header
+            fileObject.write('%s\n' % (contamMapTable.name))
+            fileObject.write('NUM_CONTAM %s\n' % (contamMapTable.numContam))
+            
+            # Retrieve the contaminants for this project file
+            contaminants = session.query(MTContaminant).\
+                                    join(MTValue.contaminant).\
+                                    filter(MTValue.mapTableFiles.contains(self)).\
+                                    order_by(MTContaminant.id).\
+                                    all()
+            
+            # Write out each contaminant and it's values
+            for contaminant in contaminants:
+                fileObject.write('"%s"  "%s"  %s\n' % (contaminant.name, contaminant.indexMap.name, contaminant.outputFilename))
+                
+                # Add trailing zeros to values
+                precipConc = '%.2f' % contaminant.precipConc
+                partition = '%.2f' % contaminant.partition
+                
+                # Write global variables for the contaminant
+                fileObject.write('PRECIP_CONC%s%s\n' % (' '*10, precipConc))
+                fileObject.write('PARTITION%s%s\n' % (' '*12, partition))
+                
+                # Retrieve the map table values from the database and pivot into the correct format
+                valueLines = self._genericPivot(session, contamMapTable, contaminant)
+                
+                # Write map table value lines to file
+                for valLine in valueLines:
+                    fileObject.write(valLine)
+                
+            
+        except:
+            'Do Nothing'
+            
+            
+    def _writeSediment(self, session, fileObject):
+        '''
+        This method writes the sediments special mapping table case.
+        '''
+        try:
+            # Retrieve the data for the sediment mapping table
+            sedimentMapTable = session.query(MapTable).\
+                                    join(MTSediment.mapTable).\
+                                    filter(MTSediment.mapTableFiles.contains(self)).\
+                                    filter(MapTable.name == 'SEDIMENTS').\
+                                    one()
+            
+            # Write the sediment mapping table header
+            fileObject.write('%s\n' % (sedimentMapTable.name))
+            fileObject.write('NUM_SED %s\n' % (sedimentMapTable.numSed))
+            
+            # Write the value header line
+            fileObject.write('Sediment Description%sSpec. Grav%sPart. Dia%sOutput Filename\n' % (' '*22, ' '*3, ' '*5))
+            
+            # Retrive the sediment mapping table values
+            sediments = session.query(MTSediment).\
+                            filter(MTSediment.mapTableFiles.contains(self)).\
+                            filter(MTSediment.mapTable == sedimentMapTable).\
+                            order_by(MTSediment.id).\
+                            all()
+            
+            # Write sediments out to file
+            for sed in sediments:
+                # Determine spacing for aesthetics
+                space1 = 42 - len(sed.description)
+                
+                # Pad values with zeros
+                specGrav = '%.6f' % sed.specificGravity
+                partDiam = '%.6f' % sed.particleDiameter
+                                
+                fileObject.write('%s%s%s%s%s%s%s\n' % (sed.description, ' '*space1, specGrav, ' '*5, partDiam, ' '*6, sed.outputFilename))
+        
+        except:
+            'Do Nothing'
+        
+    def _genericPivot(self, session, mapTable, contaminant):
         '''
         This function retrives the values of a mapping table from the database
         and pivots them into the format that is required by the mapping table
@@ -93,28 +224,46 @@ class MapTableFile(DeclarativeBase):
         indexes = session.query(MTIndex).\
                     join(MTValue.index).\
                     filter(MTValue.mapTable == mapTable).\
-                    filter(MTValue.mapTableFiles.contains(mapTableFile)).\
+                    filter(MTValue.mapTableFiles.contains(self)).\
                     order_by(MTIndex.index).\
                     all()
         
+        # ----------------------------------------
+        # Construct each line in the mapping table
+        #-----------------------------------------
+        
+        # All lines will be compiled into this list
         lines = []
         
-        # Construct value string/line for each index
         for idx in indexes:
             # Retrieve values for the current index
             values = session.query(MTValue).\
-                    filter(MTValue.mapTableFiles.contains(mapTableFile)).\
+                    filter(MTValue.mapTableFiles.contains(self)).\
                     filter(MTValue.mapTable == mapTable).\
+                    filter(MTValue.contaminant == contaminant).\
                     filter(MTValue.index == idx).\
                     order_by(MTValue.variable).\
-                    all()
+                    order_by(MTValue.sedimentID).\
+                    all() 
+            
+            # NOTE: The second order_by modifier in the query above
+            # handles the special ordering of XSEDIMENT columns 
+            # in soil erosion properties table (i.e. these columns
+            # must be in the same order as the sediments in the 
+            # sediments table. Accomplished by using the sedimentID
+            # field). Similarly, the contaminant filter is only used 
+            # in the case of the contaminant transport table. Values
+            # that don't belong to a contaminant will have a contaminant
+            # attribute equal to None. Compare usage of this function 
+            # by _writeGeneric and _writeContaminant.
                                   
             #Value string
             valString = ''
             
             # Define valString    
             for val in values:
-                numString = '%.6f' % val.value # Format value with trailing zeros up to 6 digits
+                # Format value with trailing zeros up to 6 digits
+                numString = '%.6f' % val.value 
                 valString = '%s%s%s' %(valString, numString, ' '*3)
             
             # Determine spacing for aesthetics (so each column lines up)
@@ -128,83 +277,75 @@ class MapTableFile(DeclarativeBase):
             # Compile each lines into a list
             lines.append(line)
         
+        #-----------------------------
+        # Define the value header line
+        #-----------------------------
+        
         # Define varString for the header line
         varString = ''
         
-        for val in values:
-            varString = '%s%s%s' %(varString, val.variable, ' '*2)
+        # Compile list of variables (from MTValue object list) into a single string of variables
+        for idx, val in enumerate(values):
+            if val.variable == 'XSEDIMENT': # Special case for XSEDIMENT variable
+                if idx < len(values)-1:
+                    'Do Nothing'
+                else:
+                    varString = '%s%s%s%s' %(varString, mapTable.numSed, ' SEDIMENTS....', ' '*2)
+            else:
+                varString = '%s%s%s' %(varString, val.variable, ' '*2)
             
         # Compile the mapping table header
         header = 'ID%sDESCRIPTION1%sDESCRIPTION2%s%s\n' % (' '*4, ' '*28, ' '*28, varString)
         
         # Prepend the header line to the list of lines
         lines.insert(0, header)
+        
+        # Return the list of lines
         return lines
+        
     
     def write(self, session, path, name):
         '''
         Map Table Write Algorithm
         '''
-        
-        # Retrieve all the map table values that belong to this mapping table file
-        cmtValues = self.mapTableValues
-        
+                
         # Obtain list of all possible mapping tables from the enumeration object defined at the top of this file
         # Note: to add to/modify the list of map table names, edit the mapTableNameEnum list.
         possibleMapTableNames = mapTableNameEnum.enums
         
-        # Determine the unique set of mapping table and index map objects that describe the values
+        # Determine the unique set index map objects that the values describe
         idxList = []
-        for val in cmtValues:
-            idxList.append(val.mapTable.indexMap)
-            
+        for val in self.mapTableValues:
+            if val.contaminantID != None: # Contaminant value case
+                idxList.append(val.contaminant.indexMap)
+            else: # All others
+                idxList.append(val.mapTable.indexMap)
+        
+        # Set of unique index map objects    
         idxMaps = set(idxList)
 
         # Initiate mapping table file
         fullPath = '%s%s%s' % (path, name, '.cmt')
         
         # Write to file
-        with open(fullPath, 'w') as f:
+        with open(fullPath, 'w') as cmtFile:
 
             # Write first line to file
-            f.write('GSSHA_INDEX_MAP_TABLES\n')
+            cmtFile.write('GSSHA_INDEX_MAP_TABLES\n')
             
             # Write list of index maps
             for idx in idxMaps:
-                f.write('INDEX_MAP%s%s "%s"\n' % (' '*16, idx.filename, idx.name))
+                cmtFile.write('INDEX_MAP%s%s "%s"\n' % (' '*16, idx.filename, idx.name))
             
             # Populate each mapping table in the file by looping through a list of possilbe names   
             for currentMapTableName in possibleMapTableNames:
                 # Switch statement
-                if currentMapTableName == 'SEDIMENTS': # Sediment mapping table case
-                    pass
-                
-                else: # Generic mapping table case
-                        
-                    try:
-                        # Retrieve the current mapping table if it is used by this mapping mapping table file
-                        currentMapTable = session.query(MapTable).\
-                                            join(MTValue.mapTable).\
-                                            filter(MTValue.mapTableFiles.contains(self)).\
-                                            filter(MapTable.name == currentMapTableName).\
-                                            one()
-                        
-                        # Write mapping table header and global variables to file           
-                        f.write('%s "%s"\n' % (currentMapTable.name, currentMapTable.indexMap.name))
-                        f.write('NUM_IDS %s\n' % (currentMapTable.numIDs))
-                        
-                        # Retrieve the map table values from the database and pivot into the correct format
-                        valueLines = self.generic_map_table_pivot(session, currentMapTable, self)
-                        
-                        # Write map table value lines to file
-                        for valLine in valueLines:
-                            f.write(valLine)
-                    
-                    except:
-                        # Do we need to write anything if the table is not used in this simulation?
-                        f.write('%s "%s"\n' % (currentMapTableName, ''))
-                        f.write('NUM_IDS %s\n' % (0))
-                        f.write('ID%sDESCRIPTION1%sDESCRIPTION2\n' % (' '*4, ' '*28))
+                if currentMapTableName == 'SEDIMENTS':                  # Sediment mapping table case
+                    self._writeSediment(session, cmtFile)
+                elif currentMapTableName == 'CONTAMINANT_TRANSPORT':    # Contaminant mapping table case
+                    self._writeContaminant(session, cmtFile)
+                else:                                                   # Generic mapping table case
+                    self._writeGeneric(session, cmtFile, currentMapTableName)    
 
 class MapTable(DeclarativeBase):
     '''
@@ -241,7 +382,13 @@ class MapTable(DeclarativeBase):
         self.numContam = numContam
 
     def __repr__(self):
-        return '<MapTable: Name=%s, Index Map=%s, NumIDs=%s>' % (self.name, self.idxMapID, self.numIDs)
+        return '<MapTable: Name=%s, Index Map=%s, NumIDs=%s, MaxNumCells=%s, NumSediments=%s, NumContaminants=%s>' % (
+                self.name,
+                self.idxMapID,
+                self.numIDs,
+                self.maxNumCells,
+                self.numSed,
+                self.numContam)
     
 class MTIndex(DeclarativeBase):
     '''
@@ -296,7 +443,7 @@ class MTValue(DeclarativeBase):
     mapTableFiles = relationship('MapTableFile', secondary=assocMapTable, back_populates='mapTableValues')
     mapTable = relationship('MapTable', back_populates='values')
     index = relationship('MTIndex', back_populates='values')
-    contaminant = relationship('Contaminant', back_populates='values')
+    contaminant = relationship('MTContaminant', back_populates='values')
     sediment = relationship('MTSediment', back_populates='values')
     
     
@@ -309,21 +456,10 @@ class MTValue(DeclarativeBase):
         
     def __repr__(self):
         return '<MTValue: %s=%s>' % (self.variable, self.value)
-    
-    def write(self):
-        '''
-        write function
-        '''
-        return {'MapTable': self.mapTable.name,
-                'Index': self.index.index,
-                'Description1': self.index.description1,
-                'Description2': self.index.description2,
-                'Variable': self.variable,
-                'Value': self.value}
 
 
 
-class Contaminant(DeclarativeBase):
+class MTContaminant(DeclarativeBase):
     '''
     classdocs
 
@@ -332,27 +468,36 @@ class Contaminant(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
+    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'), nullable=False)
     
     # Value Columns
     name = Column(String, nullable=False)
-    outFile = Column(String, nullable = False)
+    outputFilename = Column(String, nullable = False)
     precipConc = Column(Float, nullable=False)
     partition = Column(Float, nullable=False)
+    numIDs = Column(Integer, nullable=False)
 
     # Relationship Properties
+    indexMap = relationship('IndexMap', back_populates='contaminants')
     values = relationship('MTValue', back_populates='contaminant')
     
-    def __init__(self, name, outFile, precipConc, partition):
+    def __init__(self, name, outputFilename, precipConc, partition, numIDs):
         '''
         Constructor
         '''
         self.name = name
-        self.outFile = outFile
+        self.outputFilename = outputFilename
         self.precipConc = precipConc
         self.partition = partition
+        self.numIDs = numIDs
         
     def __repr__(self):
-        return '<Contaminant: Name=%s, Precipitation Concentration=%s, Partition=%s, OutputFile=%s>' % (self.name, self.precipConc, self.partition, self.outFile)
+        return '<MTContaminant: Name=%s, Precipitation Concentration=%s, Partition=%s, OutputFilename=%s, NumIDs=%s>' % (
+                self.name, 
+                self.precipConc, 
+                self.partition, 
+                self.outputFilename,
+                self.numIDs)
 
 
     
@@ -388,4 +533,4 @@ class MTSediment(DeclarativeBase):
         self.outputFilename = outputFilename
     
     def __repr__(self):
-        return '<Sediment: Name=%s>' % (self.description, self.specificGravity, self.particleDiameter, self.outFile)
+        return '<MTSediment: Description=%s, SpecificGravity=%s, ParticleDiameter=%s, OuputFilename=%s>' % (self.description, self.specificGravity, self.particleDiameter, self.outputFilename)

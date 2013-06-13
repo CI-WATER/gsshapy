@@ -66,6 +66,18 @@ class ProjectFile(DeclarativeBase):
             # Initiate write on each ProjectOption that belongs to this ProjectFile
             for opt in self.projectOptions:
                 f.write(opt.write())
+                
+    def writeAll(self, session, path, name):
+        '''
+        This method orchestrates writing all the files
+        '''
+        
+        # First write self
+        self.write(session, path, name)
+        
+        # Write mapping table file
+        self.mapTableFile.write(session, path, name)
+        
 
      
 class ProjectOption(DeclarativeBase):

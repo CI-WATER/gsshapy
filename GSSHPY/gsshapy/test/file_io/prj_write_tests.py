@@ -16,16 +16,18 @@ engine = create_engine('postgresql://swainn:(|w@ter@localhost:5432/gsshapy_testi
 maker = sessionmaker(bind=engine)
 DBSession = maker()
 
-'''
-Project File
-'''
+# Write entire project
+scenario = DBSession.query(Scenario).filter(Scenario.id == 1).one()
+scenario.write(DBSession, '/Users/swainn/testing/write/')
 
-name = 'parkcity'
-# Get project file from the database and write it out to file
-prjFile = DBSession.query(ProjectFile).filter(ProjectFile.id == 1).one()
-prjFile.write(DBSession, '/Users/swainn/testing/write/', name)
 
-# Get the mapping table belonging to the project file and write it out to file
-cmtFile = DBSession.query(MapTableFile).filter(MapTableFile.projectFile == prjFile).one()
-cmtFile.write(DBSession, '/Users/swainn/testing/write/', name)
+# # Write one at a time
+# name = 'parkcity'
+# # Get project file from the database and write it out to file
+# prjFile = DBSession.query(ProjectFile).filter(ProjectFile.id == 1).one()
+# prjFile.write(DBSession, '/Users/swainn/testing/write/', name)
+# 
+# # Get the mapping table belonging to the project file and write it out to file
+# cmtFile = DBSession.query(MapTableFile).filter(MapTableFile.projectFile == prjFile).one()
+# cmtFile.write(DBSession, '/Users/swainn/testing/write/', name)
 
