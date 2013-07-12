@@ -40,7 +40,6 @@ metadata = DeclarativeBase.metadata
 
 
 # Import GSSHA Model Classes/Tables
-from mdl import *
 from prj import *
 from idx import *
 from cmt import *
@@ -52,6 +51,5 @@ from gst import *
 from spn import *
 from gpi import *
 from snw import *
-from scenario import *
 
 

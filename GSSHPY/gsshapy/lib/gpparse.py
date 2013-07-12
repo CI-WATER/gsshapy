@@ -1,6 +1,6 @@
 '''
 ********************************************************************************
-* Name: Parser v5
+* Name: Parser v6
 * Author: Herman Dolder
 * Created On: June 13, 2013
 * Copyright: (c) Brigham Young University 2013
@@ -8,6 +8,7 @@
 ********************************************************************************
 '''
 
+__all__ = ['gpparser']
 #Done:
 #Define Unknowns unto end of file (or line)
 #recursivity
@@ -17,6 +18,7 @@
 #3d put everything into class
 #4 executes at init
 #Parser5 take depth info out
+#6 reads variable names from previous
 
 #Future tasks:
 #Work a little with var names and document
@@ -27,15 +29,15 @@ codegag = \
         ["R", None,\
             [\
                 ["R", 1, ["C", "D", "T-DESC"]],\
-                ["R", 1, ["C", "D", "I-NRPDS"]],\
-                ["R", 1, ["C", "D", "I-NRGAG"]],\
+                ["R", 1, ["C", "D", "I-PPP"]],\
+                ["R", 1, ["C", "D", "I-PPP"]],\
                 ["R", "NRGAG", ["C", "D", "F-X", "F-Y", "T-DESC"]],\
                 ["R", "NRPDS" , ["C", "D", "I-YEAR", "I-MONTH", "I-DAY", "I-HOUR", "I-MIN", ["R", "NRGAG", ["C", "F-GAGVAL"]]]]\
             ]\
          ]\
     ]
   
-filegag = "Z:/Desktop/Files/SkyDrive/Pendrive/BYU/Parser/test.gag"
+filegag = "/Users/swainn/testing/LongTerm2/LongTerm2.gag"
 
 codehead = \
      [ \
@@ -57,6 +59,7 @@ class gpparser:
     f_array = None
     o_array = None
     list = None
+    lastname = None
 
     def __init__(self, instruct, file):
         self.list = []
@@ -75,7 +78,7 @@ class gpparser:
         arr_struc = []
         for line in f:
             arr_line = []
-            tuples = line.split("\n")[0].split(" ")
+            tuples = line.strip().split(" ")
             for tuple in tuples:
                 elem = tuple.split("~")
                 arr_line.append(elem)
@@ -152,6 +155,10 @@ class gpparser:
     def analyze(self, line, depth, colindex, rowdepth, rowindex, rowi, rowi2, coli):
         #coli = 0
         for elem in line:
+            #################
+            self.lastname = self.f_array[rowindex - 1][colindex - 1][0]
+            ##print str(self.lastname)
+            ################            
             if isinstance(elem, str):
                 #do stuff
                 colindex = colindex + 1    
@@ -159,6 +166,8 @@ class gpparser:
                     coli = coli + 1
                     splval = elem.split("-")
                     name = splval[1]
+                    if name == "PPP":## Use the previous
+                        name = self.lastname
                     type = splval[0]
                     self.list.append([rowi, rowi2, coli, name, type, self.f_array[rowindex - 1][colindex - 1][0]])
                    # print str([rowdepth, rowi, rowi2, depth, coli, name, type, self.f_array[rowindex - 1][colindex - 1][0]])
@@ -183,5 +192,8 @@ class gpparser:
         return colindex
 
 
-qqq = gpparser(codehead, filehead)
-ppp = gpparser(codegag, filegag)
+# #qqq = gpparser(codehead, filehead)
+# ppp = gpparser(codegag, filegag)
+# 
+# for p in ppp.list:
+#     print p

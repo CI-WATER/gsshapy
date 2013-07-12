@@ -26,7 +26,6 @@ class IndexMap(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'))
     
     # Value Columns
     name = Column(String, nullable=False)
@@ -36,7 +35,6 @@ class IndexMap(DeclarativeBase):
     # Relationship Properties
     mapTables = relationship('MapTable', back_populates='indexMap')
     indices = relationship('MTIndex', back_populates='indexMap')
-    model = relationship('ModelInstance', back_populates='indexMaps')
     contaminants = relationship('MTContaminant', back_populates='indexMap')
     
     def __init__(self, name, filename, rasterMap):

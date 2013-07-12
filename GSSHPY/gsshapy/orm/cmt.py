@@ -59,13 +59,10 @@ class MapTableFile(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'), nullable=False)
     
     # Value Columns
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='mapTableFiles')
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile') # One-to-one Relationship
     mapTableValues = relationship('MTValue', secondary=assocMapTable, back_populates='mapTableFiles')
     mapTableSediments = relationship('MTSediment', secondary=assocSediment, back_populates='mapTableFiles')
     

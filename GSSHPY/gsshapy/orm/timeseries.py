@@ -25,7 +25,6 @@ class TimeSeries(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'), nullable=False)
     
     # Value Columns
     name = Column(String, nullable=False)
@@ -34,7 +33,6 @@ class TimeSeries(DeclarativeBase):
     # valueUnits = Column(String)
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='timeSeries')
     values = relationship('TimeSeriesValue', back_populates='timeSeries', cascade='all, delete, delete-orphan')
     
     def __init__(self, name, fileExtension, numValues):

@@ -37,7 +37,6 @@ class StreamNetwork(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'))
     
     # Value Columns
     alpha = Column(Float)
@@ -47,7 +46,6 @@ class StreamNetwork(DeclarativeBase):
     maxNodes = Column(Integer)
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='streamNetwork')
     streamLinks = relationship('StreamLink', back_populates='streamNetwork')
     
     def __init__(self, alpha, beta, theta, numLinks, maxNodes):
@@ -72,7 +70,7 @@ class StreamLink(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('cif_stream_networks.id'))
+    streamNetworkID = Column(Integer, ForeignKey('cif_stream_networks.id'), nullable=False)
     
     # Value Columns
     linkType = Column(String, nullable=False)

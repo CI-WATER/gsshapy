@@ -9,21 +9,22 @@
 '''
 
 __all__ = ['ProjectFile',
-           'ProjectOption',
            'ProjectCard']
 
+import os, re, shlex
+
 from sqlalchemy import ForeignKey, Column, Table
-from sqlalchemy.types import Integer, String, Enum
+from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase, metadata
+from gsshapy.orm.gag import *
 
-# Controlled Vocabulary List
-valueTypeEnum = Enum('STRING','PATH','INTEGER','FLOAT','DATE','BOOLEAN','TIME', name='prj_card_names')
+
 
 assocProject = Table('assoc_project_files_options', metadata,
     Column('projectFileID', Integer, ForeignKey('prj_project_files.id')),
-    Column('projectOptionID', Integer, ForeignKey('prj_project_options.id'))
+    Column('projectCardID', Integer, ForeignKey('prj_project_cards.id'))
     )
 
 class ProjectFile(DeclarativeBase):
@@ -34,112 +35,188 @@ class ProjectFile(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'), nullable=False)
-    mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
-    precipFileID = Column(Integer, ForeignKey('gag_precipitation_files.id'))
-    
-    # Value Columns
-    
+
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='projectFiles')
-    scenarios = relationship('Scenario', back_populates='projectFile')
-    mapTableFile = relationship('MapTableFile', back_populates='projectFile')
-    precipFile = relationship('PrecipFile', back_populates='projectFile')
-    projectOptions = relationship('ProjectOption', secondary=assocProject, back_populates='projectFiles')
-         
+    projectCards = relationship('ProjectCard', secondary=assocProject, back_populates='projectFiles')
+    
+    # Global Properties
+    PATH = None
+    PROJECT_NAME = None
+    DIRECTORY = None
+    SESSION = None
+    HEADERS = ['GSSHAPROJECT', 'WMS']
+    
+    def __init__(self, path, session):
+        self.PATH = path
+        self.SESSION = session
+        
+        if '\\' in path:
+            splitPath = path.split('\\')
+            self.DIRECTORY = '\\'.join(splitPath[:-1]) + '\\'
+            
+        elif '/' in path:
+            splitPath = path.split('/')
+            self.DIRECTORY = '/'.join(splitPath[:-1]) + '/'
+        else:
+            self.DIRECTORY = '""'
+            
+        self.PROJECT_NAME = splitPath[-1].split('.')[0]
+        
+             
     def __repr__(self):
         return '<ProjectFile>'
     
-    def write(self, session, path, name):
+    def read(self):
         '''
-        Project File Write Method
+        Project File Read from File Method
+        '''
+        
+        with open(self.PATH, 'r') as f:
+            for line in f:
+                card = {}
+                try:
+                    card = self._extractCard(line)    
+                    
+                except:
+                    card = self._extractDirectoryCard(line)
+                # Now that the cardName and cardValue are separated
+                # load them into the gsshapy objects
+                if card['name'] not in self.HEADERS:
+                    # Initiate database objects
+                    prjCard = ProjectCard(name=card['name'], value=card['value'])
+                    self.projectCards.append(prjCard)
+                    self.SESSION.add(self)
+                     
+    def readAll(self):
+        '''
+        GSSHA Project Read from File Method
+        '''
+        
+        # First read self
+        self.read()
+        
+        # Read precipitation file
+        precip = PrecipFile(directory=self.DIRECTORY, name=self.PROJECT_NAME, session=self.SESSION)
+        precip.read()
+    
+    def write(self, session, directory, name):
+        '''
+        Project File Write to File Method
         '''
         # Initiate project file
-        fullPath = '%s%s%s' % (path, name, '.prj')
+        fullPath = '%s%s%s' % (directory, name, '.prj')
         
         with open(fullPath, 'w') as f:
             f.write('GSSHAPROJECT\n')
         
-            # Initiate write on each ProjectOption that belongs to this ProjectFile
-            for opt in self.projectOptions:
-                f.write(opt.write())
+            # Initiate write on each ProjectCard that belongs to this ProjectFile
+            for card in self.projectCards:
+                f.write(card.write())
                 
-    def writeAll(self, session, path, name):
+    def writeAll(self, session, directory, name):
         '''
-        This method orchestrates writing all the files
+        GSSHA Project Write to File Method
         '''
         
         # First write self
-        self.write(session, path, name)
+        self.write(session, directory, name)
         
-        # Write mapping table file
-        self.mapTableFile.write(session, path, name)
+        # Write precipitation file
         
+    def _extractCard(self, projectLine):
+        splitLine = shlex.split(projectLine)
+        cardName = splitLine[0]
+        # pathSplit will fail on boolean cards (no value
+        # = no second parameter in list (currLine[1])
+        try:
+            # Split the path by / or \\ and retrieve last
+            # item to store relative paths as Card Value
+            pathSplit = re.split('/|\\\\', splitLine[1])
+            
+            # Wrap paths in double quotes
+            try:
+                # If the value is able to be converted to a
+                # float (any number) then store value only
+                float(pathSplit[-1])
+                cardValue = pathSplit[-1]
+            except:
+                # A string will through an exception with
+                # an atempt to convert to float. In this 
+                # case wrap the string in double quotes.
+                if '.' in pathSplit[-1]:
+                    # If the string contains a '.' it is a
+                    # path: wrap in double quotes
+                    cardValue = '"%s"' % pathSplit[-1]
+                elif pathSplit[-1] == '':
+                    # For directory cards with unix paths 
+                    # use double quotes
+                    cardValue = '""'
+                else:
+                    # Else it is a card name/option
+                    # don't wrap in quotes
+                    cardValue = pathSplit[-1]
+        
+        # For boolean cards store the empty string
+        except:
+            cardValue = None
+            
+        return {'name': cardName, 'value': cardValue}
+    
+    def _extractDirectoryCard(self, projectLine):
+        PROJECT_PATH = ['PROJECT_PATH']
+        
+        # Handle special case with directory cards in
+        # windows. shlex.split fails because windows 
+        # directory cards end with an escape character.
+        # e.g.: "this\path\ends\with\escape\"
+        currLine = projectLine.strip().split()
+        
+        # Extract Card Name from the first item in the list
+        cardName = currLine[0]
+        
+        if cardName in PROJECT_PATH:
+            cardValue = '""'
+        else:
+            # TODO: Write code to handle nested directory cards
+            cardValue = '""'
+        
+        return {'name': cardName, 'value': cardValue} 
 
      
-class ProjectOption(DeclarativeBase):
-    '''
-    classdocs
-    '''
-    __tablename__ = 'prj_project_options'
-    
-    # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    cardID = Column(Integer, ForeignKey('prj_cards_cv.id'), nullable=False)
-    
-    # Value Columns
-    value = Column(String, nullable=False)
-    
-    # Relationship Properties
-    projectFiles = relationship('ProjectFile', secondary=assocProject, back_populates='projectOptions')
-    card = relationship('ProjectCard', back_populates='values')
-    
-    def __init__(self, value):
-        '''
-        Constructor
-        '''
-        self.value = value
-        
-
-    def __repr__(self):
-        return '<ProjectOption: Value=%s>' % (self.value)
-    
-    def write(self):
-        # Determine number of spaces between card and value for nice alignment
-        numSpaces = 25 - len(self.card.name)
-        
-        # Handle special case of boolans
-        if self.card.valueType == 'BOOLEAN':
-            line = '%s\n' % (self.card.name)
-        else:
-            line ='%s%s%s\n' % (self.card.name,' '*numSpaces, self.value)
-        return line
-    
-    
 class ProjectCard(DeclarativeBase):
     '''
     classdocs
-
     '''
-    __tablename__ = 'prj_cards_cv'
+    __tablename__ = 'prj_project_cards'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
     
     # Value Columns
     name = Column(String, nullable=False)
-    valueType = Column(valueTypeEnum, nullable=False)
+    value = Column(String)
     
     # Relationship Properties
-    values = relationship('ProjectOption', back_populates='card')
+    projectFiles = relationship('ProjectFile', secondary=assocProject, back_populates='projectCards')
     
-    def __init__(self, name, valueType):
+    def __init__(self, name, value):
         '''
         Constructor
         '''
         self.name = name
-        self.valueType = valueType
+        self.value = value
         
 
     def __repr__(self):
-        return '<ProjectCard: Name=%s, ValueType=%s>' % (self.name, self.valueType)
+        return '<ProjectCard: Name=%s, Value=%s>' % (self.name, self.value)
+    
+    def write(self):
+        # Determine number of spaces between card and value for nice alignment
+        numSpaces = 25 - len(self.name)
+        
+        # Handle special case of booleans
+        if self.value is None:
+            line = '%s\n' % (self.name)
+        else:
+            line ='%s%s%s\n' % (self.name,' '*numSpaces, self.value)
+        return line

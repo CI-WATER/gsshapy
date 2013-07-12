@@ -18,6 +18,7 @@ from sqlalchemy.types import Integer, DateTime, String, Float
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase, metadata
+from gsshapy.lib import gpparse
 
 assocPrecip = Table('assoc_precipitation_files_events', metadata,
     Column('precipFileID', Integer, ForeignKey('gag_precipitation_files.id')),
@@ -32,17 +33,93 @@ class PrecipFile(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'), nullable=False)
-    
-    # Value Columns
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='precipFiles')
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='precipFile') # One-to-one Relationship
     precipEvents = relationship('PrecipEvent', secondary=assocPrecip, back_populates='precipFiles')
+    
+    # Global Properties
+    PATH = ''
+    PROJECT_NAME = ''
+    DIRECTORY = ''
+    SESSION = None
+    STRUCTURE = \
+        [ \
+            ["R", None,\
+                [\
+                    ["R", 1, ["C", "D", "T-EDESC"]],\
+                    ["R", 1, ["C", "D", "I-PPP"]],\
+                    ["R", 1, ["C", "D", "I-PPP"]],\
+                    ["R", "NRGAG", ["C", "D", "F-X", "F-Y", "T-CDESC"]],\
+                    ["R", "NRPDS" , ["C", "D", "I-YEAR", "I-MONTH", "I-DAY", "I-HOUR", "I-MIN", ["R", "NRGAG", ["C", "F-GAGVAL"]]]]\
+                ]\
+             ]\
+        ]
+        
+    def __init__(self, directory, name, session):
+        self.PROJECT_NAME = name
+        self.DIRECTORY = directory
+        self.SESSION = session
+        self.PATH = '%s%s%s' % (self.DIRECTORY, self.PROJECT_NAME, '.gag')
         
     def __repr__(self):
         return '<PrecipitationFile>'
+    
+    def read(self):
+        '''Precipitation Read from File Method'''
+        events = []
+        coordinates = []
+        values = []
+        
+        evt = []
+        gag = []
+        val = []
+        
+        parsedFile= gpparse.gpparser(self.STRUCTURE, self.PATH)
+        
+        # Transform the gpparse result into something more useful
+        for var in parsedFile.list:
+            print var
+            if var[3] == 'EDESC':
+                currEvent = [var]
+                events.append(currEvent)
+            elif var[3] == 'NRGAG':
+                currEvent.append(var)
+            elif var[3] == 'NRPDS':
+                currEvent.append(var)
+            elif var[3] == 'X':
+                currCoord = [var]
+                currEvent.append(currCoord)
+            elif var[3] == 'Y':
+                currCoord.append(var)
+            elif var[3] == 'CDESC':
+                currCoord.append(var)
+            elif var[3] == 'YEAR':
+                currVal = [var]
+                currEvent.append(currVal)
+            else:
+                currVal.append(var)
+                               
+        for e in events:
+            for i in e:
+                print i
+            
+            if e[1][3] == 'NRGAG':
+                ngag = int(e[1][5])
+                npds = int(e[2][5])
+            elif e[1][3] == 'NRPDS':
+                ngag = int(e[2][5])
+                npds = int(e[1][5])
+            
+            evt.append(PrecipEvent(description=e[0][5], numGages=ngag, numPeriods=npds))
+            
+            if ngag > 0:
+                print 'yes'
+                gag.append(PrecipGage())
+                 
+        
+        print evt
+        
+        
     
 
 class PrecipEvent(DeclarativeBase):
@@ -74,7 +151,7 @@ class PrecipEvent(DeclarativeBase):
         
 
     def __repr__(self):
-        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.eventDesc,self.nrGag,self.nrPds)
+        return '<PrecipEvent: Description=%s, NumGages=%s, NumPeriods=%s>' % (self.description,self.nrGag,self.nrPds)
     
     
 class PrecipValue(DeclarativeBase):
@@ -122,20 +199,20 @@ class PrecipGage(DeclarativeBase):
     
     # Value Columns
     description = Column(String)
-    utmNorthing = Column(Float, nullable=False)
-    utmEasting = Column(Float, nullable=False)
+    x = Column(Float, nullable=False)
+    y = Column(Float, nullable=False)
     
     # Relationship Properties
     values = relationship('PrecipValue', back_populates='gage')
     
-    def __init__(self, description, utmNorthing, utmEasting):
+    def __init__(self, description, x, y):
         '''
         Constructor
         '''
         self.description = description
-        self.utmNorthing = utmNorthing
-        self.utmEasting = utmEasting
+        self.x = x
+        self.y = y
         
 
     def __repr__(self):
-        return '<PrecipGage: Description=%s, UTM Northing=%s, UTM Easting=%s>' % (self.description, self.utmNorthing, self.utmEasting)
+        return '<PrecipGage: Description=%s, UTM Northing=%s, UTM Easting=%s>' % (self.description, self.x, self.y)

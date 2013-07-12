@@ -27,14 +27,12 @@ class HMETCollection(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'))
     
     # Value Columns
     name = Column(String, nullable=False)
     description = Column(String)
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='hmetCollections')
     hmetRecords = relationship('HMETRecord', back_populates='hmetCollection')
     
     def __init__(self, name, description):

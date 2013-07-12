@@ -26,7 +26,6 @@ class NWSRFSRecord(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    modelID = Column(Integer, ForeignKey('model_instances.id'))
     
     # Value Columns
     lowerElev = Column(Integer, nullable=False)
@@ -41,7 +40,6 @@ class NWSRFSRecord(DeclarativeBase):
     plwhc = Column(Float, nullable=False)
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='nwsrfsRecords')
     
     def __init__(self, lowerElev, upperElev, mfMin, mfMax, scf, frUse, tipm, nmf, fua, plwhc):
         '''
@@ -83,7 +81,6 @@ class OrthographicGage(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)    
-    modelID = Column(Integer, ForeignKey('model_instances.id'))
     
     # Value Columns
     numSites = Column(Integer, nullable=False)
@@ -91,7 +88,6 @@ class OrthographicGage(DeclarativeBase):
     elev2 = Column(Float, nullable=False)
     
     # Relationship Properties
-    model = relationship('ModelInstance', back_populates='orthoGages')
     orthoMeasurement = relationship('OrthoMeasurement', back_populates='orthoGage')
     
     
