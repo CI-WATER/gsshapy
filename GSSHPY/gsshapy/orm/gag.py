@@ -13,6 +13,8 @@ __all__ = ['PrecipFile',
            'PrecipValue',
            'PrecipGage']
 
+from datetime import datetime
+
 from sqlalchemy import ForeignKey, Column, Table
 from sqlalchemy.types import Integer, DateTime, String, Float
 from sqlalchemy.orm import  relationship
@@ -42,6 +44,8 @@ class PrecipFile(DeclarativeBase):
     PROJECT_NAME = ''
     DIRECTORY = ''
     SESSION = None
+    
+    # This is the structure used by gpparse to read in the file
     STRUCTURE = \
         [ \
             ["R", None,\
@@ -50,7 +54,7 @@ class PrecipFile(DeclarativeBase):
                     ["R", 1, ["C", "D", "I-PPP"]],\
                     ["R", 1, ["C", "D", "I-PPP"]],\
                     ["R", "NRGAG", ["C", "D", "F-X", "F-Y", "T-CDESC"]],\
-                    ["R", "NRPDS" , ["C", "D", "I-YEAR", "I-MONTH", "I-DAY", "I-HOUR", "I-MIN", ["R", "NRGAG", ["C", "F-GAGVAL"]]]]\
+                    ["R", "NRPDS" , ["C", "T-TYPE", "I-YEAR", "I-MONTH", "I-DAY", "I-HOUR", "I-MIN", ["R", "NRGAG", ["C", "F-GAGVAL"]]]]\
                 ]\
              ]\
         ]
@@ -59,69 +63,130 @@ class PrecipFile(DeclarativeBase):
         self.PROJECT_NAME = name
         self.DIRECTORY = directory
         self.SESSION = session
+        # Add this PrecipFile to the database session
+        self.SESSION.add(self)
         self.PATH = '%s%s%s' % (self.DIRECTORY, self.PROJECT_NAME, '.gag')
-        
-    def __repr__(self):
-        return '<PrecipitationFile>'
     
     def read(self):
-        '''Precipitation Read from File Method'''
-        events = []
-        coordinates = []
-        values = []
+        '''
+        Precipitation Read from File Method
+        '''
+        # List of GSSHAPY PrecipEvent Objects     
+        evt = [] 
         
-        evt = []
-        gag = []
-        val = []
-        
+        # Parse file using gpparse. File object can be
+        # accessed via the "list" attribute
         parsedFile= gpparse.gpparser(self.STRUCTURE, self.PATH)
         
-        # Transform the gpparse result into something more useful
-        for var in parsedFile.list:
-            print var
-            if var[3] == 'EDESC':
-                currEvent = [var]
-                events.append(currEvent)
-            elif var[3] == 'NRGAG':
-                currEvent.append(var)
-            elif var[3] == 'NRPDS':
-                currEvent.append(var)
-            elif var[3] == 'X':
-                currCoord = [var]
-                currEvent.append(currCoord)
-            elif var[3] == 'Y':
-                currCoord.append(var)
-            elif var[3] == 'CDESC':
-                currCoord.append(var)
-            elif var[3] == 'YEAR':
-                currVal = [var]
-                currEvent.append(currVal)
-            else:
-                currVal.append(var)
-                               
-        for e in events:
-            for i in e:
-                print i
+        # Transform the gpparse list into a form that is easier to use
+        events = self._transformGpparseArray(parsedFile.list)
+                      
+        for evtIndex, event in enumerate(events):
+            # Determine which of the next two parameters
+            # is NRGAG and which is NRPDS.
+            if event[1][3] == 'NRGAG':
+                ngag = int(event[1][5])
+                npds = int(event[2][5])
+            elif event[1][3] == 'NRPDS':
+                ngag = int(event[2][5])
+                npds = int(event[1][5])
             
-            if e[1][3] == 'NRGAG':
-                ngag = int(e[1][5])
-                npds = int(e[2][5])
-            elif e[1][3] == 'NRPDS':
-                ngag = int(e[2][5])
-                npds = int(e[1][5])
+            # Extract the event description
+            edesc = event[0][5]
             
-            evt.append(PrecipEvent(description=e[0][5], numGages=ngag, numPeriods=npds))
+            # Create a new GSSHAPY PrecipEvent Object, add to this PrecipFile,
+            # and append to list of PrecipEvents
+            currEvt = PrecipEvent(description=edesc, numGages=ngag, numPeriods=npds)
+            self.precipEvents.append(currEvt)
+            evt.append(currEvt)
+            
+            # List of GSSHAPY PrecipGage objects for the current event
+            gages = []
+            
             
             if ngag > 0:
-                print 'yes'
-                gag.append(PrecipGage())
-                 
+                for gageIndex in range(3, 3 + ngag):
+                    # Extract x, y, and the coordinate description for
+                    # the gage, create a GSSHAPY PrecipGage object,
+                    # and append to list of PrecipGages
+                    x=event[gageIndex][0][5]
+                    y=event[gageIndex][1][5]
+                    cdesc=event[gageIndex][2][5]
+                    gages.append(PrecipGage(x=x, y=y, description=cdesc))
+                
+                for periodIndex in range(3 + ngag, 3 + ngag+ npds):
+                    # Extract time of the current period and create a python 
+                    # DataTime object
+                    currType = event[periodIndex][0][5]
+                    year = int(event[periodIndex][1][5])
+                    month = int(event[periodIndex][2][5])
+                    day = int(event[periodIndex][3][5])
+                    hour = int(event[periodIndex][4][5])
+                    minute = int(event[periodIndex][5][5])
+                    currTime = datetime(year, month, day, hour, minute)
+                    
+                    
+                    for gIndex, gage in enumerate(gages):
+                        # Extract value for each gage at each time step, create a 
+                        # GSSHAPY PrecipValue object, and assign appropriate event
+                        # and gage
+                        valIndex = gIndex + 6
+                        currValue = float(event[periodIndex][valIndex][5])
+                        val = PrecipValue(valueType=currType, dateTime=currTime, value=currValue)
+                        val.event = evt[evtIndex]
+                        val.gage = gage
+            else:
+                ''' 
+                This is where code would go to handle the special case of gridded radar
+                datasets passed in through the precipitation file. The logic of the parser
+                breaks down for this case because the NRGAG is set to -1. At this point, 
+                the best option may be to reparse the file to find these cases. For now
+                The precipitation file reader will not support gridded RADAR rainfall.
+                '''
+                
+    def write(self):
+        '''
+        Precipitation Write to File Method
+        '''
+        pass
+                
+    def _transformGpparseArray(self, gagList):
+        ''' 
+        This method is used to transform the gpparse results 
+        into something that is easier to work with for reading
+        the file into the database. A list of events is returned.
+        The precipitation gages and values are appended to each
+        event.
+        '''
+        ## TODO: Consider refactoring events into an dictionary for more
+        ## readable code.
         
-        print evt
+        events = []
         
+        for item in gagList:
+            if item[3] == 'EDESC':
+                currEvent = [item]
+                events.append(currEvent)
+            elif item[3] == 'NRGAG':
+                currEvent.append(item)
+            elif item[3] == 'NRPDS':
+                currEvent.append(item)
+            elif item[3] == 'X':
+                currCoord = [item]
+                currEvent.append(currCoord)
+            elif item[3] == 'Y':
+                currCoord.append(item)
+            elif item[3] == 'CDESC':
+                currCoord.append(item)
+            elif item[3] == 'TYPE':
+                currVal = [item]
+                currEvent.append(currVal)
+            else:
+                currVal.append(item)
         
-    
-
+        # Return the list of events
+        return events
+                
 class PrecipEvent(DeclarativeBase):
     '''
     classdocs
