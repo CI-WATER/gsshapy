@@ -20,7 +20,7 @@ from sqlalchemy.types import Integer, DateTime, String, Float
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase, metadata
-from gsshapy.lib import gpparse
+from gsshapy.lib import gpparse, pivot
 
 assocPrecip = Table('assoc_precipitation_files_events', metadata,
     Column('precipFileID', Integer, ForeignKey('gag_precipitation_files.id')),
@@ -38,6 +38,7 @@ class PrecipFile(DeclarativeBase):
     
     # Relationship Properties
     precipEvents = relationship('PrecipEvent', secondary=assocPrecip, back_populates='precipFiles')
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='precipFile')
     
     # Global Properties
     PATH = ''
@@ -63,8 +64,6 @@ class PrecipFile(DeclarativeBase):
         self.PROJECT_NAME = name
         self.DIRECTORY = directory
         self.SESSION = session
-        # Add this PrecipFile to the database session
-        self.SESSION.add(self)
         self.PATH = '%s%s%s' % (self.DIRECTORY, self.PROJECT_NAME, '.gag')
     
     def read(self):
@@ -144,11 +143,82 @@ class PrecipFile(DeclarativeBase):
                 The precipitation file reader will not support gridded RADAR rainfall.
                 '''
                 
-    def write(self):
+        # Add this PrecipFile to the database session
+        self.SESSION.add(self)
+                
+    def write(self, session, directory, name):
         '''
         Precipitation Write to File Method
         '''
-        pass
+        # Assemble path to new precipitation file
+        path = '%s%s%s' % (directory, name, '.gag')
+        
+        # Initialize file
+        with open(path, 'w') as f:
+            # Retrieve the events associated with this PrecipFile
+            events = self.precipEvents
+            
+            # Write each event to file
+            for event in events:
+                f.write('EVENT %s\nNRGAG %s\nNRPDS %s\n' % (event.description, event.nrGag, event.nrPds))
+                
+                if event.nrGag > 0:
+                    values = event.values
+                    
+                    valList = []
+                    
+                    # Convert PrecipValue objects into a list of dictionaries, valList,
+                    # so that it is compatible with the pivot function.
+                    for value in values:
+                        valList.append({
+                                'ValueType': value.valueType,
+                                'DateTime': value.dateTime,
+                                'Gage': value.gage.id,
+                                'Value': value.value
+                                })
+                    
+                    # Pivot using the function found at:
+                    # code.activestate.com/recipes/334695
+                    pivotedValues = pivot.pivot(valList, ('DateTime', 'ValueType'), ('Gage',), 'Value')
+                    
+                    ## TODO: Create custom pivot function that can work with sqlalchemy 
+                    ## objects explicitly without the costly conversion.
+                    
+                    # Create an empty set for obtaining a list of unique gages
+                    gages = set()
+                    
+                    # Get a list of unique gages
+                    for value in values:
+                        gages.add(value.gage)
+                    
+                    for gage in gages:
+                        f.write('COORD %s %s %s\n' % (gage.x, gage.y, gage.description))
+
+                    # Write the value rows out to file
+                    for row in pivotedValues:
+                        
+                        # Extract ValueType and DateTime
+                        valType = row['ValueType']
+                        year = row['DateTime'].year
+                        month = row['DateTime'].month
+                        day = row['DateTime'].day
+                        hour = row['DateTime'].hour
+                        minute = row['DateTime'].minute
+                        
+                        # Extract the PrecipValues
+                        valString = ''
+                        
+                        # Retreive a lit of sorted keys. This assumes the values are 
+                        # read into the database in order
+                        keys = sorted(row)
+                        
+                        # String all of the values together into valString
+                        for key in keys:
+                            if key <> 'DateTime' and key <> 'ValueType':
+                                valString = '%s  %.2f' % (valString, row[key])
+
+                        # Write value line to file with appropriate formatting
+                        f.write('%s %.4d %.2d  %.2d  %.2d  %.2d%s\n' % (valType, year, month, day, hour, minute, valString))
                 
     def _transformGpparseArray(self, gagList):
         ''' 

@@ -35,9 +35,14 @@ class ProjectFile(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
+    precipFileID = Column(Integer, ForeignKey('gag_precipitation_files.id'))
+    mapTableID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
 
     # Relationship Properties
     projectCards = relationship('ProjectCard', secondary=assocProject, back_populates='projectFiles')
+    precipFile = relationship('PrecipFile', back_populates='projectFile')
+    mapTableFile = relationship('MapTableFile', back_populates='projectFile')
+    
     
     # Global Properties
     PATH = None
@@ -81,7 +86,8 @@ class ProjectFile(DeclarativeBase):
                     # Initiate database objects
                     prjCard = ProjectCard(name=card['name'], value=card['value'])
                     self.projectCards.append(prjCard)
-                    self.SESSION.add(self)
+        
+        self.SESSION.add(self)
                      
     def readAll(self):
         '''
@@ -91,8 +97,9 @@ class ProjectFile(DeclarativeBase):
         # First read self
         self.read()
         
-        # Read precipitation file
+        # Initiate GSSHAPY PrecipFile object, associate it with this object, and read precipitation file
         precip = PrecipFile(directory=self.DIRECTORY, name=self.PROJECT_NAME, session=self.SESSION)
+        precip.projectFile = self
         precip.read()
     
     def write(self, session, directory, name):
@@ -118,6 +125,9 @@ class ProjectFile(DeclarativeBase):
         self.write(session, directory, name)
         
         # Write precipitation file
+        precipFile = session.query(PrecipFile).filter(PrecipFile.projectFile == self).one()
+        precipFile.write(session=session, directory=directory, name=name)
+        
         
     def _extractCard(self, projectLine):
         splitLine = shlex.split(projectLine)

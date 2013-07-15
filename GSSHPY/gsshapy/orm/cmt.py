@@ -65,6 +65,7 @@ class MapTableFile(DeclarativeBase):
     # Relationship Properties
     mapTableValues = relationship('MTValue', secondary=assocMapTable, back_populates='mapTableFiles')
     mapTableSediments = relationship('MTSediment', secondary=assocSediment, back_populates='mapTableFiles')
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile')
     
     def __init__(self):
         '''
