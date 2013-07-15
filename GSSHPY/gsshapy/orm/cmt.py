@@ -20,24 +20,26 @@ from sqlalchemy.types import Integer, Enum, Float, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase, metadata
+from gsshapy.orm.idx import IndexMap
+from gsshapy.lib import parsetools as pt
 
 # Controlled Vocabulary Lists
-mapTableNameEnum = Enum('ROUGHNESS','INTERCEPTION','RETENTION','GREEN_AMPT_INFILTRATION',\
-                       'GREEN_AMPT_INITIAL_SOIL_MOISTURE','RICHARDS_EQN_INFILTRATION_BROOKS',\
-                       'RICHARDS_EQN_INFILTRATION_HAVERCAMP','EVAPOTRANSPIRATION','WELL_TABLE',\
-                       'OVERLAND_BOUNDARY','TIME_SERIES_INDEX','GROUNDWATER','GROUNDWATER_BOUNDARY',\
-                       'AREA_REDUCTION','WETLAND_PROPERTIES','MULTI_LAYER_SOIL','SOIL_EROSION_PROPS',\
-                       'CONTAMINANT_TRANSPORT','SEDIMENTS',\
+mapTableNameEnum = Enum('ROUGHNESS','INTERCEPTION','RETENTION','GREEN_AMPT_INFILTRATION',
+                       'GREEN_AMPT_INITIAL_SOIL_MOISTURE','RICHARDS_EQN_INFILTRATION_BROOKS',
+                       'RICHARDS_EQN_INFILTRATION_HAVERCAMP','EVAPOTRANSPIRATION','WELL_TABLE',
+                       'OVERLAND_BOUNDARY','TIME_SERIES_INDEX','GROUNDWATER','GROUNDWATER_BOUNDARY',
+                       'AREA_REDUCTION','WETLAND_PROPERTIES','MULTI_LAYER_SOIL','SOIL_EROSION_PROPS',
+                       'CONTAMINANT_TRANSPORT','SEDIMENTS',
                        name='cmt_table_names')
 
-varNameEnum = Enum('ROUGH','STOR_CAPY','INTER_COEF','RETENTION_DEPTH','HYDR_COND','CAPIL_HEAD',\
-                      'POROSITY','PORE_INDEX','RESID_SAT','FIELD_CAPACITY','WILTING_PT','SOIL_MOISTURE',\
-                      'IMPERVIOUS_AREA','HYD_COND','SOIL_MOIST','DEPTH','LAMBDA',\
-                      'BUB_PRESS','DELTA_Z','ALPHA','BETA','AHAV','ALBEDO','VEG_HEIGHT','V_RAD_COEFF',\
-                      'CANOPY_RESIST','SPLASH_COEF', 'DETACH_COEF','DETACH_EXP','DETACH_CRIT','SED_COEF','XSEDIMENT',\
-                      'TC_COEFF','TC_INDEX','TC_CRIT','SPLASH_K','DETACH_ERODE','DETACH_INDEX',\
-                      'SED_K','DISPERSION','DECAY','UPTAKE','LOADING','GW_CONC','INIT_CONC',\
-                      'SW_PART','SOLUBILITY',\
+varNameEnum = Enum('ROUGH','STOR_CAPY','INTER_COEF','RETENTION_DEPTH','HYDR_COND','CAPIL_HEAD',
+                      'POROSITY','PORE_INDEX','RESID_SAT','FIELD_CAPACITY','WILTING_PT','SOIL_MOISTURE',
+                      'IMPERVIOUS_AREA','HYD_COND','SOIL_MOIST','DEPTH','LAMBDA',
+                      'BUB_PRESS','DELTA_Z','ALPHA','BETA','AHAV','ALBEDO','VEG_HEIGHT','V_RAD_COEFF',
+                      'CANOPY_RESIST','SPLASH_COEF', 'DETACH_COEF','DETACH_EXP','DETACH_CRIT','SED_COEF','XSEDIMENT',
+                      'TC_COEFF','TC_INDEX','TC_CRIT','SPLASH_K','DETACH_ERODE','DETACH_INDEX',
+                      'SED_K','DISPERSION','DECAY','UPTAKE','LOADING','GW_CONC','INIT_CONC',
+                      'SW_PART','SOLUBILITY',
                       name='cmt_variable_names')
 
 # Association table for many-to-many relationship between MapTableFile and MTValue
@@ -60,20 +62,132 @@ class MapTableFile(DeclarativeBase):
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
     
-    # Value Columns
-    
     # Relationship Properties
     mapTableValues = relationship('MTValue', secondary=assocMapTable, back_populates='mapTableFiles')
     mapTableSediments = relationship('MTSediment', secondary=assocSediment, back_populates='mapTableFiles')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile')
     
-    def __init__(self):
+    # Global Properties
+    PATH = ''
+    PROJECT_NAME = ''
+    DIRECTORY = ''
+    SESSION = None
+    MAP_TABLES =  ['ROUGHNESS','INTERCEPTION','RETENTION','GREEN_AMPT_INFILTRATION',
+                   'GREEN_AMPT_INITIAL_SOIL_MOISTURE','RICHARDS_EQN_INFILTRATION_BROOKS',
+                   'RICHARDS_EQN_INFILTRATION_HAVERCAMP','EVAPOTRANSPIRATION','WELL_TABLE',
+                   'OVERLAND_BOUNDARY','TIME_SERIES_INDEX','GROUNDWATER','GROUNDWATER_BOUNDARY',
+                   'AREA_REDUCTION','WETLAND_PROPERTIES','MULTI_LAYER_SOIL','SOIL_EROSION_PROPS',
+                   'CONTAMINANT_TRANSPORT','SEDIMENTS']
+    NUM_VARS = ['NUM_IDS', 'MAX_NUMBER_CELLS', 'NUM_SED', 'NUM_CONTAM']
+    
+    def __init__(self, directory, name, session):
         '''
         Constructor
         '''
+        self.PROJECT_NAME = name
+        self.DIRECTORY = directory
+        self.SESSION = session
+        self.PATH = '%s%s%s' % (self.DIRECTORY, self.PROJECT_NAME, '.cmt')
         
-    def __repr__(self):
-        return '<MapTableFile>'
+    def read(self):
+        '''
+        Mapping Table Read from File Method
+        '''
+        with open(self.PATH, 'r') as f:
+            indexMapLines = []
+            mapTableLines = []
+            
+            for line in f:
+                sline = pt.splitLine(line)
+                if sline[0] == 'GSSHA_INDEX_MAP_TABLES':
+                    '''DO NOTHING'''
+                elif sline[0] == 'INDEX_MAP':
+                    indexMapLines.append(sline)
+                elif sline[0] in self.MAP_TABLES:
+                    currMapTable = [sline]
+                    mapTableLines.append(currMapTable)
+                elif sline[0] in self.NUM_VARS:
+                    currMapTable.append(sline)
+                elif sline[0] == 'ID':
+                    currValues = [sline]
+                    currMapTable.append(currValues)
+                elif sline[0] == 'Sediment':
+                    currValues =[sline]
+                    currMapTable.append(currValues)
+                else:
+                    currValues.append(sline)
+            
+            indexMaps = {}
+            
+            for indexMapLine in indexMapLines:
+                # Extract name and filename of index map
+                fullPath = indexMapLine[1]
+                filename = pt.relativePath(fullPath)
+                name = indexMapLine[2]
+                
+                # Create GSSHA IndexMap object
+                indexMap = IndexMap(name=name, filename=filename, rasterMap=None)
+                indexMaps[name] = indexMap
+            
+            print indexMaps
+
+            for mapTable in mapTableLines:
+                print mapTable
+                mapTableName = mapTable[0][0]
+                
+                if mapTableName == 'SEDIMENTS':
+                    pass
+                elif mapTableName == 'CONTAMINANT_TRANSPORT':
+                    pass
+                else:
+                    pass
+                    
+            
+                
+                
+    
+    def write(self, session, path, name):
+        '''
+        Map Table Write to File Method
+        '''
+                
+        # Obtain list of all possible mapping tables from the enumeration object defined at the top of this file
+        # Note: to add to/modify the list of map table names, edit the mapTableNameEnum list.
+        possibleMapTableNames = mapTableNameEnum.enums
+        
+        # Determine the unique set index map objects that the values describe
+        idxList = []
+        for val in self.mapTableValues:
+            if val.contaminantID != None: # Contaminant value case
+                idxList.append(val.contaminant.indexMap)
+            else: # All others
+                idxList.append(val.mapTable.indexMap)
+        
+        # Set of unique index map objects    
+        idxMaps = set(idxList)
+
+        # Initiate mapping table file
+        fullPath = '%s%s%s' % (path, name, '.cmt')
+        
+        # Write to file
+        with open(fullPath, 'w') as cmtFile:
+
+            # Write first line to file
+            cmtFile.write('GSSHA_INDEX_MAP_TABLES\n')
+            
+            # Write list of index maps
+            for idx in idxMaps:
+                cmtFile.write('INDEX_MAP%s%s "%s"\n' % (' '*16, idx.filename, idx.name))
+            
+            # Populate each mapping table in the file by looping through a list of possilbe names   
+            for currentMapTableName in possibleMapTableNames:
+                # Switch statement
+                if currentMapTableName == 'SEDIMENTS':                  # Sediment mapping table case
+                    self._writeSediment(session, cmtFile)
+                elif currentMapTableName == 'CONTAMINANT_TRANSPORT':    # Contaminant mapping table case
+                    self._writeContaminant(session, cmtFile)
+                else:                                                   # Generic mapping table case
+                    self._writeGeneric(session, cmtFile, currentMapTableName)
     
     
     
@@ -302,48 +416,8 @@ class MapTableFile(DeclarativeBase):
         return lines
         
     
-    def write(self, session, path, name):
-        '''
-        Map Table Write Algorithm
-        '''
-                
-        # Obtain list of all possible mapping tables from the enumeration object defined at the top of this file
-        # Note: to add to/modify the list of map table names, edit the mapTableNameEnum list.
-        possibleMapTableNames = mapTableNameEnum.enums
-        
-        # Determine the unique set index map objects that the values describe
-        idxList = []
-        for val in self.mapTableValues:
-            if val.contaminantID != None: # Contaminant value case
-                idxList.append(val.contaminant.indexMap)
-            else: # All others
-                idxList.append(val.mapTable.indexMap)
-        
-        # Set of unique index map objects    
-        idxMaps = set(idxList)
-
-        # Initiate mapping table file
-        fullPath = '%s%s%s' % (path, name, '.cmt')
-        
-        # Write to file
-        with open(fullPath, 'w') as cmtFile:
-
-            # Write first line to file
-            cmtFile.write('GSSHA_INDEX_MAP_TABLES\n')
-            
-            # Write list of index maps
-            for idx in idxMaps:
-                cmtFile.write('INDEX_MAP%s%s "%s"\n' % (' '*16, idx.filename, idx.name))
-            
-            # Populate each mapping table in the file by looping through a list of possilbe names   
-            for currentMapTableName in possibleMapTableNames:
-                # Switch statement
-                if currentMapTableName == 'SEDIMENTS':                  # Sediment mapping table case
-                    self._writeSediment(session, cmtFile)
-                elif currentMapTableName == 'CONTAMINANT_TRANSPORT':    # Contaminant mapping table case
-                    self._writeContaminant(session, cmtFile)
-                else:                                                   # Generic mapping table case
-                    self._writeGeneric(session, cmtFile, currentMapTableName)    
+    
+                    
 
 class MapTable(DeclarativeBase):
     '''

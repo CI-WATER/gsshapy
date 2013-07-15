@@ -18,7 +18,8 @@ from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase, metadata
-from gsshapy.orm.gag import *
+from gsshapy.orm.gag import PrecipFile
+from gsshapy.orm.cmt import MapTableFile
 
 
 
@@ -96,6 +97,12 @@ class ProjectFile(DeclarativeBase):
         
         # First read self
         self.read()
+        
+        # Initiate GSSHAPY MapTableFile object, associate with this object, and read map table file
+        mapTable = MapTableFile(directory=self.DIRECTORY, name=self.PROJECT_NAME, session=self.SESSION)
+        mapTable.projectFile = self
+        mapTable.read()
+        
         
         # Initiate GSSHAPY PrecipFile object, associate it with this object, and read precipitation file
         precip = PrecipFile(directory=self.DIRECTORY, name=self.PROJECT_NAME, session=self.SESSION)

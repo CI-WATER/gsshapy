@@ -47,20 +47,23 @@ class PrecipFile(DeclarativeBase):
     SESSION = None
     
     # This is the structure used by gpparse to read in the file
-    STRUCTURE = \
-        [ \
-            ["R", None,\
-                [\
-                    ["R", 1, ["C", "D", "T-EDESC"]],\
-                    ["R", 1, ["C", "D", "I-PPP"]],\
-                    ["R", 1, ["C", "D", "I-PPP"]],\
-                    ["R", "NRGAG", ["C", "D", "F-X", "F-Y", "T-CDESC"]],\
-                    ["R", "NRPDS" , ["C", "T-TYPE", "I-YEAR", "I-MONTH", "I-DAY", "I-HOUR", "I-MIN", ["R", "NRGAG", ["C", "F-GAGVAL"]]]]\
-                ]\
-             ]\
+    STRUCTURE =\
+        [ 
+            ["R", None,
+                [
+                    ["R", 1, ["C", "D", "T-EDESC"]],
+                    ["R", 1, ["C", "D", "I-PPP"]],
+                    ["R", 1, ["C", "D", "I-PPP"]],
+                    ["R", "NRGAG", ["C", "D", "F-X", "F-Y", "T-CDESC"]],
+                    ["R", "NRPDS" , ["C", "T-TYPE", "I-YEAR", "I-MONTH", "I-DAY", "I-HOUR", "I-MIN", ["R", "NRGAG", ["C", "F-GAGVAL"]]]]
+                ]
+             ]
         ]
         
     def __init__(self, directory, name, session):
+        '''
+        Constructor
+        '''
         self.PROJECT_NAME = name
         self.DIRECTORY = directory
         self.SESSION = session
