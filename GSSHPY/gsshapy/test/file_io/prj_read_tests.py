@@ -24,8 +24,8 @@ project = ProjectFile(path='/Users/swainn/testing/LongTerm2/LongTerm2.prj', sess
 project.readAll()
 
 # Commit outside for now
-#DBSession.commit()
-#print 'SUCCESS: Project Read to Database'
+DBSession.commit()
+print 'SUCCESS: Project Read to Database'
 
 # # Query Database to Retrieve Project File
 # project1 = DBSession2.query(ProjectFile).filter(ProjectFile.id == 1).one()

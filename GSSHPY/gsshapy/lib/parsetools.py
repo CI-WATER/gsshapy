@@ -30,3 +30,29 @@ def relativePath(path):
     '''
     spath = pathSplit(path)
     return spath[-1]
+
+def chunk(keywords, lines):
+    '''
+    Divide a file into chunks between
+    key words in the list
+    '''
+    chunks = dict()
+    chunk = []
+    
+    # Create an empty dictionary using all the keywords
+    for keyword in keywords:
+        chunks[keyword] = []
+    
+    # Populate dictionary with lists of chunks associated
+    # with the keywords in the list   
+    for line in lines:
+        token = line.split()[0]
+        if token in keywords:
+            #if currToken != '':
+            chunk = [line]   
+            chunks[token].append(chunk)   
+        else:
+            chunk.append(line)
+    return chunks
+
+##TODO: FIND A WAY TO CHUNK TO THE END

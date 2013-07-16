@@ -7,13 +7,7 @@
 * License: BSD 2-Clause
 ********************************************************************************
 '''
-
-__all__ = ['MapTableFile',
-           'MapTable',
-           'MTValue',
-           'MTIndex',
-           'MTContaminant',
-           'MTSediment']
+import re
 
 from sqlalchemy import ForeignKey, Column, Table
 from sqlalchemy.types import Integer, Enum, Float, String
@@ -22,6 +16,107 @@ from sqlalchemy.orm import relationship
 from gsshapy.orm import DeclarativeBase, metadata
 from gsshapy.orm.idx import IndexMap
 from gsshapy.lib import parsetools as pt
+
+__all__ = ['MapTableFile',
+           'MapTable',
+           'MTValue',
+           'MTIndex',
+           'MTContaminant',
+           'MTSediment']
+
+#-----------------------
+# Map Table Parse Tools
+#-----------------------
+
+def indexMapChunk(key, chunk):
+    for line in chunk:
+        sline = pt.splitLine(line)
+        idxName = sline[2]
+        filename = pt.relativePath(sline[1])
+        indexMap = IndexMap(name=idxName, filename=filename, rasterMap=None)
+    return indexMap
+    
+def mapTableChunk(key, chunk):
+    # Global constants
+    IGNORE = ['ID', 'DESCRIPTION1', 'DESCRIPTION2']
+    
+    # Global variables
+    numVars = {'NUM_IDS': None,
+               'MAX_NUMBER_CELLS': None,
+               'NUM_SED': None}
+    varList = []
+    valueList = []
+    mtIndices = []
+    
+    # Extract MapTable Name and Index Map Name
+    mtName = chunk[0].strip().split()[0]
+    idxName = chunk[0].strip().split()[1].strip('\"')
+    
+    # Check if the mapping table is being used via 
+    # index map name.
+    if idxName == '':
+        # No need to process if the index map is empty
+        return None
+    
+    for line in chunk:
+        sline = line.strip().split()
+        token = sline[0]
+        valDict = {}
+        
+        if token == key:
+            '''DO NOTHING'''        
+            
+        elif token in numVars:
+            # Extract NUM type variables
+            numVars[sline[0]] = sline[1]
+        
+        elif token == 'ID':
+            # Extract variable names from the header line which 
+            # begins with the 'ID' token.
+            
+            for item in sline:
+                if item not in IGNORE:
+                    if key == 'SOIL_EROSION_PROPS':
+                        pass
+                    else:
+                        varList.append(item)
+                        
+        
+        else:
+            valDict = _extractValues(line)
+            valueList.append(valDict)
+            
+    # Initiate GSSHAPY MapTable object
+    mapTable = MapTable(name=mtName, numIDs=numVars['NUM_IDS'], maxNumCells=numVars['MAX_NUMBER_CELLS'], numSed=numVars['NUM_SED'])
+    
+    # Populate GSSHAPY MTValue and MTIndex objects
+    for row in valueList:
+        mtIndex = MTIndex(index=row['index'], description1=row['description1'], description2=row['description2'])
+        mtIndex.mapTable = mapTable
+        mtIndices.append(mtIndex)
+        for i, value in enumerate(row['values']):
+            mtValue = MTValue(variable=varList[i], value=float(value))
+            mtValue.index = mtIndex
+            mtValue.mapTable = mapTable
+    return (idxName, mapTable, mtIndices)
+    
+def contamChunk(key, chunk):
+    print key, chunk
+    
+def soilErosionChunk(key, chunk):
+    print key, chunk
+    
+def sedimentChunk(key, chunk):
+    print key, chunk
+
+def _extractValues(line):
+    valDict = dict()
+    # Extract value line via slices
+    valDict['index'] = line[:6].strip() # First 7 columns
+    valDict['description1'] = line[6:46].strip() # Next 40 columns
+    valDict['description2'] = line[46:86].strip() # Next 40 columns
+    valDict['values'] = line[86:].strip().split() # Remaining columns
+    return valDict
 
 # Controlled Vocabulary Lists
 mapTableNameEnum = Enum('ROUGHNESS','INTERCEPTION','RETENTION','GREEN_AMPT_INFILTRATION',
@@ -35,23 +130,12 @@ mapTableNameEnum = Enum('ROUGHNESS','INTERCEPTION','RETENTION','GREEN_AMPT_INFIL
 varNameEnum = Enum('ROUGH','STOR_CAPY','INTER_COEF','RETENTION_DEPTH','HYDR_COND','CAPIL_HEAD',
                       'POROSITY','PORE_INDEX','RESID_SAT','FIELD_CAPACITY','WILTING_PT','SOIL_MOISTURE',
                       'IMPERVIOUS_AREA','HYD_COND','SOIL_MOIST','DEPTH','LAMBDA',
-                      'BUB_PRESS','DELTA_Z','ALPHA','BETA','AHAV','ALBEDO','VEG_HEIGHT','V_RAD_COEFF',
+                      'BUB_PRESS','DELTA_Z','ALPHA','BETA','AHAV','ALBEDO','VEG_HEIGHT','V_RAD_COEF', 'V_RAD_COEFF',
                       'CANOPY_RESIST','SPLASH_COEF', 'DETACH_COEF','DETACH_EXP','DETACH_CRIT','SED_COEF','XSEDIMENT',
                       'TC_COEFF','TC_INDEX','TC_CRIT','SPLASH_K','DETACH_ERODE','DETACH_INDEX',
                       'SED_K','DISPERSION','DECAY','UPTAKE','LOADING','GW_CONC','INIT_CONC',
                       'SW_PART','SOLUBILITY',
                       name='cmt_variable_names')
-
-# Association table for many-to-many relationship between MapTableFile and MTValue
-assocMapTable = Table('assoc_map_table_files_values', metadata,
-    Column('mapTableFileID', Integer, ForeignKey('cmt_map_table_files.id')),
-    Column('mapTableValueID', Integer, ForeignKey('cmt_map_table_values.id'))
-    )
-
-assocSediment = Table('assoc_map_table_files_sediments', metadata,
-    Column('mapTableFileID', Integer, ForeignKey('cmt_map_table_files.id')),
-    Column('sedimentID', Integer, ForeignKey('cmt_sediments.id'))
-    )
 
 class MapTableFile(DeclarativeBase):
     '''
@@ -63,8 +147,7 @@ class MapTableFile(DeclarativeBase):
     id = Column(Integer, autoincrement=True, primary_key=True)
     
     # Relationship Properties
-    mapTableValues = relationship('MTValue', secondary=assocMapTable, back_populates='mapTableFiles')
-    mapTableSediments = relationship('MTSediment', secondary=assocSediment, back_populates='mapTableFiles')
+    mapTables = relationship('MapTable', back_populates='mapTableFile')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile')
     
     # Global Properties
@@ -72,13 +155,26 @@ class MapTableFile(DeclarativeBase):
     PROJECT_NAME = ''
     DIRECTORY = ''
     SESSION = None
-    MAP_TABLES =  ['ROUGHNESS','INTERCEPTION','RETENTION','GREEN_AMPT_INFILTRATION',
-                   'GREEN_AMPT_INITIAL_SOIL_MOISTURE','RICHARDS_EQN_INFILTRATION_BROOKS',
-                   'RICHARDS_EQN_INFILTRATION_HAVERCAMP','EVAPOTRANSPIRATION','WELL_TABLE',
-                   'OVERLAND_BOUNDARY','TIME_SERIES_INDEX','GROUNDWATER','GROUNDWATER_BOUNDARY',
-                   'AREA_REDUCTION','WETLAND_PROPERTIES','MULTI_LAYER_SOIL','SOIL_EROSION_PROPS',
-                   'CONTAMINANT_TRANSPORT','SEDIMENTS']
-    NUM_VARS = ['NUM_IDS', 'MAX_NUMBER_CELLS', 'NUM_SED', 'NUM_CONTAM']
+    KEYWORDS = {'INDEX_MAP': indexMapChunk,
+                'ROUGHNESS': mapTableChunk,
+                'INTERCEPTION': mapTableChunk,
+                'RETENTION': mapTableChunk,
+                'GREEN_AMPT_INFILTRATION': mapTableChunk,
+                'GREEN_AMPT_INITIAL_SOIL_MOISTURE': mapTableChunk,
+                'RICHARDS_EQN_INFILTRATION_BROOKS': mapTableChunk,
+                'RICHARDS_EQN_INFILTRATION_HAVERCAMP': mapTableChunk,
+                'EVAPOTRANSPIRATION': mapTableChunk,
+                'WELL_TABLE': mapTableChunk,
+                'OVERLAND_BOUNDARY': mapTableChunk,
+                'TIME_SERIES_INDEX': mapTableChunk,
+                'GROUNDWATER': mapTableChunk,
+                'GROUNDWATER_BOUNDARY': mapTableChunk,
+                'AREA_REDUCTION': mapTableChunk,
+                'WETLAND_PROPERTIES': mapTableChunk,
+                'MULTI_LAYER_SOIL': mapTableChunk,
+                'SOIL_EROSION_PROPS': soilErosionChunk,
+                'CONTAMINANT_TRANSPORT': contamChunk,
+                'SEDIMENTS': sedimentChunk}
     
     def __init__(self, directory, name, session):
         '''
@@ -93,59 +189,28 @@ class MapTableFile(DeclarativeBase):
         '''
         Mapping Table Read from File Method
         '''
+        indexMaps = dict()
+        mapTables = []
         with open(self.PATH, 'r') as f:
-            indexMapLines = []
-            mapTableLines = []
+            chunks = pt.chunk(self.KEYWORDS, f)
             
-            for line in f:
-                sline = pt.splitLine(line)
-                if sline[0] == 'GSSHA_INDEX_MAP_TABLES':
-                    '''DO NOTHING'''
-                elif sline[0] == 'INDEX_MAP':
-                    indexMapLines.append(sline)
-                elif sline[0] in self.MAP_TABLES:
-                    currMapTable = [sline]
-                    mapTableLines.append(currMapTable)
-                elif sline[0] in self.NUM_VARS:
-                    currMapTable.append(sline)
-                elif sline[0] == 'ID':
-                    currValues = [sline]
-                    currMapTable.append(currValues)
-                elif sline[0] == 'Sediment':
-                    currValues =[sline]
-                    currMapTable.append(currValues)
+        for key, chunkList in chunks.iteritems():
+            for chunk in chunkList:
+                result = self.KEYWORDS[key](key, chunk)
+                if key == 'INDEX_MAP':
+                    indexMaps[result.name] = result
                 else:
-                    currValues.append(sline)
+                    if result:
+                        mapTables.append(result)
+        
+        # Associate MapTable objects with IndexMap objects and this file object
+        for idxMapName, mapTable, mtIndices in mapTables:
+            mapTable.indexMap = indexMaps[idxMapName]
+            mapTable.mapTableFile = self
             
-            indexMaps = {}
-            
-            for indexMapLine in indexMapLines:
-                # Extract name and filename of index map
-                fullPath = indexMapLine[1]
-                filename = pt.relativePath(fullPath)
-                name = indexMapLine[2]
-                
-                # Create GSSHA IndexMap object
-                indexMap = IndexMap(name=name, filename=filename, rasterMap=None)
-                indexMaps[name] = indexMap
-            
-            print indexMaps
-
-            for mapTable in mapTableLines:
-                print mapTable
-                mapTableName = mapTable[0][0]
-                
-                if mapTableName == 'SEDIMENTS':
-                    pass
-                elif mapTableName == 'CONTAMINANT_TRANSPORT':
-                    pass
-                else:
-                    pass
-                    
-            
-                
-                
-    
+            for mtIndex in mtIndices:
+                mtIndex.indexMap = indexMaps[idxMapName]
+        
     def write(self, session, path, name):
         '''
         Map Table Write to File Method
@@ -429,6 +494,7 @@ class MapTable(DeclarativeBase):
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
     idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'))
+    mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
     
     # Value Columns
     name = Column(mapTableNameEnum, nullable=False)
@@ -439,6 +505,7 @@ class MapTable(DeclarativeBase):
     numContam = Column(Integer)
     
     # Relationship Properties
+    mapTableFile = relationship('MapTableFile', back_populates='mapTables')
     indexMap = relationship('IndexMap', back_populates='mapTables')
     values = relationship('MTValue', back_populates='mapTable', cascade='all, delete, delete-orphan')
     sediments = relationship('MTSediment', back_populates='mapTable', cascade='all, delete, delete-orphan')
@@ -454,7 +521,7 @@ class MapTable(DeclarativeBase):
         self.numContam = numContam
 
     def __repr__(self):
-        return '<MapTable: Name=%s, Index Map=%s, NumIDs=%s, MaxNumCells=%s, NumSediments=%s, NumContaminants=%s>' % (
+        return '<MapTable: Name=%s, IndexMap=%s, NumIDs=%s, MaxNumCells=%s, NumSediments=%s, NumContaminants=%s>' % (
                 self.name,
                 self.idxMapID,
                 self.numIDs,
@@ -512,7 +579,6 @@ class MTValue(DeclarativeBase):
     value = Column(Float, nullable=False)
     
     # Relationship Properties
-    mapTableFiles = relationship('MapTableFile', secondary=assocMapTable, back_populates='mapTableValues')
     mapTable = relationship('MapTable', back_populates='values')
     index = relationship('MTIndex', back_populates='values')
     contaminant = relationship('MTContaminant', back_populates='values')
@@ -592,7 +658,6 @@ class MTSediment(DeclarativeBase):
     
     # Relationship Properties
     mapTable = relationship('MapTable', back_populates='sediments')
-    mapTableFiles = relationship('MapTableFile', secondary=assocSediment, back_populates='mapTableSediments')
     values = relationship('MTValue', back_populates='sediment')
     
     def __init__(self, description, specificGravity, particleDiameter, outputFilename):
@@ -606,3 +671,4 @@ class MTSediment(DeclarativeBase):
     
     def __repr__(self):
         return '<MTSediment: Description=%s, SpecificGravity=%s, ParticleDiameter=%s, OuputFilename=%s>' % (self.description, self.specificGravity, self.particleDiameter, self.outputFilename)
+    
