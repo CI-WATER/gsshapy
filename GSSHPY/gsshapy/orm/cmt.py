@@ -46,7 +46,6 @@ def mapTableChunk(key, chunk):
                'NUM_SED': None}
     varList = []
     valueList = []
-    mtIndices = []
     
     # Extract MapTable Name and Index Map Name
     mtName = chunk[0].strip().split()[0]
@@ -58,6 +57,7 @@ def mapTableChunk(key, chunk):
         # No need to process if the index map is empty
         return None
     
+    # Parse the chunk into a datastructure
     for line in chunk:
         sline = line.strip().split()
         token = sline[0]
@@ -76,12 +76,7 @@ def mapTableChunk(key, chunk):
             
             for item in sline:
                 if item not in IGNORE:
-                    if key == 'SOIL_EROSION_PROPS':
-                        pass
-                    else:
-                        varList.append(item)
-                        
-        
+                    varList.append(item)
         else:
             valDict = _extractValues(line)
             valueList.append(valDict)
@@ -90,19 +85,100 @@ def mapTableChunk(key, chunk):
     mapTable = MapTable(name=mtName, numIDs=numVars['NUM_IDS'], maxNumCells=numVars['MAX_NUMBER_CELLS'], numSed=numVars['NUM_SED'])
     
     # Populate GSSHAPY MTValue and MTIndex objects
-    for row in valueList:
-        mtIndex = MTIndex(index=row['index'], description1=row['description1'], description2=row['description2'])
-        mtIndex.mapTable = mapTable
-        mtIndices.append(mtIndex)
-        for i, value in enumerate(row['values']):
-            mtValue = MTValue(variable=varList[i], value=float(value))
-            mtValue.index = mtIndex
-            mtValue.mapTable = mapTable
-    return (idxName, mapTable, mtIndices)
+    mtIndices = _createValueObjects(valueList=valueList, varList=varList, mapTable=mapTable)
+    
+    return (mapTable, [(idxName, mtIndices)]) ## START HERE RETURN CONTAMINANT OBJECTS FOR ASSOCIATION WITH INDEX MAP OBJECTS
     
 def contamChunk(key, chunk):
-    print key, chunk
+    # Global constants
+    IGNORE = ['ID', 'DESCRIPTION1', 'DESCRIPTION2']
     
+    # Global variables
+
+    contamList = []
+    varList = []
+    returnIdx = []
+    valDict = dict()
+    
+    # Extract the number of contaminants
+    numContam = int(chunk[1].strip().split()[1])
+    
+    # Check if there are any contaminants. No need
+    # to process further if there are 0.
+    if numContam == 0:
+        return None
+    
+    # Parse the chunk into a data structure
+    for line in chunk:
+        sline = line.strip().split()
+        token = sline[0]
+        
+        
+        if token == key:
+            '''DO NOTHING'''
+            mtName = sline[0]
+        elif token == 'NUM_CONTAM':
+            '''DO NOTHING'''
+        
+        elif '\"' in token:
+            # Append currContam to contamList and extract
+            # data from the current line.
+            
+            # Initialize new contaminant dictionary and variables
+            currContam = dict()
+            valueList = []
+            numVars = {'NUM_IDS': None,
+                       'PRECIP_CONC': None,
+                       'PARTITION': None}
+            
+            # Extract contam info and add variables to dictionary
+            currContam['name'] = sline[0].strip('\"')
+            currContam['idxName'] = sline[1].strip('\"')
+            currContam['outPath'] = sline[2].strip('\"')
+            currContam['numVars'] = numVars
+            currContam['valueList'] = valueList
+
+            contamList.append(currContam)
+            
+        elif token in numVars:
+            # Extract NUM type variables
+            numVars[token] = sline[1]
+        
+        elif token == 'ID':
+            # Extract variable names from the header line which 
+            # begins with the 'ID' token.
+            varList = []
+            for item in sline:
+                if item not in IGNORE:
+                    varList.append(item)
+            
+            currContam['varList'] = varList
+            
+        else:
+            valDict = _extractValues(line)
+            valueList.append(valDict)
+            
+    # Initiate GSSHAPY MapTable object
+    mapTable = MapTable(name=mtName, numContam=numContam)
+    
+    for contam in contamList:
+        # Initialize GSSHAPY MTContaminant object
+        contaminant = MTContaminant(name=contam['name'],
+                                    outputFilename=contam['outPath'],
+                                    precipConc=contam['numVars']['PRECIP_CONC'],
+                                    partition=contam['numVars']['PARTITION'],
+                                    numIDs=contam['numVars']['NUM_IDS'])
+        
+        # Populate GSSHAPY MTValue and MTIndex objects
+        mtIndices = _createValueObjects(valueList=contam['valueList'],
+                                        varList=contam['varList'],
+                                        mapTable=mapTable,
+                                        contaminant=contaminant)
+        
+        returnIdx.append((contam['idxName'], mtIndices))
+        
+    return (mapTable, returnIdx)
+        
 def soilErosionChunk(key, chunk):
     print key, chunk
     
@@ -117,6 +193,22 @@ def _extractValues(line):
     valDict['description2'] = line[46:86].strip() # Next 40 columns
     valDict['values'] = line[86:].strip().split() # Remaining columns
     return valDict
+
+def _createValueObjects(valueList, varList, mapTable, contaminant=None):
+    # Global Variables
+    mtIndices = []
+    
+    # Populate GSSHAPY MTValue and MTIndex objects
+    for row in valueList:
+        mtIndex = MTIndex(index=row['index'], description1=row['description1'], description2=row['description2'])
+        mtIndices.append(mtIndex)
+        for i, value in enumerate(row['values']):
+            mtValue = MTValue(variable=varList[i], value=float(value))
+            mtValue.index = mtIndex
+            mtValue.mapTable = mapTable
+            if contaminant:
+                mtValue.contaminant = contaminant
+    return mtIndices
 
 # Controlled Vocabulary Lists
 mapTableNameEnum = Enum('ROUGHNESS','INTERCEPTION','RETENTION','GREEN_AMPT_INFILTRATION',
@@ -204,12 +296,13 @@ class MapTableFile(DeclarativeBase):
                         mapTables.append(result)
         
         # Associate MapTable objects with IndexMap objects and this file object
-        for idxMapName, mapTable, mtIndices in mapTables:
-            mapTable.indexMap = indexMaps[idxMapName]
+        for mapTable, idxList in mapTables:
             mapTable.mapTableFile = self
-            
-            for mtIndex in mtIndices:
-                mtIndex.indexMap = indexMaps[idxMapName]
+            for idxMapName, mtIndices in idxList:
+                mapTable.indexMap = indexMaps[idxMapName]
+                
+                for mtIndex in mtIndices:
+                    mtIndex.indexMap = indexMaps[idxMapName]
         
     def write(self, session, path, name):
         '''
