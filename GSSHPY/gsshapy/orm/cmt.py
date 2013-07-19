@@ -7,15 +7,14 @@
 * License: BSD 2-Clause
 ********************************************************************************
 '''
-import re
 
-from sqlalchemy import ForeignKey, Column, Table
+from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Enum, Float, String
 from sqlalchemy.orm import relationship
 
-from gsshapy.orm import DeclarativeBase, metadata
+from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.idx import IndexMap
-from gsshapy.lib import parsetools as pt
+from gsshapy.lib import parsetools as pt, mapTableChunk as mtc
 
 __all__ = ['MapTableFile',
            'MapTable',
@@ -23,192 +22,6 @@ __all__ = ['MapTableFile',
            'MTIndex',
            'MTContaminant',
            'MTSediment']
-
-#-----------------------
-# Map Table Parse Tools
-#-----------------------
-
-def indexMapChunk(key, chunk):
-    for line in chunk:
-        sline = pt.splitLine(line)
-        idxName = sline[2]
-        filename = pt.relativePath(sline[1])
-        indexMap = IndexMap(name=idxName, filename=filename, rasterMap=None)
-    return indexMap
-    
-def mapTableChunk(key, chunk):
-    # Global constants
-    IGNORE = ['ID', 'DESCRIPTION1', 'DESCRIPTION2']
-    
-    # Global variables
-    numVars = {'NUM_IDS': None,
-               'MAX_NUMBER_CELLS': None,
-               'NUM_SED': None}
-    varList = []
-    valueList = []
-    
-    # Extract MapTable Name and Index Map Name
-    mtName = chunk[0].strip().split()[0]
-    idxName = chunk[0].strip().split()[1].strip('\"')
-    
-    # Check if the mapping table is being used via 
-    # index map name.
-    if idxName == '':
-        # No need to process if the index map is empty
-        return None
-    
-    # Parse the chunk into a datastructure
-    for line in chunk:
-        sline = line.strip().split()
-        token = sline[0]
-        valDict = {}
-        
-        if token == key:
-            '''DO NOTHING'''        
-            
-        elif token in numVars:
-            # Extract NUM type variables
-            numVars[sline[0]] = sline[1]
-        
-        elif token == 'ID':
-            # Extract variable names from the header line which 
-            # begins with the 'ID' token.
-            
-            for item in sline:
-                if item not in IGNORE:
-                    varList.append(item)
-        else:
-            valDict = _extractValues(line)
-            valueList.append(valDict)
-            
-    # Initiate GSSHAPY MapTable object
-    mapTable = MapTable(name=mtName, numIDs=numVars['NUM_IDS'], maxNumCells=numVars['MAX_NUMBER_CELLS'], numSed=numVars['NUM_SED'])
-    
-    # Populate GSSHAPY MTValue and MTIndex objects
-    mtIndices = _createValueObjects(valueList=valueList, varList=varList, mapTable=mapTable)
-    
-    return (mapTable, [(idxName, mtIndices)]) ## START HERE RETURN CONTAMINANT OBJECTS FOR ASSOCIATION WITH INDEX MAP OBJECTS
-    
-def contamChunk(key, chunk):
-    # Global constants
-    IGNORE = ['ID', 'DESCRIPTION1', 'DESCRIPTION2']
-    
-    # Global variables
-
-    contamList = []
-    varList = []
-    returnIdx = []
-    valDict = dict()
-    
-    # Extract the number of contaminants
-    numContam = int(chunk[1].strip().split()[1])
-    
-    # Check if there are any contaminants. No need
-    # to process further if there are 0.
-    if numContam == 0:
-        return None
-    
-    # Parse the chunk into a data structure
-    for line in chunk:
-        sline = line.strip().split()
-        token = sline[0]
-        
-        
-        if token == key:
-            '''DO NOTHING'''
-            mtName = sline[0]
-        elif token == 'NUM_CONTAM':
-            '''DO NOTHING'''
-        
-        elif '\"' in token:
-            # Append currContam to contamList and extract
-            # data from the current line.
-            
-            # Initialize new contaminant dictionary and variables
-            currContam = dict()
-            valueList = []
-            numVars = {'NUM_IDS': None,
-                       'PRECIP_CONC': None,
-                       'PARTITION': None}
-            
-            # Extract contam info and add variables to dictionary
-            currContam['name'] = sline[0].strip('\"')
-            currContam['idxName'] = sline[1].strip('\"')
-            currContam['outPath'] = sline[2].strip('\"')
-            currContam['numVars'] = numVars
-            currContam['valueList'] = valueList
-
-            contamList.append(currContam)
-            
-        elif token in numVars:
-            # Extract NUM type variables
-            numVars[token] = sline[1]
-        
-        elif token == 'ID':
-            # Extract variable names from the header line which 
-            # begins with the 'ID' token.
-            varList = []
-            for item in sline:
-                if item not in IGNORE:
-                    varList.append(item)
-            
-            currContam['varList'] = varList
-            
-        else:
-            valDict = _extractValues(line)
-            valueList.append(valDict)
-            
-    # Initiate GSSHAPY MapTable object
-    mapTable = MapTable(name=mtName, numContam=numContam)
-    
-    for contam in contamList:
-        # Initialize GSSHAPY MTContaminant object
-        contaminant = MTContaminant(name=contam['name'],
-                                    outputFilename=contam['outPath'],
-                                    precipConc=contam['numVars']['PRECIP_CONC'],
-                                    partition=contam['numVars']['PARTITION'],
-                                    numIDs=contam['numVars']['NUM_IDS'])
-        
-        # Populate GSSHAPY MTValue and MTIndex objects
-        mtIndices = _createValueObjects(valueList=contam['valueList'],
-                                        varList=contam['varList'],
-                                        mapTable=mapTable,
-                                        contaminant=contaminant)
-        
-        returnIdx.append((contam['idxName'], mtIndices))
-        
-    return (mapTable, returnIdx)
-        
-def soilErosionChunk(key, chunk):
-    print key, chunk
-    
-def sedimentChunk(key, chunk):
-    print key, chunk
-
-def _extractValues(line):
-    valDict = dict()
-    # Extract value line via slices
-    valDict['index'] = line[:6].strip() # First 7 columns
-    valDict['description1'] = line[6:46].strip() # Next 40 columns
-    valDict['description2'] = line[46:86].strip() # Next 40 columns
-    valDict['values'] = line[86:].strip().split() # Remaining columns
-    return valDict
-
-def _createValueObjects(valueList, varList, mapTable, contaminant=None):
-    # Global Variables
-    mtIndices = []
-    
-    # Populate GSSHAPY MTValue and MTIndex objects
-    for row in valueList:
-        mtIndex = MTIndex(index=row['index'], description1=row['description1'], description2=row['description2'])
-        mtIndices.append(mtIndex)
-        for i, value in enumerate(row['values']):
-            mtValue = MTValue(variable=varList[i], value=float(value))
-            mtValue.index = mtIndex
-            mtValue.mapTable = mapTable
-            if contaminant:
-                mtValue.contaminant = contaminant
-    return mtIndices
 
 # Controlled Vocabulary Lists
 mapTableNameEnum = Enum('ROUGHNESS','INTERCEPTION','RETENTION','GREEN_AMPT_INFILTRATION',
@@ -220,13 +33,13 @@ mapTableNameEnum = Enum('ROUGHNESS','INTERCEPTION','RETENTION','GREEN_AMPT_INFIL
                        name='cmt_table_names')
 
 varNameEnum = Enum('ROUGH','STOR_CAPY','INTER_COEF','RETENTION_DEPTH','HYDR_COND','CAPIL_HEAD',
-                      'POROSITY','PORE_INDEX','RESID_SAT','FIELD_CAPACITY','WILTING_PT','SOIL_MOISTURE',
-                      'IMPERVIOUS_AREA','HYD_COND','SOIL_MOIST','DEPTH','LAMBDA',
-                      'BUB_PRESS','DELTA_Z','ALPHA','BETA','AHAV','ALBEDO','VEG_HEIGHT','V_RAD_COEF', 'V_RAD_COEFF',
-                      'CANOPY_RESIST','SPLASH_COEF', 'DETACH_COEF','DETACH_EXP','DETACH_CRIT','SED_COEF','XSEDIMENT',
-                      'TC_COEFF','TC_INDEX','TC_CRIT','SPLASH_K','DETACH_ERODE','DETACH_INDEX',
-                      'SED_K','DISPERSION','DECAY','UPTAKE','LOADING','GW_CONC','INIT_CONC',
-                      'SW_PART','SOLUBILITY',
+                      'POROSITY','PORE_INDEX','RESID_SAT','FIELD_CAPACITY','WILTING_PT',
+                      'SOIL_MOISTURE', 'IMPERVIOUS_AREA','HYD_COND','SOIL_MOIST','DEPTH','LAMBDA',
+                      'BUB_PRESS','DELTA_Z','ALPHA','BETA','AHAV','ALBEDO','VEG_HEIGHT','V_RAD_COEF', 
+                      'V_RAD_COEFF', 'CANOPY_RESIST','SPLASH_COEF', 'DETACH_COEF','DETACH_EXP',
+                      'DETACH_CRIT','SED_COEF','XSEDIMENT', 'TC_COEFF','TC_INDEX','TC_CRIT','SPLASH_K',
+                      'DETACH_ERODE','DETACH_INDEX', 'SED_K','DISPERSION','DECAY','UPTAKE','LOADING',
+                      'GW_CONC','INIT_CONC','SW_PART','SOLUBILITY',
                       name='cmt_variable_names')
 
 class MapTableFile(DeclarativeBase):
@@ -247,26 +60,7 @@ class MapTableFile(DeclarativeBase):
     PROJECT_NAME = ''
     DIRECTORY = ''
     SESSION = None
-    KEYWORDS = {'INDEX_MAP': indexMapChunk,
-                'ROUGHNESS': mapTableChunk,
-                'INTERCEPTION': mapTableChunk,
-                'RETENTION': mapTableChunk,
-                'GREEN_AMPT_INFILTRATION': mapTableChunk,
-                'GREEN_AMPT_INITIAL_SOIL_MOISTURE': mapTableChunk,
-                'RICHARDS_EQN_INFILTRATION_BROOKS': mapTableChunk,
-                'RICHARDS_EQN_INFILTRATION_HAVERCAMP': mapTableChunk,
-                'EVAPOTRANSPIRATION': mapTableChunk,
-                'WELL_TABLE': mapTableChunk,
-                'OVERLAND_BOUNDARY': mapTableChunk,
-                'TIME_SERIES_INDEX': mapTableChunk,
-                'GROUNDWATER': mapTableChunk,
-                'GROUNDWATER_BOUNDARY': mapTableChunk,
-                'AREA_REDUCTION': mapTableChunk,
-                'WETLAND_PROPERTIES': mapTableChunk,
-                'MULTI_LAYER_SOIL': mapTableChunk,
-                'SOIL_EROSION_PROPS': soilErosionChunk,
-                'CONTAMINANT_TRANSPORT': contamChunk,
-                'SEDIMENTS': sedimentChunk}
+    
     
     def __init__(self, directory, name, session):
         '''
@@ -281,61 +75,108 @@ class MapTableFile(DeclarativeBase):
         '''
         Mapping Table Read from File Method
         '''
+        # Dictionary of keywords/cards and parse function names
+        KEYWORDS = {'INDEX_MAP': mtc.indexMapChunk,
+                    'ROUGHNESS': mtc.mapTableChunk,
+                    'INTERCEPTION': mtc.mapTableChunk,
+                    'RETENTION': mtc.mapTableChunk,
+                    'GREEN_AMPT_INFILTRATION': mtc.mapTableChunk,
+                    'GREEN_AMPT_INITIAL_SOIL_MOISTURE': mtc.mapTableChunk,
+                    'RICHARDS_EQN_INFILTRATION_BROOKS': mtc.mapTableChunk,
+                    'RICHARDS_EQN_INFILTRATION_HAVERCAMP': mtc.mapTableChunk,
+                    'EVAPOTRANSPIRATION': mtc.mapTableChunk,
+                    'WELL_TABLE': mtc.mapTableChunk,
+                    'OVERLAND_BOUNDARY': mtc.mapTableChunk,
+                    'TIME_SERIES_INDEX': mtc.mapTableChunk,
+                    'GROUNDWATER': mtc.mapTableChunk,
+                    'GROUNDWATER_BOUNDARY': mtc.mapTableChunk,
+                    'AREA_REDUCTION': mtc.mapTableChunk,
+                    'WETLAND_PROPERTIES': mtc.mapTableChunk,
+                    'MULTI_LAYER_SOIL': mtc.mapTableChunk,
+                    'SOIL_EROSION_PROPS': mtc.mapTableChunk,
+                    'CONTAMINANT_TRANSPORT': mtc.contamChunk,
+                    'SEDIMENTS': mtc.sedimentChunk}
+        
         indexMaps = dict()
         mapTables = []
+        
+        # Parse file into chunks associated with keywords/cards
         with open(self.PATH, 'r') as f:
-            chunks = pt.chunk(self.KEYWORDS, f)
-            
+            chunks = pt.chunk(KEYWORDS, f)
+        
+        # Parse chunks associated with each key    
         for key, chunkList in chunks.iteritems():
+            # Parse each chunk in the chunk list
             for chunk in chunkList:
-                result = self.KEYWORDS[key](key, chunk)
+                # Call chunk specific parsers for each chunk
+                result = KEYWORDS[key](key, chunk)
+                
+                # Index Map handler
                 if key == 'INDEX_MAP':
-                    indexMaps[result.name] = result
+                    # Create GSSHAPY IndexMap object from result object
+                    indexMap = IndexMap(name=result['idxName'],
+                                        filename=result['filename'],
+                                        rasterMap=result['map'])
+                    
+                    # Dictionary used to map index maps to mapping tables
+                    indexMaps[result['idxName']] = indexMap
+                
+                # Map Table Handler
                 else:
+                    # Create a list of all the map tables in the file
                     if result:
                         mapTables.append(result)
         
-        # Associate MapTable objects with IndexMap objects and this file object
-        for mapTable, idxList in mapTables:
-            mapTable.mapTableFile = self
-            for idxMapName, mtIndices in idxList:
-                mapTable.indexMap = indexMaps[idxMapName]
-                
-                for mtIndex in mtIndices:
-                    mtIndex.indexMap = indexMaps[idxMapName]
-        
-    def write(self, session, path, name):
+        # Create GSSHAPY ORM objects with the resulting objects that are 
+        # returned from the parser functions
+        self._createGsshaPyObjects(mapTables, indexMaps)
+            
+    def write(self, session, directory, name):
         '''
         Map Table Write to File Method
-        '''
-                
+        ''' 
         # Obtain list of all possible mapping tables from the enumeration object defined at the top of this file
         # Note: to add to/modify the list of map table names, edit the mapTableNameEnum list.
         possibleMapTableNames = mapTableNameEnum.enums
         
-        # Determine the unique set index map objects that the values describe
-        idxList = []
-        for val in self.mapTableValues:
-            if val.contaminantID != None: # Contaminant value case
-                idxList.append(val.contaminant.indexMap)
+        # Obtain a list of MTIndexMap objects
+        indexMapList = []
+        
+        for mapTable in self.mapTables:
+            if mapTable.name == 'CONTAMINANT_TRANSPORT': # Contaminant value case
+                contaminantList = []
+                for mtValue in mapTable.values:
+                    contaminantList.append(mtValue.contaminant)
+                    
+                contaminants = set(contaminantList)
+                for contaminant in contaminants:
+                    indexMapList.append(contaminant.indexMap)
             else: # All others
-                idxList.append(val.mapTable.indexMap)
+                if mapTable.indexMap != None:
+                    indexMapList.append(mapTable.indexMap)
         
-        # Set of unique index map objects    
-        idxMaps = set(idxList)
+        # Derive a set of unique MTIndexMap objects    
+        indexMaps = set(indexMapList)
 
-        # Initiate mapping table file
-        fullPath = '%s%s%s' % (path, name, '.cmt')
+        # Initiate map table file and write
+        fullPath = '%s%s%s' % (directory, name, '.cmt')
         
-        # Write to file
         with open(fullPath, 'w') as cmtFile:
 
             # Write first line to file
             cmtFile.write('GSSHA_INDEX_MAP_TABLES\n')
             
             # Write list of index maps
-            for idx in idxMaps:
-                cmtFile.write('INDEX_MAP%s%s "%s"\n' % (' '*16, idx.filename, idx.name))
+            for indexMap in indexMaps:
+                cmtFile.write('INDEX_MAP%s"%s" "%s"\n' % (' '*16, indexMap.filename, indexMap.name))
+            
+            for mapTable in self.mapTables:
+                if mapTable.name == 'SEDIMENTS':
+                    pass
+                elif mapTable.name == 'CONTAMINANT_TRANSPORT':
+                    pass
+                else:
+                    self._writeMapTable(session, cmtFile, mapTable)
             
             # Populate each mapping table in the file by looping through a list of possilbe names   
             for currentMapTableName in possibleMapTableNames:
@@ -349,10 +190,91 @@ class MapTableFile(DeclarativeBase):
     
     
     
-    def _writeGeneric(self, session, fileObject, mapTableName):
+    def _createGsshaPyObjects(self, mapTables, indexMaps):
         '''
+        Create GSSHAPY Mapping Table ORM Objects Method
+        '''
+        for mt in mapTables:
+            # Create GSSHAPY MapTable object
+            mapTable = MapTable(name=mt['name'], 
+                                numIDs=mt['numVars']['NUM_IDS'], 
+                                maxNumCells=mt['numVars']['MAX_NUMBER_CELLS'], 
+                                numSed=mt['numVars']['NUM_SED'],
+                                numContam=mt['numVars']['NUM_CONTAM'])
+            
+            # Associate MapTable with this MapTableFile and IndexMaps
+            mapTable.mapTableFile = self
+            ## NOTE: Index maps are associate wth contaminants for CONTAMINANT_TRANSPORT map
+            ## tables. The SEDIMENTS map table are associated with index maps via the 
+            ## SOIL_EROSION_PROPS map table.
+            if mt['indexMapName']:
+                mapTable.indexMap = indexMaps[mt['indexMapName']]
+            
+            # CONTAMINANT_TRANSPORT map table handler
+            if mt['contaminants']:
+                for contam in mt['contaminants']:
+                    # Initialize GSSHAPY MTContaminant object
+                    contaminant = MTContaminant(name=contam['name'],
+                                                outputFilename=contam['outPath'],
+                                                precipConc=contam['contamVars']['PRECIP_CONC'],
+                                                partition=contam['contamVars']['PARTITION'],
+                                                numIDs=contam['contamVars']['NUM_IDS'])
+                    
+                    # Associate MTContaminant with appropriate IndexMap
+                    indexMap = indexMaps[contam['indexMapName']]
+                    contaminant.indexMap = indexMap
+                    
+                    # Create MTValue and MTIndex objects
+                    self._createValueObjects(mt, mapTable, indexMap, contaminant)
+            
+            # SEDIMENTS map table handler
+            elif mt['name'] == 'SEDIMENTS':
+                for line in mt['valueList']:
+                    # Create GSSHAPY MTSediment object
+                    sediment = MTSediment(description=line[0],
+                                          specificGravity=line[1],
+                                          particleDiameter=line[2],
+                                          outputFilename=line[3])
+                    
+                    # Associate the MTSediment with the MapTable
+                    sediment.mapTable = mapTable
+            
+            # All other map table handler
+            else:
+                indexMap = indexMaps[mt['indexMapName']]
+                
+                # Create MTValue and MTIndex objects
+                self._createValueObjects(mt, mapTable, indexMap, None)
+    
+    def _createValueObjects(self, mt, mapTable, indexMap, contaminant):
+        '''
+        Populate GSSHAPY MTValue and MTIndex Objects Method
+        '''
+        for row in mt['valueList']:
+            # Create GSSHAPY MTIndex object and associate with IndexMap
+            mtIndex = MTIndex(index=row['index'], description1=row['description1'], description2=row['description2'])
+            mtIndex.indexMap = indexMap
+                
+            for i, value in enumerate(row['values']):
+                # Create MTValue object and associate with MTIndex and MapTable
+                mtValue = MTValue(variable=mt['varList'][i], value=float(value))
+                mtValue.index = mtIndex
+                mtValue.mapTable = mapTable
+                
+                # MTContaminant handler (associate MTValue with MTContaminant)
+                if contaminant:
+                    mtValue.contaminant = contaminant
+    
+    def _writeMapTable(self, session, fileObject, mapTable):
+        '''
+        Write Generic Map Table Method
+        
         This method writes a mapping table in the generic format to file. The method will handle 
         both empty and filled cases of generic formatted mapping tables.
+        
+        session = SQLAlchemy session object for retrieving data from the database
+        fileObject = The file object to write to
+        mapTable = The GSSHAPY MapTable object to write
         '''
         # Try retreiving the data for the table with the current name. On exception the table is not
         # being used by this project file it will write an empty version.
@@ -390,7 +312,7 @@ class MapTableFile(DeclarativeBase):
         # If the mapping table is empty, the query will throw an error. The error is handled by
         # writing an empty form of the table. 
         except:
-            'Do Nothing'
+            '''Do Nothing'''
 #             # NOTE: Is it necessary to write out empty tables?  
 #             fileObject.write('%s "%s"\n' % (mapTableName, ''))
 #             fileObject.write('NUM_IDS %s\n' % (0))

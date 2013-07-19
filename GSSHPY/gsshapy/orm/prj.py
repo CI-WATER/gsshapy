@@ -37,7 +37,7 @@ class ProjectFile(DeclarativeBase):
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
     precipFileID = Column(Integer, ForeignKey('gag_precipitation_files.id'))
-    mapTableID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
+    mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
 
     # Relationship Properties
     projectCards = relationship('ProjectCard', secondary=assocProject, back_populates='projectFiles')
@@ -131,8 +131,16 @@ class ProjectFile(DeclarativeBase):
         # First write self
         self.write(session, directory, name)
         
+        # Write map table file
+        mapTableFile = session.query(MapTableFile).\
+                                filter(MapTableFile.projectFile == self).\
+                                one()
+        mapTableFile.write(session=session, directory=directory, name=name)
+        
         # Write precipitation file
-        precipFile = session.query(PrecipFile).filter(PrecipFile.projectFile == self).one()
+        precipFile = session.query(PrecipFile).\
+                                filter(PrecipFile.projectFile == self).\
+                                one()
         precipFile.write(session=session, directory=directory, name=name)
         
         
