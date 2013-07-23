@@ -116,7 +116,6 @@ def contamChunk(key, chunk):
             currContam['name'] = sline[0].strip('\"')
             currContam['indexMapName'] = sline[1].strip('\"')
             currContam['outPath'] = sline[2].strip('\"')
-            currContam['numVars'] = numVars
             currContam['valueList'] = valueList
 
             contamList.append(currContam)
@@ -139,8 +138,8 @@ def contamChunk(key, chunk):
     result = {'name': mtName,
               'indexMapName': None,
               'numVars': numVars,
-              'varList': varList,
-              'valueList': valueList,
+              'varList': None,
+              'valueList': None,
               'contaminants': contamList}
         
     return result
