@@ -8,10 +8,11 @@
 ********************************************************************************
 '''
 
-import os, sys
 from datetime import datetime
 
-__all__ = ['StreamNetwork', 
+
+
+__all__ = ['ChannelInputFile', 
            'StreamLink', 
            'UpstreamLink', 
            'Node', 
@@ -28,12 +29,15 @@ from sqlalchemy.types import Integer, String, Float, Boolean
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.lib import parsetools as pt, channelInputChunk as cic
 
-class StreamNetwork(DeclarativeBase):
+
+
+class ChannelInputFile(DeclarativeBase):
     '''
     classdocs
     '''
-    __tablename__ = 'cif_stream_networks'
+    __tablename__ = 'cif_channel_input_files'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
@@ -46,20 +50,60 @@ class StreamNetwork(DeclarativeBase):
     maxNodes = Column(Integer)
     
     # Relationship Properties
-    streamLinks = relationship('StreamLink', back_populates='streamNetwork')
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='channelInputFile')
+    streamLinks = relationship('StreamLink', back_populates='channelInputFile')
     
-    def __init__(self, alpha, beta, theta, numLinks, maxNodes):
+    # Global Properties
+    PATH = ''
+    PROJECT_NAME = ''
+    DIRECTORY = ''
+    SESSION = None
+    
+    def __init__(self, directory, name, session, alpha=None, beta=None, theta=None, numLinks=None, maxNodes=None):
         '''
         Constructor
         '''
+        self.PROJECT_NAME = name
+        self.DIRECTORY = directory
+        self.SESSION = session
+        self.PATH = '%s%s%s' % (self.DIRECTORY, self.PROJECT_NAME, '.cif')
         self.alpha = alpha
         self.beta = beta
         self.theta = theta
         self.numLinks = numLinks
         self.maxNodes = maxNodes
-
-    def __repr__(self):
-        return '<StreamNetwork: Alpha=%s, Beta=%s, Theta=%s, NumLinks=%s, MaxNodes=%s>' % (self.alpha, self.beta, self.theta, self.numLinks, self.maxNodes)
+        
+    def read(self):
+        '''
+        Channel Input File Read from File Method
+        '''
+        # Dictionary of keywords/cards and parse function names
+        KEYWORDS = {'ALPHA': cic.cardChunk,
+                    'BETA': cic.cardChunk,
+                    'THETA': cic.cardChunk,
+                    'LINKS': cic.cardChunk,
+                    'MAXNODES': cic.cardChunk,
+                    'CONNECT':cic.cardChunk,
+                    'LINK':cic.linkChunk}
+        
+        # Parse file into chunks associated with keywords/cards
+        with open(self.PATH, 'r') as f:
+            chunks = pt.chunk(KEYWORDS, f)
+            
+        
+        # Parse chunks associated with each key    
+        for key, chunkList in chunks.iteritems():
+            # Parse each chunk in the chunk list
+            for chunk in chunkList:
+                # Call chunk specific parsers for each chunk
+                result = KEYWORDS[key](key, chunk)
+#                 print result
+        
+    def write(self):
+        '''
+        Channel Input File Write to File Method
+        '''
+        
     
 
 class StreamLink(DeclarativeBase):
@@ -70,7 +114,7 @@ class StreamLink(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    streamNetworkID = Column(Integer, ForeignKey('cif_stream_networks.id'), nullable=False)
+    channelInputFileID = Column(Integer, ForeignKey('cif_channel_input_files.id'), nullable=False)
     
     # Value Columns
     linkType = Column(String, nullable=False)
@@ -80,7 +124,7 @@ class StreamLink(DeclarativeBase):
     numUpstreamLinks = Column(Integer, nullable=False)
 
     # Relationship Properties
-    streamNetwork = relationship('StreamNetwork', back_populates='streamLinks')
+    channelInputFile = relationship('ChannelInputFile', back_populates='streamLinks')
     upstreamLinks = relationship('UpstreamLink', back_populates='streamLink')
     nodes = relationship('Node', back_populates='streamLink')
     weirs = relationship('Weir', back_populates='streamLink')

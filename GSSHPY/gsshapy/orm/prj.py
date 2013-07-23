@@ -20,6 +20,7 @@ from sqlalchemy.orm import relationship
 from gsshapy.orm import DeclarativeBase, metadata
 from gsshapy.orm.gag import PrecipFile
 from gsshapy.orm.cmt import MapTableFile
+from gsshapy.orm.cif import ChannelInputFile
 
 
 
@@ -38,12 +39,13 @@ class ProjectFile(DeclarativeBase):
     id = Column(Integer, autoincrement=True, primary_key=True)
     precipFileID = Column(Integer, ForeignKey('gag_precipitation_files.id'))
     mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
+    channelInputFileID = Column(Integer, ForeignKey('cif_channel_input_files.id'))
 
     # Relationship Properties
     projectCards = relationship('ProjectCard', secondary=assocProject, back_populates='projectFiles')
-    precipFile = relationship('PrecipFile', back_populates='projectFile')
     mapTableFile = relationship('MapTableFile', back_populates='projectFile')
-    
+    channelInputFile = relationship('ChannelInputFile', back_populates='projectFile')
+    precipFile = relationship('PrecipFile', back_populates='projectFile')
     
     # Global Properties
     PATH = None
@@ -102,6 +104,11 @@ class ProjectFile(DeclarativeBase):
         mapTable = MapTableFile(directory=self.DIRECTORY, name=self.PROJECT_NAME, session=self.SESSION)
         mapTable.projectFile = self
         mapTable.read()
+        
+        # Initiate GSSHAPY ChannelNetworkFile object, associate with this object, and read channel input file
+        channelInput = ChannelInputFile(directory=self.DIRECTORY, name=self.PROJECT_NAME, session=self.SESSION)
+        channelInput.projectFile = self
+        channelInput.read()
         
         
         # Initiate GSSHAPY PrecipFile object, associate it with this object, and read precipitation file

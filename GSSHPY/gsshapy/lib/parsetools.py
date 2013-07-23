@@ -46,13 +46,15 @@ def chunk(keywords, lines):
     # Populate dictionary with lists of chunks associated
     # with the keywords in the list   
     for line in lines:
-        token = line.split()[0]
-        if token in keywords:
-            #if currToken != '':
-            chunk = [line]   
-            chunks[token].append(chunk)   
-        else:
-            chunk.append(line)
+        if line.strip():
+            token = line.split()[0]
+            if token in keywords:
+                #if currToken != '':
+                chunk = [line]   
+                chunks[token].append(chunk)   
+            else:
+                chunk.append(line)
+
     return chunks
 
 ##TODO: FIND A WAY TO CHUNK TO THE END
