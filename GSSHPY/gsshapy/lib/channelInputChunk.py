@@ -31,16 +31,18 @@ def linkChunk(key, chunk):
     # Extract link type card
     linkType = chunk[1].strip().split()[0]
     
-    # Handlers for different link types
+    # Cases
     if linkType == 'DX':
+        # Cross section link type handler
         result = xSectionLink(chunk)
             
     elif linkType == 'STRUCTURE':
+        # Structure link type handler
         result = structureLink(chunk)
         
     elif linkType in ['RESERVOIR', 'LAKE']:
-        result = reservoirLink(key, chunk)
-    
+        # Reservoir link type handler
+        result = reservoirLink(chunk)
     return result
 
 def structureLink(lines):
@@ -51,6 +53,48 @@ def structureLink(lines):
                 'STRUCTURE',
                 'NUMSTRUCTS',
                 'STRUCTTYPE']
+    
+    WEIR_KEYWORDS = ['STRUCTTYPE',
+                     'CREST_LENGTH',
+                     'CREST_LOW_ELEV',
+                     'DISCHARGE_COEFF_FORWARD',
+                     'DISCHARGE_COEFF_REVERSE',
+                     'CREST_LOW_LOC',
+                     'STEEP_SLOPE',
+                     'SHALLOW_SLOPE']
+    
+    CULVERT_KEYWORDS = ['STRUCTTYPE',
+                        'UPINVERT',
+                        'DOWNINVERT',
+                        'INLET_DISCH_COEFF',
+                        'REV_FLOW_DISCH_COEFF',
+                        'SLOPE',
+                        'LENGTH',
+                        'ROUGH_COEFF',
+                        'DIAMETER',
+                        'WIDTH',
+                        'HEIGHT']
+    
+    weirResult = {'structtype': None,
+                  'crest_length': None,
+                  'crest_low_elev': None,
+                  'discharge_coeff_forward': None,
+                  'discharge_coeff_reverse': None,
+                  'crest_low_loc': None,
+                  'steep_slope': None,
+                  'shallow_slope': None}
+    
+    culvertResult = {'structtype': None,
+                     'upinvert': None,
+                     'downinvert': None,
+                     'inlet_disch_coeff': None,
+                     'rev_flow_disch_coeff': None,
+                     'slope': None,
+                     'length': None,
+                     'rough_coeff': None,
+                     'diameter': None,
+                     'width': None,
+                     'height': None}
     
     WEIRS = ['WEIR', 'SAG_WEIR']
     
@@ -71,9 +115,9 @@ def structureLink(lines):
             if key == 'STRUCTTYPE':
                 structType = chunk[0].strip().split()[1]
                 if structType in WEIRS:
-                    result['structures'].append(weirChunk(chunk))
+                    result['structures'].append(structureChunk(WEIR_KEYWORDS, weirResult, chunk))
                 elif structType in CULVERTS:
-                    result['structures'].append(culvertChunk(chunk))
+                    result['structures'].append(structureChunk(CULVERT_KEYWORDS, culvertResult, chunk))
                 elif structType in CURVES:
                     pass
             else:
@@ -83,7 +127,7 @@ def structureLink(lines):
     
 def xSectionLink(lines):
     '''
-    Parse TRAPEZOID Channel LINK Method
+    Parse Cross Section Links Method
     '''
     KEYWORDS = ['LINK',
                 'DX',
@@ -125,11 +169,65 @@ def xSectionLink(lines):
                 result['header'].append(cardChunk(key, chunk))
     return result
 
-def reservoirLink(key, chunk):
+def reservoirLink(lines):
     '''
-    Parse RESERVOIR Channel LINK Method
+    Parse RESERVOIR Link Method
     '''
-    return key, chunk
+    
+    KEYWORDS = ['LINK',
+                'RESERVOIR',
+                'RES_MINWSE',
+                'RES_INITWSE',
+                'RES_MAXWSE',
+                'RES_NUMPTS',
+                'LAKE',
+                'MINWSE',
+                'INITWSE',
+                'MAXWSE',
+                'NUMPTS']
+    
+    result  =  {'header': [],
+                'type': None,
+                'cells': []}
+    
+    pair = {'i': None,
+            'j': None}
+    
+    chunks = pt.chunk(KEYWORDS, lines)
+    
+    # Parse chunks associated with each key    
+    for key, chunkList in chunks.iteritems():
+        # Parse each chunk in the chunk list
+        for chunk in chunkList:
+            schunk = chunk[0].strip().split()
+            
+            
+            # Cases
+            if key in ['NUMPTS', 'RES_NUMPTS']:
+                # Points handler
+                result['header'].append(cardChunk(key, [chunk[0]]))
+                
+                # Parse points
+                for idx in range(1, len(chunk)):
+                    schunk = chunk[idx].strip().split()
+                    
+                    for count, ordinate in enumerate(schunk):
+                        # Divide ordinates into ij pairs
+                        if (count % 2) == 0:
+                            pair['i'] = ordinate
+                        else:
+                            pair['j'] = ordinate   
+                            result['cells'].append(pair)
+                            pair = {'i': None,
+                                    'j': None}
+                
+            elif key in ['LAKE', 'RESERVOIR']:
+                # Type handler
+                result['type'] = schunk[0]
+            else:
+                # Header/all other variables handler
+                result['header'].append(cardChunk(key, chunk))
+    return result
 
 def nodeChunk(lines):
     '''
@@ -214,21 +312,12 @@ def xSectionChunk(lines):
                 result[key.lower()] = schunk[1]
     return result
 
-def weirChunk(lines):
+def structureChunk(keywords, resultDict, lines):
     '''
-    Parse Weir Structures Method
+    Parse Weir and Culvert Structures Method
     '''
-    KEYWORDS = ['STRUCTTYPE',
-                'CREST_LENGTH',
-                'CREST_LOW_ELEV',
-                'DISCHARGE_COEFF_FORWARD',
-                'DISCHARGE_COEFF_REVERSE',
-                'CREST_LOW_LOC',
-                'STEEP_SLOPE',
-                'SHALLOW_SLOPE']
     
-    result = {}
-    chunks = pt.chunk(KEYWORDS, lines)
+    chunks = pt.chunk(keywords, lines)
     
     # Parse chunks associated with each key    
     for key, chunkList in chunks.iteritems():
@@ -236,38 +325,12 @@ def weirChunk(lines):
         for chunk in chunkList:
             # Strip and split the line (only one item in each list)
             schunk = chunk[0].strip().split()
-            print schunk
+            
+            # Extract values and assign to appropriate key in resultDict
+            resultDict[key.lower()] = schunk[1]
     
-    return result
-    
-def culvertChunk(lines):
-    '''
-    Parse Culvert Structures Method
-    '''
-    KEYWORDS = ['STRUCTTYPE',
-                'UPINVERT',
-                'DOWNINVERT',
-                'INLET_DISCH_COEFF',
-                'REV_FLOW_DISCH_COEFF',
-                'SLOPE',
-                'LENGTH',
-                'ROUGH_COEFF',
-                'DIAMETER',
-                'WIDTH',
-                'HEIGHT']
-    
-    result = {}
-    chunks = pt.chunk(KEYWORDS, lines)
-    
-    # Parse chunks associated with each key    
-    for key, chunkList in chunks.iteritems():
-        # Parse each chunk in the chunk list
-        for chunk in chunkList:
-            # Strip and split the line (only one item in each list)
-            schunk = chunk[0].strip().split()
-            print schunk
-    
-    return result
+    return resultDict
+
     
 
 

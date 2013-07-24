@@ -90,18 +90,53 @@ class ChannelInputFile(DeclarativeBase):
         with open(self.PATH, 'r') as f:
             chunks = pt.chunk(KEYWORDS, f)
             
-        
         # Parse chunks associated with each key    
         for key, chunkList in chunks.iteritems():
             # Parse each chunk in the chunk list
             for chunk in chunkList:
                 # Call chunk specific parsers for each chunk
                 result = KEYWORDS[key](key, chunk)
-#                 print result
+                
+                # Cases
+                if key == 'LINK':
+                    # Link handler
+                    self._createLinkObject(result)
+                    
+                elif key == 'CONNECT':
+                    # Connectivity handler
+                    print 'CONNECT_CHECK', result
+                    
+                else:
+                    # Global variable handler
+                    card = result['card']
+                    value = result['values'][0]
+                    # Cases
+                    if card == 'LINKS':
+                        self.links = int(value)
+                    elif card == 'MAXNODES':
+                        self.maxNodes = int(value)
+                    elif card == 'ALPHA':
+                        self.alpha = float(value)
+                    elif card == 'BETA':
+                        self.beta = float(value)
+                    elif card == 'THETA':
+                        self.theta = float(value)                    
+                    
         
     def write(self):
         '''
         Channel Input File Write to File Method
+        '''
+        
+    def _createLinkObject(self, result):
+        '''
+        Create GSSHAPY Link Object Method
+        '''
+        print 'Hello World', result
+    
+    def _createConnectObject(self, result):
+        '''
+        Create GSSHAPY Connect Object Method
         '''
         
     
