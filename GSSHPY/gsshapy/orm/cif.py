@@ -132,12 +132,40 @@ class ChannelInputFile(DeclarativeBase):
         '''
         Create GSSHAPY Link Object Method
         '''
-        print 'Hello World', result
+        # Cases
+        if result['type'] == 'XSEC':
+            print 'XSECS RULE!!!'
+            self._createCrossSectionObject(result)
+        elif result['type'] == 'STRUCTURE':
+            print 'STRUCTURES RULE!!!'
+            self._creatStructureObject(result)
+        elif result['type'] in ['RESERVOIR', 'LAKE']:
+            print 'RES/LAKES RULE!!!'
+            self._createReservoirObject(result)
+            
+        for key, value in result.iteritems():
+            print key, value
+        print '\n'
     
     def _createConnectObject(self, result):
         '''
         Create GSSHAPY Connect Object Method
         '''
+        
+    def _createCrossSectionObject(self, result):
+        '''
+        Create GSSHAPY Cross Section Objects Method
+        '''
+        print 'Hello Cross Section'
+    
+    def _creatStructureObject(self, result):
+        '''
+        Create GSSHAPY Structure Objects Method
+        '''
+        print 'Hello Stucture'
+        
+    def _createReservoirObject(self, result):
+        print 'Hello Reservoir'
         
     
 

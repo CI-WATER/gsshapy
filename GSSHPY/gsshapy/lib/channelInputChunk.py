@@ -102,9 +102,9 @@ def structureLink(lines):
     
     CURVES = ['RATING_CURVE', 'SCHEDULED_RELEASE', 'RULE_CURVE']
     
-    result = {'header': [],
+    result = {'type': 'STRUCTURE',
+              'header': [],
               'structures':[]}
-    
     
     chunks = pt.chunk(KEYWORDS, lines)
     
@@ -112,15 +112,23 @@ def structureLink(lines):
     for key, chunkList in chunks.iteritems():
         # Parse each chunk in the chunk list
         for chunk in chunkList:
+            # Cases
             if key == 'STRUCTTYPE':
+                # Structure handler
                 structType = chunk[0].strip().split()[1]
+                
+                # Cases
                 if structType in WEIRS:
+                    # Weir type structures handler
                     result['structures'].append(structureChunk(WEIR_KEYWORDS, weirResult, chunk))
                 elif structType in CULVERTS:
+                    # Culvert type structures handler
                     result['structures'].append(structureChunk(CULVERT_KEYWORDS, culvertResult, chunk))
                 elif structType in CURVES:
+                    # Curve type handler
                     pass
             else:
+                # All other variables header
                 result['header'].append(cardChunk(key, chunk))
                
     return result
@@ -145,7 +153,8 @@ def xSectionLink(lines):
                 'NODE',
                 'XSEC']
     
-    result  =  {'header': [],
+    result  =  {'type': 'XSEC',
+                'header': [],
                 'xSection': None,
                 'nodes': []}
     
