@@ -45,6 +45,7 @@ class PrecipFile(DeclarativeBase):
     PROJECT_NAME = ''
     DIRECTORY = ''
     SESSION = None
+    EXTENSION = 'gag'
     
     # This is the structure used by gpparse to read in the file
     STRUCTURE =\
@@ -67,7 +68,7 @@ class PrecipFile(DeclarativeBase):
         self.PROJECT_NAME = name
         self.DIRECTORY = directory
         self.SESSION = session
-        self.PATH = '%s%s%s' % (self.DIRECTORY, self.PROJECT_NAME, '.gag')
+        self.PATH = '%s%s.%s' % (self.DIRECTORY, self.PROJECT_NAME, self.EXTENSION)
     
     def read(self):
         '''
@@ -154,16 +155,16 @@ class PrecipFile(DeclarativeBase):
         Precipitation Write to File Method
         '''
         # Assemble path to new precipitation file
-        path = '%s%s%s' % (directory, name, '.gag')
+        path = '%s%s.%s' % (directory, name, self.EXTENSION)
         
         # Initialize file
-        with open(path, 'w') as f:
+        with open(path, 'w') as gagFile:
             # Retrieve the events associated with this PrecipFile
             events = self.precipEvents
             
             # Write each event to file
             for event in events:
-                f.write('EVENT %s\nNRGAG %s\nNRPDS %s\n' % (event.description, event.nrGag, event.nrPds))
+                gagFile.write('EVENT %s\nNRGAG %s\nNRPDS %s\n' % (event.description, event.nrGag, event.nrPds))
                 
                 if event.nrGag > 0:
                     values = event.values
@@ -195,7 +196,7 @@ class PrecipFile(DeclarativeBase):
                         gages.add(value.gage)
                     
                     for gage in gages:
-                        f.write('COORD %s %s %s\n' % (gage.x, gage.y, gage.description))
+                        gagFile.write('COORD %s %s %s\n' % (gage.x, gage.y, gage.description))
 
                     # Write the value rows out to file
                     for row in pivotedValues:
@@ -221,7 +222,7 @@ class PrecipFile(DeclarativeBase):
                                 valString = '%s  %.2f' % (valString, row[key])
 
                         # Write value line to file with appropriate formatting
-                        f.write('%s %.4d %.2d  %.2d  %.2d  %.2d%s\n' % (valType, year, month, day, hour, minute, valString))
+                        gagFile.write('%s %.4d %.2d  %.2d  %.2d  %.2d%s\n' % (valType, year, month, day, hour, minute, valString))
                 
     def _transformGpparseArray(self, gagList):
         ''' 

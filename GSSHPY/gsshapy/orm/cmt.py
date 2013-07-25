@@ -60,6 +60,7 @@ class MapTableFile(DeclarativeBase):
     PROJECT_NAME = ''
     DIRECTORY = ''
     SESSION = None
+    EXTENSION = 'cmt'
     
     
     def __init__(self, directory, name, session):
@@ -69,7 +70,7 @@ class MapTableFile(DeclarativeBase):
         self.PROJECT_NAME = name
         self.DIRECTORY = directory
         self.SESSION = session
-        self.PATH = '%s%s%s' % (self.DIRECTORY, self.PROJECT_NAME, '.cmt')
+        self.PATH = '%s%s.%s' % (self.DIRECTORY, self.PROJECT_NAME, self.EXTENSION)
         
     def read(self):
         '''
@@ -156,7 +157,7 @@ class MapTableFile(DeclarativeBase):
         indexMaps = set(indexMapList)
 
         # Initiate map table file and write
-        fullPath = '%s%s%s' % (directory, name, '.cmt')
+        fullPath = '%s%s.%s' % (directory, name, self.EXTENSION)
         
         with open(fullPath, 'w') as cmtFile:
 

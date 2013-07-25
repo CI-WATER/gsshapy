@@ -49,12 +49,9 @@ def chunk(keywords, lines):
         if line.strip():
             token = line.split()[0]
             if token in keywords:
-                #if currToken != '':
                 chunk = [line]   
                 chunks[token].append(chunk)   
             else:
                 chunk.append(line)
 
     return chunks
-
-##TODO: FIND A WAY TO CHUNK TO THE END

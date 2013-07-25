@@ -264,6 +264,7 @@ def reservoirLink(lines):
     pair = {'i': None,
             'j': None}
     
+    # Rechunk the chunk
     chunks = pt.chunk(KEYWORDS, lines)
     
     # Parse chunks associated with each key    
@@ -342,7 +343,7 @@ def xSectionChunk(lines):
                 'NUM_INTERP',
                 'X1',
                 'ERODE',
-                'MAX_ERODE',
+                'MAX_EROSION',
                 'SUBSURFACE',
                 'M_RIVER',
                 'K_RIVER')
@@ -355,7 +356,7 @@ def xSectionChunk(lines):
               'num_interp': None,
               'erode': False,
               'subsurface': False,
-              'max_erode': None,
+              'max_erosion': None,
               'm_river': None,
               'k_river': None,
               'breakpoints': []}

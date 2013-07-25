@@ -54,6 +54,7 @@ class ChannelInputFile(DeclarativeBase):
     PROJECT_NAME = ''
     DIRECTORY = ''
     SESSION = None
+    EXTENSION = 'cif'
     
     def __init__(self, directory, name, session, alpha=None, beta=None, theta=None, links=None, maxNodes=None):
         '''
@@ -62,7 +63,7 @@ class ChannelInputFile(DeclarativeBase):
         self.PROJECT_NAME = name
         self.DIRECTORY = directory
         self.SESSION = session
-        self.PATH = '%s%s%s' % (self.DIRECTORY, self.PROJECT_NAME, '.cif')
+        self.PATH = '%s%s.%s' % (self.DIRECTORY, self.PROJECT_NAME, self.EXTENSION)
         self.alpha = alpha
         self.beta = beta
         self.theta = theta
@@ -124,10 +125,27 @@ class ChannelInputFile(DeclarativeBase):
         self._createConnectivity(linkList=links, connectList=connectivity)                
                     
         
-    def write(self):
+    def write(self, session, directory, name):
         '''
         Channel Input File Write to File Method
         '''
+        # Initiate channel input file
+        fullPath = '%s%s.%s' % (directory, name, self.EXTENSION)
+        
+        with open(fullPath, 'w') as cifFile:
+            cifFile.write('GSSHA_CHAN\n')
+            
+            cifFile.write('ALPHA%s%.6f\n' % (' '*7, self.alpha))
+            cifFile.write('BETA%s%.6f\n' % (' '*8, self.beta))
+            cifFile.write('THETA%s%.6f\n' % (' '*7, self.theta))
+            cifFile.write('LINKS%s%s\n' % (' '*7, self.links))
+            cifFile.write('MAXNODES%s%s\n' % (' '*4, self.maxNodes))
+            
+            # Retrieve StreamLinks
+            links = self.streamLinks
+            
+            self._writeConnectivity(links, cifFile)
+            self._writeLinks(links, cifFile)
         
     def _createLink(self, linkResult):
         '''
@@ -178,12 +196,12 @@ class ChannelInputFile(DeclarativeBase):
         header = linkResult['header']
         
         # Initialize GSSHAPY StreamLink object
-        link = StreamLink(linkNumber= int(header['link']),
-                          linkType= header['xSecType'],
-                          numElements= header['nodes'],
-                          dx= header['dx'],
-                          erode= header['erode'],
-                          subsurface= header['subsurface'])
+        link = StreamLink(linkNumber=int(header['link']),
+                          linkType=header['xSecType'],
+                          numElements=header['nodes'],
+                          dx=header['dx'],
+                          erode=header['erode'],
+                          subsurface=header['subsurface'])
         
         # Associate StreamLink with ChannelInputFile
         link.channelInputFile = self
@@ -195,14 +213,15 @@ class ChannelInputFile(DeclarativeBase):
         if link.linkType == 'TRAPEZOID':
             # Trapezoid cross section handler
             # Initialize GSSHPY TrapeziodalCS object
-            trapezoidCS = TrapezoidalCS(mannings_n = xSection['mannings_n'],
-                                        bottomWidth = xSection['bottom_width'],
-                                        bankfullDepth = xSection['bankfull_depth'],
-                                        sideSlope = xSection['side_slope'],
-                                        mRiver = xSection['m_river'],
-                                        kRiver = xSection['k_river'],
-                                        erode = xSection['erode'],
-                                        subsurface = xSection['subsurface'])
+            trapezoidCS = TrapezoidalCS(mannings_n=xSection['mannings_n'],
+                                        bottomWidth=xSection['bottom_width'],
+                                        bankfullDepth=xSection['bankfull_depth'],
+                                        sideSlope=xSection['side_slope'],
+                                        mRiver=xSection['m_river'],
+                                        kRiver=xSection['k_river'],
+                                        erode=xSection['erode'],
+                                        subsurface=xSection['subsurface'],
+                                        maxErosion=xSection['max_erosion'])
             
             # Associate TrapezoidalCS with StreamLink
             trapezoidCS.streamLink = link
@@ -210,21 +229,22 @@ class ChannelInputFile(DeclarativeBase):
         elif link.linkType == 'BREAKPOINT':
             # Breakpoint cross section handler
             # Initialize GSSHAPY BreakpointCS objects
-            breakpointCS = BreakpointCS(mannings_n = xSection['mannings_n'],
-                                        numPairs = xSection['npairs'],
-                                        numInterp = xSection['num_interp'],
-                                        mRiver = xSection['m_river'],
-                                        kRiver = xSection['k_river'],
-                                        erode = xSection['erode'],
-                                        subsurface = xSection['subsurface'])
+            breakpointCS = BreakpointCS(mannings_n=xSection['mannings_n'],
+                                        numPairs=xSection['npairs'],
+                                        numInterp=xSection['num_interp'],
+                                        mRiver=xSection['m_river'],
+                                        kRiver=xSection['k_river'],
+                                        erode=xSection['erode'],
+                                        subsurface=xSection['subsurface'],
+                                        maxErosion=xSection['max_erosion'])
             
             # Associate BreakpointCS with StreamLink
             breakpointCS.streamLink = link
 
             # Create GSSHAPY Breakpoint objects
             for b in xSection['breakpoints']:
-                breakpoint = Breakpoint(x = b['x'],
-                                        y = b['y'])
+                breakpoint = Breakpoint(x=b['x'],
+                                        y=b['y'])
                 
                 # Associate Breakpoint with BreakpointCS
                 breakpoint.crossSection = breakpointCS
@@ -307,6 +327,9 @@ class ChannelInputFile(DeclarativeBase):
         return link
         
     def _createReservoir(self, linkResult):
+        '''
+        Create GSSHAPY Reservoir Objects Method
+        '''
         # Extract header variables from link result object
         header = linkResult['header']
         
@@ -352,6 +375,104 @@ class ChannelInputFile(DeclarativeBase):
             resPoint.reservoir = reservoir
         
         return link
+    
+    def _writeConnectivity(self, links, fileObject):
+        '''
+        Write Connectivity Lines to File Method
+        '''
+        for link in links:
+            linkNum = link.linkNumber
+            downLink = link.downstreamLinkID
+            numUpLinks = link.numUpstreamLinks
+            upLinks = []
+            for upLink in link.upstreamLinks:
+                upLinks.append(str(upLink.upstreamLinkID))
+            
+            line = 'CONNECT    %s    %s    %s    %s\n' % (linkNum, downLink, numUpLinks, '    '.join(upLinks))
+            fileObject.write(line)
+        
+    def _writeLinks(self, links, fileObject):
+        '''
+        Write Link Lines to File Method
+        '''
+        for link in links:
+            linkType = link.linkType
+            
+            # Cases
+            if linkType in ('TRAPEZOID', 'BREAKPOINT'):
+                # Write cross section link header
+                fileObject.write('LINK           %s\n' % link.linkNumber)
+                fileObject.write('DX             %.6f\n' % link.dx)
+                fileObject.write('%s\n' % linkType)
+                fileObject.write('NODES          %s\n' % len(link.nodes))
+                
+                for node in link.nodes:
+                    # Write node information
+                    fileObject.write('NODE %s\n' % node.nodeNumber)
+                    fileObject.write('X_Y  %.6f %.6f\n' % (node.x, node.y))
+                    fileObject.write('ELEV %.6f\n' % node.elevation)
+                    
+                    if node.nodeNumber == 1:
+                        # Write cross section information after first node
+                        fileObject.write('XSEC\n')
+                        
+                        # Cases
+                        if linkType == 'TRAPEZOID':
+                            # Retrieve cross section
+                            xSec = link.trapezoidalCS
+                            
+                            # Write cross section properties
+                            fileObject.write('MANNINGS_N     %.6f\n' % xSec.mannings_n)
+                            fileObject.write('BOTTOM_WIDTH   %.6f\n' % xSec.bottomWidth)
+                            fileObject.write('BANKFULL_DEPTH %.6f\n' % xSec.bankfullDepth)
+                            fileObject.write('SIDE_SLOPE     %.6f\n' % xSec.sideSlope)
+                            
+                            # Write optional cross section properties
+                            self._writeOtherXsecCards(fileObject=fileObject, xSec=xSec)
+                                            
+                        elif linkType == 'BREAKPOINT':
+                            # Retrieve cross section
+                            xSec = link.breakpointCS
+                            
+                            # Write cross section properties
+                            fileObject.write('MANNINGS_N     %.6f\n' % xSec.mannings_n)
+                            fileObject.write('NPAIRS         %s\n' % xSec.numPairs)
+                            fileObject.write('NUM_INTERP     %s\n' % xSec.numInterp)
+                            
+                            # Write optional cross section properties
+                            self._writeOtherXsecCards(fileObject=fileObject, xSec=xSec)
+                            
+                            for bp in xSec.breakpoints:
+                                fileObject.write('X1   %.6f %.6f\n' % (bp.x, bp.y))
+                            
+                            
+                            
+                
+            elif linkType == 'STRUCTURE':
+                print linkType, link
+                
+            elif linkType in ('RESERVOIR', 'LAKE'):
+                print linkType, link
+                
+            else:
+                print 'OOPS'
+                
+    def _writeOtherXsecCards(self, fileObject, xSec):
+        if xSec.erode:
+            fileObject.write('ERODE\n')
+            
+        if xSec.maxErosion != None: 
+            fileObject.write('MAX_EROSION    %.6f\n' % xSec.maxErosion)
+        
+        if xSec.subsurface:
+            fileObject.write('SUBSURFACE\n')
+            
+        if xSec.mRiver != None: 
+            fileObject.write('M_RIVER        %.6f\n' % xSec.mRiver)
+            
+        if xSec.kRiver != None: 
+            fileObject.write('K_RIVER        %.6f\n' % xSec.kRiver)
+            
         
     
 
@@ -382,8 +503,8 @@ class StreamLink(DeclarativeBase):
     weirs = relationship('Weir', back_populates='streamLink')
     culverts = relationship('Culvert', back_populates='streamLink')
     reservoirs = relationship('Reservoir', back_populates='streamLink')
-    breakpointCS = relationship('BreakpointCS', back_populates='streamLink')
-    trapezoidalCS = relationship('TrapezoidalCS', back_populates='streamLink')
+    breakpointCS = relationship('BreakpointCS', uselist=False, back_populates='streamLink')
+    trapezoidalCS = relationship('TrapezoidalCS', uselist=False, back_populates='streamLink')
     streamGridCells = relationship('StreamGridCell', back_populates='streamLink')
     
     def __init__(self, linkNumber, linkType, numElements, dx=None, erode=False, subsurface=False):
@@ -654,17 +775,18 @@ class BreakpointCS(DeclarativeBase):
     # Value Columns
     mannings_n = Column(Float)
     numPairs = Column(Integer)
-    numInterp = Column(Float)
+    numInterp = Column(Integer)
     mRiver = Column(Float)
     kRiver = Column(Float)
     erode = Column(Boolean)
     subsurface = Column(Boolean)
+    maxErosion = Column(Float)
     
     # Relationship Properties
     streamLink = relationship('StreamLink', back_populates='breakpointCS')
     breakpoints = relationship('Breakpoint', back_populates='crossSection')
     
-    def __init__(self, mannings_n, numPairs, numInterp, mRiver, kRiver, erode, subsurface):
+    def __init__(self, mannings_n, numPairs, numInterp, mRiver, kRiver, erode, subsurface, maxErosion):
         '''
         Constructor
         '''
@@ -674,17 +796,19 @@ class BreakpointCS(DeclarativeBase):
         self.mRiver = mRiver
         self.kRiver = kRiver
         self.erode = erode
-        self.subsurface =subsurface
+        self.subsurface = subsurface
+        self.maxErosion = maxErosion
 
     def __repr__(self):
-        return '<BreakpointCrossSection: Mannings-n=%s, NumPairs=%s, NumInterp=%s, M-River=%s, K-River=%s, Erode=%s, Subsurface=%s>' % (
+        return '<BreakpointCrossSection: Mannings-n=%s, NumPairs=%s, NumInterp=%s, M-River=%s, K-River=%s, Erode=%s, Subsurface=%s, MaxErosion=%s>' % (
                 self.mannings_n, 
                 self.numPairs, 
                 self.numInterp, 
                 self.mRiver, 
                 self.kRiver, 
                 self.erode, 
-                self.subsurface)
+                self.subsurface,
+                self.maxErosion)
     
 class Breakpoint(DeclarativeBase):
     '''
@@ -735,11 +859,12 @@ class TrapezoidalCS(DeclarativeBase):
     kRiver = Column(Float)
     erode = Column(Boolean)
     subsurface = Column(Boolean)
+    maxErosion = Column(Float)
     
     # Relationship Properties
     streamLink = relationship('StreamLink', back_populates='trapezoidalCS')
     
-    def __init__(self, mannings_n, bottomWidth, bankfullDepth, sideSlope, mRiver, kRiver, erode, subsurface):
+    def __init__(self, mannings_n, bottomWidth, bankfullDepth, sideSlope, mRiver, kRiver, erode, subsurface, maxErosion):
         '''
         Constructor
         '''
@@ -751,9 +876,10 @@ class TrapezoidalCS(DeclarativeBase):
         self.kRiver = kRiver
         self.erode = erode
         self.subsurface = subsurface
+        self.maxErosion = maxErosion
 
     def __repr__(self):
-        return '<TrapezoidalCS: Mannings-n=%s, BottomWidth=%s, BankfullDepth=%s, SideSlope=%s, M-River=%s, K-River=%s, Erode=%s, Subsurface=%s>' % (
+        return '<TrapezoidalCS: Mannings-n=%s, BottomWidth=%s, BankfullDepth=%s, SideSlope=%s, M-River=%s, K-River=%s, Erode=%s, Subsurface=%s, MaxErosion=%s>' % (
                 self.mannings_n,
                 self.bottomWidth,
                 self.bankfullDepth,
@@ -761,5 +887,6 @@ class TrapezoidalCS(DeclarativeBase):
                 self.mRiver,
                 self.kRiver,
                 self.erode,
-                self.subsurface)
+                self.subsurface,
+                self.maxErosion)
         

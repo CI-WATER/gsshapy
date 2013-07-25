@@ -11,7 +11,7 @@
 __all__ = ['ProjectFile',
            'ProjectCard']
 
-import os, re, shlex
+import re, shlex
 
 from sqlalchemy import ForeignKey, Column, Table
 from sqlalchemy.types import Integer, String
@@ -52,7 +52,8 @@ class ProjectFile(DeclarativeBase):
     PROJECT_NAME = None
     DIRECTORY = None
     SESSION = None
-    HEADERS = ['GSSHAPROJECT', 'WMS']
+    EXTENSION = 'prj'
+    
     
     def __init__(self, path, session):
         self.PATH = path
@@ -74,6 +75,7 @@ class ProjectFile(DeclarativeBase):
         '''
         Project File Read from File Method
         '''
+        HEADERS = ('GSSHAPROJECT', 'WMS')
         
         with open(self.PATH, 'r') as f:
             for line in f:
@@ -85,7 +87,7 @@ class ProjectFile(DeclarativeBase):
                     card = self._extractDirectoryCard(line)
                 # Now that the cardName and cardValue are separated
                 # load them into the gsshapy objects
-                if card['name'] not in self.HEADERS:
+                if card['name'] not in HEADERS:
                     # Initiate database objects
                     prjCard = ProjectCard(name=card['name'], value=card['value'])
                     self.projectCards.append(prjCard)
@@ -121,14 +123,14 @@ class ProjectFile(DeclarativeBase):
         Project File Write to File Method
         '''
         # Initiate project file
-        fullPath = '%s%s%s' % (directory, name, '.prj')
+        fullPath = '%s%s.%s' % (directory, name, self.EXTENSION)
         
-        with open(fullPath, 'w') as f:
-            f.write('GSSHAPROJECT\n')
+        with open(fullPath, 'w') as prjFile:
+            prjFile.write('GSSHAPROJECT\n')
         
             # Initiate write on each ProjectCard that belongs to this ProjectFile
             for card in self.projectCards:
-                f.write(card.write())
+                prjFile.write(card.write())
                 
     def writeAll(self, session, directory, name):
         '''
@@ -139,15 +141,15 @@ class ProjectFile(DeclarativeBase):
         self.write(session, directory, name)
         
         # Write map table file
-        mapTableFile = session.query(MapTableFile).\
-                                filter(MapTableFile.projectFile == self).\
-                                one()
+        mapTableFile = self.mapTableFile
         mapTableFile.write(session=session, directory=directory, name=name)
         
+        # Write channel input file
+        channelInputFile = self.channelInputFile
+        channelInputFile.write(session=session, directory=directory, name=name)
+        
         # Write precipitation file
-        precipFile = session.query(PrecipFile).\
-                                filter(PrecipFile.projectFile == self).\
-                                one()
+        precipFile = self.precipFile
         precipFile.write(session=session, directory=directory, name=name)
         
         
