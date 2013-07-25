@@ -400,54 +400,8 @@ class ChannelInputFile(DeclarativeBase):
             
             # Cases
             if linkType in ('TRAPEZOID', 'BREAKPOINT'):
-                # Write cross section link header
-                fileObject.write('LINK           %s\n' % link.linkNumber)
-                fileObject.write('DX             %.6f\n' % link.dx)
-                fileObject.write('%s\n' % linkType)
-                fileObject.write('NODES          %s\n' % len(link.nodes))
-                
-                for node in link.nodes:
-                    # Write node information
-                    fileObject.write('NODE %s\n' % node.nodeNumber)
-                    fileObject.write('X_Y  %.6f %.6f\n' % (node.x, node.y))
-                    fileObject.write('ELEV %.6f\n' % node.elevation)
-                    
-                    if node.nodeNumber == 1:
-                        # Write cross section information after first node
-                        fileObject.write('XSEC\n')
-                        
-                        # Cases
-                        if linkType == 'TRAPEZOID':
-                            # Retrieve cross section
-                            xSec = link.trapezoidalCS
+                self._writeCrossSectionLink(link, fileObject)
                             
-                            # Write cross section properties
-                            fileObject.write('MANNINGS_N     %.6f\n' % xSec.mannings_n)
-                            fileObject.write('BOTTOM_WIDTH   %.6f\n' % xSec.bottomWidth)
-                            fileObject.write('BANKFULL_DEPTH %.6f\n' % xSec.bankfullDepth)
-                            fileObject.write('SIDE_SLOPE     %.6f\n' % xSec.sideSlope)
-                            
-                            # Write optional cross section properties
-                            self._writeOtherXsecCards(fileObject=fileObject, xSec=xSec)
-                                            
-                        elif linkType == 'BREAKPOINT':
-                            # Retrieve cross section
-                            xSec = link.breakpointCS
-                            
-                            # Write cross section properties
-                            fileObject.write('MANNINGS_N     %.6f\n' % xSec.mannings_n)
-                            fileObject.write('NPAIRS         %s\n' % xSec.numPairs)
-                            fileObject.write('NUM_INTERP     %s\n' % xSec.numInterp)
-                            
-                            # Write optional cross section properties
-                            self._writeOtherXsecCards(fileObject=fileObject, xSec=xSec)
-                            
-                            for bp in xSec.breakpoints:
-                                fileObject.write('X1   %.6f %.6f\n' % (bp.x, bp.y))
-                            
-                            
-                            
-                
             elif linkType == 'STRUCTURE':
                 print linkType, link
                 
@@ -456,7 +410,56 @@ class ChannelInputFile(DeclarativeBase):
                 
             else:
                 print 'OOPS'
+            
+    def _writeCrossSectionLink(self, link, fileObject):
+        linkType = link.linkType
+        
+        # Write cross section link header
+        fileObject.write('LINK           %s\n' % link.linkNumber)
+        fileObject.write('DX             %.6f\n' % link.dx)
+        fileObject.write('%s\n' % linkType)
+        fileObject.write('NODES          %s\n' % len(link.nodes))
+        
+        for node in link.nodes:
+            # Write node information
+            fileObject.write('NODE %s\n' % node.nodeNumber)
+            fileObject.write('X_Y  %.6f %.6f\n' % (node.x, node.y))
+            fileObject.write('ELEV %.6f\n' % node.elevation)
+            
+            if node.nodeNumber == 1:
+                # Write cross section information after first node
+                fileObject.write('XSEC\n')
                 
+                # Cases
+                if linkType == 'TRAPEZOID':
+                    # Retrieve cross section
+                    xSec = link.trapezoidalCS
+                    
+                    # Write cross section properties
+                    fileObject.write('MANNINGS_N     %.6f\n' % xSec.mannings_n)
+                    fileObject.write('BOTTOM_WIDTH   %.6f\n' % xSec.bottomWidth)
+                    fileObject.write('BANKFULL_DEPTH %.6f\n' % xSec.bankfullDepth)
+                    fileObject.write('SIDE_SLOPE     %.6f\n' % xSec.sideSlope)
+                    
+                    # Write optional cross section properties
+                    self._writeOtherXsecCards(fileObject=fileObject, xSec=xSec)
+                                    
+                elif linkType == 'BREAKPOINT':
+                    # Retrieve cross section
+                    xSec = link.breakpointCS
+                    
+                    # Write cross section properties
+                    fileObject.write('MANNINGS_N     %.6f\n' % xSec.mannings_n)
+                    fileObject.write('NPAIRS         %s\n' % xSec.numPairs)
+                    fileObject.write('NUM_INTERP     %s\n' % xSec.numInterp)
+                    
+                    # Write optional cross section properties
+                    self._writeOtherXsecCards(fileObject=fileObject, xSec=xSec)
+                    
+                    # Write breakpoint lines
+                    for bp in xSec.breakpoints:
+                        fileObject.write('X1   %.6f %.6f\n' % (bp.x, bp.y))
+
     def _writeOtherXsecCards(self, fileObject, xSec):
         if xSec.erode:
             fileObject.write('ERODE\n')
