@@ -22,3 +22,4 @@ DBSession.configure(bind=engine)
 #orm_test_data(DBSession)
 
 DBSession.commit()
+print 'SUCCESS: Database Initialized'

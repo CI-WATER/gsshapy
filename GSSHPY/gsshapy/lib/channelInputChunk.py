@@ -23,6 +23,23 @@ def cardChunk(key, chunk):
         
     return {'card': sline[0],
             'values': values}
+    
+def connectChunk(key, chunk):
+    '''
+    Parse Card Chunk Method
+    '''
+    upLinks = []
+    schunk = chunk[0].strip().split()
+    
+    for idx in range(4, len(schunk)):
+        upLinks.append(schunk[idx])
+    
+    result = {'link': schunk[1],
+              'downLink': schunk[2],
+              'numUpLinks': schunk[3],
+              'upLinks': upLinks}
+    
+    return result
 
 def linkChunk(key, chunk):
     '''
@@ -40,7 +57,7 @@ def linkChunk(key, chunk):
         # Structure link type handler
         result = structureLink(chunk)
         
-    elif linkType in ['RESERVOIR', 'LAKE']:
+    elif linkType in ('RESERVOIR', 'LAKE'):
         # Reservoir link type handler
         result = reservoirLink(chunk)
     return result
@@ -49,21 +66,22 @@ def structureLink(lines):
     '''
     Parse STRUCTURE LINK Method
     '''
-    KEYWORDS = ['LINK',
+    # Constants
+    KEYWORDS = ('LINK',
                 'STRUCTURE',
                 'NUMSTRUCTS',
-                'STRUCTTYPE']
+                'STRUCTTYPE')
     
-    WEIR_KEYWORDS = ['STRUCTTYPE',
+    WEIR_KEYWORDS = ('STRUCTTYPE',
                      'CREST_LENGTH',
                      'CREST_LOW_ELEV',
                      'DISCHARGE_COEFF_FORWARD',
                      'DISCHARGE_COEFF_REVERSE',
                      'CREST_LOW_LOC',
                      'STEEP_SLOPE',
-                     'SHALLOW_SLOPE']
+                     'SHALLOW_SLOPE')
     
-    CULVERT_KEYWORDS = ['STRUCTTYPE',
+    CULVERT_KEYWORDS = ('STRUCTTYPE',
                         'UPINVERT',
                         'DOWNINVERT',
                         'INLET_DISCH_COEFF',
@@ -73,13 +91,13 @@ def structureLink(lines):
                         'ROUGH_COEFF',
                         'DIAMETER',
                         'WIDTH',
-                        'HEIGHT']
+                        'HEIGHT')
     
-    WEIRS = ['WEIR', 'SAG_WEIR']
+    WEIRS = ('WEIR', 'SAG_WEIR')
     
-    CULVERTS = ['ROUND_CULVERT', 'RECT_CULVERT']
+    CULVERTS = ('ROUND_CULVERT', 'RECT_CULVERT')
     
-    CURVES = ['RATING_CURVE', 'SCHEDULED_RELEASE', 'RULE_CURVE']
+    CURVES = ('RATING_CURVE', 'SCHEDULED_RELEASE', 'RULE_CURVE')
     
     result = {'type': 'STRUCTURE',
               'header': {'link': None,
@@ -140,7 +158,8 @@ def xSectionLink(lines):
     '''
     Parse Cross Section Links Method
     '''
-    KEYWORDS = ['LINK',
+    # Constants
+    KEYWORDS = ('LINK',
                 'DX',
                 'TRAPEZOID',
                 'TRAPEZOID_ERODE',
@@ -154,21 +173,21 @@ def xSectionLink(lines):
                 'BREAKPOINT_ERODE_SUBSURFACE',
                 'NODES',
                 'NODE',
-                'XSEC']
+                'XSEC')
     
-    ERODE = ['TRAPEZOID_ERODE',
+    ERODE = ('TRAPEZOID_ERODE',
              'BREAKPOINT_ERODE',
              'TRAPEZOID_SUBSURFACE_ERODE', 
              'TRAPEZOID_ERODE_SUBSURFACE',
              'BREAKPOINT_SUBSURFACE_ERODE',
-             'BREAKPOINT_ERODE_SUBSURFACE']
+             'BREAKPOINT_ERODE_SUBSURFACE')
     
-    SUBSURFACE = ['TRAPEZOID_SUBSURFACE',
+    SUBSURFACE = ('TRAPEZOID_SUBSURFACE',
                   'BREAKPOINT_SUBSURFACE',
                   'TRAPEZOID_SUBSURFACE_ERODE', 
                   'TRAPEZOID_ERODE_SUBSURFACE',
                   'BREAKPOINT_SUBSURFACE_ERODE',
-                  'BREAKPOINT_ERODE_SUBSURFACE']
+                  'BREAKPOINT_ERODE_SUBSURFACE')
     
     result  =  {'type': 'XSEC',
                 'header': {'link': None,
@@ -217,8 +236,8 @@ def reservoirLink(lines):
     '''
     Parse RESERVOIR Link Method
     '''
-    
-    KEYWORDS = ['LINK',
+    # Constants
+    KEYWORDS = ('LINK',
                 'RESERVOIR',
                 'RES_MINWSE',
                 'RES_INITWSE',
@@ -228,7 +247,7 @@ def reservoirLink(lines):
                 'MINWSE',
                 'INITWSE',
                 'MAXWSE',
-                'NUMPTS']
+                'NUMPTS')
     
     result  =  {'header': {'link': None,
                            'res_minwse': None,
@@ -255,7 +274,7 @@ def reservoirLink(lines):
             
             
             # Cases
-            if key in ['NUMPTS', 'RES_NUMPTS']:
+            if key in ('NUMPTS', 'RES_NUMPTS'):
                 # Points handler
                 result['header'][key.lower()] = schunk[1]
                 
@@ -273,11 +292,11 @@ def reservoirLink(lines):
                             pair = {'i': None,
                                     'j': None}
                 
-            elif key in ['LAKE', 'RESERVOIR']:
+            elif key in ('LAKE', 'RESERVOIR'):
                 # Type handler
                 result['type'] = schunk[0]
             else:
-                # Header/all other variables handler
+                # Header variables handler
                 result['header'][key.lower()] = schunk[1]
     return result
 
@@ -285,9 +304,10 @@ def nodeChunk(lines):
     '''
     Parse NODE Method
     '''
-    KEYWORDS = ['NODE',
+    # Constants
+    KEYWORDS = ('NODE',
                 'X_Y',
-                'ELEV']
+                'ELEV')
     
     result = {'node': None,
               'x': None,
@@ -313,7 +333,8 @@ def xSectionChunk(lines):
     '''
     Parse XSEC Method
     '''
-    KEYWORDS = ['MANNINGS_N',
+    # Constants
+    KEYWORDS = ('MANNINGS_N',
                 'BOTTOM_WIDTH',
                 'BANKFULL_DEPTH',
                 'SIDE_SLOPE',
@@ -324,7 +345,7 @@ def xSectionChunk(lines):
                 'MAX_ERODE',
                 'SUBSURFACE',
                 'M_RIVER',
-                'K_RIVER']
+                'K_RIVER')
     
     result = {'mannings_n': None,
               'bottom_width': None,
@@ -355,7 +376,7 @@ def xSectionChunk(lines):
                 y = schunk[2]
                 result['breakpoints'].append({'x': x, 'y': y})
                 
-            if key in ['SUBSURFACE', 'ERODE']:
+            if key in ('SUBSURFACE', 'ERODE'):
                 # Set booleans
                 result[key.lower()] = True
                 
@@ -368,7 +389,6 @@ def structureChunk(keywords, resultDict, lines):
     '''
     Parse Weir and Culvert Structures Method
     '''
-    
     chunks = pt.chunk(keywords, lines)
     
     # Parse chunks associated with each key    

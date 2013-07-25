@@ -8,10 +8,6 @@
 ********************************************************************************
 '''
 
-from datetime import datetime
-
-
-
 __all__ = ['ChannelInputFile', 
            'StreamLink', 
            'UpstreamLink', 
@@ -46,7 +42,7 @@ class ChannelInputFile(DeclarativeBase):
     alpha = Column(Float)
     beta = Column(Float)
     theta = Column(Float)
-    numLinks = Column(Integer)
+    links = Column(Integer)
     maxNodes = Column(Integer)
     
     # Relationship Properties
@@ -59,7 +55,7 @@ class ChannelInputFile(DeclarativeBase):
     DIRECTORY = ''
     SESSION = None
     
-    def __init__(self, directory, name, session, alpha=None, beta=None, theta=None, numLinks=None, maxNodes=None):
+    def __init__(self, directory, name, session, alpha=None, beta=None, theta=None, links=None, maxNodes=None):
         '''
         Constructor
         '''
@@ -70,7 +66,7 @@ class ChannelInputFile(DeclarativeBase):
         self.alpha = alpha
         self.beta = beta
         self.theta = theta
-        self.numLinks = numLinks
+        self.links = links
         self.maxNodes = maxNodes
         
     def read(self):
@@ -83,10 +79,11 @@ class ChannelInputFile(DeclarativeBase):
                     'THETA': cic.cardChunk,
                     'LINKS': cic.cardChunk,
                     'MAXNODES': cic.cardChunk,
-                    'CONNECT':cic.cardChunk,
+                    'CONNECT':cic.connectChunk,
                     'LINK':cic.linkChunk}
         
         links = []
+        connectivity = []
         
         # Parse file into chunks associated with keywords/cards
         with open(self.PATH, 'r') as f:
@@ -106,7 +103,7 @@ class ChannelInputFile(DeclarativeBase):
                     
                 elif key == 'CONNECT':
                     # Connectivity handler
-                    print 'CONNECT_CHECK', result
+                    connectivity.append(result)
                     
                 else:
                     # Global variable handler
@@ -124,8 +121,7 @@ class ChannelInputFile(DeclarativeBase):
                     elif card == 'THETA':
                         self.theta = float(value)   
         
-        for link in links:
-            print link                 
+        self._createConnectivity(linkList=links, connectList=connectivity)                
                     
         
     def write(self):
@@ -148,27 +144,31 @@ class ChannelInputFile(DeclarativeBase):
             # Structure link handler
             link = self._creatStructure(linkResult)
             
-            for key, value in linkResult.iteritems():
-                print key, value
-            print '\n'
-            
-            for structure in linkResult['structures']:
-                print structure
-            print '\n'
-            
-        elif linkResult['type'] in ['RESERVOIR', 'LAKE']:
+        elif linkResult['type'] in ('RESERVOIR', 'LAKE'):
             # Reservoir/lake handler
             link = self._createReservoir(linkResult)
-            
-            
-            
+
         return link
 
     
-    def _createConnect(self, result):
+    def _createConnectivity(self, linkList, connectList):
         '''
         Create GSSHAPY Connect Object Method
         '''
+        # Create StreamLink-Connectivity Pairs
+        
+        for idx, link in enumerate(linkList):
+            
+            connectivity = connectList[idx]
+            
+            # Initialize GSSHAPY UpstreamLink objects
+            for upLink in connectivity['upLinks']:
+                upstreamLink = UpstreamLink(upstreamLinkID=int(upLink))
+                upstreamLink.streamLink = link
+            
+            link.downstreamLinkID = int(connectivity['downLink'])
+            link.numUpstreamLinks = int(connectivity['numUpLinks'])
+            
         
     def _createCrossSection(self, linkResult):
         '''
@@ -246,7 +246,62 @@ class ChannelInputFile(DeclarativeBase):
         '''
         Create GSSHAPY Structure Objects Method
         '''
-        link = None
+        # Constants
+        WEIRS = ('WEIR', 'SAG_WEIR')
+    
+        CULVERTS = ('ROUND_CULVERT', 'RECT_CULVERT')
+    
+        CURVES = ('RATING_CURVE', 'SCHEDULED_RELEASE', 'RULE_CURVE')
+        
+        header = linkResult['header']
+        
+        # Intialize GSSHAPY StreamLink object
+        link = StreamLink(linkNumber=header['link'],
+                          linkType=linkResult['type'],
+                          numElements=header['numstructs'])
+        
+        # Assosciate StreamLink with ChannelInputFile
+        link.channelInputFile = self
+        
+        # Create Structure objects
+        for s in linkResult['structures']:
+            structType = s['structtype']
+            
+            # Cases
+            if structType in WEIRS:
+                # Weir type handler
+                # Initialize GSSHAPY Weir object
+                weir = Weir(crestLength=s['crest_length'], 
+                            crestLowElevation=s['crest_low_elev'], 
+                            dischargeCoeffForward=s['discharge_coeff_forward'], 
+                            dischargeCoeffReverse=s['discharge_coeff_reverse'], 
+                            crestLowLocation=s['crest_low_loc'], 
+                            steepSlope=s['steep_slope'], 
+                            shallowSlope=s['shallow_slope'])
+                
+                # Associate Weir with StreamLink
+                weir.streamLink = link
+                
+            elif structType in CULVERTS:
+                # Culvert type handler
+                # Initialize GSSHAPY Culvert object
+                culvert = Culvert(upstreamInvert=s['upinvert'], 
+                                  downstreamInvert=s['downinvert'], 
+                                  inletDischargeCoeff=s['inlet_disch_coeff'], 
+                                  reverseFlowDischargeCoeff=s['rev_flow_disch_coeff'], 
+                                  slope=s['slope'], 
+                                  length=s['length'], 
+                                  roughness=s['rough_coeff'], 
+                                  diameter=s['diameter'], 
+                                  width=s['width'], 
+                                  height=s['height'])
+                
+                # Associate Culvert with StreamLink
+                culvert.streamLink = link
+            
+            elif structType in CURVES:
+                # Curve type handler
+                pass
         
         
         return link
@@ -255,23 +310,26 @@ class ChannelInputFile(DeclarativeBase):
         # Extract header variables from link result object
         header = linkResult['header']
         
-        # Initialize GSSHAPY Reservoir object
+        
         # Cases
         if linkResult['type'] == 'LAKE':
             # Lake handler
-            reservoir = Reservoir(initWSE=header['initwse'],
-                                  minWSE=header['minwse'],
-                                  maxWSE=header['maxwse'])
-            
+            initWSE = header['initwse']
+            minWSE = header['minwse']
+            maxWSE = header['maxwse']
             numPts = header['numpts']
         
         elif linkResult['type'] == 'RESERVOIR':
             # Reservoir handler
-            reservoir = Reservoir(initWSE=header['res_initwse'],
-                                  minWSE=header['res_minwse'],
-                                  maxWSE=header['res_maxwse'])
-            
+            initWSE = header['res_initwse']
+            minWSE = header['res_minwse']
+            maxWSE = header['res_maxwse']
             numPts = header['res_numpts']
+            
+        # Initialize GSSHAPY Reservoir object
+        reservoir = Reservoir(initWSE=initWSE,
+                              minWSE=minWSE,
+                              maxWSE=maxWSE)
         
         # Initialize GSSHAPY StreamLink object
         link = StreamLink(linkNumber=int(header['link']),
@@ -314,8 +372,8 @@ class StreamLink(DeclarativeBase):
     dx = Column(Float)
     erode = Column(Boolean)
     subsurface = Column(Boolean)
-    downstreamLinkID = Column(Integer, nullable=False)
-    numUpstreamLinks = Column(Integer, nullable=False)
+    downstreamLinkID = Column(Integer)
+    numUpstreamLinks = Column(Integer)
 
     # Relationship Properties
     channelInputFile = relationship('ChannelInputFile', back_populates='streamLinks')
@@ -371,6 +429,9 @@ class UpstreamLink(DeclarativeBase):
     
     def __init__(self, upstreamLinkID):
         self.upstreamLinkID = upstreamLinkID
+        
+    def __repr__(self):
+        return '<UpstreamLink: LinkID=%s, UpstreamLinkID=%s>' % (self.linkID, self.upstreamLinkID)
         
 
     
@@ -481,13 +542,14 @@ class Culvert(DeclarativeBase):
     slope = Column(Float)
     length = Column(Float)
     roughness = Column(Float)
-    widthOrDiameter = Column(Float)
+    diameter = Column(Float)
+    width = Column(Float)
     height = Column(Float)
     
     # Relationship Properties
     streamLink = relationship('StreamLink', back_populates='culverts')
     
-    def __init__(self, upstreamInvert, downstreamInvert, inletDischargeCoeff, reverseFlowDischargeCoeff, slope, length, roughness, widthOrDiameter, height):
+    def __init__(self, upstreamInvert, downstreamInvert, inletDischargeCoeff, reverseFlowDischargeCoeff, slope, length, roughness, diameter, width, height):
         '''
         Constructor
         '''
@@ -498,11 +560,12 @@ class Culvert(DeclarativeBase):
         self.slope = slope
         self.length = length
         self.roughness = roughness
-        self.widthOrDiameter = widthOrDiameter
+        self.diameter = diameter
+        self.width = width
         self.height = height        
 
     def __repr__(self):
-        return '<Culvert: UpstreamInvert=%s, DownstreamInvert=%s, InletDischargeCoeff=%s, ReverseFlowDischargeCoeff=%s, Slope=%s, Length=%s, Roughness=%s, WidthOrDiameter=%s, Height=%s>' % (
+        return '<Culvert: UpstreamInvert=%s, DownstreamInvert=%s, InletDischargeCoeff=%s, ReverseFlowDischargeCoeff=%s, Slope=%s, Length=%s, Roughness=%s, Diameter=%s, Width=%s, Height=%s>' % (
                 self.upstreamInvert,
                 self.downstreamInvert,
                 self.inletDischargeCoeff,
@@ -510,7 +573,8 @@ class Culvert(DeclarativeBase):
                 self.slope,
                 self.length,
                 self.roughness,
-                self.widthOrDiameter,
+                self.diameter,
+                self.width,
                 self.height)
     
 
@@ -539,7 +603,7 @@ class Reservoir(DeclarativeBase):
         Constructor
         '''
         self.initWSE = initWSE
-        self.minWES = minWSE
+        self.minWSE = minWSE
         self.maxWSE = maxWSE
 
     def __repr__(self):
