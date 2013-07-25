@@ -75,27 +75,6 @@ def structureLink(lines):
                         'WIDTH',
                         'HEIGHT']
     
-    weirResult = {'structtype': None,
-                  'crest_length': None,
-                  'crest_low_elev': None,
-                  'discharge_coeff_forward': None,
-                  'discharge_coeff_reverse': None,
-                  'crest_low_loc': None,
-                  'steep_slope': None,
-                  'shallow_slope': None}
-    
-    culvertResult = {'structtype': None,
-                     'upinvert': None,
-                     'downinvert': None,
-                     'inlet_disch_coeff': None,
-                     'rev_flow_disch_coeff': None,
-                     'slope': None,
-                     'length': None,
-                     'rough_coeff': None,
-                     'diameter': None,
-                     'width': None,
-                     'height': None}
-    
     WEIRS = ['WEIR', 'SAG_WEIR']
     
     CULVERTS = ['ROUND_CULVERT', 'RECT_CULVERT']
@@ -103,7 +82,8 @@ def structureLink(lines):
     CURVES = ['RATING_CURVE', 'SCHEDULED_RELEASE', 'RULE_CURVE']
     
     result = {'type': 'STRUCTURE',
-              'header': [],
+              'header': {'link': None,
+                         'numstructs': None},
               'structures':[]}
     
     chunks = pt.chunk(KEYWORDS, lines)
@@ -119,17 +99,40 @@ def structureLink(lines):
                 
                 # Cases
                 if structType in WEIRS:
+                    
+                    weirResult = {'structtype': None,
+                                  'crest_length': None,
+                                  'crest_low_elev': None,
+                                  'discharge_coeff_forward': None,
+                                  'discharge_coeff_reverse': None,
+                                  'crest_low_loc': None,
+                                  'steep_slope': None,
+                                  'shallow_slope': None}
+                    
                     # Weir type structures handler
                     result['structures'].append(structureChunk(WEIR_KEYWORDS, weirResult, chunk))
                 elif structType in CULVERTS:
+                    
+                    culvertResult = {'structtype': None,
+                                     'upinvert': None,
+                                     'downinvert': None,
+                                     'inlet_disch_coeff': None,
+                                     'rev_flow_disch_coeff': None,
+                                     'slope': None,
+                                     'length': None,
+                                     'rough_coeff': None,
+                                     'diameter': None,
+                                     'width': None,
+                                     'height': None}
+                    
                     # Culvert type structures handler
                     result['structures'].append(structureChunk(CULVERT_KEYWORDS, culvertResult, chunk))
                 elif structType in CURVES:
                     # Curve type handler
                     pass
-            else:
+            elif key != 'STRUCTURE':
                 # All other variables header
-                result['header'].append(cardChunk(key, chunk))
+                result['header'][key.lower()] = chunk[0].strip().split()[1]
                
     return result
     
@@ -153,8 +156,27 @@ def xSectionLink(lines):
                 'NODE',
                 'XSEC']
     
+    ERODE = ['TRAPEZOID_ERODE',
+             'BREAKPOINT_ERODE',
+             'TRAPEZOID_SUBSURFACE_ERODE', 
+             'TRAPEZOID_ERODE_SUBSURFACE',
+             'BREAKPOINT_SUBSURFACE_ERODE',
+             'BREAKPOINT_ERODE_SUBSURFACE']
+    
+    SUBSURFACE = ['TRAPEZOID_SUBSURFACE',
+                  'BREAKPOINT_SUBSURFACE',
+                  'TRAPEZOID_SUBSURFACE_ERODE', 
+                  'TRAPEZOID_ERODE_SUBSURFACE',
+                  'BREAKPOINT_SUBSURFACE_ERODE',
+                  'BREAKPOINT_ERODE_SUBSURFACE']
+    
     result  =  {'type': 'XSEC',
-                'header': [],
+                'header': {'link': None,
+                           'dx': None,
+                           'xSecType': None,
+                           'nodes': None,
+                           'erode': False,
+                           'subsurface': False},
                 'xSection': None,
                 'nodes': []}
     
@@ -173,9 +195,22 @@ def xSectionLink(lines):
                 # Extract cross section information
                 result['xSection'] = xSectionChunk(chunk)
                 
+            elif key in ['TRAPEZOID', 'BREAKPOINT']:
+                # Cross section type handler
+                result['header']['xSecType'] = key
+            
+            elif key in ERODE:
+                # Erode handler
+                result['header']['erode'] = True
+                
+            elif key in SUBSURFACE:
+                # Subsurface handler
+                result['header']['subsurface'] = True
+            
             else:
                 # Extract all other variables into header
-                result['header'].append(cardChunk(key, chunk))
+                result['header'][key.lower()] = chunk[0].strip().split()[1]
+    
     return result
 
 def reservoirLink(lines):
@@ -195,9 +230,17 @@ def reservoirLink(lines):
                 'MAXWSE',
                 'NUMPTS']
     
-    result  =  {'header': [],
+    result  =  {'header': {'link': None,
+                           'res_minwse': None,
+                           'res_initwse': None,
+                           'res_maxwse': None,
+                           'res_numpts': None,
+                           'minwse': None,
+                           'initwse': None,
+                           'maxwse': None,
+                           'numpts': None},
                 'type': None,
-                'cells': []}
+                'points': []}
     
     pair = {'i': None,
             'j': None}
@@ -214,7 +257,7 @@ def reservoirLink(lines):
             # Cases
             if key in ['NUMPTS', 'RES_NUMPTS']:
                 # Points handler
-                result['header'].append(cardChunk(key, [chunk[0]]))
+                result['header'][key.lower()] = schunk[1]
                 
                 # Parse points
                 for idx in range(1, len(chunk)):
@@ -226,7 +269,7 @@ def reservoirLink(lines):
                             pair['i'] = ordinate
                         else:
                             pair['j'] = ordinate   
-                            result['cells'].append(pair)
+                            result['points'].append(pair)
                             pair = {'i': None,
                                     'j': None}
                 
@@ -235,7 +278,7 @@ def reservoirLink(lines):
                 result['type'] = schunk[0]
             else:
                 # Header/all other variables handler
-                result['header'].append(cardChunk(key, chunk))
+                result['header'][key.lower()] = schunk[1]
     return result
 
 def nodeChunk(lines):
@@ -283,7 +326,7 @@ def xSectionChunk(lines):
                 'M_RIVER',
                 'K_RIVER']
     
-    result = {'manning_n': None,
+    result = {'mannings_n': None,
               'bottom_width': None,
               'bankfull_depth': None,
               'side_slope': None,

@@ -15,7 +15,7 @@ from datetime import datetime
 __all__ = ['ChannelInputFile', 
            'StreamLink', 
            'UpstreamLink', 
-           'Node', 
+           'StreamNode', 
            'Weir', 
            'Culvert', 
            'Reservoir', 
@@ -86,6 +86,8 @@ class ChannelInputFile(DeclarativeBase):
                     'CONNECT':cic.cardChunk,
                     'LINK':cic.linkChunk}
         
+        links = []
+        
         # Parse file into chunks associated with keywords/cards
         with open(self.PATH, 'r') as f:
             chunks = pt.chunk(KEYWORDS, f)
@@ -100,7 +102,7 @@ class ChannelInputFile(DeclarativeBase):
                 # Cases
                 if key == 'LINK':
                     # Link handler
-                    self._createLinkObject(result)
+                    links.append(self._createLink(result))
                     
                 elif key == 'CONNECT':
                     # Connectivity handler
@@ -120,7 +122,10 @@ class ChannelInputFile(DeclarativeBase):
                     elif card == 'BETA':
                         self.beta = float(value)
                     elif card == 'THETA':
-                        self.theta = float(value)                    
+                        self.theta = float(value)   
+        
+        for link in links:
+            print link                 
                     
         
     def write(self):
@@ -128,44 +133,167 @@ class ChannelInputFile(DeclarativeBase):
         Channel Input File Write to File Method
         '''
         
-    def _createLinkObject(self, result):
+    def _createLink(self, linkResult):
         '''
         Create GSSHAPY Link Object Method
         '''
+        link = None
+        
         # Cases
-        if result['type'] == 'XSEC':
-            print 'XSECS RULE!!!'
-            self._createCrossSectionObject(result)
-        elif result['type'] == 'STRUCTURE':
-            print 'STRUCTURES RULE!!!'
-            self._creatStructureObject(result)
-        elif result['type'] in ['RESERVOIR', 'LAKE']:
-            print 'RES/LAKES RULE!!!'
-            self._createReservoirObject(result)
+        if linkResult['type'] == 'XSEC':
+            # Cross section link handler
+            link = self._createCrossSection(linkResult)
             
-        for key, value in result.iteritems():
-            print key, value
-        print '\n'
+        elif linkResult['type'] == 'STRUCTURE':
+            # Structure link handler
+            link = self._creatStructure(linkResult)
+            
+            for key, value in linkResult.iteritems():
+                print key, value
+            print '\n'
+            
+            for structure in linkResult['structures']:
+                print structure
+            print '\n'
+            
+        elif linkResult['type'] in ['RESERVOIR', 'LAKE']:
+            # Reservoir/lake handler
+            link = self._createReservoir(linkResult)
+            
+            
+            
+        return link
+
     
-    def _createConnectObject(self, result):
+    def _createConnect(self, result):
         '''
         Create GSSHAPY Connect Object Method
         '''
         
-    def _createCrossSectionObject(self, result):
+    def _createCrossSection(self, linkResult):
         '''
         Create GSSHAPY Cross Section Objects Method
         '''
-        print 'Hello Cross Section'
+        # Extract header variables from link result object
+        header = linkResult['header']
+        
+        # Initialize GSSHAPY StreamLink object
+        link = StreamLink(linkNumber= int(header['link']),
+                          linkType= header['xSecType'],
+                          numElements= header['nodes'],
+                          dx= header['dx'],
+                          erode= header['erode'],
+                          subsurface= header['subsurface'])
+        
+        # Associate StreamLink with ChannelInputFile
+        link.channelInputFile = self
+        
+        # Initialize GSSHAPY TrapezoidalCS or BreakpointCS objects
+        xSection = linkResult['xSection']
+        
+        # Cases
+        if link.linkType == 'TRAPEZOID':
+            # Trapezoid cross section handler
+            # Initialize GSSHPY TrapeziodalCS object
+            trapezoidCS = TrapezoidalCS(mannings_n = xSection['mannings_n'],
+                                        bottomWidth = xSection['bottom_width'],
+                                        bankfullDepth = xSection['bankfull_depth'],
+                                        sideSlope = xSection['side_slope'],
+                                        mRiver = xSection['m_river'],
+                                        kRiver = xSection['k_river'],
+                                        erode = xSection['erode'],
+                                        subsurface = xSection['subsurface'])
+            
+            # Associate TrapezoidalCS with StreamLink
+            trapezoidCS.streamLink = link
+            
+        elif link.linkType == 'BREAKPOINT':
+            # Breakpoint cross section handler
+            # Initialize GSSHAPY BreakpointCS objects
+            breakpointCS = BreakpointCS(mannings_n = xSection['mannings_n'],
+                                        numPairs = xSection['npairs'],
+                                        numInterp = xSection['num_interp'],
+                                        mRiver = xSection['m_river'],
+                                        kRiver = xSection['k_river'],
+                                        erode = xSection['erode'],
+                                        subsurface = xSection['subsurface'])
+            
+            # Associate BreakpointCS with StreamLink
+            breakpointCS.streamLink = link
+
+            # Create GSSHAPY Breakpoint objects
+            for b in xSection['breakpoints']:
+                breakpoint = Breakpoint(x = b['x'],
+                                        y = b['y'])
+                
+                # Associate Breakpoint with BreakpointCS
+                breakpoint.crossSection = breakpointCS
+                
+        # Initialize GSSHAPY StreamNode objects
+        for n in linkResult['nodes']:
+            # Initialize GSSHAPY StreamNode object
+            node  = StreamNode(nodeNumber=int(n['node']),
+                               x=n['x'],
+                               y=n['y'],
+                               elevation=n['elev'])
+            
+            # Associate StreamNode with StreamLink
+            node.streamLink = link
     
-    def _creatStructureObject(self, result):
+        return link
+    
+    def _creatStructure(self, linkResult):
         '''
         Create GSSHAPY Structure Objects Method
         '''
-        print 'Hello Stucture'
+        link = None
         
-    def _createReservoirObject(self, result):
-        print 'Hello Reservoir'
+        
+        return link
+        
+    def _createReservoir(self, linkResult):
+        # Extract header variables from link result object
+        header = linkResult['header']
+        
+        # Initialize GSSHAPY Reservoir object
+        # Cases
+        if linkResult['type'] == 'LAKE':
+            # Lake handler
+            reservoir = Reservoir(initWSE=header['initwse'],
+                                  minWSE=header['minwse'],
+                                  maxWSE=header['maxwse'])
+            
+            numPts = header['numpts']
+        
+        elif linkResult['type'] == 'RESERVOIR':
+            # Reservoir handler
+            reservoir = Reservoir(initWSE=header['res_initwse'],
+                                  minWSE=header['res_minwse'],
+                                  maxWSE=header['res_maxwse'])
+            
+            numPts = header['res_numpts']
+        
+        # Initialize GSSHAPY StreamLink object
+        link = StreamLink(linkNumber=int(header['link']),
+                          linkType=linkResult['type'],
+                          numElements=numPts)
+        
+        # Associate StreamLink with ChannelInputFile
+        link.channelInputFile = self
+        
+        # Associate Reservoir with StreamLink
+        reservoir.streamLink = link
+        
+        # Create ReservoirPoint objects
+        for p in linkResult['points']:
+            # Initialize GSSHAPY ResrvoirPoint object
+            resPoint = ReservoirPoint(i=p['i'],
+                                      j=p['j'])
+            
+            # Associate ReservoirPoint with Reservoir
+            resPoint.reservoir = reservoir
+        
+        return link
         
     
 
@@ -180,16 +308,19 @@ class StreamLink(DeclarativeBase):
     channelInputFileID = Column(Integer, ForeignKey('cif_channel_input_files.id'), nullable=False)
     
     # Value Columns
+    linkNumber = Column(Integer, nullable=False)
     linkType = Column(String, nullable=False)
     numElements = Column(Integer, nullable=False)
     dx = Column(Float)
+    erode = Column(Boolean)
+    subsurface = Column(Boolean)
     downstreamLinkID = Column(Integer, nullable=False)
     numUpstreamLinks = Column(Integer, nullable=False)
 
     # Relationship Properties
     channelInputFile = relationship('ChannelInputFile', back_populates='streamLinks')
     upstreamLinks = relationship('UpstreamLink', back_populates='streamLink')
-    nodes = relationship('Node', back_populates='streamLink')
+    nodes = relationship('StreamNode', back_populates='streamLink')
     weirs = relationship('Weir', back_populates='streamLink')
     culverts = relationship('Culvert', back_populates='streamLink')
     reservoirs = relationship('Reservoir', back_populates='streamLink')
@@ -197,22 +328,26 @@ class StreamLink(DeclarativeBase):
     trapezoidalCS = relationship('TrapezoidalCS', back_populates='streamLink')
     streamGridCells = relationship('StreamGridCell', back_populates='streamLink')
     
-    def __init__(self, linkType, numElements, dx, downstreamLinkID, numUpstreamLinks):
+    def __init__(self, linkNumber, linkType, numElements, dx=None, erode=False, subsurface=False):
         '''
         Constructor
         '''
+        self.linkNumber = linkNumber
         self.linkType = linkType
         self.numElements = numElements
-        self.dx = dx
-        self.downstreamLinkID = downstreamLinkID
-        self.numUpstreamLinks = numUpstreamLinks      
+        self.dx = dx  
+        self.erode = erode
+        self.subsurface = subsurface    
         
 
     def __repr__(self):
-        return '<StreamLink: LinkType=%s, NumberElements=%s, DX=%s, DownstreamLinkID=%s, NumUpstreamLinks=%s>' % (
+        return '<StreamLink: LinkNumber=%s, LinkType=%s, NumberElements=%s, DX=%s, Erode=%s, Subsurface=%s, DownstreamLinkID=%s, NumUpstreamLinks=%s>' % (
+                self.linkNumber,
                 self.linkType,
                 self.numElements, 
-                self.dx, 
+                self.dx,
+                self.erode,
+                self.subsurface, 
                 self.downstreamLinkID, 
                 self.numUpstreamLinks)
     
@@ -239,7 +374,7 @@ class UpstreamLink(DeclarativeBase):
         
 
     
-class Node(DeclarativeBase):
+class StreamNode(DeclarativeBase):
     '''
     classdocs
     '''
@@ -250,7 +385,7 @@ class Node(DeclarativeBase):
     linkID = Column(Integer, ForeignKey('cif_links.id'))
     
     # Value Columns
-    linkNode = Column(Integer, nullable=False)
+    nodeNumber = Column(Integer, nullable=False)
     x = Column(Float, nullable=False)
     y = Column(Float, nullable=False)
     elevation = Column(Float, nullable=False)
@@ -260,18 +395,22 @@ class Node(DeclarativeBase):
     streamLink = relationship('StreamLink', back_populates='nodes')
 
     
-    def __init__(self, linkNode, x, y, elevation):
+    def __init__(self, nodeNumber, x, y, elevation):
         '''
         Constructor
         '''
-        self.linkNode = linkNode
+        self.nodeNumber = nodeNumber
         self.x = x
         self.y = y
         self.elevation = elevation
         
 
     def __repr__(self):
-        return '<Node: LinkNode=%s, X=%s, Y=%s, Elevation=%s>' % (self.linkNodeID, self.x, self.y, self.elevation)
+        return '<Node: NodeNumber=%s, X=%s, Y=%s, Elevation=%s>' % (
+                self.nodeNumber,
+                self.x,
+                self.y,
+                self.elevation)
     
         
     
@@ -395,11 +534,11 @@ class Reservoir(DeclarativeBase):
     streamLink = relationship('StreamLink', back_populates='reservoirs')
     reservoirPoints = relationship('ReservoirPoint', back_populates='reservoir')
     
-    def __init__(self, initialWSE, minWSE, maxWSE):
+    def __init__(self, initWSE, minWSE, maxWSE):
         '''
         Constructor
         '''
-        self.initWSE = initialWSE
+        self.initWSE = initWSE
         self.minWES = minWSE
         self.maxWSE = maxWSE
 
@@ -419,21 +558,21 @@ class ReservoirPoint(DeclarativeBase):
     reservoirID = Column(Integer, ForeignKey('cif_reservoirs.id'))
     
     # Value Columns
-    cellI = Column(Integer, nullable=False)
-    cellJ = Column(Integer, nullable=False)
+    i = Column(Integer, nullable=False)
+    j = Column(Integer, nullable=False)
     
     # Relationship Properties
     reservoir = relationship('Reservoir', back_populates='reservoirPoints')
     
-    def __init__(self, cellI, cellJ):
+    def __init__(self, i, j):
         '''
         Constructor
         '''
-        self.cellI = cellI
-        self.cellJ = cellJ       
+        self.i = i
+        self.j = j       
 
     def __repr__(self):
-        return '<ReservoirPoint: CellI=%s, CellJ=%s>' % (self.cellI, self.cellJ)
+        return '<ReservoirPoint: CellI=%s, CellJ=%s>' % (self.i, self.j)
     
 
 
@@ -536,11 +675,11 @@ class TrapezoidalCS(DeclarativeBase):
     # Relationship Properties
     streamLink = relationship('StreamLink', back_populates='trapezoidalCS')
     
-    def __init__(self, manning_n, bottomWidth, bankfullDepth, sideSlope, mRiver, kRiver, erode, subsurface):
+    def __init__(self, mannings_n, bottomWidth, bankfullDepth, sideSlope, mRiver, kRiver, erode, subsurface):
         '''
         Constructor
         '''
-        self.mannings_n = manning_n
+        self.mannings_n = mannings_n
         self.bottomWidth = bottomWidth
         self.bankfullDepth = bankfullDepth
         self.sideSlope = sideSlope
