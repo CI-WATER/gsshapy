@@ -8,7 +8,7 @@
 ********************************************************************************
 '''
 
-__all__ = ['PipeNetwork', 
+__all__ = ['StormPipeNetworkFile', 
            'SuperLink', 
            'SuperNode',
            'Pipe',
@@ -19,31 +19,80 @@ from sqlalchemy.types import Integer, Float
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.lib import parsetools as pt, stormPipeChunk as spc
 
 
     
-class PipeNetwork(DeclarativeBase):
+class StormPipeNetworkFile(DeclarativeBase):
     '''
     classdocs
     '''
-    __tablename__ = 'spn_pipe_networks'
+    __tablename__ = 'spn_storm_pipe_network_files'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
     
-    # Value Columns
-    
     # Relationship Properties
-    superLinks = relationship('SuperLink', back_populates='pipeNetwork')
-    superJunctions = relationship('SuperJunction', back_populates='pipeNetwork')
+    superLinks = relationship('SuperLink', back_populates='stormPipeNetworkFile')
+    superJunctions = relationship('SuperJunction', back_populates='stormPipeNetworkFile')
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='stormPipeNetworkFile')
     
-    def __init__(self):
+    # Global Properties
+    PATH = ''
+    PROJECT_NAME = ''
+    DIRECTORY = ''
+    SESSION = None
+    EXTENSION = 'spn'
+    
+    def __init__(self, name, directory, session):
         '''
         Constructor
         '''
+        self.PROJECT_NAME = name
+        self.DIRECTORY = directory
+        self.SESSION = session
+        self.PATH = '%s%s.%s' % (self.DIRECTORY, self.PROJECT_NAME, self.EXTENSION)
     
     def __repr__(self):
         return '<PipeNetwork: ID=%s>' %(self.id)
+    
+    def read(self):
+        '''
+        Storm Pipe Network File Read from File Method
+        '''
+        # Dictionary of keywords/cards and parse function names
+        KEYWORDS = {'CONNECT': spc.connectChunk,
+                    'SJUNC': spc.sjuncChunk,
+                    'SLINK': spc.slinkChunk}
+        
+        sjuncs = []
+        slinks = []
+        connectivity = []
+        # Parse file into chunks associated with keywords/cards
+        with open(self.PATH, 'r') as f:
+            chunks = pt.chunk(KEYWORDS, f)
+            
+        # Parse chunks associated with each key    
+        for key, chunkList in chunks.iteritems():
+            # Parse each chunk in the chunk list
+            for chunk in chunkList:
+                # Call chunk specific parsers for each chunk
+                result = KEYWORDS[key](key, chunk)
+
+                # Cases
+                if key == 'CONNECT':
+                    connectivity.append(result)
+                elif key == 'SJUNC':
+                    sjuncs.append(result)
+                elif key == 'SLINK':
+                    slinks.append(result)
+                
+        
+    def write(self):
+        '''
+        Storm Pipe Network File Write to File Method
+        '''
+        
 
 
 
@@ -55,7 +104,7 @@ class SuperLink(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    pipeNetworkID = Column(Integer, ForeignKey('spn_pipe_networks.id'))
+    stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id'))
     
     # Value Columns
     numPipes = Column(Integer, nullable=False)
@@ -63,7 +112,7 @@ class SuperLink(DeclarativeBase):
     downstreamSJunct = Column(Integer, nullable=False)
     
     # Relationship Properties
-    pipeNetwork = relationship('PipeNetwork', back_populates='superLinks')
+    stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='superLinks')
     superNodes = relationship('SuperNode', back_populates='superLink')
     pipes = relationship('Pipe', back_populates='superLink')
     pipeGridCells = relationship('PipeGridCell', back_populates='superLink')
@@ -96,7 +145,7 @@ class SuperNode(DeclarativeBase):
     superLinkID = Column(Integer, ForeignKey('spn_super_links.id'))
     
     # Value Columns
-    superLinkNode = Column(Integer, nullable=False)
+    nodeNumber = Column(Integer, nullable=False)
     groundSurfaceElev = Column(Float, nullable=False)
     invertElev = Column(Float, nullable=False)
     manholeSA = Column(Float, nullable=False)
@@ -109,11 +158,11 @@ class SuperNode(DeclarativeBase):
     # Relationship Properties
     superLink = relationship('SuperLink', back_populates='superNodes')
     
-    def __init__(self, superLinkNode, groundSurfaceElev, invertElev, manholeSA, nodeInletCode, cellI, cellJ, weirSideLength, orifaceDiameter):
+    def __init__(self, nodeNumber, groundSurfaceElev, invertElev, manholeSA, nodeInletCode, cellI, cellJ, weirSideLength, orifaceDiameter):
         '''
         Constructor
         '''
-        self.superLinkNode = superLinkNode
+        self.nodeNumber = nodeNumber
         self.groundSurfaceElev = groundSurfaceElev
         self.invertElev = invertElev
         self.manholeSA = manholeSA
@@ -124,8 +173,8 @@ class SuperNode(DeclarativeBase):
         self.orifaceDiameter = orifaceDiameter
 
     def __repr__(self):
-        return '<SuperNode: SuperLinkNode=%s, GroundSurfaceElev=%s, InvertElev=%s, ManholeSA=%s, NodeInletCode=%s, CellI=%s, CellJ=%s, WeirSideLength=%s, OrifaceDiameter=%s>' % (
-                self.superLinkNode,
+        return '<SuperNode: NodeNumber=%s, GroundSurfaceElev=%s, InvertElev=%s, ManholeSA=%s, NodeInletCode=%s, CellI=%s, CellJ=%s, WeirSideLength=%s, OrifaceDiameter=%s>' % (
+                self.nodeNumber,
                 self.groundSurfaceElev,
                 self.invertElev,
                 self.manholeSA,
@@ -148,7 +197,7 @@ class Pipe(DeclarativeBase):
     superLinkID = Column(Integer, ForeignKey('spn_super_links.id'))
     
     # Value Columns
-    superLinkPipe = Column(Integer, nullable=False)
+    pipeNumber = Column(Integer, nullable=False)
     xSecType = Column(Integer, nullable=False)
     diameterOrHeight = Column(Float, nullable=False)
     width = Column(Float, nullable=False)
@@ -161,11 +210,11 @@ class Pipe(DeclarativeBase):
     # Relationship Properties
     superLink = relationship('SuperLink', back_populates='pipes')
     
-    def __init__(self, superLinkPipe, xSecType, diameterOrHeight, width, slope, roughness, length, conductance, drainSpacing):
+    def __init__(self, pipeNumber, xSecType, diameterOrHeight, width, slope, roughness, length, conductance, drainSpacing):
         '''
         Constructor
         '''
-        self.superLinkPipe = superLinkPipe
+        self.pipeNumber = pipeNumber
         self.xSecType = xSecType
         self.diameterOrHeight= diameterOrHeight
         self.width = width,
@@ -176,8 +225,8 @@ class Pipe(DeclarativeBase):
         self.drainSpacing = drainSpacing
 
     def __repr__(self):
-        return '<Pipe: SuperLinkPipe=%s, XSecType=%s, DiameterOrHeight=%s, Width=%s, Slope=%s, Roughness=%s, Length=%s, Conductance=%s, DrainSpacing=%s>' % (
-                self.superLinkPipe,
+        return '<Pipe: PipeNumber=%s, XSecType=%s, DiameterOrHeight=%s, Width=%s, Slope=%s, Roughness=%s, Length=%s, Conductance=%s, DrainSpacing=%s>' % (
+                self.pipeNumber,
                 self.xSecType,
                 self.diameterOrHeight,
                 self.width,
@@ -198,9 +247,10 @@ class SuperJunction(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    pipeNetworkID = Column(Integer, ForeignKey('spn_pipe_networks.id'))
+    stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id'))
     
     # Value Columns
+    sjuncNumber = Column(Integer, nullable=False)
     groundSurfaceElev = Column(Float, nullable=False)
     invertElev = Column(Float, nullable=False)
     manholeSA = Column(Float, nullable=False)
@@ -211,12 +261,13 @@ class SuperJunction(DeclarativeBase):
     orifaceDiameter = Column(Float, nullable=False)
     
     # Relationship Properties
-    pipeNetwork = relationship('PipeNetwork', back_populates='superJunctions')
+    stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='superJunctions')
     
-    def __init__(self, groundSurfaceElev, invertElev, manholeSA, inletCode, linkOrCellI, nodeOrCellJ, weirSideLength, orifaceDiameter):
+    def __init__(self, sjuncNumber, groundSurfaceElev, invertElev, manholeSA, inletCode, linkOrCellI, nodeOrCellJ, weirSideLength, orifaceDiameter):
         '''
         Constructor
         '''
+        self.sjuncNumber = sjuncNumber,
         self.groundSurfaceElev = groundSurfaceElev
         self.invertElev = invertElev
         self.manholeSA = manholeSA
@@ -227,7 +278,8 @@ class SuperJunction(DeclarativeBase):
         self.orifaceDiameter = orifaceDiameter
 
     def __repr__(self):
-        return '<SuperJunction: GroundSurfaceElev=%s, InvertElev=%s, ManholeSA=%s, InletCode=%s, LinkOrCellI=%s, NodeOrCellJ=%s, WeirSideLength=%s, OrifaceDiameter=%s>' % (
+        return '<SuperJunction: SjuncNumber=%s, GroundSurfaceElev=%s, InvertElev=%s, ManholeSA=%s, InletCode=%s, LinkOrCellI=%s, NodeOrCellJ=%s, WeirSideLength=%s, OrifaceDiameter=%s>' % (
+                self.sjuncNumber,
                 self.groundSurfaceElev,
                 self.invertElev,
                 self.manholeSA,

@@ -8,6 +8,8 @@
 ********************************************************************************
 '''
 
+## TODO: Add capability to store RATING_CURVE, RULE_CURVE, and SCHEDULED_RELEASE data
+
 __all__ = ['ChannelInputFile', 
            'StreamLink', 
            'UpstreamLink', 
@@ -31,7 +33,7 @@ from gsshapy.lib import parsetools as pt, channelInputChunk as cic
 
 class ChannelInputFile(DeclarativeBase):
     '''
-    classdocs
+    Channel Input File
     '''
     __tablename__ = 'cif_channel_input_files'
     

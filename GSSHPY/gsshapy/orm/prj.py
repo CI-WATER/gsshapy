@@ -21,6 +21,7 @@ from gsshapy.orm import DeclarativeBase, metadata
 from gsshapy.orm.gag import PrecipFile
 from gsshapy.orm.cmt import MapTableFile
 from gsshapy.orm.cif import ChannelInputFile
+from gsshapy.orm.spn import StormPipeNetworkFile
 
 
 
@@ -40,12 +41,14 @@ class ProjectFile(DeclarativeBase):
     precipFileID = Column(Integer, ForeignKey('gag_precipitation_files.id'))
     mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
     channelInputFileID = Column(Integer, ForeignKey('cif_channel_input_files.id'))
-
+    stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id'))
+    
     # Relationship Properties
     projectCards = relationship('ProjectCard', secondary=assocProject, back_populates='projectFiles')
     mapTableFile = relationship('MapTableFile', back_populates='projectFile')
     channelInputFile = relationship('ChannelInputFile', back_populates='projectFile')
     precipFile = relationship('PrecipFile', back_populates='projectFile')
+    stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='projectFile')
     
     # Global Properties
     PATH = None
@@ -117,6 +120,12 @@ class ProjectFile(DeclarativeBase):
         precip = PrecipFile(directory=self.DIRECTORY, name=self.PROJECT_NAME, session=self.SESSION)
         precip.projectFile = self
         precip.read()
+        
+        # Initiate GSSHAPY StormPipeNetworkFile object, associate with this object, and read file
+        pipeNetwork = StormPipeNetworkFile(directory=self.DIRECTORY, name=self.PROJECT_NAME, session=self.SESSION)
+        pipeNetwork.projectFile = self
+        pipeNetwork.read()
+        
     
     def write(self, session, directory, name):
         '''
@@ -151,6 +160,9 @@ class ProjectFile(DeclarativeBase):
         # Write precipitation file
         precipFile = self.precipFile
         precipFile.write(session=session, directory=directory, name=name)
+        
+        # Pipe Network
+        
         
         
     def _extractCard(self, projectLine):
