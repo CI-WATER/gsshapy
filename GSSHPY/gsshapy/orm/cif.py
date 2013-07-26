@@ -197,7 +197,7 @@ class ChannelInputFile(DeclarativeBase):
         
         # Initialize GSSHAPY StreamLink object
         link = StreamLink(linkNumber=int(header['link']),
-                          linkType=header['xSecType'],
+                          type=header['xSecType'],
                           numElements=header['nodes'],
                           dx=header['dx'],
                           erode=header['erode'],
@@ -210,7 +210,7 @@ class ChannelInputFile(DeclarativeBase):
         xSection = linkResult['xSection']
         
         # Cases
-        if link.linkType == 'TRAPEZOID':
+        if link.type == 'TRAPEZOID':
             # Trapezoid cross section handler
             # Initialize GSSHPY TrapeziodalCS object
             trapezoidCS = TrapezoidalCS(mannings_n=xSection['mannings_n'],
@@ -226,7 +226,7 @@ class ChannelInputFile(DeclarativeBase):
             # Associate TrapezoidalCS with StreamLink
             trapezoidCS.streamLink = link
             
-        elif link.linkType == 'BREAKPOINT':
+        elif link.type == 'BREAKPOINT':
             # Breakpoint cross section handler
             # Initialize GSSHAPY BreakpointCS objects
             breakpointCS = BreakpointCS(mannings_n=xSection['mannings_n'],
@@ -277,7 +277,7 @@ class ChannelInputFile(DeclarativeBase):
         
         # Intialize GSSHAPY StreamLink object
         link = StreamLink(linkNumber=header['link'],
-                          linkType=linkResult['type'],
+                          type=linkResult['type'],
                           numElements=header['numstructs'])
         
         # Assosciate StreamLink with ChannelInputFile
@@ -291,7 +291,8 @@ class ChannelInputFile(DeclarativeBase):
             if structType in WEIRS:
                 # Weir type handler
                 # Initialize GSSHAPY Weir object
-                weir = Weir(crestLength=s['crest_length'], 
+                weir = Weir(type=structType,
+                            crestLength=s['crest_length'], 
                             crestLowElevation=s['crest_low_elev'], 
                             dischargeCoeffForward=s['discharge_coeff_forward'], 
                             dischargeCoeffReverse=s['discharge_coeff_reverse'], 
@@ -305,7 +306,8 @@ class ChannelInputFile(DeclarativeBase):
             elif structType in CULVERTS:
                 # Culvert type handler
                 # Initialize GSSHAPY Culvert object
-                culvert = Culvert(upstreamInvert=s['upinvert'], 
+                culvert = Culvert(type=structType,
+                                  upstreamInvert=s['upinvert'], 
                                   downstreamInvert=s['downinvert'], 
                                   inletDischargeCoeff=s['inlet_disch_coeff'], 
                                   reverseFlowDischargeCoeff=s['rev_flow_disch_coeff'], 
@@ -356,7 +358,7 @@ class ChannelInputFile(DeclarativeBase):
         
         # Initialize GSSHAPY StreamLink object
         link = StreamLink(linkNumber=int(header['link']),
-                          linkType=linkResult['type'],
+                          type=linkResult['type'],
                           numElements=numPts)
         
         # Associate StreamLink with ChannelInputFile
@@ -396,29 +398,141 @@ class ChannelInputFile(DeclarativeBase):
         Write Link Lines to File Method
         '''
         for link in links:
-            linkType = link.linkType
+            linkType = link.type
+            fileObject.write('LINK           %s\n' % link.linkNumber)
             
             # Cases
             if linkType in ('TRAPEZOID', 'BREAKPOINT'):
                 self._writeCrossSectionLink(link, fileObject)
                             
             elif linkType == 'STRUCTURE':
-                print linkType, link
+                self._writeStructureLink(link, fileObject)
                 
             elif linkType in ('RESERVOIR', 'LAKE'):
-                print linkType, link
+                self._writeReservoirLink(link, fileObject)
                 
             else:
                 print 'OOPS'
+                
+            fileObject.write('\n')
+    
+    def _writeReservoirLink(self, link, fileObject):
+        '''
+        Write Reservoir/Lake Link to File Method
+        '''
+        fileObject.write('%s\n' % link.type)
+        
+        # Retrieve reservoir
+        reservoir = link.reservoir
+        
+        # Cases
+        if link.type == 'LAKE':
+            # Lake handler
+            fileObject.write('INITWSE      %.6f\n' % reservoir.initWSE)
+            fileObject.write('MINWSE       %.6f\n' % reservoir.minWSE)
+            fileObject.write('MAXWSE       %.6f\n' % reservoir.maxWSE)
+            fileObject.write('NUMPTS       %s\n' % link.numElements)
+        elif link.type == 'RESERVOIR':
+            # Reservoir handler
+            fileObject.write('RES_INITWSE      %.6f\n' % reservoir.initWSE)
+            fileObject.write('RES_MINWSE       %.6f\n' % reservoir.minWSE)
+            fileObject.write('RES_MAXWSE       %.6f\n' % reservoir.maxWSE)
+            fileObject.write('RES_NUMPTS       %s\n' % link.numElements)
+        
+        # Retrieve reservoir points
+        points = reservoir.reservoirPoints
+        
+        for idx, point in enumerate(points):
+            if ((idx + 1) % 10) != 0:
+                fileObject.write('%s  %s     ' % (point.i, point.j))
+            else:
+                fileObject.write('%s  %s\n' % (point.i, point.j))
+        
+        if (link.numElements % 10) != 0:
+            fileObject.write('\n')
+                    
+    
+    def _writeStructureLink(self, link, fileObject):
+        '''
+        Write Structure Link to File Method
+        '''
+        fileObject.write('%s\n' % link.type)
+        fileObject.write('NUMSTRUCTS     %s\n' % link.numElements)
+        
+        # Retrieve lists of structures
+        weirs = link.weirs
+        culverts = link.culverts
+        
+        # Write weirs to file
+        for weir in weirs:
+            fileObject.write('STRUCTTYPE     %s\n' % weir.type)
+            
+            if weir.crestLength != None:
+                fileObject.write('CREST_LENGTH             %.6f\n' % weir.crestLength)
+            
+            if weir.crestLowElevation != None:
+                fileObject.write('CREST_LOW_ELEV           %.6f\n' % weir.crestLowElevation)
+                
+            if weir.dischargeCoeffForward != None:
+                fileObject.write('DISCHARGE_COEFF_FORWARD  %.6f\n' % weir.dischargeCoeffForward)
+                
+            if weir.dischargeCoeffReverse != None:
+                fileObject.write('DISCHARGE_COEFF_REVERSE  %.6f\n' % weir.dischargeCoeffReverse)
+                
+            if weir.crestLowLocation != None:
+                fileObject.write('CREST_LOW_LOC            %s\n' % weir.crestLowLocation)
+                
+            if weir.steepSlope != None:
+                fileObject.write('STEEP_SLOPE              %.6f\n' % weir.steepSlope)
+                
+            if weir.shallowSlope != None:
+                fileObject.write('SHALLOW_SLOPE            %.6f\n' % weir.shallowSlope)
+            
+        # Write culverts to file
+        for culvert in culverts:
+            fileObject.write('STRUCTTYPE     %s\n' % culvert.type)
+            
+            if culvert.upstreamInvert != None:
+                fileObject.write('UPINVERT                 %.6f\n' % culvert.upstreamInvert)
+                
+            if culvert.downstreamInvert != None:
+                fileObject.write('DOWNINVERT               %.6f\n' % culvert.downstreamInvert)
+                
+            if culvert.inletDischargeCoeff != None:
+                fileObject.write('INLET_DISCH_COEFF        %.6f\n' % culvert.inletDischargeCoeff)
+                
+            if culvert.reverseFlowDischargeCoeff != None:
+                fileObject.write('REV_FLOW_DISCH_COEFF     %.6f\n' % culvert.reverseFlowDischargeCoeff)
+                
+            if culvert.slope != None:
+                fileObject.write('SLOPE                    %.6f\n' % culvert.slope)
+                
+            if culvert.length != None:
+                fileObject.write('LENGHT                   %.6f\n' % culvert.length)
+                
+            if culvert.roughness != None:
+                fileObject.write('ROUGH_COEFF              %.6f\n' % culvert.roughness)
+                
+            if culvert.diameter != None:
+                fileObject.write('DIAMETER                 %.6f\n' % culvert.diameter)
+                
+            if culvert.width != None:
+                fileObject.write('WIDTH                    %.6f\n' % culvert.width)
+                
+            if culvert.height != None:
+                fileObject.write('HEIGHT                   %.6f\n' % culvert.height)
+        
             
     def _writeCrossSectionLink(self, link, fileObject):
-        linkType = link.linkType
+        '''
+        Write Cross Section Link to File Method
+        '''
+        linkType = link.type
         
         # Write cross section link header
-        fileObject.write('LINK           %s\n' % link.linkNumber)
         fileObject.write('DX             %.6f\n' % link.dx)
         fileObject.write('%s\n' % linkType)
-        fileObject.write('NODES          %s\n' % len(link.nodes))
+        fileObject.write('NODES          %s\n' % link.numElements)
         
         for node in link.nodes:
             # Write node information
@@ -442,7 +556,7 @@ class ChannelInputFile(DeclarativeBase):
                     fileObject.write('SIDE_SLOPE     %.6f\n' % xSec.sideSlope)
                     
                     # Write optional cross section properties
-                    self._writeOtherXsecCards(fileObject=fileObject, xSec=xSec)
+                    self._writeOptionalXsecCards(fileObject=fileObject, xSec=xSec)
                                     
                 elif linkType == 'BREAKPOINT':
                     # Retrieve cross section
@@ -454,13 +568,16 @@ class ChannelInputFile(DeclarativeBase):
                     fileObject.write('NUM_INTERP     %s\n' % xSec.numInterp)
                     
                     # Write optional cross section properties
-                    self._writeOtherXsecCards(fileObject=fileObject, xSec=xSec)
+                    self._writeOptionalXsecCards(fileObject=fileObject, xSec=xSec)
                     
                     # Write breakpoint lines
                     for bp in xSec.breakpoints:
                         fileObject.write('X1   %.6f %.6f\n' % (bp.x, bp.y))
 
-    def _writeOtherXsecCards(self, fileObject, xSec):
+    def _writeOptionalXsecCards(self, fileObject, xSec):
+        '''
+        Write Optional Cross Section Cards to File Method
+        '''
         if xSec.erode:
             fileObject.write('ERODE\n')
             
@@ -491,7 +608,7 @@ class StreamLink(DeclarativeBase):
     
     # Value Columns
     linkNumber = Column(Integer, nullable=False)
-    linkType = Column(String, nullable=False)
+    type = Column(String, nullable=False)
     numElements = Column(Integer, nullable=False)
     dx = Column(Float)
     erode = Column(Boolean)
@@ -505,17 +622,17 @@ class StreamLink(DeclarativeBase):
     nodes = relationship('StreamNode', back_populates='streamLink')
     weirs = relationship('Weir', back_populates='streamLink')
     culverts = relationship('Culvert', back_populates='streamLink')
-    reservoirs = relationship('Reservoir', back_populates='streamLink')
+    reservoir = relationship('Reservoir', uselist=False, back_populates='streamLink')
     breakpointCS = relationship('BreakpointCS', uselist=False, back_populates='streamLink')
     trapezoidalCS = relationship('TrapezoidalCS', uselist=False, back_populates='streamLink')
     streamGridCells = relationship('StreamGridCell', back_populates='streamLink')
     
-    def __init__(self, linkNumber, linkType, numElements, dx=None, erode=False, subsurface=False):
+    def __init__(self, linkNumber, type, numElements, dx=None, erode=False, subsurface=False):
         '''
         Constructor
         '''
         self.linkNumber = linkNumber
-        self.linkType = linkType
+        self.type = type
         self.numElements = numElements
         self.dx = dx  
         self.erode = erode
@@ -523,9 +640,9 @@ class StreamLink(DeclarativeBase):
         
 
     def __repr__(self):
-        return '<StreamLink: LinkNumber=%s, LinkType=%s, NumberElements=%s, DX=%s, Erode=%s, Subsurface=%s, DownstreamLinkID=%s, NumUpstreamLinks=%s>' % (
+        return '<StreamLink: LinkNumber=%s, Type=%s, NumberElements=%s, DX=%s, Erode=%s, Subsurface=%s, DownstreamLinkID=%s, NumUpstreamLinks=%s>' % (
                 self.linkNumber,
-                self.linkType,
+                self.type,
                 self.numElements, 
                 self.dx,
                 self.erode,
@@ -610,6 +727,7 @@ class Weir(DeclarativeBase):
     linkID = Column(Integer, ForeignKey('cif_links.id'))
     
     # Value Columns
+    type = Column(String)
     crestLength = Column(Float)
     crestLowElevation = Column(Float)
     dischargeCoeffForward = Column(Float)
@@ -622,10 +740,11 @@ class Weir(DeclarativeBase):
     streamLink = relationship('StreamLink', back_populates='weirs')
 
     
-    def __init__(self, crestLength, crestLowElevation, dischargeCoeffForward, dischargeCoeffReverse, crestLowLocation, steepSlope, shallowSlope):
+    def __init__(self, type, crestLength, crestLowElevation, dischargeCoeffForward, dischargeCoeffReverse, crestLowLocation, steepSlope, shallowSlope):
         '''
         Constructor
         '''
+        self.type = type
         self.crestLength = crestLength
         self.crestLowElevation = crestLowElevation
         self.dischargeCoeffForward = dischargeCoeffForward
@@ -637,7 +756,8 @@ class Weir(DeclarativeBase):
         
 
     def __repr__(self):
-        return '<Weir: CrestLenght=%s, CrestLowElevation=%s, DischargeCoeffForward=%s, DischargeCoeffReverse=%s, CrestLowLocation=%s, SteepSlope=%s, ShallowSlope=%s>' % (
+        return '<Weir: Type=%s, CrestLenght=%s, CrestLowElevation=%s, DischargeCoeffForward=%s, DischargeCoeffReverse=%s, CrestLowLocation=%s, SteepSlope=%s, ShallowSlope=%s>' % (
+               self.type,
                self.crestLength,
                self.crestLowElevation,
                self.dischargeCoeffForward,
@@ -659,6 +779,7 @@ class Culvert(DeclarativeBase):
     linkID = Column(Integer, ForeignKey('cif_links.id'))
 
     # Value Columns
+    type = Column(String)
     upstreamInvert = Column(Float)
     downstreamInvert = Column(Float)
     inletDischargeCoeff = Column(Float)
@@ -673,10 +794,11 @@ class Culvert(DeclarativeBase):
     # Relationship Properties
     streamLink = relationship('StreamLink', back_populates='culverts')
     
-    def __init__(self, upstreamInvert, downstreamInvert, inletDischargeCoeff, reverseFlowDischargeCoeff, slope, length, roughness, diameter, width, height):
+    def __init__(self, type, upstreamInvert, downstreamInvert, inletDischargeCoeff, reverseFlowDischargeCoeff, slope, length, roughness, diameter, width, height):
         '''
         Constructor
         '''
+        self.type = type
         self.upstreamInvert = upstreamInvert
         self.downstreamInvert = downstreamInvert
         self.inletDischargeCoeff = inletDischargeCoeff
@@ -689,7 +811,8 @@ class Culvert(DeclarativeBase):
         self.height = height        
 
     def __repr__(self):
-        return '<Culvert: UpstreamInvert=%s, DownstreamInvert=%s, InletDischargeCoeff=%s, ReverseFlowDischargeCoeff=%s, Slope=%s, Length=%s, Roughness=%s, Diameter=%s, Width=%s, Height=%s>' % (
+        return '<Culvert: Type=%s, UpstreamInvert=%s, DownstreamInvert=%s, InletDischargeCoeff=%s, ReverseFlowDischargeCoeff=%s, Slope=%s, Length=%s, Roughness=%s, Diameter=%s, Width=%s, Height=%s>' % (
+                self.type,
                 self.upstreamInvert,
                 self.downstreamInvert,
                 self.inletDischargeCoeff,
@@ -719,7 +842,7 @@ class Reservoir(DeclarativeBase):
     maxWSE = Column(Float)
     
     # Relationship Properties
-    streamLink = relationship('StreamLink', back_populates='reservoirs')
+    streamLink = relationship('StreamLink', back_populates='reservoir')
     reservoirPoints = relationship('ReservoirPoint', back_populates='reservoir')
     
     def __init__(self, initWSE, minWSE, maxWSE):
@@ -731,7 +854,7 @@ class Reservoir(DeclarativeBase):
         self.maxWSE = maxWSE
 
     def __repr__(self):
-        return '<Reservoir: InitialWSE=%s, MinWSE=%s, MaxWSE=%s>' % (self.initWSE, self.minWES, self.maxWSE)
+        return '<Reservoir: InitialWSE=%s, MinWSE=%s, MaxWSE=%s>' % (self.initWSE, self.minWSE, self.maxWSE)
     
 
 

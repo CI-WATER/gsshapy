@@ -129,6 +129,7 @@ def structureLink(lines):
                     
                     # Weir type structures handler
                     result['structures'].append(structureChunk(WEIR_KEYWORDS, weirResult, chunk))
+                
                 elif structType in CULVERTS:
                     
                     culvertResult = {'structtype': None,
@@ -145,13 +146,14 @@ def structureLink(lines):
                     
                     # Culvert type structures handler
                     result['structures'].append(structureChunk(CULVERT_KEYWORDS, culvertResult, chunk))
+                
                 elif structType in CURVES:
                     # Curve type handler
                     pass
             elif key != 'STRUCTURE':
                 # All other variables header
-                result['header'][key.lower()] = chunk[0].strip().split()[1]
-               
+                result['header'][key.lower()] = chunk[0].strip().split()[1]          
+    
     return result
     
 def xSectionLink(lines):
