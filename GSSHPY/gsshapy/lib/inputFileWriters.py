@@ -8,22 +8,27 @@
 ********************************************************************************
 '''
 
-def writeMappingTableFile(projectFile, session, directory, filename):
+def writeMappingTableFile(projectFile, session, directory, filePrefix):
     # Write map table file
     mapTableFile = projectFile.mapTableFile
-    mapTableFile.write(session=session, directory=directory, filename=filename)
+    mapTableFile.write(session=session, directory=directory, filePrefix=filePrefix)
 
-def writeChannelInputFile(projectFile, session, directory, filename):    
+def writeChannelInputFile(projectFile, session, directory, filePrefix):    
     # Write channel input file
     channelInputFile = projectFile.channelInputFile
-    channelInputFile.write(session=session, directory=directory, filename=filename)
+    channelInputFile.write(session=session, directory=directory, filePrefix=filePrefix)
 
-def writePrecipitationFile(projectFile, session, directory, filename):   
+def writePrecipitationFile(projectFile, session, directory, filePrefix):   
     # Write precipitation file
     precipFile = projectFile.precipFile
-    precipFile.write(session=session, directory=directory, filename=filename)
+    precipFile.write(session=session, directory=directory, filePrefix=filePrefix)
 
-def writePipeNetworkFile(projectFile, session, directory, filename):   
-    # Write pipe Network
+def writePipeNetworkFile(projectFile, session, directory, filePrefix):   
+    # Write pipe network
     pipeFile = projectFile.stormPipeNetworkFile
-    pipeFile.write(session=session, directory=directory, filename=filename)
+    pipeFile.write(session=session, directory=directory, filePrefix=filePrefix)
+    
+def writeHmetFile(projectFile, session, directory, filePrefix):
+    # Write hmet file
+    hmetFile = projectFile.hmetFile
+    hmetFile.writeWES(session=session, directory=directory, filePrefix=filePrefix)

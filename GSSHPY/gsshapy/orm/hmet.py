@@ -36,7 +36,6 @@ class HmetFile(DeclarativeBase):
     FILENAME = ''
     DIRECTORY = ''
     SESSION = None
-    EXTENSION = 'hmet'
     
     
     def __init__(self, directory, filename, session):
@@ -78,10 +77,34 @@ class HmetFile(DeclarativeBase):
                 # Associate HmetRecord with HmetFile
                 hmetRecord.hmetFile = self
         
-    def writeWES(self):
+    def writeWES(self, session, directory, filePrefix):
         '''
         Write HMET_WES to File Method
         '''
+        # NOTE: For HMET_WES Files, the filePrefix is the entire filename
+        
+        # Initiate hmet wes file
+        fullPath = '%s%s' % (directory, filePrefix)
+        
+        with open(fullPath, 'w') as hmetFile:
+            # Retrieve HmetRecords
+            hmetRecords = self.hmetRecords
+            
+            for record in hmetRecords:
+                hmetFile.write('%s\t%s\t%s\t%s\t%.3g\t%s\t%s\t%s\t%s\t%.2f\t%.2f\n' % (
+                               record.hmetDateTime.year,
+                               record.hmetDateTime.month,
+                               record.hmetDateTime.day,
+                               record.hmetDateTime.hour,
+                               record.barometricPress,
+                               record.relHumidity,
+                               record.totalSkyCover,
+                               record.windSpeed,
+                               record.dryBulbTemp,
+                               record.directRad,
+                               record.globalRad))
+                
+
 
 
 class HmetRecord(DeclarativeBase):
@@ -97,10 +120,10 @@ class HmetRecord(DeclarativeBase):
     # Value Columns
     hmetDateTime = Column(DateTime, nullable=False)
     barometricPress = Column(Float, nullable=False)
-    relHumidity = Column(Float, nullable=False)
-    totalSkyCover = Column(Float, nullable=False)
-    windSpeed = Column(Float, nullable=False)
-    dryBulbTemp = Column(Float, nullable=False)
+    relHumidity = Column(Integer, nullable=False)
+    totalSkyCover = Column(Integer, nullable=False)
+    windSpeed = Column(Integer, nullable=False)
+    dryBulbTemp = Column(Integer, nullable=False)
     directRad = Column(Float, nullable=False)
     globalRad = Column(Float, nullable=False)
     

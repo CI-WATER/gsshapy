@@ -46,6 +46,9 @@ class ProjectFile(DeclarativeBase):
     stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id'))
     hmetFileID = Column(Integer, ForeignKey('hmet_files.id'))
     
+    # Value Columns
+    name = Column(String, nullable=False)
+    
     # Relationship Properties
     projectCards = relationship('ProjectCard', secondary=assocProject, back_populates='projectFiles')
     mapTableFile = relationship('MapTableFile', back_populates='projectFile')
@@ -79,7 +82,7 @@ class ProjectFile(DeclarativeBase):
                    'IN_GWFLUX_LOCATION':        {'filename': None, 'read': None, 'write': None},
                    'HMET_SURFAWAYS':            {'filename': None, 'read': None, 'write': None},
                    'HMET_SAMSON':               {'filename': None, 'read': None, 'write': None},
-                   'HMET_WES':                  {'filename': None, 'read': ifr.readHmetWesFile, 'write': None},
+                   'HMET_WES':                  {'filename': None, 'read': ifr.readHmetWesFile, 'write': ifw.writeHmetFile},
                    'NWSRFS_ELEV_SNOW':          {'filename': None, 'read': None, 'write': None},
                    'HMET_OROG_GAGES':           {'filename': None, 'read': None, 'write': None},
                    'HMET_ASCII':                {'filename': None, 'read': None, 'write': None},
@@ -175,6 +178,7 @@ class ProjectFile(DeclarativeBase):
         self.PATH = path
         self.SESSION = session
         
+        
         if '\\' in path:
             splitPath = path.split('\\')
             self.DIRECTORY = '\\'.join(splitPath[:-1]) + '\\'
@@ -186,6 +190,7 @@ class ProjectFile(DeclarativeBase):
             self.DIRECTORY = '""'
             
         self.PROJECT_NAME = splitPath[-1].split('.')[0]
+        self.name = self.PROJECT_NAME.strip('"')
     
     def read(self):
         '''
@@ -255,28 +260,31 @@ class ProjectFile(DeclarativeBase):
                 read(self, filename)
         
     
-    def write(self, session, directory, filename):
+    def write(self, session, directory, newName=None):
         '''
         Project File Write to File Method
         '''
+        # Change name of project
+        if newName != None:
+            self.PROJECT_NAME = newName
+        else:
+            self.PROJECT_NAME = self.name
+        
         # Initiate project file
-        fullPath = '%s%s' % (directory, filename)
+        fullPath = '%s%s.%s' % (directory, self.PROJECT_NAME, self.EXTENSION)
         
         with open(fullPath, 'w') as prjFile:
             prjFile.write('GSSHAPROJECT\n')
         
             # Initiate write on each ProjectCard that belongs to this ProjectFile
             for card in self.projectCards:
-                prjFile.write(card.write())
+                prjFile.write(card.write(originalPrefix = self.name, newPrefix=self.PROJECT_NAME))
                 
                 # Assemble list of files for writing
                 if card.name in self.INPUT_FILES:
-                    print 'INPUT_FILE:', card.name, card.value
-                    if '"' in card.value:
-                        self.INPUT_FILES[card.name]['filename'] = card.value.strip('"')
-                    else:
-                        self.INPUT_FILES[card.name]['filename'] = card.value
-                
+                    value = card.value.strip('"')
+                    self.INPUT_FILES[card.name]['filename'] = value
+                    
                 elif card.name in self.INPUT_MAPS:
                     pass
                     
@@ -286,34 +294,41 @@ class ProjectFile(DeclarativeBase):
                 elif card.name in self.OUTPUT_MAPS:
                     pass
                 
-    def writeAll(self, session, directory, filename):
+    def writeAll(self, session, directory, newName=None):
         '''
         GSSHA Project Write All Files to File Method
         '''
-        ## TODO: FIND A WAY TO MAKE CHANGE PROJECT NAME DURING WRITING
-        ## TODO: ALSO FIND A WAY TO NOT DOBULE UP ON self.read or self.write statements
-        ## For readAll and writeAll methods
         
         # Write Project File
-        self.write(session=session, directory=directory, filename=filename)
+        self.write(session=session, directory=directory, newName=newName)
         
         # Write input files
-        self.writeInput(session=session, directory=directory)
+        self._writeInput(session=session, directory=directory, newName=newName)
         
         
-    def writeInput(self, session, directory):
+    def _writeInput(self, session, directory, newName=None):
         '''
         GSSHA Project Write Input Files to File Method
         '''
-        
         # Write Input Files
         for card, afile in self.INPUT_FILES.iteritems():
-            filename = afile['filename']
-            write = afile['write']
-            if filename != None and write != None:
-                write(projectFile=self, filename=filename, directory=directory, session=session)
-        
-        print 'Hello Write Input'
+            if afile['filename'] != None:
+                filename = afile['filename'].split('.')[0]
+                
+                # Handle new name
+                if filename == self.name and newName != None:
+                    filePrefix = newName
+                elif filename == self.name and newName == None:
+                    filePrefix = self.name
+                else:
+                    filePrefix = afile['filename']
+                
+                # Extract write funtion
+                write = afile['write']
+                
+                # Execute write function if not None
+                if write != None:
+                    write(projectFile=self, filePrefix=filePrefix, directory=directory, session=session)
         
         
     def _extractCard(self, projectLine):
@@ -402,7 +417,7 @@ class ProjectCard(DeclarativeBase):
     def __repr__(self):
         return '<ProjectCard: Name=%s, Value=%s>' % (self.name, self.value)
     
-    def write(self):
+    def write(self, originalPrefix, newPrefix):
         # Determine number of spaces between card and value for nice alignment
         numSpaces = 25 - len(self.name)
         
@@ -410,5 +425,8 @@ class ProjectCard(DeclarativeBase):
         if self.value is None:
             line = '%s\n' % (self.name)
         else:
-            line ='%s%s%s\n' % (self.name,' '*numSpaces, self.value)
+            if originalPrefix in self.value and newPrefix != originalPrefix:
+                line ='%s%s%s\n' % (self.name,' '*numSpaces, self.value.replace(originalPrefix, newPrefix))
+            else:
+                line ='%s%s%s\n' % (self.name,' '*numSpaces, self.value)
         return line

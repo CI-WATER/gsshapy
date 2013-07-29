@@ -127,12 +127,12 @@ class ChannelInputFile(DeclarativeBase):
         self._createConnectivity(linkList=links, connectList=connectivity)                
                     
         
-    def write(self, session, directory, filename):
+    def write(self, session, directory, filePrefix):
         '''
         Channel Input File Write to File Method
         '''
         # Initiate channel input file
-        fullPath = '%s%s' % (directory, filename)
+        fullPath = '%s%s.%s' % (directory, filePrefix, self.EXTENSION)
         
         with open(fullPath, 'w') as cifFile:
             cifFile.write('GSSHA_CHAN\n')
