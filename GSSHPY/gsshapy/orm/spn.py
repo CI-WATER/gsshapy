@@ -154,7 +154,7 @@ class StormPipeNetworkFile(DeclarativeBase):
                                       cellI=node['cellI'],
                                       cellJ=node['cellJ'],
                                       weirSideLength=node['weirSideLength'],
-                                      orifaceDiameter=node['orificeDiameter'])
+                                      orificeDiameter=node['orificeDiameter'])
                 
                 # Associate SuperNode with SuperLink
                 superNode.superLink = superLink
@@ -189,7 +189,7 @@ class StormPipeNetworkFile(DeclarativeBase):
                                           linkOrCellI=sjunc['linkOrCellI'],
                                           nodeOrCellJ=sjunc['nodeOrCellJ'],
                                           weirSideLength=sjunc['weirSideLength'],
-                                          orifaceDiameter=sjunc['orifaceDiameter'])
+                                          orificeDiameter=sjunc['orificeDiameter'])
             
             # Associate SuperJunction with StormPipeNetworkFile
             superJunction.stormPipeNetworkFile = self
@@ -198,19 +198,59 @@ class StormPipeNetworkFile(DeclarativeBase):
         '''
         Write Connections to File Method
         '''
-        print 'Hello Connections'
+        for connection in connections:
+            fileObject.write('CONNECT  %s  %s  %s\n' % (
+                             connection.slinkNumber,
+                             connection.upSjuncNumber,
+                             connection.downSjuncNumber))
         
     def _writeSuperJunctions(self, superJunctions, fileObject):
         '''
         Write SuperJunctions to File Method
         '''
-        print 'Hello Super Junctions'
+        for sjunc in superJunctions:
+            fileObject.write('SJUNC  %s  %.2f  %.2f  %.6f  %s  %s  %s  %.6f  %.6f\n' % (
+                             sjunc.sjuncNumber,
+                             sjunc.groundSurfaceElev,
+                             sjunc.invertElev,
+                             sjunc.manholeSA,
+                             sjunc.inletCode,
+                             sjunc.linkOrCellI,
+                             sjunc.nodeOrCellJ,
+                             sjunc.weirSideLength,
+                             sjunc.orificeDiameter))
     
     def _writeSuperLinks(self, superLinks, fileObject):
         '''
         Write SuperLinks to File Method
         '''
-        print 'Hello Super Links'
+        for slink in superLinks:
+            fileObject.write('SLINK   %s      %s\n' %(
+                             slink.slinkNumber,
+                             slink.numPipes))
+            
+            for node in slink.superNodes:
+                fileObject.write('NODE  %s  %.2f  %.2f  %.6f  %s  %s  %s  %.6f  %.6f\n' %(
+                                 node.nodeNumber,
+                                 node.groundSurfaceElev,
+                                 node.invertElev,
+                                 node.manholeSA,
+                                 node.nodeInletCode,
+                                 node.cellI,
+                                 node.cellJ,
+                                 node.weirSideLength,
+                                 node.orificeDiameter))
+            for pipe in slink.pipes:
+                fileObject.write('PIPE  %s  %s  %.6f  %.6f  %.6f  %.6f  %.2f  %.6f  %.6f\n' %(
+                                 pipe.pipeNumber,
+                                 pipe.xSecType,
+                                 pipe.diameterOrHeight,
+                                 pipe.width,
+                                 pipe.slope,
+                                 pipe.roughness,
+                                 pipe.length,
+                                 pipe.conductance,
+                                 pipe.drainSpacing))
 
 
 
@@ -268,12 +308,12 @@ class SuperNode(DeclarativeBase):
     cellI = Column(Integer, nullable=False)
     cellJ = Column(Integer, nullable=False)
     weirSideLength = Column(Float, nullable=False)
-    orifaceDiameter = Column(Float, nullable=False)
+    orificeDiameter = Column(Float, nullable=False)
 
     # Relationship Properties
     superLink = relationship('SuperLink', back_populates='superNodes')
     
-    def __init__(self, nodeNumber, groundSurfaceElev, invertElev, manholeSA, nodeInletCode, cellI, cellJ, weirSideLength, orifaceDiameter):
+    def __init__(self, nodeNumber, groundSurfaceElev, invertElev, manholeSA, nodeInletCode, cellI, cellJ, weirSideLength, orificeDiameter):
         '''
         Constructor
         '''
@@ -285,10 +325,10 @@ class SuperNode(DeclarativeBase):
         self.cellI = cellI
         self.cellJ = cellJ
         self.weirSideLength = weirSideLength
-        self.orifaceDiameter = orifaceDiameter
+        self.orificeDiameter = orificeDiameter
 
     def __repr__(self):
-        return '<SuperNode: NodeNumber=%s, GroundSurfaceElev=%s, InvertElev=%s, ManholeSA=%s, NodeInletCode=%s, CellI=%s, CellJ=%s, WeirSideLength=%s, OrifaceDiameter=%s>' % (
+        return '<SuperNode: NodeNumber=%s, GroundSurfaceElev=%s, InvertElev=%s, ManholeSA=%s, NodeInletCode=%s, CellI=%s, CellJ=%s, WeirSideLength=%s, OrificeDiameter=%s>' % (
                 self.nodeNumber,
                 self.groundSurfaceElev,
                 self.invertElev,
@@ -297,7 +337,7 @@ class SuperNode(DeclarativeBase):
                 self.cellI,
                 self.cellJ,
                 self.weirSideLength,
-                self.orifaceDiameter) 
+                self.orificeDiameter) 
     
     
     
@@ -373,12 +413,12 @@ class SuperJunction(DeclarativeBase):
     linkOrCellI = Column(Integer, nullable=False)
     nodeOrCellJ = Column(Integer, nullable=False)
     weirSideLength = Column(Float, nullable=False)
-    orifaceDiameter = Column(Float, nullable=False)
+    orificeDiameter = Column(Float, nullable=False)
     
     # Relationship Properties
     stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='superJunctions')
     
-    def __init__(self, sjuncNumber, groundSurfaceElev, invertElev, manholeSA, inletCode, linkOrCellI, nodeOrCellJ, weirSideLength, orifaceDiameter):
+    def __init__(self, sjuncNumber, groundSurfaceElev, invertElev, manholeSA, inletCode, linkOrCellI, nodeOrCellJ, weirSideLength, orificeDiameter):
         '''
         Constructor
         '''
@@ -390,10 +430,10 @@ class SuperJunction(DeclarativeBase):
         self.linkOrCellI = linkOrCellI
         self.nodeOrCellJ = nodeOrCellJ
         self.weirSideLength = weirSideLength
-        self.orifaceDiameter = orifaceDiameter
+        self.orificeDiameter = orificeDiameter
 
     def __repr__(self):
-        return '<SuperJunction: SjuncNumber=%s, GroundSurfaceElev=%s, InvertElev=%s, ManholeSA=%s, InletCode=%s, LinkOrCellI=%s, NodeOrCellJ=%s, WeirSideLength=%s, OrifaceDiameter=%s>' % (
+        return '<SuperJunction: SjuncNumber=%s, GroundSurfaceElev=%s, InvertElev=%s, ManholeSA=%s, InletCode=%s, LinkOrCellI=%s, NodeOrCellJ=%s, WeirSideLength=%s, OrificeDiameter=%s>' % (
                 self.sjuncNumber,
                 self.groundSurfaceElev,
                 self.invertElev,
@@ -402,7 +442,7 @@ class SuperJunction(DeclarativeBase):
                 self.linkOrCellI,
                 self.nodeOrCellJ,
                 self.weirSideLength,
-                self.orifaceDiameter)
+                self.orificeDiameter)
         
 class Connection(DeclarativeBase):
     '''

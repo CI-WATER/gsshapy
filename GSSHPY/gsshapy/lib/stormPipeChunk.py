@@ -36,7 +36,7 @@ def sjuncChunk(key, chunk):
               'linkOrCellI': schunk[6],
               'nodeOrCellJ': schunk[7],
               'weirSideLength': schunk[8],
-              'orifaceDiameter': schunk[9]}
+              'orificeDiameter': schunk[9]}
 
     return result
     
