@@ -42,7 +42,7 @@ class PrecipFile(DeclarativeBase):
     
     # Global Properties
     PATH = ''
-    PROJECT_NAME = ''
+    FILENAME = ''
     DIRECTORY = ''
     SESSION = None
     EXTENSION = 'gag'
@@ -61,14 +61,14 @@ class PrecipFile(DeclarativeBase):
              ]
         ]
         
-    def __init__(self, directory, name, session):
+    def __init__(self, directory, filename, session):
         '''
         Constructor
         '''
-        self.PROJECT_NAME = name
+        self.FILENAME = filename
         self.DIRECTORY = directory
         self.SESSION = session
-        self.PATH = '%s%s.%s' % (self.DIRECTORY, self.PROJECT_NAME, self.EXTENSION)
+        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME)
     
     def read(self):
         '''
@@ -150,12 +150,12 @@ class PrecipFile(DeclarativeBase):
         # Add this PrecipFile to the database session
         self.SESSION.add(self)
                 
-    def write(self, session, directory, name):
+    def write(self, session, directory, filename):
         '''
         Precipitation Write to File Method
         '''
         # Assemble path to new precipitation file
-        path = '%s%s.%s' % (directory, name, self.EXTENSION)
+        path = '%s%s' % (directory, filename)
         
         # Initialize file
         with open(path, 'w') as gagFile:

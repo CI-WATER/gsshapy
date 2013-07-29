@@ -8,10 +8,9 @@
 ********************************************************************************
 '''
 
-import os, sys
 from datetime import datetime
 
-__all__ = ['HMETCollection','HMETRecord']
+__all__ = ['HmetFile','HmetRecord']
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String, Float, DateTime
@@ -19,35 +18,73 @@ from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
 
-class HMETCollection(DeclarativeBase):
+class HmetFile(DeclarativeBase):
     '''
     classdocs
     '''
-    __tablename__ = 'hmet_collections'
+    __tablename__ = 'hmet_files'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
     
-    # Value Columns
-    name = Column(String, nullable=False)
-    description = Column(String)
-    
     # Relationship Properties
-    hmetRecords = relationship('HMETRecord', back_populates='hmetCollection')
+    hmetRecords = relationship('HmetRecord', back_populates='hmetFile')
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='hmetFile')
     
-    def __init__(self, name, description):
+    # Global Properties
+    PATH = ''
+    FILENAME = ''
+    DIRECTORY = ''
+    SESSION = None
+    EXTENSION = 'hmet'
+    
+    
+    def __init__(self, directory, filename, session):
         '''
         Constructor
         '''
-        self.name = name
-        self.description = description
+        self.FILENAME = filename
+        self.DIRECTORY = directory
+        self.SESSION = session
+        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME)
         
 
     def __repr__(self):
-        return '<HMETConfiguration: Name=%s, Description=%s>' % (self.name, self.description)
+        return '<HmetFile: Name=%s, Description=%s>' % (self.name, self.description)
+    
+    def readWES(self):
+        '''
+        Read HMET_WES from File Method
+        '''
+        # Open file and parse into HmetRecords
+        with open(self.PATH, 'r') as hmetFile:
+            
+            for line in hmetFile:
+                sline = line.strip().split()
+                
+                # Extract data time from record
+                dateTime = datetime(int(sline[0]), int(sline[1]), int(sline[2]), int(sline[3]))
+                
+                # Intitialize GSSHAPY HmetRecord object
+                hmetRecord = HmetRecord(hmetDateTime=dateTime,
+                                        barometricPress=sline[4],
+                                        relHumidity=sline[5],
+                                        totalSkyCover=sline[6],
+                                        windSpeed=sline[7],
+                                        dryBulbTemp=sline[8],
+                                        directRad=sline[9],
+                                        globalRad=sline[10])
+                
+                # Associate HmetRecord with HmetFile
+                hmetRecord.hmetFile = self
+        
+    def writeWES(self):
+        '''
+        Write HMET_WES to File Method
+        '''
 
 
-class HMETRecord(DeclarativeBase):
+class HmetRecord(DeclarativeBase):
     '''
     classdocs
     '''
@@ -55,7 +92,7 @@ class HMETRecord(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    hmetConfigID = Column(Integer, ForeignKey('hmet_collections.id'))
+    hmetConfigID = Column(Integer, ForeignKey('hmet_files.id'))
     
     # Value Columns
     hmetDateTime = Column(DateTime, nullable=False)
@@ -68,7 +105,7 @@ class HMETRecord(DeclarativeBase):
     globalRad = Column(Float, nullable=False)
     
     # Relationship Properties
-    hmetCollection = relationship('HMETCollection', back_populates='hmetRecords')
+    hmetFile = relationship('HmetFile', back_populates='hmetRecords')
     
     def __init__(self, hmetDateTime, barometricPress, relHumidity, totalSkyCover, windSpeed, dryBulbTemp, directRad, globalRad):
         '''
@@ -84,7 +121,7 @@ class HMETRecord(DeclarativeBase):
         self.globalRad = globalRad
 
     def __repr__(self):
-        return '<HMET: DateTime=%s, BarometricPressure=%s, RelHumidity=%s, TotalSkyCover=%s, WindSpeed=%s, DryBulbTemp=%s, DirectRad=%s, GlobalRad=%s>' % (
+        return '<HmetRecord: DateTime=%s, BarometricPressure=%s, RelHumidity=%s, TotalSkyCover=%s, WindSpeed=%s, DryBulbTemp=%s, DirectRad=%s, GlobalRad=%s>' % (
                 self.hmetDateTime,
                 self.barometricPress,
                 self.relHumidity,

@@ -57,20 +57,20 @@ class MapTableFile(DeclarativeBase):
     
     # Global Properties
     PATH = ''
-    PROJECT_NAME = ''
+    FILENAME = ''
     DIRECTORY = ''
     SESSION = None
     EXTENSION = 'cmt'
     
     
-    def __init__(self, directory, name, session):
+    def __init__(self, directory, filename, session):
         '''
         Constructor
         '''
-        self.PROJECT_NAME = name
+        self.FILENAME = filename
         self.DIRECTORY = directory
         self.SESSION = session
-        self.PATH = '%s%s.%s' % (self.DIRECTORY, self.PROJECT_NAME, self.EXTENSION)
+        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME)
         
     def read(self):
         '''
@@ -132,7 +132,7 @@ class MapTableFile(DeclarativeBase):
         # returned from the parser functions
         self._createGsshaPyObjects(mapTables, indexMaps)
             
-    def write(self, session, directory, name):
+    def write(self, session, directory, filename):
         '''
         Map Table Write to File Method
         ''' 
@@ -157,7 +157,7 @@ class MapTableFile(DeclarativeBase):
         indexMaps = set(indexMapList)
 
         # Initiate map table file and write
-        fullPath = '%s%s.%s' % (directory, name, self.EXTENSION)
+        fullPath = '%s%s' % (directory, filename)
         
         with open(fullPath, 'w') as cmtFile:
 

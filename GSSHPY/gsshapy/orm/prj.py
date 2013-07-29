@@ -23,6 +23,8 @@ from gsshapy.orm.cmt import MapTableFile
 from gsshapy.orm.cif import ChannelInputFile
 from gsshapy.orm.spn import StormPipeNetworkFile
 
+from gsshapy.lib import inputFileReaders as ifr, inputFileWriters as ifw
+
 
 
 assocProject = Table('assoc_project_files_options', metadata,
@@ -42,6 +44,7 @@ class ProjectFile(DeclarativeBase):
     mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
     channelInputFileID = Column(Integer, ForeignKey('cif_channel_input_files.id'))
     stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id'))
+    hmetFileID = Column(Integer, ForeignKey('hmet_files.id'))
     
     # Relationship Properties
     projectCards = relationship('ProjectCard', secondary=assocProject, back_populates='projectFiles')
@@ -49,6 +52,7 @@ class ProjectFile(DeclarativeBase):
     channelInputFile = relationship('ChannelInputFile', back_populates='projectFile')
     precipFile = relationship('PrecipFile', back_populates='projectFile')
     stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='projectFile')
+    hmetFile = relationship('HmetFile', back_populates='projectFile')
     
     # Global Properties
     PATH = None
@@ -56,6 +60,115 @@ class ProjectFile(DeclarativeBase):
     DIRECTORY = None
     SESSION = None
     EXTENSION = 'prj'
+    
+    # File Properties
+    INPUT_FILES = {'MAPPING_TABLE':             {'filename': None, 'read': ifr.readMappingTableFile, 'write': ifw.writeMappingTableFile},
+                   'ST_MAPPING_TABLE':          {'filename': None, 'read': None, 'write': None},
+                   'PRECIP_FILE':               {'filename': None, 'read': ifr.readPrecipitationFile, 'write': ifw.writePrecipitationFile},
+                   'CHANNEL_INPUT':             {'filename': None, 'read': ifr.readChannelInputFile, 'write': ifw.writeChannelInputFile},
+                   'STREAM_CELL':               {'filename': None, 'read': None, 'write': None},
+                   'SECTION_TABLE':             {'filename': None, 'read': None, 'write': None},
+                   'SOIL_LAYER_INPUT_FILE':     {'filename': None, 'read': None, 'write': None},
+                   'IN_THETA_LOCATION':         {'filename': None, 'read': None, 'write': None},
+                   'EXPLIC_HOTSTART':           {'filename': None, 'read': None, 'write': None},
+                   'READ_CHAN_HOTSTART':        {'filename': None, 'read': None, 'write': None},
+                   'CHAN_POINT_INPUT':          {'filename': None, 'read': None, 'write': None},
+                   'BOUND_TS':                  {'filename': None, 'read': None, 'write': None},
+                   'IN_HYD_LOCATION':           {'filename': None, 'read': None, 'write': None},
+                   'IN_SED_LOC':                {'filename': None, 'read': None, 'write': None},
+                   'IN_GWFLUX_LOCATION':        {'filename': None, 'read': None, 'write': None},
+                   'HMET_SURFAWAYS':            {'filename': None, 'read': None, 'write': None},
+                   'HMET_SAMSON':               {'filename': None, 'read': None, 'write': None},
+                   'HMET_WES':                  {'filename': None, 'read': ifr.readHmetWesFile, 'write': None},
+                   'NWSRFS_ELEV_SNOW':          {'filename': None, 'read': None, 'write': None},
+                   'HMET_OROG_GAGES':           {'filename': None, 'read': None, 'write': None},
+                   'HMET_ASCII':                {'filename': None, 'read': None, 'write': None},
+                   'GW_FLUXBOUNDTABLE':         {'filename': None, 'read': None, 'write': None},
+                   'STORM_SEWER':               {'filename': None, 'read': ifr.readPipeNetworkFile, 'write': ifw.writePipeNetworkFile},
+                   'GRID_PIPE':                 {'filename': None, 'read': None, 'write': None},
+                   'SUPER_LINK_JUNC_LOCATION':  {'filename': None, 'read': None, 'write': None},
+                   'SUPERLINK_NODE_LOCATION':   {'filename': None, 'read': None, 'write': None},
+                   'OVERLAND_DEPTH_LOCATION':   {'filename': None, 'read': None, 'write': None},
+                   'OVERLAND_WSE_LOCATION':     {'filename': None, 'read': None, 'write': None},
+                   'OUT_WELL_LOCATION':         {'filename': None, 'read': None, 'write': None},
+                   'REPLACE_PARAMS':            {'filename': None, 'read': None, 'write': None},
+                   'REPLACE_VALS':              {'filename': None, 'read': None, 'write': None}}
+    
+    INPUT_MAPS = {'ELEVATION': None,
+                  'WATERSHED_MASK': None,
+                  'ROUGHNESS': None,
+                  'RETEN_DEPTH': None,
+                  'READ_OV_HOTSTART': None,
+                  'WRITE_OV_HOTSTART': None,
+                  'READ_SM_HOTSTART': None,
+                  'WRITE_SM_HOSTART': None,
+                  'STORAGE_CAPACITY': None,
+                  'INTERCEPTION_COEFF': None,
+                  'CONDUCTIVITY': None,
+                  'CAPILLARY': None,
+                  'POROSITY': None,
+                  'MOISTURE': None,
+                  'PORE_INDEX': None,
+                  'RESIDUAL_SAT': None,
+                  'FIELD_CAPACITY': None,
+                  'SOIL_TYPE_MAP': None,
+                  'WATER_TABLE': None,
+                  'ALBEDO': None,
+                  'WILTING_POINT': None,
+                  'TCOEFF': None,
+                  'VHEIGHT': None,
+                  'CANOPY': None,
+                  'INIT_SWE_DEPTH': None,
+                  'WATER_TABLE': None,
+                  'AQUIFER_BOTTOM': None,
+                  'GW_BOUNDFILE': None,
+                  'GW_POROSITY_MAP': None,
+                  'GW_HYCOND_MAP': None,
+                  'CONTAM_MAP': None}
+    
+    OUTPUT_FILES = {'SUMMARY': {'filename': None, 'read': None},
+                    'OUTLET_HYDRO': {'filename': None, 'read': None},
+                    'EXPLIC_BACKWATER': {'filename': None, 'read': None},
+                    'WRITE_CHAN_HOTSTART': {'filename': None, 'read': None},
+                    'OUT_HYD_LOCATION': {'filename': None, 'read': None},
+                    'OUT_DEP_LOCATION': {'filename': None, 'read': None},
+                    'OUT_SED_LOC': {'filename': None, 'read': None},
+                    'OUT_GWFULX_LOCATION': {'filename': None, 'read': None},
+                    'OUT_THETA_LOCATION': {'filename': None, 'read': None},
+                    'CHAN_DEPTH': {'filename': None, 'read': None},
+                    'CHAN_STAGE': {'filename': None, 'read': None},
+                    'CHAN_DISCHARGE': {'filename': None, 'read': None},
+                    'CHAN_VELOCITY': {'filename': None, 'read': None},
+                    'LAKE_OUTPUT': {'filename': None, 'read': None},
+                    'SNOW_SWE_FILE': {'filename': None, 'read': None},
+                    'GW_WELL_LEVEL': {'filename': None, 'read': None},
+                    'OUTLET_SED_FLUX': {'filename': None, 'read': None},
+                    'ADJUST_ELEV': {'filename': None, 'read': None},
+                    'OUTLET_SED_TSS': {'filename': None, 'read': None},
+                    'OUT_TSS_LOC': {'filename': None, 'read': None},
+                    'NET_SED_VOLUME': {'filename': None, 'read': None},
+                    'VOL_SED_SUSP': {'filename': None, 'read': None},
+                    'OUT_CON_LOCATION': {'filename': None, 'read': None},
+                    'OUT_MASS_LOCATION': {'filename': None, 'read': None},
+                    'SUPERLINK_JUNC_FLOW': {'filename': None, 'read': None},
+                    'SUPERLINK_NODE_FLOW': {'filename': None, 'read': None},
+                    'OVERLAND_DEPTHS': {'filename': None, 'read': None},
+                    'OVERLAND_WSE': {'filename': None, 'read': None},
+                    'OPTIMIZE': {'filename': None, 'read': None}}
+    
+    OUTPUT_MAPS = {'GW_OUTPUT': {'filename': None, 'read': None},
+                   'DISCHARGE': {'filename': None, 'read': None},
+                   'DEPTH': {'filename': None, 'read': None},
+                   'INF_DEPTH': {'filename': None, 'read': None},
+                   'SURF_MOIS': {'filename': None, 'read': None},
+                   'RATE_OF_INFIL': {'filename': None, 'read': None},
+                   'DIS_RAIN': {'filename': None, 'read': None},
+                   'CHAN_DEPTH': {'filename': None, 'read': None},
+                   'CHAN_DISCHARGE': {'filename': None, 'read': None},
+                   'MAX_SED_FLUX': {'filename': None, 'read': None},
+                   'GW_OUTPUT': {'filename': None, 'read': None},
+                   'GW_RECHARGE_CUM': {'filename': None, 'read': None},
+                   'GW_RECHARGE_INC': {'filename': None, 'read': None}}
     
     
     def __init__(self, path, session):
@@ -94,6 +207,23 @@ class ProjectFile(DeclarativeBase):
                     # Initiate database objects
                     prjCard = ProjectCard(name=card['name'], value=card['value'])
                     self.projectCards.append(prjCard)
+                    
+                # Assemble list of files for reading
+                if card['name'] in self.INPUT_FILES:
+                    print 'INPUT_FILE:', card['name'], card['value']
+                    if '"' in card['value']:
+                        self.INPUT_FILES[card['name']]['filename'] = card['value'].strip('"')
+                    else:
+                        self.INPUT_FILES[card['name']]['filename'] = card['value']
+                
+                elif card['name'] in self.INPUT_MAPS:
+                    print 'INPUT_MAP:', card['name']
+                    
+                elif card['name'] in self.OUTPUT_FILES:
+                    print 'OUTPUT_FILE:', card['name']
+                
+                elif card['name'] in self.OUTPUT_MAPS:
+                    print 'OUTPUT_MAPS:', card['name']
         
         self.SESSION.add(self)
                      
@@ -105,34 +235,32 @@ class ProjectFile(DeclarativeBase):
         # First read self
         self.read()
         
-        # Initiate GSSHAPY MapTableFile object, associate with this object, and read map table file
-        mapTable = MapTableFile(directory=self.DIRECTORY, name=self.PROJECT_NAME, session=self.SESSION)
-        mapTable.projectFile = self
-        mapTable.read()
-        
-        # Initiate GSSHAPY ChannelNetworkFile object, associate with this object, and read channel input file
-        channelInput = ChannelInputFile(directory=self.DIRECTORY, name=self.PROJECT_NAME, session=self.SESSION)
-        channelInput.projectFile = self
-        channelInput.read()
+        # Read Input Files
+        self.readInput()
         
         
-        # Initiate GSSHAPY PrecipFile object, associate it with this object, and read precipitation file
-        precip = PrecipFile(directory=self.DIRECTORY, name=self.PROJECT_NAME, session=self.SESSION)
-        precip.projectFile = self
-        precip.read()
+    def readInput(self):
+        '''
+        GSSHAPY Project Read All Input Files Method
+        '''
         
-        # Initiate GSSHAPY StormPipeNetworkFile object, associate with this object, and read file
-        pipeNetwork = StormPipeNetworkFile(directory=self.DIRECTORY, name=self.PROJECT_NAME, session=self.SESSION)
-        pipeNetwork.projectFile = self
-        pipeNetwork.read()
+        # Read ProjectFile
+        self.read()
+        
+        # Read Input Files
+        for card, afile in self.INPUT_FILES.iteritems():
+            filename = afile['filename']
+            read = afile['read']
+            if filename != None and read != None:
+                read(self, filename)
         
     
-    def write(self, session, directory, name):
+    def write(self, session, directory, filename):
         '''
         Project File Write to File Method
         '''
         # Initiate project file
-        fullPath = '%s%s.%s' % (directory, name, self.EXTENSION)
+        fullPath = '%s%s' % (directory, filename)
         
         with open(fullPath, 'w') as prjFile:
             prjFile.write('GSSHAPROJECT\n')
@@ -141,29 +269,51 @@ class ProjectFile(DeclarativeBase):
             for card in self.projectCards:
                 prjFile.write(card.write())
                 
-    def writeAll(self, session, directory, name):
+                # Assemble list of files for writing
+                if card.name in self.INPUT_FILES:
+                    print 'INPUT_FILE:', card.name, card.value
+                    if '"' in card.value:
+                        self.INPUT_FILES[card.name]['filename'] = card.value.strip('"')
+                    else:
+                        self.INPUT_FILES[card.name]['filename'] = card.value
+                
+                elif card.name in self.INPUT_MAPS:
+                    pass
+                    
+                elif card.name in self.OUTPUT_FILES:
+                    pass
+                
+                elif card.name in self.OUTPUT_MAPS:
+                    pass
+                
+    def writeAll(self, session, directory, filename):
         '''
-        GSSHA Project Write to File Method
+        GSSHA Project Write All Files to File Method
+        '''
+        ## TODO: FIND A WAY TO MAKE CHANGE PROJECT NAME DURING WRITING
+        ## TODO: ALSO FIND A WAY TO NOT DOBULE UP ON self.read or self.write statements
+        ## For readAll and writeAll methods
+        
+        # Write Project File
+        self.write(session=session, directory=directory, filename=filename)
+        
+        # Write input files
+        self.writeInput(session=session, directory=directory)
+        
+        
+    def writeInput(self, session, directory):
+        '''
+        GSSHA Project Write Input Files to File Method
         '''
         
-        # First write self
-        self.write(session, directory, name)
+        # Write Input Files
+        for card, afile in self.INPUT_FILES.iteritems():
+            filename = afile['filename']
+            write = afile['write']
+            if filename != None and write != None:
+                write(projectFile=self, filename=filename, directory=directory, session=session)
         
-        # Write map table file
-        mapTableFile = self.mapTableFile
-        mapTableFile.write(session=session, directory=directory, name=name)
-        
-        # Write channel input file
-        channelInputFile = self.channelInputFile
-        channelInputFile.write(session=session, directory=directory, name=name)
-        
-        # Write precipitation file
-        precipFile = self.precipFile
-        precipFile.write(session=session, directory=directory, name=name)
-        
-        # Write pipe Network
-        pipeFile = self.stormPipeNetworkFile
-        pipeFile.write(session=session, directory=directory, name=name)
+        print 'Hello Write Input'
         
         
     def _extractCard(self, projectLine):
@@ -223,9 +373,8 @@ class ProjectFile(DeclarativeBase):
             # TODO: Write code to handle nested directory cards
             cardValue = '""'
         
-        return {'name': cardName, 'value': cardValue} 
-
-     
+        return {'name': cardName, 'value': cardValue}
+    
 class ProjectCard(DeclarativeBase):
     '''
     classdocs

@@ -50,22 +50,22 @@ class ChannelInputFile(DeclarativeBase):
     # Relationship Properties
     projectFile = relationship('ProjectFile', uselist=False, back_populates='channelInputFile')
     streamLinks = relationship('StreamLink', back_populates='channelInputFile')
-    
+        
     # Global Properties
     PATH = ''
-    PROJECT_NAME = ''
+    FILENAME = ''
     DIRECTORY = ''
     SESSION = None
     EXTENSION = 'cif'
     
-    def __init__(self, directory, name, session, alpha=None, beta=None, theta=None, links=None, maxNodes=None):
+    def __init__(self, directory, filename, session, alpha=None, beta=None, theta=None, links=None, maxNodes=None):
         '''
         Constructor
         '''
-        self.PROJECT_NAME = name
+        self.FILENAME = filename
         self.DIRECTORY = directory
         self.SESSION = session
-        self.PATH = '%s%s.%s' % (self.DIRECTORY, self.PROJECT_NAME, self.EXTENSION)
+        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME)
         self.alpha = alpha
         self.beta = beta
         self.theta = theta
@@ -127,12 +127,12 @@ class ChannelInputFile(DeclarativeBase):
         self._createConnectivity(linkList=links, connectList=connectivity)                
                     
         
-    def write(self, session, directory, name):
+    def write(self, session, directory, filename):
         '''
         Channel Input File Write to File Method
         '''
         # Initiate channel input file
-        fullPath = '%s%s.%s' % (directory, name, self.EXTENSION)
+        fullPath = '%s%s' % (directory, filename)
         
         with open(fullPath, 'w') as cifFile:
             cifFile.write('GSSHA_CHAN\n')

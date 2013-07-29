@@ -41,19 +41,19 @@ class StormPipeNetworkFile(DeclarativeBase):
     
     # Global Properties
     PATH = ''
-    PROJECT_NAME = ''
+    FILENAME = ''
     DIRECTORY = ''
     SESSION = None
     EXTENSION = 'spn'
     
-    def __init__(self, name, directory, session):
+    def __init__(self, filename, directory, session):
         '''
         Constructor
         '''
-        self.PROJECT_NAME = name
+        self.FILENAME = filename
         self.DIRECTORY = directory
         self.SESSION = session
-        self.PATH = '%s%s.%s' % (self.DIRECTORY, self.PROJECT_NAME, self.EXTENSION)
+        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME)
     
     def __repr__(self):
         return '<PipeNetwork: ID=%s>' %(self.id)
@@ -96,12 +96,12 @@ class StormPipeNetworkFile(DeclarativeBase):
         self._createSlink(slinks)
         
         
-    def write(self, session, directory, name):
+    def write(self, session, directory, filename):
         '''
         Storm Pipe Network File Write to File Method
         '''
         # Initiate channel input file
-        fullPath = '%s%s.%s' % (directory, name, self.EXTENSION)
+        fullPath = '%s%s' % (directory, filename)
         
         with open(fullPath, 'w') as spnFile:           
             # Retrieve Connection objects and write to file
