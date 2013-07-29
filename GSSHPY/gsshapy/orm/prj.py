@@ -161,8 +161,9 @@ class ProjectFile(DeclarativeBase):
         precipFile = self.precipFile
         precipFile.write(session=session, directory=directory, name=name)
         
-        # Pipe Network
-        
+        # Write pipe Network
+        pipeFile = self.stormPipeNetworkFile
+        pipeFile.write(session=session, directory=directory, name=name)
         
         
     def _extractCard(self, projectLine):

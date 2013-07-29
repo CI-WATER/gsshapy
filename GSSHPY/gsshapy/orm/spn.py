@@ -12,7 +12,8 @@ __all__ = ['StormPipeNetworkFile',
            'SuperLink', 
            'SuperNode',
            'Pipe',
-           'SuperJunction']
+           'SuperJunction', 
+           'Connection']
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float
@@ -33,6 +34,7 @@ class StormPipeNetworkFile(DeclarativeBase):
     id = Column(Integer, autoincrement=True, primary_key=True)
     
     # Relationship Properties
+    connections = relationship('Connection', back_populates='stormPipeNetworkFile')
     superLinks = relationship('SuperLink', back_populates='stormPipeNetworkFile')
     superJunctions = relationship('SuperJunction', back_populates='stormPipeNetworkFile')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='stormPipeNetworkFile')
@@ -67,7 +69,8 @@ class StormPipeNetworkFile(DeclarativeBase):
         
         sjuncs = []
         slinks = []
-        connectivity = []
+        connections = []
+        
         # Parse file into chunks associated with keywords/cards
         with open(self.PATH, 'r') as f:
             chunks = pt.chunk(KEYWORDS, f)
@@ -81,18 +84,133 @@ class StormPipeNetworkFile(DeclarativeBase):
 
                 # Cases
                 if key == 'CONNECT':
-                    connectivity.append(result)
+                    connections.append(result)
                 elif key == 'SJUNC':
                     sjuncs.append(result)
                 elif key == 'SLINK':
                     slinks.append(result)
-                
         
-    def write(self):
+        # Create GSSHAPY objects
+        self._createConnection(connections)
+        self._createSjunc(sjuncs)
+        self._createSlink(slinks)
+        
+        
+    def write(self, session, directory, name):
         '''
         Storm Pipe Network File Write to File Method
         '''
+        # Initiate channel input file
+        fullPath = '%s%s.%s' % (directory, name, self.EXTENSION)
         
+        with open(fullPath, 'w') as spnFile:           
+            # Retrieve Connection objects and write to file
+            connections = self.connections
+            self._writeConnections(connections, spnFile)
+            
+            # Retrieve SuperJuntion objects and write to file
+            sjuncs = self.superJunctions
+            self._writeSuperJunctions(sjuncs, spnFile)
+            
+            # Retrieve SuperLink objects and write to file
+            slinks = self.superLinks
+            self._writeSuperLinks(slinks, spnFile)
+        
+        
+    def _createConnection(self, connections):
+        '''
+        Create GSSHAPY Connection Objects Method
+        '''
+        
+        for c in connections:
+            # Create GSSHAPY Connection object
+            connection = Connection(slinkNumber=c['slinkNumber'],
+                                    upSjuncNumber=c['upSjunc'],
+                                    downSjuncNumber=c['downSjunc'])
+            
+            # Associate Connection with StormPipeNetworkFile
+            connection.stormPipeNetworkFile = self
+        
+    def _createSlink(self, slinks):
+        '''
+        Create GSSHAPY SuperLink, Pipe, and SuperNode Objects Method
+        '''
+        
+        for slink in slinks:
+            # Create GSSHAPY SuperLink object
+            superLink = SuperLink(slinkNumber=slink['slinkNumber'],
+                                  numPipes=slink['numPipes'])
+            
+            # Associate SuperLink with StormPipeNetworkFile
+            superLink.stormPipeNetworkFile = self
+            
+            for node in slink['nodes']:
+                # Create GSSHAPY SuperNode objects
+                superNode = SuperNode(nodeNumber=node['nodeNumber'],
+                                      groundSurfaceElev=node['groundSurfaceElev'],
+                                      invertElev=node['invertElev'],
+                                      manholeSA=node['manholeSA'],
+                                      nodeInletCode=node['inletCode'],
+                                      cellI=node['cellI'],
+                                      cellJ=node['cellJ'],
+                                      weirSideLength=node['weirSideLength'],
+                                      orifaceDiameter=node['orificeDiameter'])
+                
+                # Associate SuperNode with SuperLink
+                superNode.superLink = superLink
+                
+            for p in slink['pipes']:
+                # Create GSSHAPY Pipe objects
+                pipe = Pipe(pipeNumber=p['pipeNumber'],
+                            xSecType=p['xSecType'],
+                            diameterOrHeight=p['diameterOrHeight'],
+                            width=p['width'],
+                            slope=p['slope'],
+                            roughness=p['roughness'],
+                            length=p['length'],
+                            conductance=p['conductance'],
+                            drainSpacing=p['drainSpacing'])
+                
+                # Associate Pipe with SuperLink
+                pipe.superLink = superLink
+                    
+    def _createSjunc(self, sjuncs):
+        '''
+        Create GSSHAPY SuperJunction Objects Method
+        '''
+        
+        for sjunc in sjuncs:
+            # Create GSSHAPY SuperJunction object
+            superJunction = SuperJunction(sjuncNumber=sjunc['sjuncNumber'],
+                                          groundSurfaceElev=sjunc['groundSurfaceElev'],
+                                          invertElev=sjunc['invertElev'],
+                                          manholeSA=sjunc['manholeSA'],
+                                          inletCode=sjunc['inletCode'],
+                                          linkOrCellI=sjunc['linkOrCellI'],
+                                          nodeOrCellJ=sjunc['nodeOrCellJ'],
+                                          weirSideLength=sjunc['weirSideLength'],
+                                          orifaceDiameter=sjunc['orifaceDiameter'])
+            
+            # Associate SuperJunction with StormPipeNetworkFile
+            superJunction.stormPipeNetworkFile = self
+            
+    def _writeConnections(self, connections, fileObject):
+        '''
+        Write Connections to File Method
+        '''
+        print 'Hello Connections'
+        
+    def _writeSuperJunctions(self, superJunctions, fileObject):
+        '''
+        Write SuperJunctions to File Method
+        '''
+        print 'Hello Super Junctions'
+    
+    def _writeSuperLinks(self, superLinks, fileObject):
+        '''
+        Write SuperLinks to File Method
+        '''
+        print 'Hello Super Links'
 
 
 
@@ -107,9 +225,8 @@ class SuperLink(DeclarativeBase):
     stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id'))
     
     # Value Columns
+    slinkNumber = Column(Integer, nullable=False)
     numPipes = Column(Integer, nullable=False)
-    upstreamSJunct = Column(Integer, nullable=False)
-    downstreamSJunct = Column(Integer, nullable=False)
     
     # Relationship Properties
     stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='superLinks')
@@ -117,19 +234,17 @@ class SuperLink(DeclarativeBase):
     pipes = relationship('Pipe', back_populates='superLink')
     pipeGridCells = relationship('PipeGridCell', back_populates='superLink')
     
-    def __init__(self, numPipes, upstreamSJunct, downstreamSJunct):
+    def __init__(self, slinkNumber, numPipes):
         '''
         Constructor
         '''
+        self.slinkNumber = slinkNumber
         self.numPipes = numPipes
-        self.upstreamSJunct = upstreamSJunct
-        self.downstreamSJunct = downstreamSJunct
 
     def __repr__(self):
-        return '<SuperLink: NumPipes=%s, UpstreamSuperJunct=%s, DownstreamSuperJucnt=%s>' % (
-                self.numPipes, 
-                self.upstreamSJunct, 
-                self.downstreamSJunct)
+        return '<SuperLink: SlinkNumber=%s, NumPipes=%s>' % (
+                self.slinkNumber,
+                self.numPipes)
     
     
     
@@ -217,11 +332,11 @@ class Pipe(DeclarativeBase):
         self.pipeNumber = pipeNumber
         self.xSecType = xSecType
         self.diameterOrHeight= diameterOrHeight
-        self.width = width,
-        self.slope = slope,
-        self.roughness = roughness,
-        self.length = length,
-        self.conductance = conductance,
+        self.width = width
+        self.slope = slope
+        self.roughness = roughness
+        self.length = length
+        self.conductance = conductance
         self.drainSpacing = drainSpacing
 
     def __repr__(self):
@@ -267,7 +382,7 @@ class SuperJunction(DeclarativeBase):
         '''
         Constructor
         '''
-        self.sjuncNumber = sjuncNumber,
+        self.sjuncNumber = sjuncNumber
         self.groundSurfaceElev = groundSurfaceElev
         self.invertElev = invertElev
         self.manholeSA = manholeSA
@@ -288,3 +403,35 @@ class SuperJunction(DeclarativeBase):
                 self.nodeOrCellJ,
                 self.weirSideLength,
                 self.orifaceDiameter)
+        
+class Connection(DeclarativeBase):
+    '''
+    classdocs
+    '''
+    __tablename__ = 'spn_connections'
+    
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id'))
+    
+    # Value Columns
+    slinkNumber = Column(Integer, nullable=False)
+    upSjuncNumber = Column(Integer, nullable=False)
+    downSjuncNumber = Column(Integer, nullable=False)
+    
+    # Relationship Properties
+    stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='connections')
+   
+    def __init__(self, slinkNumber, upSjuncNumber, downSjuncNumber):
+        '''
+        Constructor
+        '''
+        self.slinkNumber = slinkNumber
+        self.upSjuncNumber = upSjuncNumber
+        self.downSjuncNumber = downSjuncNumber
+        
+    def __repr__(self):
+        return '<Connection: SlinkNumber=%s, UpSjuncNumber=%s, DownSjuncNumber=%s>' %(
+                self.slinkNumber,
+                self.upSjuncNumber,
+                self.downSjuncNumber)

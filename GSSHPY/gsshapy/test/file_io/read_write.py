@@ -28,9 +28,9 @@ project.readAll()
 # print 'SUCCESS: Project Read to Database'
  
 # Query Database to Retrieve Project File
-# project1 = DBSession2.query(ProjectFile).filter(ProjectFile.id == 1).one()
-#     
-# # Invoke write command on Project File Query Object
-# project1.writeAll(session=DBSession2, directory='/Users/swainn/testing/LongTerm2w/', name='longterm2')
-# print 'SUCCESS: Project Written to File'
+project1 = DBSession2.query(ProjectFile).filter(ProjectFile.id == 1).one()
+     
+# Invoke write command on Project File Query Object
+project1.writeAll(session=DBSession2, directory='/Users/swainn/testing/LongTerm2w/', name='longterm2')
+print 'SUCCESS: Project Written to File'
 

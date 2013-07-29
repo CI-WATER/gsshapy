@@ -48,19 +48,53 @@ def slinkChunk(key, lines):
                 'NODE',
                 'PIPE')
     
+    result = {'slinkNumber':None,
+              'numPipes':None,
+              'nodes':[],
+              'pipes':[]}
+    
     chunks = pt.chunk(KEYWORDS, lines)
     
     # Parse chunks associated with each key    
     for card, chunkList in chunks.iteritems():
         # Parse each chunk in the chunk list
         for chunk in chunkList:
-            print chunk
+            schunk = chunk[0].strip().split()
+            
             # Cases
             if card == 'SLINK':
-                pass
+                # SLINK handler
+                result['slinkNumber'] = schunk[1]
+                result['numPipes'] = schunk[2]
+                
             elif card == 'NODE':
-                pass
+                # NODE handler
+                node = {'nodeNumber': schunk[1],
+                        'groundSurfaceElev': schunk[2],
+                        'invertElev': schunk[3],
+                        'manholeSA': schunk[4],
+                        'inletCode': schunk[5],
+                        'cellI': schunk[6],
+                        'cellJ': schunk[7],
+                        'weirSideLength': schunk[8],
+                        'orificeDiameter': schunk[9]}
+                
+                result['nodes'].append(node)
+            
             elif card == 'PIPE':
-                pass
+                # PIPE handler
+                pipe = {'pipeNumber': schunk[1],
+                        'xSecType': schunk[2],
+                        'diameterOrHeight': schunk[3],
+                        'width': schunk[4],
+                        'slope': schunk[5],
+                        'roughness': schunk[6],
+                        'length': schunk[7],
+                        'conductance': schunk[8],
+                        'drainSpacing': schunk[9]}
+                
+                result['pipes'].append(pipe)
+            
+    return result
     
     
