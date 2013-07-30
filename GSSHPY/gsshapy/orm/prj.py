@@ -45,6 +45,8 @@ class ProjectFile(DeclarativeBase):
     channelInputFileID = Column(Integer, ForeignKey('cif_channel_input_files.id'))
     stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id'))
     hmetFileID = Column(Integer, ForeignKey('hmet_files.id'))
+    nwsrfsFileID = Column(Integer, ForeignKey('snw_nwsrfs_files.id'))
+    orthoGageFileID = Column(Integer, ForeignKey('snw_orthographic_gage_files.id'))
     
     # Value Columns
     name = Column(String, nullable=False)
@@ -56,6 +58,8 @@ class ProjectFile(DeclarativeBase):
     precipFile = relationship('PrecipFile', back_populates='projectFile')
     stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='projectFile')
     hmetFile = relationship('HmetFile', back_populates='projectFile')
+    nwsrfsFile = relationship('NwsrfsFile', back_populates='projectFile')
+    orthoGageFile = relationship('OrthographicGageFile', back_populates='projectFile')
     
     # Global Properties
     PATH = None
@@ -83,8 +87,8 @@ class ProjectFile(DeclarativeBase):
                    'HMET_SURFAWAYS':            {'filename': None, 'read': None, 'write': None},
                    'HMET_SAMSON':               {'filename': None, 'read': None, 'write': None},
                    'HMET_WES':                  {'filename': None, 'read': ifr.readHmetWesFile, 'write': ifw.writeHmetFile},
-                   'NWSRFS_ELEV_SNOW':          {'filename': None, 'read': None, 'write': None},
-                   'HMET_OROG_GAGES':           {'filename': None, 'read': None, 'write': None},
+                   'NWSRFS_ELEV_SNOW':          {'filename': None, 'read': ifr.readNwsrfsFile, 'write': ifw.writeNwsrfsFile},
+                   'HMET_OROG_GAGES':           {'filename': None, 'read': ifr.readOrthoGageFile, 'write': ifw.writeOrthoGageFile},
                    'HMET_ASCII':                {'filename': None, 'read': None, 'write': None},
                    'GW_FLUXBOUNDTABLE':         {'filename': None, 'read': None, 'write': None},
                    'STORM_SEWER':               {'filename': None, 'read': ifr.readPipeNetworkFile, 'write': ifw.writePipeNetworkFile},

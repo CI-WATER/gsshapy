@@ -12,6 +12,14 @@ from gsshapy.orm.gag import PrecipFile
 from gsshapy.orm.cif import ChannelInputFile
 from gsshapy.orm.spn import StormPipeNetworkFile
 from gsshapy.orm.hmet import HmetFile
+from gsshapy.orm.snw import NwsrfsFile, OrthographicGageFile
+
+## TODO: Write a generic method that can be used to read files similar to this:
+def readGeneric(projectFile, fileIO, filename):
+    instance = fileIO(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
+    instance.projectFile = projectFile
+    instance.read()
+    
 
 def readMappingTableFile(projectFile, filename):
     '''
@@ -60,4 +68,20 @@ def readHmetWesFile(projectFile, filename):
     hmet = HmetFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     hmet.projectFile = projectFile
     hmet.readWES()
-    print 'HMET_WES File Read'
+    print 'HMET WES File Read'
+    
+def readNwsrfsFile(projectFile, filename):
+    '''
+    Initiate Read NWSRFS File Method
+    '''
+    nwsrfs = NwsrfsFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
+    nwsrfs.projectFile = projectFile
+    nwsrfs.read()
+    print 'NWSRFS File Read'
+    
+def readOrthoGageFile(projectFile, filename):
+    orthoGage = OrthographicGageFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
+    orthoGage.projectFile = projectFile
+    orthoGage.read()
+    print 'Orthographic Gage File Read'
+                   

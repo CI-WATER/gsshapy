@@ -9,26 +9,50 @@
 '''
 
 def writeMappingTableFile(projectFile, session, directory, filePrefix):
-    # Write map table file
+    '''
+    Initiate Write Mapping Table File Method
+    '''
     mapTableFile = projectFile.mapTableFile
     mapTableFile.write(session=session, directory=directory, filePrefix=filePrefix)
 
 def writeChannelInputFile(projectFile, session, directory, filePrefix):    
-    # Write channel input file
+    '''
+    Initiate Write Channel Input File Method
+    '''
     channelInputFile = projectFile.channelInputFile
     channelInputFile.write(session=session, directory=directory, filePrefix=filePrefix)
 
 def writePrecipitationFile(projectFile, session, directory, filePrefix):   
-    # Write precipitation file
+    '''
+    Initiate Write Precipitation File Method
+    '''
     precipFile = projectFile.precipFile
     precipFile.write(session=session, directory=directory, filePrefix=filePrefix)
 
 def writePipeNetworkFile(projectFile, session, directory, filePrefix):   
-    # Write pipe network
+    '''
+    Initiate Write Storm Pipe Network File Method
+    '''
     pipeFile = projectFile.stormPipeNetworkFile
     pipeFile.write(session=session, directory=directory, filePrefix=filePrefix)
     
 def writeHmetFile(projectFile, session, directory, filePrefix):
-    # Write hmet file
+    '''
+    Initiate Write HMET File Method
+    '''
     hmetFile = projectFile.hmetFile
     hmetFile.writeWES(session=session, directory=directory, filePrefix=filePrefix)
+    
+def writeNwsrfsFile(projectFile, session, directory, filePrefix):
+    '''
+    Initiate Write NWSRFS File Method
+    '''
+    nwsrfsFile = projectFile.nwsrfsFile
+    nwsrfsFile.write(session=session, directory=directory, filePrefix=filePrefix)
+    
+def writeOrthoGageFile(projectFile, session, directory, filePrefix):
+    '''
+    Initiate Write Orthographic Gage File Method
+    '''
+    orthoGageFile = projectFile.orthoGageFile
+    orthoGageFile.write(session=session, directory=directory, filePrefix=filePrefix)

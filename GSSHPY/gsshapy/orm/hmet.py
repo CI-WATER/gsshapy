@@ -82,7 +82,6 @@ class HmetFile(DeclarativeBase):
         Write HMET_WES to File Method
         '''
         # NOTE: For HMET_WES Files, the filePrefix is the entire filename
-        
         # Initiate hmet wes file
         fullPath = '%s%s' % (directory, filePrefix)
         
