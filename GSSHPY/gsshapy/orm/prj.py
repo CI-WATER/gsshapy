@@ -47,6 +47,7 @@ class ProjectFile(DeclarativeBase):
     hmetFileID = Column(Integer, ForeignKey('hmet_files.id'))
     nwsrfsFileID = Column(Integer, ForeignKey('snw_nwsrfs_files.id'))
     orthoGageFileID = Column(Integer, ForeignKey('snw_orthographic_gage_files.id'))
+    gridPipeFileID = Column(Integer, ForeignKey('gpi_grid_pipe_files.id'))
     
     # Value Columns
     name = Column(String, nullable=False)
@@ -60,6 +61,7 @@ class ProjectFile(DeclarativeBase):
     hmetFile = relationship('HmetFile', back_populates='projectFile')
     nwsrfsFile = relationship('NwsrfsFile', back_populates='projectFile')
     orthoGageFile = relationship('OrthographicGageFile', back_populates='projectFile')
+    gridPipeFile = relationship('GridPipeFile', back_populates='projectFile')
     
     # Global Properties
     PATH = None
@@ -92,7 +94,7 @@ class ProjectFile(DeclarativeBase):
                    'HMET_ASCII':                {'filename': None, 'read': None, 'write': None},
                    'GW_FLUXBOUNDTABLE':         {'filename': None, 'read': None, 'write': None},
                    'STORM_SEWER':               {'filename': None, 'read': ifr.readPipeNetworkFile, 'write': ifw.writePipeNetworkFile},
-                   'GRID_PIPE':                 {'filename': None, 'read': None, 'write': None},
+                   'GRID_PIPE':                 {'filename': None, 'read': ifr.readGridPipeFile, 'write': ifw.writeGridPipeFile},
                    'SUPER_LINK_JUNC_LOCATION':  {'filename': None, 'read': None, 'write': None},
                    'SUPERLINK_NODE_LOCATION':   {'filename': None, 'read': None, 'write': None},
                    'OVERLAND_DEPTH_LOCATION':   {'filename': None, 'read': None, 'write': None},

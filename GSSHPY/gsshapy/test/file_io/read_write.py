@@ -21,17 +21,17 @@ DBSession2 = maker()
 project = ProjectFile(path='/Users/swainn/testing/LongTerm2/LongTerm2.prj', session=DBSession)
 
 # Invoke read command on Project File Object
-# project.readAll()
+project.readAll()
 # project.readInput()
         
-# Commit outside for now
+# # Commit outside for now
 # DBSession.commit()
 # print 'SUCCESS: Project Read to Database'
  
-# Query Database to Retrieve Project File
-project1 = DBSession2.query(ProjectFile).filter(ProjectFile.id == 1).one()
-         
-# Invoke write command on Project File Query Object
-project1.writeAll(session=DBSession2, directory='/Users/swainn/testing/LongTerm2w/', newName='longterm2')
-print 'SUCCESS: Project Written to File'
+# # Query Database to Retrieve Project File
+# project1 = DBSession2.query(ProjectFile).filter(ProjectFile.id == 1).one()
+#           
+# # Invoke write command on Project File Query Object
+# project1.writeAll(session=DBSession2, directory='/Users/swainn/testing/LongTerm2w/', newName='longterm2')
+# print 'SUCCESS: Project Written to File'
 

@@ -56,3 +56,10 @@ def writeOrthoGageFile(projectFile, session, directory, filePrefix):
     '''
     orthoGageFile = projectFile.orthoGageFile
     orthoGageFile.write(session=session, directory=directory, filePrefix=filePrefix)
+    
+def writeGridPipeFile(projectFile, session, directory, filePrefix):
+    '''
+    Initiate Write Grid Pipe File Method
+    '''
+    gridPipeFile = projectFile.gridPipeFile
+    gridPipeFile.write(session=session, directory=directory, filePrefix=filePrefix)

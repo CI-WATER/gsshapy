@@ -272,7 +272,6 @@ class SuperLink(DeclarativeBase):
     stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='superLinks')
     superNodes = relationship('SuperNode', back_populates='superLink')
     pipes = relationship('Pipe', back_populates='superLink')
-    pipeGridCells = relationship('PipeGridCell', back_populates='superLink')
     
     def __init__(self, slinkNumber, numPipes):
         '''
