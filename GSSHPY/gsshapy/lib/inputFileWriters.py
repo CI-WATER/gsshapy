@@ -63,3 +63,10 @@ def writeGridPipeFile(projectFile, session, directory, filePrefix):
     '''
     gridPipeFile = projectFile.gridPipeFile
     gridPipeFile.write(session=session, directory=directory, filePrefix=filePrefix)
+    
+def writeGridStreamFile(projectFile, session, directory, filePrefix):
+    '''
+    Initiate Write Grid Stream File Method
+    '''
+    gridStreamFile = projectFile.gridStreamFile
+    gridStreamFile.write(session=session, directory=directory, filePrefix=filePrefix)

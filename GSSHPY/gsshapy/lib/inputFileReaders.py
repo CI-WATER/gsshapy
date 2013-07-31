@@ -95,7 +95,7 @@ def readGridPipeFile(projectFile, filename):
     
 def readGridStreamFile(projectFile, filename):
     gridStreamFile = GridStreamFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
-    gridStreamFile.porjectFile = projectFile
+    gridStreamFile.projectFile = projectFile
     gridStreamFile.read()
     print 'Grid Stream File Read'
                    

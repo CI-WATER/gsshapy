@@ -77,7 +77,7 @@ class ProjectFile(DeclarativeBase):
                    'ST_MAPPING_TABLE':          {'filename': None, 'read': None, 'write': None},
                    'PRECIP_FILE':               {'filename': None, 'read': ifr.readPrecipitationFile, 'write': ifw.writePrecipitationFile},
                    'CHANNEL_INPUT':             {'filename': None, 'read': ifr.readChannelInputFile, 'write': ifw.writeChannelInputFile},
-                   'STREAM_CELL':               {'filename': None, 'read': ifr.readGridStreamFile, 'write': None},
+                   'STREAM_CELL':               {'filename': None, 'read': ifr.readGridStreamFile, 'write': ifw.writeGridStreamFile},
                    'SECTION_TABLE':             {'filename': None, 'read': None, 'write': None},
                    'SOIL_LAYER_INPUT_FILE':     {'filename': None, 'read': None, 'write': None},
                    'IN_THETA_LOCATION':         {'filename': None, 'read': None, 'write': None},

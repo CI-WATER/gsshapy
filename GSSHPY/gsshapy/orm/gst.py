@@ -91,18 +91,18 @@ class GridStreamFile(DeclarativeBase):
         fullPath = '%s%s.%s' % (directory, filePrefix, self.EXTENSION)
         
         with open(fullPath, 'w') as gpiFile:
-            gpiFile.write('GRIDPIPEFILE\n')
-            gpiFile.write('PIPECELLS %s\n' % self.pipeCells)
+            gpiFile.write('GRIDSTREAMFILE\n')
+            gpiFile.write('STREAMCELLS %s\n' % self.streamCells)
             
-            for cell in self.pipeGridCells:
+            for cell in self.gridStreamCells:
                 gpiFile.write('CELLIJ    %s  %s\n' % (cell.cellI, cell.cellJ))
-                gpiFile.write('NUMPIPES  %s\n' % cell.numPipes)
+                gpiFile.write('NUMNODES  %s\n' % cell.numNodes)
                 
-                for node in cell.pipeGridNodes:
-                    gpiFile.write('SPIPE     %s  %s  %.6f\n' % (
+                for node in cell.gridStreamNodes:
+                    gpiFile.write('LINKNODE  %s  %s  %.6f\n' % (
                                   node.linkNumber,
                                   node.nodeNumber,
-                                  node.fractPipeLength))
+                                  node.nodePercentGrid))
                     
     def _createGsshaPyObjects(self, cell):
         '''
@@ -156,7 +156,7 @@ class GridStreamFile(DeclarativeBase):
                 
                 elif card == 'NUMNODES':
                     # NUMPIPES handler
-                    result['numPipes'] = schunk[1]
+                    result['numNodes'] = schunk[1]
                 
                 elif card == 'LINKNODE':
                     # SPIPE handler
