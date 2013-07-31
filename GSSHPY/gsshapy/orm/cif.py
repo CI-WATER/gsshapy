@@ -627,7 +627,6 @@ class StreamLink(DeclarativeBase):
     reservoir = relationship('Reservoir', uselist=False, back_populates='streamLink')
     breakpointCS = relationship('BreakpointCS', uselist=False, back_populates='streamLink')
     trapezoidalCS = relationship('TrapezoidalCS', uselist=False, back_populates='streamLink')
-    streamGridCells = relationship('StreamGridCell', back_populates='streamLink')
     
     def __init__(self, linkNumber, type, numElements, dx=None, erode=False, subsurface=False):
         '''

@@ -7,12 +7,11 @@
 * License: BSD 2-Clause
 ********************************************************************************
 '''
+from gsshapy.lib import parsetools as pt
 
-import os, sys
-from datetime import datetime
-
-__all__ = ['StreamGridCell',
-           'StreamGridNode']
+__all__ = ['GridStreamFile',
+           'GridStreamCell',
+           'GridStreamNode']
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float
@@ -20,17 +19,165 @@ from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
 
-
-    
-class StreamGridCell(DeclarativeBase):
+class GridStreamFile(DeclarativeBase):
     '''
     classdocs
     '''
-    __tablename__ = 'gst_stream_grid_cells'
+    __tablename__ = 'gst_grid_stream_files'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    linkID = Column(Integer, ForeignKey('cif_links.id'))
+    
+    # Relationship Properties
+    gridStreamCells = relationship('GridStreamCell', back_populates='gridStreamFile')
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='gridStreamFile')
+    
+    # Value Columns
+    streamCells = Column(Integer, nullable=False)
+    
+    # Global Properties
+    PATH = ''
+    FILENAME = ''
+    DIRECTORY = ''
+    SESSION = None
+    EXTENSION = 'gst'
+    
+    
+    def __init__(self, directory, filename, session):
+        '''
+        Constructor
+        '''
+        self.FILENAME = filename
+        self.DIRECTORY = directory
+        self.SESSION = session
+        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME)
+        
+    def read(self):
+        '''
+        Grid Stream File Read from File Method
+        '''
+        # Keywords
+        KEYWORDS = ('STREAMCELLS',
+                    'CELLIJ')
+        
+        # Parse file into chunks associated with keywords/cards
+        with open(self.PATH, 'r') as f:
+            chunks = pt.chunk(KEYWORDS, f)
+        
+        # Parse chunks associated with each key    
+        for key, chunkList in chunks.iteritems():
+            # Parse each chunk in the chunk list
+            for chunk in chunkList:
+
+                # Cases
+                if key == 'STREAMCELLS':
+                    # PIPECELLS Handler
+                    schunk = chunk[0].strip().split()
+                    self.streamCells = schunk[1]
+                
+                elif key == 'CELLIJ':
+                    # CELLIJ Handler
+                    # Parse CELLIJ Chunk
+                    result = self._cellChunk(chunk)
+                    
+                    # Create GSSHAPY object
+                    self._createGsshaPyObjects(result)
+
+        
+    def write(self, directory, session, filePrefix):
+        '''
+        Grid Stream File Write to File Method
+        '''
+        fullPath = '%s%s.%s' % (directory, filePrefix, self.EXTENSION)
+        
+        with open(fullPath, 'w') as gpiFile:
+            gpiFile.write('GRIDPIPEFILE\n')
+            gpiFile.write('PIPECELLS %s\n' % self.pipeCells)
+            
+            for cell in self.pipeGridCells:
+                gpiFile.write('CELLIJ    %s  %s\n' % (cell.cellI, cell.cellJ))
+                gpiFile.write('NUMPIPES  %s\n' % cell.numPipes)
+                
+                for node in cell.pipeGridNodes:
+                    gpiFile.write('SPIPE     %s  %s  %.6f\n' % (
+                                  node.linkNumber,
+                                  node.nodeNumber,
+                                  node.fractPipeLength))
+                    
+    def _createGsshaPyObjects(self, cell):
+        '''
+        Create GSSHAPY PipeGridCell and PipeGridNode Objects Method
+        '''
+        # Intialize GSSHAPY PipeGridCell object
+        gridCell = GridStreamCell(cellI=cell['i'],
+                                  cellJ=cell['j'],
+                                  numNodes=cell['numNodes'])
+        
+        # Associate GridStreamCell with GridStreamFile
+        gridCell.gridStreamFile = self
+        
+        for linkNode in cell['linkNodes']:
+            # Create GSSHAPY GridStreamNode object
+            gridNode = GridStreamNode(linkNumber=linkNode['linkNumber'],
+                                      nodeNumber=linkNode['nodeNumber'],
+                                      nodePercentGrid=linkNode['percent'])
+            
+            # Associate GridStreamNode with GridStreamCell
+            gridNode.gridStreamCell = gridCell
+        
+        
+        
+    def _cellChunk(self, lines):
+        '''
+        Parse CELLIJ Chunk Method
+        '''
+        KEYWORDS = ('CELLIJ',
+                    'NUMNODES',
+                    'LINKNODE')
+    
+        result = {'i': None,
+                  'j': None,
+                  'numNodes': None,
+                  'linkNodes': []}
+        
+        chunks = pt.chunk(KEYWORDS, lines)
+        
+        # Parse chunks associated with each key    
+        for card, chunkList in chunks.iteritems():
+            # Parse each chunk in the chunk list
+            for chunk in chunkList:
+                schunk = chunk[0].strip().split()
+                
+                # Cases
+                if card == 'CELLIJ':
+                    # CELLIJ handler
+                    result['i'] = schunk[1]
+                    result['j'] = schunk[2]
+                
+                elif card == 'NUMNODES':
+                    # NUMPIPES handler
+                    result['numPipes'] = schunk[1]
+                
+                elif card == 'LINKNODE':
+                    # SPIPE handler
+                    pipe = {'linkNumber': schunk[1],
+                            'nodeNumber': schunk[2],
+                            'percent': schunk[3]}
+                    
+                    result['linkNodes'].append(pipe)
+        
+        return result
+    
+
+class GridStreamCell(DeclarativeBase):
+    '''
+    classdocs
+    '''
+    __tablename__ = 'gst_grid_stream_cells'
+    
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    gridStreamFileID = Column(Integer, ForeignKey('gst_grid_stream_files.id'))
     
     # Value Columns
     cellI = Column(Integer, nullable=False)
@@ -38,8 +185,8 @@ class StreamGridCell(DeclarativeBase):
     numNodes = Column(Integer, nullable=False)
     
     # Relationship Properties
-    streamLink = relationship('StreamLink', back_populates='streamGridCells')
-    streamGridNodes = relationship('StreamGridNode', back_populates='streamGridCell')
+    gridStreamFile = relationship('GridStreamFile', back_populates='gridStreamCells')
+    gridStreamNodes = relationship('GridStreamNode', back_populates='gridStreamCell')
     
     def __init__(self, cellI, cellJ, numNodes):
         '''
@@ -50,31 +197,33 @@ class StreamGridCell(DeclarativeBase):
         self.numNodes = numNodes
 
     def __repr__(self):
-        return '<StreamGridCell: CellI=%s, CellJ=%s, NumNodes=%s>' % (self.cellI, self.cellJ, self.numNodes)
+        return '<GridStreamCell: CellI=%s, CellJ=%s, NumNodes=%s>' % (self.cellI, self.cellJ, self.numNodes)
     
-class StreamGridNode(DeclarativeBase):
+class GridStreamNode(DeclarativeBase):
     '''
     classdocs
     '''
-    __tablename__ = 'gst_stream_grid_nodes'
+    __tablename__ = 'gst_grid_stream_nodes'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    streamGridCellID = Column(Integer, ForeignKey('gst_stream_grid_cells.id'))
+    gridStreamCellID = Column(Integer, ForeignKey('gst_grid_stream_cells.id'))
     
     # Value Columns
-    linkNode = Column(Integer, nullable=False)
+    linkNumber = Column(Integer, nullable=False)
+    nodeNumber = Column(Integer, nullable=False)
     nodePercentGrid = Column(Float, nullable=False)
     
     # Relationship Properties
-    streamGridCell = relationship('StreamGridCell', back_populates='streamGridNodes')
+    gridStreamCell = relationship('GridStreamCell', back_populates='gridStreamNodes')
     
-    def __init__(self, linkNode, nodePercentGrid):
+    def __init__(self, linkNumber, nodeNumber, nodePercentGrid):
         '''
         Constructor
         '''
-        self.linkNode = linkNode
+        self.linkNumber = linkNumber
+        self.nodeNumber = nodeNumber
         self.nodePercentGrid = nodePercentGrid
 
     def __repr__(self):
-        return '<StreamGridNode: LinkNode=%s, NodePercentGrid=%s>' % (self.linkNode, self.nodePercentGrid)
+        return '<GridStreamNode: LinkNumber=%s, NodeNumber=%s, NodePercentGrid=%s>' % (self.linkNumber, self.nodeNumber, self.nodePercentGrid)

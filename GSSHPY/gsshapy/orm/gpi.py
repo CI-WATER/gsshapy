@@ -8,10 +8,7 @@
 ********************************************************************************
 '''
 
-import os, sys
-from datetime import datetime
-
-__all__ = ['PipeGridCell',
+__all__ = ['GridPipeCell',
            'GridPipeFile']
 
 from sqlalchemy import ForeignKey, Column
@@ -32,7 +29,7 @@ class GridPipeFile(DeclarativeBase):
     id = Column(Integer, autoincrement=True, primary_key=True)
     
     # Relationship Properties
-    pipeGridCells = relationship('PipeGridCell', back_populates='gridPipeFile')
+    gridPipeCells = relationship('GridPipeCell', back_populates='gridPipeFile')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='gridPipeFile')
     
     # Value Columns
@@ -84,7 +81,7 @@ class GridPipeFile(DeclarativeBase):
                     result = self._cellChunk(chunk)
                     
                     # Create GSSHAPY object
-                    self._createCellObject(result)
+                    self._createGsshaPyObjects(result)
 
         
     def write(self, directory, session, filePrefix):
@@ -97,36 +94,36 @@ class GridPipeFile(DeclarativeBase):
             gpiFile.write('GRIDPIPEFILE\n')
             gpiFile.write('PIPECELLS %s\n' % self.pipeCells)
             
-            for cell in self.pipeGridCells:
+            for cell in self.gridPipeCells:
                 gpiFile.write('CELLIJ    %s  %s\n' % (cell.cellI, cell.cellJ))
                 gpiFile.write('NUMPIPES  %s\n' % cell.numPipes)
                 
-                for node in cell.pipeGridNodes:
+                for node in cell.gridPipeNodes:
                     gpiFile.write('SPIPE     %s  %s  %.6f\n' % (
                                   node.linkNumber,
                                   node.nodeNumber,
                                   node.fractPipeLength))
         
-    def _createCellObject(self, cell):
+    def _createGsshaPyObjects(self, cell):
         '''
-        Create GSSHAPY PipeGridCell and PipeGridNode Objects Method
+        Create GSSHAPY GridPipeCell and GridPipeNode Objects Method
         '''
-        # Intialize GSSHAPY PipeGridCell object
-        gridCell = PipeGridCell(cellI=cell['i'],
+        # Intialize GSSHAPY GridPipeCell object
+        gridCell = GridPipeCell(cellI=cell['i'],
                             cellJ=cell['j'],
                             numPipes=cell['numPipes'])
         
-        # Associate PipeGridCell with GridPipeFile
+        # Associate GridPipeCell with GridPipeFile
         gridCell.gridPipeFile = self
         
         for spipe in cell['spipes']:
-            # Create GSSHAPY PipeGridNode object
-            gridNode = PipeGridNode(linkNumber=spipe['linkNumber'],
+            # Create GSSHAPY GridPipeNode object
+            gridNode = GridPipeNode(linkNumber=spipe['linkNumber'],
                                     nodeNumber=spipe['nodeNumber'],
                                     fractPipeLength=spipe['fraction'])
             
-            # Associate PipeGridNode with PipeGridCell
-            gridNode.pipeGridCell = gridCell
+            # Associate GridPipeNode with GridPipeCell
+            gridNode.gridPipeCell = gridCell
         
         
         
@@ -172,11 +169,11 @@ class GridPipeFile(DeclarativeBase):
         return result
                 
                 
-class PipeGridCell(DeclarativeBase):
+class GridPipeCell(DeclarativeBase):
     '''
     classdocs
     '''
-    __tablename__ = 'gpi_pipe_grid_cells'
+    __tablename__ = 'gpi_grid_pipe_cells'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
@@ -189,8 +186,8 @@ class PipeGridCell(DeclarativeBase):
     
     
     # Relationship Properties
-    gridPipeFile = relationship('GridPipeFile', back_populates='pipeGridCells')
-    pipeGridNodes = relationship('PipeGridNode', back_populates='pipeGridCell')
+    gridPipeFile = relationship('GridPipeFile', back_populates='gridPipeCells')
+    gridPipeNodes = relationship('GridPipeNode', back_populates='gridPipeCell')
     
     def __init__(self, cellI, cellJ, numPipes):
         '''
@@ -202,20 +199,20 @@ class PipeGridCell(DeclarativeBase):
         
 
     def __repr__(self):
-        return '<PipeGridCell: CellI=%s, CellJ=%s, NumPipes=%s>' % (
+        return '<GridPipeCell: CellI=%s, CellJ=%s, NumPipes=%s>' % (
                 self.cellI, 
                 self.cellJ, 
                 self.numPipes)
         
-class PipeGridNode(DeclarativeBase):
+class GridPipeNode(DeclarativeBase):
     '''
     classdocs
     '''
-    __tablename__ = 'gpi_pipe_grid_nodes'
+    __tablename__ = 'gpi_grid_pipe_nodes'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    pipeGridCellID = Column(Integer, ForeignKey('gpi_pipe_grid_cells.id'))
+    gridPipeCellID = Column(Integer, ForeignKey('gpi_grid_pipe_cells.id'))
     
     # Value Columns
     linkNumber = Column(Integer, nullable=False)
@@ -223,7 +220,7 @@ class PipeGridNode(DeclarativeBase):
     fractPipeLength = Column(Float, nullable=False)
     
     # Relationship Properties
-    pipeGridCell = relationship('PipeGridCell', back_populates='pipeGridNodes')
+    gridPipeCell = relationship('GridPipeCell', back_populates='gridPipeNodes')
     
     def __init__(self, linkNumber, nodeNumber, fractPipeLength):
         '''
@@ -234,7 +231,7 @@ class PipeGridNode(DeclarativeBase):
         self.fractPipeLength = fractPipeLength
 
     def __repr__(self):
-        return '<PipeGridNode: LinkNumber=%s, NodeNumber=%s, FractPipeLength=%s>' % (
+        return '<GridPipeNode: LinkNumber=%s, NodeNumber=%s, FractPipeLength=%s>' % (
                 self.linkNumber,
                 self.nodeNumber,
                 self.fractPipeLength)

@@ -48,6 +48,7 @@ class ProjectFile(DeclarativeBase):
     nwsrfsFileID = Column(Integer, ForeignKey('snw_nwsrfs_files.id'))
     orthoGageFileID = Column(Integer, ForeignKey('snw_orthographic_gage_files.id'))
     gridPipeFileID = Column(Integer, ForeignKey('gpi_grid_pipe_files.id'))
+    gridStreamFileID = Column(Integer, ForeignKey('gst_grid_stream_files.id'))
     
     # Value Columns
     name = Column(String, nullable=False)
@@ -62,6 +63,7 @@ class ProjectFile(DeclarativeBase):
     nwsrfsFile = relationship('NwsrfsFile', back_populates='projectFile')
     orthoGageFile = relationship('OrthographicGageFile', back_populates='projectFile')
     gridPipeFile = relationship('GridPipeFile', back_populates='projectFile')
+    gridStreamFile = relationship('GridStreamFile', back_populates='projectFile')
     
     # Global Properties
     PATH = None
@@ -75,7 +77,7 @@ class ProjectFile(DeclarativeBase):
                    'ST_MAPPING_TABLE':          {'filename': None, 'read': None, 'write': None},
                    'PRECIP_FILE':               {'filename': None, 'read': ifr.readPrecipitationFile, 'write': ifw.writePrecipitationFile},
                    'CHANNEL_INPUT':             {'filename': None, 'read': ifr.readChannelInputFile, 'write': ifw.writeChannelInputFile},
-                   'STREAM_CELL':               {'filename': None, 'read': None, 'write': None},
+                   'STREAM_CELL':               {'filename': None, 'read': ifr.readGridStreamFile, 'write': None},
                    'SECTION_TABLE':             {'filename': None, 'read': None, 'write': None},
                    'SOIL_LAYER_INPUT_FILE':     {'filename': None, 'read': None, 'write': None},
                    'IN_THETA_LOCATION':         {'filename': None, 'read': None, 'write': None},

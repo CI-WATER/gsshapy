@@ -14,6 +14,7 @@ from gsshapy.orm.spn import StormPipeNetworkFile
 from gsshapy.orm.hmet import HmetFile
 from gsshapy.orm.snw import NwsrfsFile, OrthographicGageFile
 from gsshapy.orm.gpi import GridPipeFile
+from gsshapy.orm.gst import GridStreamFile
 
 ## TODO: Write a generic method that can be used to read files similar to this:
 def readGeneric(projectFile, fileIO, filename):
@@ -91,4 +92,10 @@ def readGridPipeFile(projectFile, filename):
     gridPipeFile.projectFile = projectFile
     gridPipeFile.read()
     print 'Grid Pipe File Read'
+    
+def readGridStreamFile(projectFile, filename):
+    gridStreamFile = GridStreamFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
+    gridStreamFile.porjectFile = projectFile
+    gridStreamFile.read()
+    print 'Grid Stream File Read'
                    
