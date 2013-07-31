@@ -23,7 +23,7 @@ from gsshapy.orm.cmt import MapTableFile
 from gsshapy.orm.cif import ChannelInputFile
 from gsshapy.orm.spn import StormPipeNetworkFile
 
-from gsshapy.lib import inputFileReaders as ifr, inputFileWriters as ifw
+from gsshapy.lib import io_readers as ior, io_writers as iow
 
 
 
@@ -55,6 +55,8 @@ class ProjectFile(DeclarativeBase):
     
     # Relationship Properties
     projectCards = relationship('ProjectCard', secondary=assocProject, back_populates='projectFiles')
+    
+    # File Relationship Properties
     mapTableFile = relationship('MapTableFile', back_populates='projectFile')
     channelInputFile = relationship('ChannelInputFile', back_populates='projectFile')
     precipFile = relationship('PrecipFile', back_populates='projectFile')
@@ -64,6 +66,7 @@ class ProjectFile(DeclarativeBase):
     orthoGageFile = relationship('OrthographicGageFile', back_populates='projectFile')
     gridPipeFile = relationship('GridPipeFile', back_populates='projectFile')
     gridStreamFile = relationship('GridStreamFile', back_populates='projectFile')
+    timeSeriesFiles = relationship('TimeSeriesFile', back_populates='projectFile')
     
     # Global Properties
     PATH = None
@@ -73,11 +76,11 @@ class ProjectFile(DeclarativeBase):
     EXTENSION = 'prj'
     
     # File Properties
-    INPUT_FILES = {'MAPPING_TABLE':             {'filename': None, 'read': ifr.readMappingTableFile, 'write': ifw.writeMappingTableFile},
+    INPUT_FILES = {'MAPPING_TABLE':             {'filename': None, 'read': ior.readMappingTableFile, 'write': iow.writeMappingTableFile},
                    'ST_MAPPING_TABLE':          {'filename': None, 'read': None, 'write': None},
-                   'PRECIP_FILE':               {'filename': None, 'read': ifr.readPrecipitationFile, 'write': ifw.writePrecipitationFile},
-                   'CHANNEL_INPUT':             {'filename': None, 'read': ifr.readChannelInputFile, 'write': ifw.writeChannelInputFile},
-                   'STREAM_CELL':               {'filename': None, 'read': ifr.readGridStreamFile, 'write': ifw.writeGridStreamFile},
+                   'PRECIP_FILE':               {'filename': None, 'read': ior.readPrecipitationFile, 'write': iow.writePrecipitationFile},
+                   'CHANNEL_INPUT':             {'filename': None, 'read': ior.readChannelInputFile, 'write': iow.writeChannelInputFile},
+                   'STREAM_CELL':               {'filename': None, 'read': ior.readGridStreamFile, 'write': iow.writeGridStreamFile},
                    'SECTION_TABLE':             {'filename': None, 'read': None, 'write': None},
                    'SOIL_LAYER_INPUT_FILE':     {'filename': None, 'read': None, 'write': None},
                    'IN_THETA_LOCATION':         {'filename': None, 'read': None, 'write': None},
@@ -90,13 +93,13 @@ class ProjectFile(DeclarativeBase):
                    'IN_GWFLUX_LOCATION':        {'filename': None, 'read': None, 'write': None},
                    'HMET_SURFAWAYS':            {'filename': None, 'read': None, 'write': None},
                    'HMET_SAMSON':               {'filename': None, 'read': None, 'write': None},
-                   'HMET_WES':                  {'filename': None, 'read': ifr.readHmetWesFile, 'write': ifw.writeHmetFile},
-                   'NWSRFS_ELEV_SNOW':          {'filename': None, 'read': ifr.readNwsrfsFile, 'write': ifw.writeNwsrfsFile},
-                   'HMET_OROG_GAGES':           {'filename': None, 'read': ifr.readOrthoGageFile, 'write': ifw.writeOrthoGageFile},
+                   'HMET_WES':                  {'filename': None, 'read': ior.readHmetWesFile, 'write': iow.writeHmetFile},
+                   'NWSRFS_ELEV_SNOW':          {'filename': None, 'read': ior.readNwsrfsFile, 'write': iow.writeNwsrfsFile},
+                   'HMET_OROG_GAGES':           {'filename': None, 'read': ior.readOrthoGageFile, 'write': iow.writeOrthoGageFile},
                    'HMET_ASCII':                {'filename': None, 'read': None, 'write': None},
                    'GW_FLUXBOUNDTABLE':         {'filename': None, 'read': None, 'write': None},
-                   'STORM_SEWER':               {'filename': None, 'read': ifr.readPipeNetworkFile, 'write': ifw.writePipeNetworkFile},
-                   'GRID_PIPE':                 {'filename': None, 'read': ifr.readGridPipeFile, 'write': ifw.writeGridPipeFile},
+                   'STORM_SEWER':               {'filename': None, 'read': ior.readPipeNetworkFile, 'write': iow.writePipeNetworkFile},
+                   'GRID_PIPE':                 {'filename': None, 'read': ior.readGridPipeFile, 'write': iow.writeGridPipeFile},
                    'SUPER_LINK_JUNC_LOCATION':  {'filename': None, 'read': None, 'write': None},
                    'SUPERLINK_NODE_LOCATION':   {'filename': None, 'read': None, 'write': None},
                    'OVERLAND_DEPTH_LOCATION':   {'filename': None, 'read': None, 'write': None},
@@ -137,35 +140,35 @@ class ProjectFile(DeclarativeBase):
                   'GW_HYCOND_MAP': None,
                   'CONTAM_MAP': None}
     
-    OUTPUT_FILES = {'SUMMARY': {'filename': None, 'read': None},
-                    'OUTLET_HYDRO': {'filename': None, 'read': None},
-                    'EXPLIC_BACKWATER': {'filename': None, 'read': None},
-                    'WRITE_CHAN_HOTSTART': {'filename': None, 'read': None},
-                    'OUT_HYD_LOCATION': {'filename': None, 'read': None},
-                    'OUT_DEP_LOCATION': {'filename': None, 'read': None},
-                    'OUT_SED_LOC': {'filename': None, 'read': None},
-                    'OUT_GWFULX_LOCATION': {'filename': None, 'read': None},
-                    'OUT_THETA_LOCATION': {'filename': None, 'read': None},
-                    'CHAN_DEPTH': {'filename': None, 'read': None},
-                    'CHAN_STAGE': {'filename': None, 'read': None},
-                    'CHAN_DISCHARGE': {'filename': None, 'read': None},
-                    'CHAN_VELOCITY': {'filename': None, 'read': None},
-                    'LAKE_OUTPUT': {'filename': None, 'read': None},
-                    'SNOW_SWE_FILE': {'filename': None, 'read': None},
-                    'GW_WELL_LEVEL': {'filename': None, 'read': None},
-                    'OUTLET_SED_FLUX': {'filename': None, 'read': None},
-                    'ADJUST_ELEV': {'filename': None, 'read': None},
-                    'OUTLET_SED_TSS': {'filename': None, 'read': None},
-                    'OUT_TSS_LOC': {'filename': None, 'read': None},
-                    'NET_SED_VOLUME': {'filename': None, 'read': None},
-                    'VOL_SED_SUSP': {'filename': None, 'read': None},
-                    'OUT_CON_LOCATION': {'filename': None, 'read': None},
-                    'OUT_MASS_LOCATION': {'filename': None, 'read': None},
-                    'SUPERLINK_JUNC_FLOW': {'filename': None, 'read': None},
-                    'SUPERLINK_NODE_FLOW': {'filename': None, 'read': None},
-                    'OVERLAND_DEPTHS': {'filename': None, 'read': None},
-                    'OVERLAND_WSE': {'filename': None, 'read': None},
-                    'OPTIMIZE': {'filename': None, 'read': None}}
+    OUTPUT_FILES = {'SUMMARY':              {'filename': None, 'read': None, 'write': None},
+                    'OUTLET_HYDRO':         {'filename': None, 'read': ior.readTimeSeriesFile, 'write': None},
+                    'EXPLIC_BACKWATER':     {'filename': None, 'read': None, 'write': None},
+                    'WRITE_CHAN_HOTSTART':  {'filename': None, 'read': None, 'write': None},
+                    'OUT_HYD_LOCATION':     {'filename': None, 'read': ior.readTimeSeriesFile, 'write': None},
+                    'OUT_DEP_LOCATION':     {'filename': None, 'read': None, 'write': None},
+                    'OUT_SED_LOC':          {'filename': None, 'read': None, 'write': None},
+                    'OUT_GWFULX_LOCATION':  {'filename': None, 'read': None, 'write': None},
+                    'OUT_THETA_LOCATION':   {'filename': None, 'read': None, 'write': None},
+                    'CHAN_DEPTH':           {'filename': None, 'read': None, 'write': None},
+                    'CHAN_STAGE':           {'filename': None, 'read': None, 'write': None},
+                    'CHAN_DISCHARGE':       {'filename': None, 'read': None, 'write': None},
+                    'CHAN_VELOCITY':        {'filename': None, 'read': None, 'write': None},
+                    'LAKE_OUTPUT':          {'filename': None, 'read': None, 'write': None},
+                    'SNOW_SWE_FILE':        {'filename': None, 'read': None, 'write': None},
+                    'GW_WELL_LEVEL':        {'filename': None, 'read': None, 'write': None},
+                    'OUTLET_SED_FLUX':      {'filename': None, 'read': None, 'write': None},
+                    'ADJUST_ELEV':          {'filename': None, 'read': None, 'write': None},
+                    'OUTLET_SED_TSS':       {'filename': None, 'read': ior.readTimeSeriesFile, 'write': None},
+                    'OUT_TSS_LOC':          {'filename': None, 'read': None, 'write': None},
+                    'NET_SED_VOLUME':       {'filename': None, 'read': None, 'write': None},
+                    'VOL_SED_SUSP':         {'filename': None, 'read': None, 'write': None},
+                    'OUT_CON_LOCATION':     {'filename': None, 'read': ior.readTimeSeriesFile, 'write': None},
+                    'OUT_MASS_LOCATION':    {'filename': None, 'read': ior.readTimeSeriesFile, 'write': None},
+                    'SUPERLINK_JUNC_FLOW':  {'filename': None, 'read': None, 'write': None},
+                    'SUPERLINK_NODE_FLOW':  {'filename': None, 'read': None, 'write': None},
+                    'OVERLAND_DEPTHS':      {'filename': None, 'read': None, 'write': None},
+                    'OVERLAND_WSE':         {'filename': None, 'read': None, 'write': None},
+                    'OPTIMIZE':             {'filename': None, 'read': None, 'write': None}}
     
     OUTPUT_MAPS = {'GW_OUTPUT': {'filename': None, 'read': None},
                    'DISCHARGE': {'filename': None, 'read': None},
@@ -223,20 +226,18 @@ class ProjectFile(DeclarativeBase):
                     
                 # Assemble list of files for reading
                 if card['name'] in self.INPUT_FILES:
-                    print 'INPUT_FILE:', card['name'], card['value']
-                    if '"' in card['value']:
-                        self.INPUT_FILES[card['name']]['filename'] = card['value'].strip('"')
-                    else:
-                        self.INPUT_FILES[card['name']]['filename'] = card['value']
+                    print 'INPUT_FILE:', card['name'], card['value'].strip('"')
+                    self.INPUT_FILES[card['name']]['filename'] = card['value'].strip('"')
                 
                 elif card['name'] in self.INPUT_MAPS:
-                    print 'INPUT_MAP:', card['name']
+                    print 'INPUT_MAP:', card['name'], card['value'].strip('"')
                     
                 elif card['name'] in self.OUTPUT_FILES:
-                    print 'OUTPUT_FILE:', card['name']
+                    print 'OUTPUT_FILE:', card['name'], card['value'].strip('"')
+                    self.OUTPUT_FILES[card['name']]['filename'] = card['value'].strip('"')
                 
                 elif card['name'] in self.OUTPUT_MAPS:
-                    print 'OUTPUT_MAPS:', card['name']
+                    print 'OUTPUT_MAPS:', card['name'], card['value'].strip('"')
         
         self.SESSION.add(self)
                      
@@ -249,24 +250,35 @@ class ProjectFile(DeclarativeBase):
         self.read()
         
         # Read Input Files
-        self.readInput()
+        self._readInput()
+        
+        # Read Output Files
+        self._readOutput()
         
         
-    def readInput(self):
+    def _readInput(self):
         '''
         GSSHAPY Project Read All Input Files Method
         '''
-        
-        # Read ProjectFile
-        self.read()
-        
+        ## NOTE: This function is depenedent on the project file being read first
         # Read Input Files
         for card, afile in self.INPUT_FILES.iteritems():
             filename = afile['filename']
             read = afile['read']
             if filename != None and read != None:
                 read(self, filename)
-        
+                
+    def _readOutput(self):
+        '''
+        GSSHAPY Project Read All Output Files Method
+        '''
+        ## NOTE: This function is depenedent on the project file being read first
+        # Read Input Files
+        for card, afile in self.OUTPUT_FILES.iteritems():
+            filename = afile['filename']
+            read = afile['read']
+            if filename != None and read != None:
+                read(self, filename)
     
     def write(self, session, directory, newName=None):
         '''

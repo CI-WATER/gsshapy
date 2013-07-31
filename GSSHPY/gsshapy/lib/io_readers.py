@@ -15,6 +15,7 @@ from gsshapy.orm.hmet import HmetFile
 from gsshapy.orm.snw import NwsrfsFile, OrthographicGageFile
 from gsshapy.orm.gpi import GridPipeFile
 from gsshapy.orm.gst import GridStreamFile
+from gsshapy.orm.timeseries import TimeSeriesFile
 
 ## TODO: Write a generic method that can be used to read files similar to this:
 def readGeneric(projectFile, fileIO, filename):
@@ -63,14 +64,6 @@ def readChannelInputFile(projectFile, filename):
     channelInputFile.read()
     print 'Channel Input File Read'
     
-def readHmetWesFile(projectFile, filename):
-    '''
-    Initiate Read HMET_WES File Method
-    '''
-    hmet = HmetFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
-    hmet.projectFile = projectFile
-    hmet.readWES()
-    print 'HMET WES File Read'
     
 def readNwsrfsFile(projectFile, filename):
     '''
@@ -98,4 +91,19 @@ def readGridStreamFile(projectFile, filename):
     gridStreamFile.projectFile = projectFile
     gridStreamFile.read()
     print 'Grid Stream File Read'
+    
+def readHmetWesFile(projectFile, filename):
+    '''
+    Initiate Read HMET_WES File Method
+    '''
+    hmet = HmetFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
+    hmet.projectFile = projectFile
+    hmet.readWES()
+    print 'HMET WES File Read'
+    
+def readTimeSeriesFile(projectFile, filename):
+    timeSeriesFile = TimeSeriesFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
+    timeSeriesFile.projectFile = projectFile
+    timeSeriesFile.read()
+    print 'Time Series Read:', filename.split('.')[1]
                    
