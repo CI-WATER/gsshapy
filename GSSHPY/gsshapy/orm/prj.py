@@ -78,7 +78,8 @@ class ProjectFile(DeclarativeBase):
     EXTENSION = 'prj'
     
     # File Properties
-    INPUT_FILES = {'MAPPING_TABLE':             {'filename': None, 'read': ior.readMappingTableFile, 'write': iow.writeMappingTableFile},
+    INPUT_FILES = {'#PROJECTION_FILE':          {'filename': None, 'read': None, 'write': None},
+                   'MAPPING_TABLE':             {'filename': None, 'read': ior.readMappingTableFile, 'write': iow.writeMappingTableFile},
                    'ST_MAPPING_TABLE':          {'filename': None, 'read': None, 'write': None},
                    'PRECIP_FILE':               {'filename': None, 'read': ior.readPrecipitationFile, 'write': iow.writePrecipitationFile},
                    'CHANNEL_INPUT':             {'filename': None, 'read': ior.readChannelInputFile, 'write': iow.writeChannelInputFile},
@@ -228,19 +229,15 @@ class ProjectFile(DeclarativeBase):
                     
                 # Assemble list of files for reading
                 if card['name'] in self.INPUT_FILES:
-                    print 'INPUT_FILE:', card['name'], card['value'].strip('"')
                     self.INPUT_FILES[card['name']]['filename'] = card['value'].strip('"')
                 
                 elif card['name'] in self.INPUT_MAPS:
-                    print 'INPUT_MAP:', card['name'], card['value'].strip('"')
                     self.INPUT_MAPS[card['name']]['filename'] = card['value'].strip('"')
                     
                 elif card['name'] in self.OUTPUT_FILES:
-                    print 'OUTPUT_FILE:', card['name'], card['value'].strip('"')
                     self.OUTPUT_FILES[card['name']]['filename'] = card['value'].strip('"')
                 
                 elif card['name'] in self.OUTPUT_MAPS:
-                    print 'OUTPUT_MAPS:', card['name'], card['value'].strip('"')
                     self.OUTPUT_MAPS[card['name']]['filename'] = card['value'].strip('"')
         
         self.SESSION.add(self)

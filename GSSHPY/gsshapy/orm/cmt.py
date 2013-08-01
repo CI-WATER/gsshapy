@@ -9,7 +9,7 @@
 '''
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, Enum, Float, String
+from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
@@ -22,25 +22,6 @@ __all__ = ['MapTableFile',
            'MTIndex',
            'MTContaminant',
            'MTSediment']
-
-# Controlled Vocabulary Lists
-mapTableNameEnum = Enum('ROUGHNESS','INTERCEPTION','RETENTION','GREEN_AMPT_INFILTRATION',
-                       'GREEN_AMPT_INITIAL_SOIL_MOISTURE','RICHARDS_EQN_INFILTRATION_BROOKS',
-                       'RICHARDS_EQN_INFILTRATION_HAVERCAMP','EVAPOTRANSPIRATION','WELL_TABLE',
-                       'OVERLAND_BOUNDARY','TIME_SERIES_INDEX','GROUNDWATER','GROUNDWATER_BOUNDARY',
-                       'AREA_REDUCTION','WETLAND_PROPERTIES','MULTI_LAYER_SOIL','SOIL_EROSION_PROPS',
-                       'CONTAMINANT_TRANSPORT','SEDIMENTS',
-                       name='cmt_table_names')
-
-varNameEnum = Enum('ROUGH','STOR_CAPY','INTER_COEF','RETENTION_DEPTH','HYDR_COND','CAPIL_HEAD',
-                      'POROSITY','PORE_INDEX','RESID_SAT','FIELD_CAPACITY','WILTING_PT',
-                      'SOIL_MOISTURE', 'IMPERVIOUS_AREA','HYD_COND','SOIL_MOIST','DEPTH','LAMBDA',
-                      'BUB_PRESS','DELTA_Z','ALPHA','BETA','AHAV','ALBEDO','VEG_HEIGHT','V_RAD_COEF', 
-                      'V_RAD_COEFF', 'CANOPY_RESIST','SPLASH_COEF', 'DETACH_COEF','DETACH_EXP',
-                      'DETACH_CRIT','SED_COEF','XSEDIMENT', 'TC_COEFF','TC_INDEX','TC_CRIT','SPLASH_K',
-                      'DETACH_ERODE','DETACH_INDEX', 'SED_K','DISPERSION','DECAY','UPTAKE','LOADING',
-                      'GW_CONC','INIT_CONC','SW_PART','SOLUBILITY',
-                      name='cmt_variable_names')
 
 class MapTableFile(DeclarativeBase):
     '''
@@ -456,8 +437,7 @@ class MapTable(DeclarativeBase):
     mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
     
     # Value Columns
-    name = Column(mapTableNameEnum, nullable=False)
-    '''Consider removing num fields in refactoring'''
+    name = Column(String, nullable=False)
     numIDs = Column(Integer)
     maxNumCells = Column(Integer)
     numSed = Column(Integer)
@@ -534,7 +514,7 @@ class MTValue(DeclarativeBase):
     sedimentID = Column(Integer, ForeignKey('cmt_sediments.id'))
     
     # Value Columns
-    variable = Column(varNameEnum, nullable=False)
+    variable = Column(String, nullable=False)
     value = Column(Float, nullable=False)
     
     # Relationship Properties
