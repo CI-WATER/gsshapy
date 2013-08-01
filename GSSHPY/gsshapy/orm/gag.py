@@ -150,15 +150,15 @@ class PrecipFile(DeclarativeBase):
         # Add this PrecipFile to the database session
         self.SESSION.add(self)
                 
-    def write(self, session, directory, filePrefix):
+    def write(self, session, directory, filename):
         '''
         Precipitation Write to File Method
         '''
         # Assemble path to new precipitation file
-        path = '%s%s.%s' % (directory, filePrefix, self.EXTENSION)
+        filePath = '%s%s' % (directory, filename)
         
         # Initialize file
-        with open(path, 'w') as gagFile:
+        with open(filePath, 'w') as gagFile:
             # Retrieve the events associated with this PrecipFile
             events = self.precipEvents
             

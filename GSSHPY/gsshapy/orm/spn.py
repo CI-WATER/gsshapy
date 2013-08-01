@@ -96,14 +96,14 @@ class StormPipeNetworkFile(DeclarativeBase):
         self._createSlink(slinks)
         
         
-    def write(self, session, directory, filePrefix):
+    def write(self, session, directory, filename):
         '''
         Storm Pipe Network File Write to File Method
         '''
         # Initiate channel input file
-        fullPath = '%s%s.%s' % (directory, filePrefix, self.EXTENSION)
+        filePath = '%s%s' % (directory, filename)
         
-        with open(fullPath, 'w') as spnFile:           
+        with open(filePath, 'w') as spnFile:           
             # Retrieve Connection objects and write to file
             connections = self.connections
             self._writeConnections(connections, spnFile)

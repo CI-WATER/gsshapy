@@ -77,15 +77,15 @@ class HmetFile(DeclarativeBase):
                 # Associate HmetRecord with HmetFile
                 hmetRecord.hmetFile = self
         
-    def writeWES(self, session, directory, filePrefix):
+    def writeWES(self, session, directory, filename):
         '''
         Write HMET_WES to File Method
         '''
-        # NOTE: For HMET_WES Files, the filePrefix is the entire filename
+
         # Initiate hmet wes file
-        fullPath = '%s%s' % (directory, filePrefix)
+        filePath = '%s%s' % (directory, filename)
         
-        with open(fullPath, 'w') as hmetFile:
+        with open(filePath, 'w') as hmetFile:
             # Retrieve HmetRecords
             hmetRecords = self.hmetRecords
             

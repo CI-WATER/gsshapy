@@ -132,7 +132,7 @@ class MapTableFile(DeclarativeBase):
         # returned from the parser functions
         self._createGsshaPyObjects(mapTables, indexMaps)
             
-    def write(self, session, directory, filePrefix):
+    def write(self, session, directory, filename):
         '''
         Map Table Write to File Method
         ''' 
@@ -157,9 +157,9 @@ class MapTableFile(DeclarativeBase):
         indexMaps = set(indexMapList)
 
         # Initiate map table file and write
-        fullPath = '%s%s.%s' % (directory, filePrefix, self.EXTENSION)
+        filePath = '%s%s' % (directory, filename)
         
-        with open(fullPath, 'w') as cmtFile:
+        with open(filePath, 'w') as cmtFile:
 
             # Write first line to file
             cmtFile.write('GSSHA_INDEX_MAP_TABLES\n')

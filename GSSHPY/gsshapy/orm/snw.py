@@ -83,14 +83,12 @@ class NwsrfsFile(DeclarativeBase):
                     record.nwsrfsFile = self
 
         
-    def write(self, session, directory, filePrefix):
+    def write(self, session, directory, filename):
         '''
         NWSRFS Write to File Method
         '''
-        
-        # NOTE: For NWSRFS Files, the filePrefix is the entire filename
         # Initiate file
-        fullPath = '%s%s' % (directory, filePrefix)
+        fullPath = '%s%s' % (directory, filename)
         
         with open(fullPath, 'w') as nwsrfsFile:
             nwsrfsFile.write('Number_Bands:    %s\n' % self.numBands)
@@ -242,13 +240,12 @@ class OrthographicGageFile(DeclarativeBase):
                     # Associate OrthoMeasuerment with OrthographicGageFile
                     measurement.orthoGageFile = self
         
-    def write(self, session, directory, filePrefix):
+    def write(self, session, directory, filename):
         '''
         Orthographic Gage File Write to File Method
         '''
-        # NOTE: For OrthoGageFiles, the filePrefix is the entire filename
         # Initiate file
-        fullPath = '%s%s' % (directory, filePrefix)
+        fullPath = '%s%s' % (directory, filename)
         
         with open(fullPath, 'w') as orthoFile:
             orthoFile.write('Num_Sites:    %s\n' % self.numSites)

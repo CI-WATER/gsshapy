@@ -18,6 +18,8 @@ from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
 
+from gsshapy.lib.pivot import pivot
+
 class TimeSeriesFile(DeclarativeBase):
     '''
     classdocs
@@ -78,10 +80,49 @@ class TimeSeriesFile(DeclarativeBase):
         self._createTimeSeriesObjects(timeSeries)
         
         
-    def write(self, directory, session, filePrefix):
+    def write(self, directory, session, filename):
         '''
         Generic Time Series Write to File Method
         '''
+        # Initiate file
+        fullPath = '%s%s' % (directory, filename)
+        
+        # Retrieve all time series
+        timeSeries = self.timeSeries
+        
+        # Num TimeSeries
+        numTS = len(timeSeries)
+        print numTS
+        # Transform into list of dictionaries for pivot tool
+        valList = []
+        
+        for tsNum, ts in enumerate(timeSeries):
+            values = ts.values
+            for value in values:
+                valDict = {'time': value.simTime,
+                           'tsNum': tsNum,
+                           'value': value.value}
+                valList.append(valDict)
+        
+        # Use pivot function (from lib) to pivot the values into 
+        # a format that is easy to write.
+        result = pivot(valList, ('time',), ('tsNum',), 'value')
+        
+        # Open file and write
+        with open(fullPath, 'w') as tsFile:
+            for line in result:
+                
+                valString = ''
+                # Compile value string
+                for n in range(0, numTS):
+                    val = '%.6f' % line[(n,)]
+                    valString = '%s%s%s' % (
+                                 valString,
+                                 ' '*(13-len(str(val))), # Fance spacing trick
+                                 val)
+                    
+                tsFile.write('   %.8f%s\n' % (line['time'], valString))
+            
         
     def _createTimeSeriesObjects(self, timeSeries):
         '''

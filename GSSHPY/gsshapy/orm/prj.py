@@ -141,10 +141,10 @@ class ProjectFile(DeclarativeBase):
                   'CONTAM_MAP': None}
     
     OUTPUT_FILES = {'SUMMARY':              {'filename': None, 'read': None, 'write': None},
-                    'OUTLET_HYDRO':         {'filename': None, 'read': ior.readTimeSeriesFile, 'write': None},
+                    'OUTLET_HYDRO':         {'filename': None, 'read': ior.readTimeSeriesFile, 'write': iow.writeTimeSeriesFile},
                     'EXPLIC_BACKWATER':     {'filename': None, 'read': None, 'write': None},
                     'WRITE_CHAN_HOTSTART':  {'filename': None, 'read': None, 'write': None},
-                    'OUT_HYD_LOCATION':     {'filename': None, 'read': ior.readTimeSeriesFile, 'write': None},
+                    'OUT_HYD_LOCATION':     {'filename': None, 'read': ior.readTimeSeriesFile, 'write': iow.writeTimeSeriesFile},
                     'OUT_DEP_LOCATION':     {'filename': None, 'read': None, 'write': None},
                     'OUT_SED_LOC':          {'filename': None, 'read': None, 'write': None},
                     'OUT_GWFULX_LOCATION':  {'filename': None, 'read': None, 'write': None},
@@ -158,12 +158,12 @@ class ProjectFile(DeclarativeBase):
                     'GW_WELL_LEVEL':        {'filename': None, 'read': None, 'write': None},
                     'OUTLET_SED_FLUX':      {'filename': None, 'read': None, 'write': None},
                     'ADJUST_ELEV':          {'filename': None, 'read': None, 'write': None},
-                    'OUTLET_SED_TSS':       {'filename': None, 'read': ior.readTimeSeriesFile, 'write': None},
+                    'OUTLET_SED_TSS':       {'filename': None, 'read': ior.readTimeSeriesFile, 'write': iow.writeTimeSeriesFile},
                     'OUT_TSS_LOC':          {'filename': None, 'read': None, 'write': None},
                     'NET_SED_VOLUME':       {'filename': None, 'read': None, 'write': None},
                     'VOL_SED_SUSP':         {'filename': None, 'read': None, 'write': None},
-                    'OUT_CON_LOCATION':     {'filename': None, 'read': ior.readTimeSeriesFile, 'write': None},
-                    'OUT_MASS_LOCATION':    {'filename': None, 'read': ior.readTimeSeriesFile, 'write': None},
+                    'OUT_CON_LOCATION':     {'filename': None, 'read': ior.readTimeSeriesFile, 'write': iow.writeTimeSeriesFile},
+                    'OUT_MASS_LOCATION':    {'filename': None, 'read': ior.readTimeSeriesFile, 'write': iow.writeTimeSeriesFile},
                     'SUPERLINK_JUNC_FLOW':  {'filename': None, 'read': None, 'write': None},
                     'SUPERLINK_NODE_FLOW':  {'filename': None, 'read': None, 'write': None},
                     'OVERLAND_DEPTHS':      {'filename': None, 'read': None, 'write': None},
@@ -309,7 +309,8 @@ class ProjectFile(DeclarativeBase):
                     pass
                     
                 elif card.name in self.OUTPUT_FILES:
-                    pass
+                    value = card.value.strip('"')
+                    self.OUTPUT_FILES[card.name]['filename'] = value
                 
                 elif card.name in self.OUTPUT_MAPS:
                     pass
@@ -323,32 +324,48 @@ class ProjectFile(DeclarativeBase):
         self.write(session=session, directory=directory, newName=newName)
         
         # Write input files
-        self._writeInput(session=session, directory=directory, newName=newName)
+        self._writeXput(session=session, directory=directory, fileDict=self.INPUT_FILES, newName=newName)
+        
+        # Write output files
+        self._writeXput(session=session, directory=directory, fileDict=self.OUTPUT_FILES, newName=newName)
         
         
-    def _writeInput(self, session, directory, newName=None):
+    def _writeXput(self, session, directory, fileDict, newName=None):
         '''
         GSSHA Project Write Input Files to File Method
         '''
-        # Write Input Files
-        for card, afile in self.INPUT_FILES.iteritems():
+        # Write Input/Output Files
+        for card, afile in fileDict.iteritems():
             if afile['filename'] != None:
-                filename = afile['filename'].split('.')[0]
+                originalProjectName = self.name
+                originalFilename = afile['filename']
+                originalPrefix = originalFilename.split('.')[0]
+                extension = originalFilename.split('.')[1]
                 
                 # Handle new name
-                if filename == self.name and newName != None:
-                    filePrefix = newName
-                elif filename == self.name and newName == None:
-                    filePrefix = self.name
-                else:
-                    filePrefix = afile['filename']
+                if newName == None:
+                    # The project name is not changed and file names
+                    # stay the same
+                    filename = originalFilename
+                    
+                elif originalPrefix == originalProjectName:
+                    # This check is necessary because not all filenames are 
+                    # prefixed with the project name. Thus the file prefix
+                    # is only changed for files that are prefixed with the 
+                    # project name
+                    filename = '%s.%s' % (newName, extension)
                 
-                # Extract write funtion
+                else:
+                    # Filename doesn't change for files that don't share the 
+                    # project prefix. e.g.: hmet.hmt
+                    filename = originalFilename
+                
+                # Extract write funtion from fileDict
                 write = afile['write']
                 
                 # Execute write function if not None
                 if write != None:
-                    write(projectFile=self, filePrefix=filePrefix, directory=directory, session=session)
+                    write(projectFile=self, directory=directory, session=session, filename=filename)
         
         
     def _extractCard(self, projectLine):

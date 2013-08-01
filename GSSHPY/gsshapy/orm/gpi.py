@@ -84,13 +84,13 @@ class GridPipeFile(DeclarativeBase):
                     self._createGsshaPyObjects(result)
 
         
-    def write(self, directory, session, filePrefix):
+    def write(self, directory, session, filename):
         '''
         Grid Pipe File Write to File Method
         '''
-        fullPath = '%s%s.%s' % (directory, filePrefix, self.EXTENSION)
+        filePath = '%s%s' % (directory, filename)
         
-        with open(fullPath, 'w') as gpiFile:
+        with open(filePath, 'w') as gpiFile:
             gpiFile.write('GRIDPIPEFILE\n')
             gpiFile.write('PIPECELLS %s\n' % self.pipeCells)
             
