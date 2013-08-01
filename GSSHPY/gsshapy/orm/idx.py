@@ -8,7 +8,8 @@
 ********************************************************************************
 '''
 
-__all__ = ['IndexMap']
+__all__ = ['IndexMap',
+           'Maps']
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
@@ -20,30 +21,56 @@ from gsshapy.orm import DeclarativeBase
 class IndexMap(DeclarativeBase):
     """
     classdocs
-
     """
     __tablename__ = 'idx_index_maps'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
+    rasterMapID = Column(Integer, ForeignKey('raster_maps.id'))
     
     # Value Columns
     name = Column(String, nullable=False)
-    filename = Column(String, nullable=False)
-    rasterMap = Column(String) # Custom column to store rasters
     
     # Relationship Properties
     mapTables = relationship('MapTable', back_populates='indexMap')
     indices = relationship('MTIndex', back_populates='indexMap')
     contaminants = relationship('MTContaminant', back_populates='indexMap')
+    rasterMap = relationship('RasterMap', back_populates='indexMap')
     
-    def __init__(self, name, filename, rasterMap):
+    def __init__(self, name):
         '''
         Constructor
         '''
         self.name = name
-        self.filename = filename
-        self.rasterMap = rasterMap
         
     def __repr__(self):
-        return '<IndexMap: Name=%s, Filename=%s>' % (self.name, self.filename)
+        return '<IndexMap: Name=%s>' % (self.name)
+    
+class RasterMap(DeclarativeBase):
+    '''
+    classdocs
+    '''
+    __tablename__ = 'raster_maps'
+    
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    
+    # Value Columns
+    fileExtention = Column(String, nullable=False)
+    raster = Column(String, nullable=False)
+    
+    # Relationship Properites
+    indexMap = relationship('IndexMap', uselist=False, back_populates='rasterMap')
+    
+    def __init__(self, fileExtension, raster):
+        self.fileExtention = fileExtension
+        self.raster = raster
+        
+    def __repr__(self):
+        return '<RasterMap: FileExtension=%s, Raster=%s>' % (self.fileExtention, self.raster)
+    
+    
+    
+    
+    
+    

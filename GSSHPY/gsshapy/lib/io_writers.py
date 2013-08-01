@@ -14,6 +14,7 @@ def writeMappingTableFile(projectFile, session, directory, filename):
     '''
     mapTableFile = projectFile.mapTableFile
     mapTableFile.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
 
 def writeChannelInputFile(projectFile, session, directory, filename):    
     '''
@@ -21,6 +22,7 @@ def writeChannelInputFile(projectFile, session, directory, filename):
     '''
     channelInputFile = projectFile.channelInputFile
     channelInputFile.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
 
 def writePrecipitationFile(projectFile, session, directory, filename):   
     '''
@@ -28,6 +30,7 @@ def writePrecipitationFile(projectFile, session, directory, filename):
     '''
     precipFile = projectFile.precipFile
     precipFile.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
 
 def writePipeNetworkFile(projectFile, session, directory, filename):   
     '''
@@ -35,6 +38,7 @@ def writePipeNetworkFile(projectFile, session, directory, filename):
     '''
     pipeFile = projectFile.stormPipeNetworkFile
     pipeFile.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
     
 def writeHmetFile(projectFile, session, directory, filename):
     '''
@@ -42,6 +46,7 @@ def writeHmetFile(projectFile, session, directory, filename):
     '''
     hmetFile = projectFile.hmetFile
     hmetFile.writeWES(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
     
 def writeNwsrfsFile(projectFile, session, directory, filename):
     '''
@@ -49,6 +54,7 @@ def writeNwsrfsFile(projectFile, session, directory, filename):
     '''
     nwsrfsFile = projectFile.nwsrfsFile
     nwsrfsFile.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
     
 def writeOrthoGageFile(projectFile, session, directory, filename):
     '''
@@ -56,6 +62,7 @@ def writeOrthoGageFile(projectFile, session, directory, filename):
     '''
     orthoGageFile = projectFile.orthoGageFile
     orthoGageFile.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
     
 def writeGridPipeFile(projectFile, session, directory, filename):
     '''
@@ -63,6 +70,7 @@ def writeGridPipeFile(projectFile, session, directory, filename):
     '''
     gridPipeFile = projectFile.gridPipeFile
     gridPipeFile.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
     
 def writeGridStreamFile(projectFile, session, directory, filename):
     '''
@@ -70,6 +78,7 @@ def writeGridStreamFile(projectFile, session, directory, filename):
     '''
     gridStreamFile = projectFile.gridStreamFile
     gridStreamFile.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
     
 def writeTimeSeriesFile(projectFile, session, directory, filename):
     '''
@@ -85,4 +94,21 @@ def writeTimeSeriesFile(projectFile, session, directory, filename):
             timeSeriesFile = tsf
     
     timeSeriesFile.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
+    
+def writeOutputLocationFile(projectFile, session, directory, filename):
+    '''
+    Initiate Write Generic Output Location File Method
+    '''
+    extension = filename.split('.')[1]
+    
+    # Retrieve appropriate time series file
+    outputLocationFiles = projectFile.outputLocationFiles
+    
+    for olf in outputLocationFiles:
+        if olf.fileExtension == extension:
+            outputLocationFile = olf
+    
+    outputLocationFile.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
     

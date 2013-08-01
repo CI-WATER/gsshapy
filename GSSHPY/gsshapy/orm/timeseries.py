@@ -92,7 +92,7 @@ class TimeSeriesFile(DeclarativeBase):
         
         # Num TimeSeries
         numTS = len(timeSeries)
-        print numTS
+
         # Transform into list of dictionaries for pivot tool
         valList = []
         

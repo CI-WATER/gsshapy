@@ -1,6 +1,6 @@
 '''
 ********************************************************************************
-* Name: SnowSimulation
+* Name: SnowSimulationModel
 * Author: Nathan Swain
 * Created On: May 16, 2013
 * Copyright: (c) Brigham Young University 2013

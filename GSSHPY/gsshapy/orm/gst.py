@@ -1,6 +1,6 @@
 '''
 ********************************************************************************
-* Name: GridToStream
+* Name: GridToStreamModel
 * Author: Nathan Swain
 * Created On: May 14, 2013
 * Copyright: (c) Brigham Young University 2013

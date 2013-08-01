@@ -16,6 +16,7 @@ from gsshapy.orm.snw import NwsrfsFile, OrthographicGageFile
 from gsshapy.orm.gpi import GridPipeFile
 from gsshapy.orm.gst import GridStreamFile
 from gsshapy.orm.timeseries import TimeSeriesFile
+from gsshapy.orm.loc import OutputLocationFile
 
 ## TODO: Write a generic method that can be used to read files similar to this:
 def readGeneric(projectFile, fileIO, filename):
@@ -32,7 +33,7 @@ def readMappingTableFile(projectFile, filename):
     mapTable = MapTableFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     mapTable.projectFile = projectFile
     mapTable.read()
-    print 'Mapping Table File Read'
+    print 'File Read:', filename
 
 def readPrecipitationFile(projectFile, filename):
     '''
@@ -42,7 +43,7 @@ def readPrecipitationFile(projectFile, filename):
     precip = PrecipFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     precip.projectFile = projectFile
     precip.read()
-    print 'Precipitation File Read'
+    print 'File Read:', filename
     
 def readPipeNetworkFile(projectFile, filename):
     '''
@@ -52,7 +53,7 @@ def readPipeNetworkFile(projectFile, filename):
     pipeNetworkFile = StormPipeNetworkFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     pipeNetworkFile.projectFile = projectFile
     pipeNetworkFile.read()
-    print 'Pipe Network File Read'
+    print 'File Read:', filename
     
 def readChannelInputFile(projectFile, filename):
     '''
@@ -62,7 +63,7 @@ def readChannelInputFile(projectFile, filename):
     channelInputFile = ChannelInputFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     channelInputFile.projectFile = projectFile
     channelInputFile.read()
-    print 'Channel Input File Read'
+    print 'File Read:', filename
     
     
 def readNwsrfsFile(projectFile, filename):
@@ -72,25 +73,25 @@ def readNwsrfsFile(projectFile, filename):
     nwsrfs = NwsrfsFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     nwsrfs.projectFile = projectFile
     nwsrfs.read()
-    print 'NWSRFS File Read'
+    print 'File Read:', filename
     
 def readOrthoGageFile(projectFile, filename):
     orthoGage = OrthographicGageFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     orthoGage.projectFile = projectFile
     orthoGage.read()
-    print 'Orthographic Gage File Read'
+    print 'File Read:', filename
     
 def readGridPipeFile(projectFile, filename):
     gridPipeFile = GridPipeFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     gridPipeFile.projectFile = projectFile
     gridPipeFile.read()
-    print 'Grid Pipe File Read'
+    print 'File Read:', filename
     
 def readGridStreamFile(projectFile, filename):
     gridStreamFile = GridStreamFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     gridStreamFile.projectFile = projectFile
     gridStreamFile.read()
-    print 'Grid Stream File Read'
+    print 'File Read:', filename
     
 def readHmetWesFile(projectFile, filename):
     '''
@@ -99,11 +100,17 @@ def readHmetWesFile(projectFile, filename):
     hmet = HmetFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     hmet.projectFile = projectFile
     hmet.readWES()
-    print 'HMET WES File Read'
+    print 'File Read:', filename
     
 def readTimeSeriesFile(projectFile, filename):
     timeSeriesFile = TimeSeriesFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     timeSeriesFile.projectFile = projectFile
     timeSeriesFile.read()
-    print 'Time Series Read:', filename.split('.')[1]
+    print 'File Read:', filename
+    
+def readOutputLocationFile(projectFile, filename):
+    outputLocationFile = OutputLocationFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
+    outputLocationFile.projectFile = projectFile
+    outputLocationFile.read()
+    print 'File Read:', filename
                    

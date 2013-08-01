@@ -67,6 +67,7 @@ class ProjectFile(DeclarativeBase):
     gridPipeFile = relationship('GridPipeFile', back_populates='projectFile')
     gridStreamFile = relationship('GridStreamFile', back_populates='projectFile')
     timeSeriesFiles = relationship('TimeSeriesFile', back_populates='projectFile')
+    outputLocationFiles = relationship('OutputLocationFile', back_populates='projectFile')
     
     # Global Properties
     PATH = None
@@ -88,7 +89,7 @@ class ProjectFile(DeclarativeBase):
                    'READ_CHAN_HOTSTART':        {'filename': None, 'read': None, 'write': None},
                    'CHAN_POINT_INPUT':          {'filename': None, 'read': None, 'write': None},
                    'BOUND_TS':                  {'filename': None, 'read': None, 'write': None},
-                   'IN_HYD_LOCATION':           {'filename': None, 'read': None, 'write': None},
+                   'IN_HYD_LOCATION':           {'filename': None, 'read': ior.readOutputLocationFile, 'write': iow.writeOutputLocationFile},
                    'IN_SED_LOC':                {'filename': None, 'read': None, 'write': None},
                    'IN_GWFLUX_LOCATION':        {'filename': None, 'read': None, 'write': None},
                    'HMET_SURFAWAYS':            {'filename': None, 'read': None, 'write': None},

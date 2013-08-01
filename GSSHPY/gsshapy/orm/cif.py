@@ -1,6 +1,6 @@
 '''
 ********************************************************************************
-* Name: StreamNetwork
+* Name: StreamNetworkModel
 * Author: Nathan Swain
 * Created On: May 12, 2013
 * Copyright: (c) Brigham Young University 2013
