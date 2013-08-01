@@ -52,5 +52,6 @@ from spn import *
 from gpi import *
 from snw import *
 from loc import *
+from map import *
 
 

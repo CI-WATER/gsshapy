@@ -13,8 +13,7 @@ from gsshapy.lib import parsetools as pt
 def indexMapChunk(key, chunk):
     # Create return/result object
     result = {'idxName': None,
-              'filename': None,
-              'map': None}
+              'filename': None}
     
     # Extract info
     for line in chunk:

@@ -81,13 +81,13 @@ class OutputLocationFile(DeclarativeBase):
         Generic Output Location Write to File Method
         '''
         # Initiate file
-        fullPath = '%s%s' % (directory, filename)
+        filePath = '%s%s' % (directory, filename)
         
         # Retrieve output locations
         locations = self.outputLocations
         
         # Open file and write
-        with open(fullPath, 'w') as locFile:
+        with open(filePath, 'w') as locFile:
             locFile.write('%s\n' % self.numLocations)
             
             for location in locations:

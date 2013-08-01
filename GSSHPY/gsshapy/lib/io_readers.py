@@ -17,6 +17,7 @@ from gsshapy.orm.gpi import GridPipeFile
 from gsshapy.orm.gst import GridStreamFile
 from gsshapy.orm.timeseries import TimeSeriesFile
 from gsshapy.orm.loc import OutputLocationFile
+from gsshapy.orm.map import RasterMapFile
 
 ## TODO: Write a generic method that can be used to read files similar to this:
 def readGeneric(projectFile, fileIO, filename):
@@ -103,14 +104,29 @@ def readHmetWesFile(projectFile, filename):
     print 'File Read:', filename
     
 def readTimeSeriesFile(projectFile, filename):
+    '''
+    Initiate Read Generic Time Series File Method
+    '''
     timeSeriesFile = TimeSeriesFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     timeSeriesFile.projectFile = projectFile
     timeSeriesFile.read()
     print 'File Read:', filename
     
 def readOutputLocationFile(projectFile, filename):
+    '''
+    Initiate Read Output Location File Method
+    '''
     outputLocationFile = OutputLocationFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     outputLocationFile.projectFile = projectFile
     outputLocationFile.read()
+    print 'File Read:', filename
+    
+def readRasterMapFile(projectFile, filename):
+    '''
+    Initiate Read Map File Method
+    '''
+    rasterMap = RasterMapFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
+    rasterMap.projectFile = projectFile
+    rasterMap.read()
     print 'File Read:', filename
                    

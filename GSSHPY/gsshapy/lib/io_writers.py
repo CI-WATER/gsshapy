@@ -112,3 +112,20 @@ def writeOutputLocationFile(projectFile, session, directory, filename):
     outputLocationFile.write(session=session, directory=directory, filename=filename)
     print 'File Written:', filename
     
+def writeRasterMapFile(projectFile, session, directory, filename):
+    '''
+    Initiate Write Raster Map File Method
+    '''
+    extension = filename.split('.')[1]
+    
+    # Retrieve appropriate map file
+    maps = projectFile.maps
+    
+    for map in maps:
+        if map.fileExtension == extension:
+            mapFile = map
+    
+    mapFile.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
+    
+    

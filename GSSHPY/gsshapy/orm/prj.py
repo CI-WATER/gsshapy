@@ -68,6 +68,7 @@ class ProjectFile(DeclarativeBase):
     gridStreamFile = relationship('GridStreamFile', back_populates='projectFile')
     timeSeriesFiles = relationship('TimeSeriesFile', back_populates='projectFile')
     outputLocationFiles = relationship('OutputLocationFile', back_populates='projectFile')
+    maps = relationship('RasterMapFile', back_populates='projectFile')
     
     # Global Properties
     PATH = None
@@ -109,37 +110,37 @@ class ProjectFile(DeclarativeBase):
                    'REPLACE_PARAMS':            {'filename': None, 'read': None, 'write': None},
                    'REPLACE_VALS':              {'filename': None, 'read': None, 'write': None}}
     
-    INPUT_MAPS = {'ELEVATION': None,
-                  'WATERSHED_MASK': None,
-                  'ROUGHNESS': None,
-                  'RETEN_DEPTH': None,
-                  'READ_OV_HOTSTART': None,
-                  'WRITE_OV_HOTSTART': None,
-                  'READ_SM_HOTSTART': None,
-                  'WRITE_SM_HOSTART': None,
-                  'STORAGE_CAPACITY': None,
-                  'INTERCEPTION_COEFF': None,
-                  'CONDUCTIVITY': None,
-                  'CAPILLARY': None,
-                  'POROSITY': None,
-                  'MOISTURE': None,
-                  'PORE_INDEX': None,
-                  'RESIDUAL_SAT': None,
-                  'FIELD_CAPACITY': None,
-                  'SOIL_TYPE_MAP': None,
-                  'WATER_TABLE': None,
-                  'ALBEDO': None,
-                  'WILTING_POINT': None,
-                  'TCOEFF': None,
-                  'VHEIGHT': None,
-                  'CANOPY': None,
-                  'INIT_SWE_DEPTH': None,
-                  'WATER_TABLE': None,
-                  'AQUIFER_BOTTOM': None,
-                  'GW_BOUNDFILE': None,
-                  'GW_POROSITY_MAP': None,
-                  'GW_HYCOND_MAP': None,
-                  'CONTAM_MAP': None}
+    INPUT_MAPS = {'ELEVATION':              {'filename': None},
+                  'WATERSHED_MASK':         {'filename': None},
+                  'ROUGHNESS':              {'filename': None},
+                  'RETEN_DEPTH':            {'filename': None},
+                  'READ_OV_HOTSTART':       {'filename': None},
+                  'WRITE_OV_HOTSTART':      {'filename': None},
+                  'READ_SM_HOTSTART':       {'filename': None},
+                  'WRITE_SM_HOSTART':       {'filename': None},
+                  'STORAGE_CAPACITY':       {'filename': None},
+                  'INTERCEPTION_COEFF':     {'filename': None},
+                  'CONDUCTIVITY':           {'filename': None},
+                  'CAPILLARY':              {'filename': None},
+                  'POROSITY':               {'filename': None},
+                  'MOISTURE':               {'filename': None},
+                  'PORE_INDEX':             {'filename': None},
+                  'RESIDUAL_SAT':           {'filename': None},
+                  'FIELD_CAPACITY':         {'filename': None},
+                  'SOIL_TYPE_MAP':          {'filename': None},
+                  'WATER_TABLE':            {'filename': None},
+                  'ALBEDO':                 {'filename': None},
+                  'WILTING_POINT':          {'filename': None},
+                  'TCOEFF':                 {'filename': None},
+                  'VHEIGHT':                {'filename': None},
+                  'CANOPY':                 {'filename': None},
+                  'INIT_SWE_DEPTH':         {'filename': None},
+                  'WATER_TABLE':            {'filename': None},
+                  'AQUIFER_BOTTOM':         {'filename': None},
+                  'GW_BOUNDFILE':           {'filename': None},
+                  'GW_POROSITY_MAP':        {'filename': None},
+                  'GW_HYCOND_MAP':          {'filename': None},
+                  'CONTAM_MAP':             {'filename': None}}
     
     OUTPUT_FILES = {'SUMMARY':              {'filename': None, 'read': None, 'write': None},
                     'OUTLET_HYDRO':         {'filename': None, 'read': ior.readTimeSeriesFile, 'write': iow.writeTimeSeriesFile},
@@ -171,19 +172,19 @@ class ProjectFile(DeclarativeBase):
                     'OVERLAND_WSE':         {'filename': None, 'read': None, 'write': None},
                     'OPTIMIZE':             {'filename': None, 'read': None, 'write': None}}
     
-    OUTPUT_MAPS = {'GW_OUTPUT': {'filename': None, 'read': None},
-                   'DISCHARGE': {'filename': None, 'read': None},
-                   'DEPTH': {'filename': None, 'read': None},
-                   'INF_DEPTH': {'filename': None, 'read': None},
-                   'SURF_MOIS': {'filename': None, 'read': None},
-                   'RATE_OF_INFIL': {'filename': None, 'read': None},
-                   'DIS_RAIN': {'filename': None, 'read': None},
-                   'CHAN_DEPTH': {'filename': None, 'read': None},
-                   'CHAN_DISCHARGE': {'filename': None, 'read': None},
-                   'MAX_SED_FLUX': {'filename': None, 'read': None},
-                   'GW_OUTPUT': {'filename': None, 'read': None},
-                   'GW_RECHARGE_CUM': {'filename': None, 'read': None},
-                   'GW_RECHARGE_INC': {'filename': None, 'read': None}}
+    OUTPUT_MAPS = {'GW_OUTPUT':         {'filename': None},
+                   'DISCHARGE':         {'filename': None},
+                   'DEPTH':             {'filename': None},
+                   'INF_DEPTH':         {'filename': None},
+                   'SURF_MOIS':         {'filename': None},
+                   'RATE_OF_INFIL':     {'filename': None},
+                   'DIS_RAIN':          {'filename': None},
+                   'CHAN_DEPTH':        {'filename': None},
+                   'CHAN_DISCHARGE':    {'filename': None},
+                   'MAX_SED_FLUX':      {'filename': None},
+                   'GW_OUTPUT':         {'filename': None},
+                   'GW_RECHARGE_CUM':   {'filename': None},
+                   'GW_RECHARGE_INC':   {'filename': None}}
     
     
     def __init__(self, path, session):
@@ -232,6 +233,7 @@ class ProjectFile(DeclarativeBase):
                 
                 elif card['name'] in self.INPUT_MAPS:
                     print 'INPUT_MAP:', card['name'], card['value'].strip('"')
+                    self.INPUT_MAPS[card['name']]['filename'] = card['value'].strip('"')
                     
                 elif card['name'] in self.OUTPUT_FILES:
                     print 'OUTPUT_FILE:', card['name'], card['value'].strip('"')
@@ -239,48 +241,10 @@ class ProjectFile(DeclarativeBase):
                 
                 elif card['name'] in self.OUTPUT_MAPS:
                     print 'OUTPUT_MAPS:', card['name'], card['value'].strip('"')
+                    self.OUTPUT_MAPS[card['name']]['filename'] = card['value'].strip('"')
         
         self.SESSION.add(self)
-                     
-    def readAll(self):
-        '''
-        GSSHA Project Read from File Method
-        '''
         
-        # First read self
-        self.read()
-        
-        # Read Input Files
-        self._readInput()
-        
-        # Read Output Files
-        self._readOutput()
-        
-        
-    def _readInput(self):
-        '''
-        GSSHAPY Project Read All Input Files Method
-        '''
-        ## NOTE: This function is depenedent on the project file being read first
-        # Read Input Files
-        for card, afile in self.INPUT_FILES.iteritems():
-            filename = afile['filename']
-            read = afile['read']
-            if filename != None and read != None:
-                read(self, filename)
-                
-    def _readOutput(self):
-        '''
-        GSSHAPY Project Read All Output Files Method
-        '''
-        ## NOTE: This function is depenedent on the project file being read first
-        # Read Input Files
-        for card, afile in self.OUTPUT_FILES.iteritems():
-            filename = afile['filename']
-            read = afile['read']
-            if filename != None and read != None:
-                read(self, filename)
-    
     def write(self, session, directory, newName=None):
         '''
         Project File Write to File Method
@@ -307,15 +271,38 @@ class ProjectFile(DeclarativeBase):
                     self.INPUT_FILES[card.name]['filename'] = value
                     
                 elif card.name in self.INPUT_MAPS:
-                    pass
+                    value = card.value.strip('"')
+                    self.INPUT_MAPS[card.name]['filename'] = value
                     
                 elif card.name in self.OUTPUT_FILES:
                     value = card.value.strip('"')
                     self.OUTPUT_FILES[card.name]['filename'] = value
                 
                 elif card.name in self.OUTPUT_MAPS:
-                    pass
-                
+                    value = card.value.strip('"')
+                    self.OUTPUT_MAPS[card.name]['filename'] = value
+                     
+    def readAll(self):
+        '''
+        GSSHA Project Read from File Method
+        '''
+        
+        # First read self
+        self.read()
+        
+        # Read Input Files
+        self._readXput(self.INPUT_FILES)
+        
+        # Read Output Files
+        self._readXput(self.OUTPUT_FILES)
+        
+        # Read Input Map Files
+        self._readXputMaps(self.INPUT_MAPS)
+        
+        # Read Output Map Files
+        self._readXputMaps(self.OUTPUT_MAPS)
+        
+
     def writeAll(self, session, directory, newName=None):
         '''
         GSSHA Project Write All Files to File Method
@@ -330,43 +317,99 @@ class ProjectFile(DeclarativeBase):
         # Write output files
         self._writeXput(session=session, directory=directory, fileDict=self.OUTPUT_FILES, newName=newName)
         
+        # Write input map files
+        self._writeXputMaps(session=session, directory=directory, fileDict=self.INPUT_MAPS, newName=newName)
         
+        # Write output map files
+        self._writeXputMaps(session=session, directory=directory, fileDict=self.OUTPUT_MAPS, newName=newName)
+        
+        
+    def _readXput(self, fileDict):
+        '''
+        GSSHAPY Project Read Files from File Method
+        '''
+        ## NOTE: This function is depenedent on the project file being read first
+        # Read Input/Output Files
+        for card, afile in fileDict.iteritems():
+            filename = afile['filename']
+            read = afile['read']
+            if filename != None and read != None:
+                read(projectFile=self,
+                     filename=filename)
+                
     def _writeXput(self, session, directory, fileDict, newName=None):
         '''
-        GSSHA Project Write Input Files to File Method
+        GSSHA Project Write Files to File Method
         '''
         # Write Input/Output Files
         for card, afile in fileDict.iteritems():
             if afile['filename'] != None:
-                originalProjectName = self.name
-                originalFilename = afile['filename']
-                originalPrefix = originalFilename.split('.')[0]
-                extension = originalFilename.split('.')[1]
-                
-                # Handle new name
-                if newName == None:
-                    # The project name is not changed and file names
-                    # stay the same
-                    filename = originalFilename
-                    
-                elif originalPrefix == originalProjectName:
-                    # This check is necessary because not all filenames are 
-                    # prefixed with the project name. Thus the file prefix
-                    # is only changed for files that are prefixed with the 
-                    # project name
-                    filename = '%s.%s' % (newName, extension)
-                
-                else:
-                    # Filename doesn't change for files that don't share the 
-                    # project prefix. e.g.: hmet.hmt
-                    filename = originalFilename
+                # Determine new filename
+                filename = self._replaceNewFilename(afile['filename'], newName)
                 
                 # Extract write funtion from fileDict
                 write = afile['write']
                 
                 # Execute write function if not None
                 if write != None:
-                    write(projectFile=self, directory=directory, session=session, filename=filename)
+                    write(projectFile=self,
+                          directory=directory,
+                          session=session,
+                          filename=filename)
+                    
+    def _readXputMaps(self, fileDict):
+        '''
+        GSSHA Project Read Map Files from File Method
+        '''
+        for card, afile in fileDict.iteritems():
+            filename = afile['filename']
+            
+            if filename != None:
+                # Create GSSHAPY RasterMapFile object
+                ior.readRasterMapFile(projectFile=self,
+                                      filename=filename)
+                
+    def _writeXputMaps(self, session, directory, fileDict, newName=None):
+        '''
+        GSSHAPY Project Write Map Files to File Method
+        '''
+        for card, afile in fileDict.iteritems():
+            if afile['filename'] != None:
+                # Determine new filename
+                filename = self._replaceNewFilename(afile['filename'], newName)
+                
+                # Write map file
+                iow.writeRasterMapFile(projectFile=self,
+                                       session=session,
+                                       directory=directory,
+                                       filename=filename)
+        
+    def _replaceNewFilename(self, filename, newName):
+        originalProjectName = self.name
+        originalFilename = filename
+        originalPrefix = originalFilename.split('.')[0]
+        extension = originalFilename.split('.')[1]
+        
+        # Handle new name
+        if newName == None:
+            # The project name is not changed and file names
+            # stay the same
+            filename = originalFilename
+            
+        elif originalPrefix == originalProjectName:
+            # This check is necessary because not all filenames are 
+            # prefixed with the project name. Thus the file prefix
+            # is only changed for files that are prefixed with the 
+            # project name
+            filename = '%s.%s' % (newName, extension)
+        
+        else:
+            # Filename doesn't change for files that don't share the 
+            # project prefix. e.g.: hmet.hmt
+            filename = originalFilename
+            
+        return filename
+            
         
         
     def _extractCard(self, projectLine):

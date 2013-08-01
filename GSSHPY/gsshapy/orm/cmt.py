@@ -114,15 +114,20 @@ class MapTableFile(DeclarativeBase):
                 
                 # Index Map handler
                 if key == 'INDEX_MAP':
+                    
                     # Create GSSHAPY IndexMap object from result object
-                    indexMap = IndexMap(name=result['idxName'],
-                                        filename=result['filename'],
-                                        rasterMap=result['map'])
+                    indexMap = IndexMap(name = result['idxName'],
+                                        directory=self.DIRECTORY,
+                                        session=self.SESSION,
+                                        filename=result['filename'])
                     
                     # Dictionary used to map index maps to mapping tables
                     indexMaps[result['idxName']] = indexMap
+                    
+                    # Initiate IndexMap read method
+                    indexMap.read()
                 
-                # Map Table Handler
+                # Map Table handler
                 else:
                     # Create a list of all the map tables in the file
                     if result:
@@ -166,7 +171,11 @@ class MapTableFile(DeclarativeBase):
             
             # Write list of index maps
             for indexMap in indexMaps:
+                # Write to map table file
                 cmtFile.write('INDEX_MAP%s"%s" "%s"\n' % (' '*16, indexMap.filename, indexMap.name))
+                
+                # Initiate index map write
+                indexMap.write(directory)
             
             for mapTable in self.mapTables:
                 if mapTable.name == 'SEDIMENTS':
