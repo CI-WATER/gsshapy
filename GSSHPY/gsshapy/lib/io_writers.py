@@ -45,7 +45,7 @@ def writeHmetFile(projectFile, session, directory, filename):
     Initiate Write HMET File Method
     '''
     hmetFile = projectFile.hmetFile
-    hmetFile.writeWES(session=session, directory=directory, filename=filename)
+    hmetFile.write(session=session, directory=directory, filename=filename)
     print 'File Written:', filename
     
 def writeNwsrfsFile(projectFile, session, directory, filename):

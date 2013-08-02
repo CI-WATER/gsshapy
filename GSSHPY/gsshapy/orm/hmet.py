@@ -51,10 +51,12 @@ class HmetFile(DeclarativeBase):
     def __repr__(self):
         return '<HmetFile: Name=%s, Description=%s>' % (self.name, self.description)
     
-    def readWES(self):
+    def read(self):
         '''
-        Read HMET_WES from File Method
+        Read HMET WES from File Method
         '''
+        ## TODO: Ensure Other HMET Formats are supported
+        
         # Open file and parse into HmetRecords
         with open(self.PATH, 'r') as hmetFile:
             
@@ -77,10 +79,11 @@ class HmetFile(DeclarativeBase):
                 # Associate HmetRecord with HmetFile
                 hmetRecord.hmetFile = self
         
-    def writeWES(self, session, directory, filename):
+    def write(self, session, directory, filename):
         '''
-        Write HMET_WES to File Method
+        Write HMET WES to File Method
         '''
+        ## TODO: Ensure Other HMET Formats are supported
 
         # Initiate hmet wes file
         filePath = '%s%s' % (directory, filename)

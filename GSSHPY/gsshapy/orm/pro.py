@@ -64,7 +64,6 @@ class ProjectionFile(DeclarativeBase):
         '''
         Projection File Write to File Method
         '''
-        print 'THIS:', filename
         # Initiate file
         filePath = '%s%s' % (directory, filename)
 
