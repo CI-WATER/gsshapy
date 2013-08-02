@@ -18,6 +18,7 @@ from gsshapy.orm.gst import GridStreamFile
 from gsshapy.orm.timeseries import TimeSeriesFile
 from gsshapy.orm.loc import OutputLocationFile
 from gsshapy.orm.map import RasterMapFile
+from gsshapy.orm.pro import ProjectionFile
 
 ## TODO: Write a generic method that can be used to read files similar to this:
 def readGeneric(projectFile, fileIO, filename):
@@ -110,6 +111,15 @@ def readTimeSeriesFile(projectFile, filename):
     timeSeriesFile = TimeSeriesFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
     timeSeriesFile.projectFile = projectFile
     timeSeriesFile.read()
+    print 'File Read:', filename
+
+def readProjectionFile(projectFile, filename):
+    '''
+    Initiate Read Projection File Method
+    '''
+    projectionFile = ProjectionFile(directory=projectFile.DIRECTORY, filename=filename, session=projectFile.SESSION)
+    projectionFile.projectFile = projectFile
+    projectionFile.read()
     print 'File Read:', filename
     
 def readOutputLocationFile(projectFile, filename):

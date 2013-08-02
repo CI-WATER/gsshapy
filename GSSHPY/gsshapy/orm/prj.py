@@ -13,24 +13,14 @@ __all__ = ['ProjectFile',
 
 import re, shlex
 
-from sqlalchemy import ForeignKey, Column, Table
+from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
-from gsshapy.orm import DeclarativeBase, metadata
-from gsshapy.orm.gag import PrecipFile
-from gsshapy.orm.cmt import MapTableFile
-from gsshapy.orm.cif import ChannelInputFile
-from gsshapy.orm.spn import StormPipeNetworkFile
+from gsshapy.orm import DeclarativeBase
 
 from gsshapy.lib import io_readers as ior, io_writers as iow
 
-
-
-assocProject = Table('assoc_project_files_options', metadata,
-    Column('projectFileID', Integer, ForeignKey('prj_project_files.id')),
-    Column('projectCardID', Integer, ForeignKey('prj_project_cards.id'))
-    )
 
 class ProjectFile(DeclarativeBase):
     '''
@@ -49,12 +39,13 @@ class ProjectFile(DeclarativeBase):
     orthoGageFileID = Column(Integer, ForeignKey('snw_orthographic_gage_files.id'))
     gridPipeFileID = Column(Integer, ForeignKey('gpi_grid_pipe_files.id'))
     gridStreamFileID = Column(Integer, ForeignKey('gst_grid_stream_files.id'))
+    projectionFileID = Column(Integer, ForeignKey('pro_projection_files.id'))
     
     # Value Columns
     name = Column(String, nullable=False)
     
     # Relationship Properties
-    projectCards = relationship('ProjectCard', secondary=assocProject, back_populates='projectFiles')
+    projectCards = relationship('ProjectCard', back_populates='projectFile')
     
     # File Relationship Properties
     mapTableFile = relationship('MapTableFile', back_populates='projectFile')
@@ -67,6 +58,7 @@ class ProjectFile(DeclarativeBase):
     gridPipeFile = relationship('GridPipeFile', back_populates='projectFile')
     gridStreamFile = relationship('GridStreamFile', back_populates='projectFile')
     timeSeriesFiles = relationship('TimeSeriesFile', back_populates='projectFile')
+    projectionFile = relationship('ProjectionFile', back_populates='projectFile')
     outputLocationFiles = relationship('OutputLocationFile', back_populates='projectFile')
     maps = relationship('RasterMapFile', back_populates='projectFile')
     
@@ -78,7 +70,7 @@ class ProjectFile(DeclarativeBase):
     EXTENSION = 'prj'
     
     # File Properties
-    INPUT_FILES = {'#PROJECTION_FILE':          {'filename': None, 'read': None, 'write': None},
+    INPUT_FILES = {'#PROJECTION_FILE':          {'filename': None, 'read': ior.readProjectionFile, 'write': iow.writeProjectionFile},
                    'MAPPING_TABLE':             {'filename': None, 'read': ior.readMappingTableFile, 'write': iow.writeMappingTableFile},
                    'ST_MAPPING_TABLE':          {'filename': None, 'read': None, 'write': None},
                    'PRECIP_FILE':               {'filename': None, 'read': ior.readPrecipitationFile, 'write': iow.writePrecipitationFile},
@@ -223,9 +215,11 @@ class ProjectFile(DeclarativeBase):
                 # Now that the cardName and cardValue are separated
                 # load them into the gsshapy objects
                 if card['name'] not in HEADERS:
-                    # Initiate database objects
+                    # Create GSSHAPY Project Card object
                     prjCard = ProjectCard(name=card['name'], value=card['value'])
-                    self.projectCards.append(prjCard)
+                    
+                    # Associate ProjectCard with ProjectFile
+                    prjCard.projectFile = self
                     
                 # Assemble list of files for reading
                 if card['name'] in self.INPUT_FILES:
@@ -382,16 +376,26 @@ class ProjectFile(DeclarativeBase):
                                        filename=filename)
         
     def _replaceNewFilename(self, filename, newName):
+        pro = False
         originalProjectName = self.name
         originalFilename = filename
         originalPrefix = originalFilename.split('.')[0]
         extension = originalFilename.split('.')[1]
+        
+        # Special case with projection file
+        if '_' in originalPrefix:
+            originalPrefix = originalPrefix.split('_')[0]
+            pro = True
         
         # Handle new name
         if newName == None:
             # The project name is not changed and file names
             # stay the same
             filename = originalFilename
+        
+        elif originalPrefix == originalProjectName and pro:
+            # Handle renaming of projection file
+            filename = '%s_prj.%s' % (newName, extension)
             
         elif originalPrefix == originalProjectName:
             # This check is necessary because not all filenames are 
@@ -476,13 +480,14 @@ class ProjectCard(DeclarativeBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
+    projectFileID = Column(Integer, ForeignKey('prj_project_files.id'))
     
     # Value Columns
     name = Column(String, nullable=False)
     value = Column(String)
     
     # Relationship Properties
-    projectFiles = relationship('ProjectFile', secondary=assocProject, back_populates='projectCards')
+    projectFile = relationship('ProjectFile', back_populates='projectCards')
     
     def __init__(self, name, value):
         '''

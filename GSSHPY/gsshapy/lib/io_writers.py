@@ -80,6 +80,14 @@ def writeGridStreamFile(projectFile, session, directory, filename):
     gridStreamFile.write(session=session, directory=directory, filename=filename)
     print 'File Written:', filename
     
+def writeProjectionFile(projectFile, session, directory, filename):
+    '''
+    Initiate Write Projection File Method
+    '''
+    projectionFile = projectFile.projectionFile
+    projectionFile.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
+    
 def writeTimeSeriesFile(projectFile, session, directory, filename):
     '''
     Initiate Write Generic Time Series File Method
