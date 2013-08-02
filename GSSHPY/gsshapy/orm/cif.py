@@ -27,11 +27,12 @@ from sqlalchemy.types import Integer, String, Float, Boolean
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt, cif_chunk as cic
 
 
 
-class ChannelInputFile(DeclarativeBase):
+class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     Channel Input File
     '''
@@ -50,22 +51,12 @@ class ChannelInputFile(DeclarativeBase):
     # Relationship Properties
     projectFile = relationship('ProjectFile', uselist=False, back_populates='channelInputFile')
     streamLinks = relationship('StreamLink', back_populates='channelInputFile')
-        
-    # Global Properties
-    PATH = ''
-    FILENAME = ''
-    DIRECTORY = ''
-    SESSION = None
-    EXTENSION = 'cif'
     
     def __init__(self, directory, filename, session, alpha=None, beta=None, theta=None, links=None, maxNodes=None):
         '''
         Constructor
         '''
-        self.FILENAME = filename
-        self.DIRECTORY = directory
-        self.SESSION = session
-        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME)
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         self.alpha = alpha
         self.beta = beta
         self.theta = theta

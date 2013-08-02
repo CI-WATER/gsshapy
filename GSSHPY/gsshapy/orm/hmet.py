@@ -13,12 +13,13 @@ from datetime import datetime
 __all__ = ['HmetFile','HmetRecord']
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, String, Float, DateTime
+from sqlalchemy.types import Integer, Float, DateTime
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
-class HmetFile(DeclarativeBase):
+class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     classdocs
     '''
@@ -31,21 +32,11 @@ class HmetFile(DeclarativeBase):
     hmetRecords = relationship('HmetRecord', back_populates='hmetFile')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='hmetFile')
     
-    # Global Properties
-    PATH = ''
-    FILENAME = ''
-    DIRECTORY = ''
-    SESSION = None
-    
-    
     def __init__(self, directory, filename, session):
         '''
         Constructor
         '''
-        self.FILENAME = filename
-        self.DIRECTORY = directory
-        self.SESSION = session
-        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME)
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
 
     def __repr__(self):

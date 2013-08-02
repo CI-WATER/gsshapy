@@ -20,9 +20,10 @@ from sqlalchemy.types import Integer, DateTime, String, Float
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import pivot, parsetools as pt, gag_chunk as gak
 
-class PrecipFile(DeclarativeBase):
+class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     classdocs
     '''
@@ -34,22 +35,12 @@ class PrecipFile(DeclarativeBase):
     # Relationship Properties
     precipEvents = relationship('PrecipEvent', back_populates='precipFile')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='precipFile')
-    
-    # Global Properties
-    PATH = ''
-    FILENAME = ''
-    DIRECTORY = ''
-    SESSION = None
-    EXTENSION = 'gag'
         
     def __init__(self, directory, filename, session):
         '''
         Constructor
         '''
-        self.FILENAME = filename
-        self.DIRECTORY = directory
-        self.SESSION = session
-        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME)
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
     def read(self):
         '''

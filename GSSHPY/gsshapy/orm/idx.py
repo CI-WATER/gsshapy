@@ -15,9 +15,10 @@ from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
 
-class IndexMap(DeclarativeBase):
+class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     """
     classdocs
     """
@@ -46,11 +47,9 @@ class IndexMap(DeclarativeBase):
         '''
         Constructor
         '''
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         self.name = name
-        self.filename = filename # e.g.: example.ext
-        self.DIRECTORY = directory # e.g.: /path/to/my/example
-        self.SESSION = session # SQL Alchemy Session object
-        self.PATH = '%s%s' % (directory, filename) # e.g.: /path/to/my/example/example.ext
+        self.filename = filename
         
     def __repr__(self):
         return '<IndexMap: Name=%s, Filename=%s, Raster=%s>' % (self.name, self.filename, self.raster)

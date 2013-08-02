@@ -15,8 +15,9 @@ from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
-class RasterMapFile(DeclarativeBase):
+class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     classdocs
     '''
@@ -33,22 +34,11 @@ class RasterMapFile(DeclarativeBase):
     # Relationship Properites
     projectFile = relationship('ProjectFile', back_populates='maps')
     
-    # Global Properties
-    PATH = ''
-    FILENAME = ''
-    DIRECTORY = ''
-    SESSION = None
-    EXTENSION = ''
-    
     def __init__(self, directory, filename, session):
         '''
         Constructor
         '''
-        self.FILENAME = filename # e.g.: example.ext
-        self.DIRECTORY = directory # e.g.: /path/to/my/example
-        self.SESSION = session # SQL Alchemy Session object
-        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME) # e.g.: /path/to/my/example/example.ext
-        self.EXTENSION = filename.split('.')[1]
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
     def __repr__(self):
         return '<RasterMap: FileExtension=%s, Raster=%s>' % (self.fileExtension, self.raster)

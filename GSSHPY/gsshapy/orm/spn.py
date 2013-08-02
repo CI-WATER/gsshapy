@@ -20,11 +20,12 @@ from sqlalchemy.types import Integer, Float
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt, spn_chunk as spc
 
 
     
-class StormPipeNetworkFile(DeclarativeBase):
+class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     classdocs
     '''
@@ -39,21 +40,11 @@ class StormPipeNetworkFile(DeclarativeBase):
     superJunctions = relationship('SuperJunction', back_populates='stormPipeNetworkFile')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='stormPipeNetworkFile')
     
-    # Global Properties
-    PATH = ''
-    FILENAME = ''
-    DIRECTORY = ''
-    SESSION = None
-    EXTENSION = 'spn'
-    
-    def __init__(self, filename, directory, session):
+    def __init__(self, directory, filename, session):
         '''
         Constructor
         '''
-        self.FILENAME = filename
-        self.DIRECTORY = directory
-        self.SESSION = session
-        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME)
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
     def __repr__(self):
         return '<PipeNetwork: ID=%s>' %(self.id)

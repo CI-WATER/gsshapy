@@ -7,15 +7,6 @@
 * License: BSD 2-Clause
 ********************************************************************************
 '''
-
-from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, Float, String
-from sqlalchemy.orm import relationship
-
-from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.idx import IndexMap
-from gsshapy.lib import parsetools as pt, cmt_chunk as mtc
-
 __all__ = ['MapTableFile',
            'MapTable',
            'MTValue',
@@ -23,7 +14,17 @@ __all__ = ['MapTableFile',
            'MTContaminant',
            'MTSediment']
 
-class MapTableFile(DeclarativeBase):
+from sqlalchemy import ForeignKey, Column
+from sqlalchemy.types import Integer, Float, String
+from sqlalchemy.orm import relationship
+
+from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.file_base import GsshaPyFileObjectBase
+from gsshapy.orm.idx import IndexMap
+from gsshapy.lib import parsetools as pt, cmt_chunk as mtc
+
+
+class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     classdocs
     '''
@@ -36,22 +37,11 @@ class MapTableFile(DeclarativeBase):
     mapTables = relationship('MapTable', back_populates='mapTableFile')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile')
     
-    # Global Properties
-    PATH = ''
-    FILENAME = ''
-    DIRECTORY = ''
-    SESSION = None
-    EXTENSION = 'cmt'
-    
-    
     def __init__(self, directory, filename, session):
         '''
         Constructor
         '''
-        self.FILENAME = filename
-        self.DIRECTORY = directory
-        self.SESSION = session
-        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME)
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
     def read(self):
         '''

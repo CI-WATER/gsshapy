@@ -19,8 +19,9 @@ from sqlalchemy.types import Integer, Float, DateTime
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
-class NwsrfsFile(DeclarativeBase):
+class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     classdocs
     '''
@@ -36,21 +37,11 @@ class NwsrfsFile(DeclarativeBase):
     nwsrfsRecords = relationship('NwsrfsRecord', back_populates='nwsrfsFile')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='nwsrfsFile')
     
-    # Global Properties
-    PATH = ''
-    FILENAME = ''
-    DIRECTORY = ''
-    SESSION = None
-    
-    
     def __init__(self, directory, filename, session):
         '''
         Constructor
         '''
-        self.FILENAME = filename
-        self.DIRECTORY = directory
-        self.SESSION = session
-        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME)
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
     def read(self):
         '''
@@ -175,7 +166,7 @@ class NwsrfsRecord(DeclarativeBase):
                 self.fua,
                 self.plwhc)
 
-class OrthographicGageFile(DeclarativeBase):
+class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     classdocs
     '''
@@ -193,20 +184,11 @@ class OrthographicGageFile(DeclarativeBase):
     orthoMeasurements = relationship('OrthoMeasurement', back_populates='orthoGageFile')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='orthoGageFile')
     
-    # Global Properties
-    PATH = ''
-    FILENAME = ''
-    DIRECTORY = ''
-    SESSION = None
-        
     def __init__(self, directory, filename, session):
         '''
         Constructor
         '''
-        self.FILENAME = filename
-        self.DIRECTORY = directory
-        self.SESSION = session
-        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME)
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
     def read(self):
         '''

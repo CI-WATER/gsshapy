@@ -10,13 +10,14 @@
 
 __all__ = ['ProjectionFile']
 
-from sqlalchemy import Column, ForeignKey
+from sqlalchemy import Column
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
-class ProjectionFile(DeclarativeBase):
+class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     classdocs
     '''
@@ -31,22 +32,11 @@ class ProjectionFile(DeclarativeBase):
     # Relationship Properites
     projectFile = relationship('ProjectFile', uselist=False, back_populates='projectionFile')
     
-    # Global Properties
-    PATH = ''
-    FILENAME = ''
-    DIRECTORY = ''
-    SESSION = None
-    EXTENSION = ''
-    
     def __init__(self, directory, filename, session):
         '''
         Constructor
         '''
-        self.FILENAME = filename # e.g.: example.ext
-        self.DIRECTORY = directory # e.g.: /path/to/my/example
-        self.SESSION = session # SQL Alchemy Session object
-        self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME) # e.g.: /path/to/my/example/example.ext
-        self.EXTENSION = filename.split('.')[1]
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
     def __repr__(self):
         return '<ProjectionFile: Projection=%s>' % (self.projection)

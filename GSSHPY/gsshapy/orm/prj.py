@@ -18,10 +18,11 @@ from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.file_base import GsshaPyFileObjectBase
 from gsshapy.orm.file_object_imports import *
 from gsshapy.lib import io_writers as iow
 
-class ProjectFile(DeclarativeBase):
+class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     ProjectFile is the file ORM object that interfaces with the project files directly.
     '''
@@ -60,13 +61,6 @@ class ProjectFile(DeclarativeBase):
     projectionFile = relationship('ProjectionFile', back_populates='projectFile')
     outputLocationFiles = relationship('OutputLocationFile', back_populates='projectFile')
     maps = relationship('RasterMapFile', back_populates='projectFile')
-    
-    # Global Properties
-    PATH = None
-    PROJECT_NAME = None
-    DIRECTORY = None
-    SESSION = None
-    EXTENSION = 'prj'
     
     # File Properties
     INPUT_FILES = {'#PROJECTION_FILE':          {'filename': None, 'fileio': ProjectionFile, 'write': iow.writeProjectionFile},
