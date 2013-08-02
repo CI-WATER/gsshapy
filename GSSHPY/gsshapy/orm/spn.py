@@ -20,7 +20,7 @@ from sqlalchemy.types import Integer, Float
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.lib import parsetools as pt, stormPipeChunk as spc
+from gsshapy.lib import parsetools as pt, spn_chunk as spc
 
 
     

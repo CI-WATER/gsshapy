@@ -27,7 +27,7 @@ from sqlalchemy.types import Integer, String, Float, Boolean
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.lib import parsetools as pt, channelInputChunk as cic
+from gsshapy.lib import parsetools as pt, cif_chunk as cic
 
 
 

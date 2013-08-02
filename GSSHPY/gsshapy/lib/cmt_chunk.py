@@ -204,19 +204,3 @@ def _extractValues(line):
     valDict['description2'] = line[46:86].strip() # Next 40 columns
     valDict['values'] = line[86:].strip().split() # Remaining columns
     return valDict
-
-def _createValueObjects(valueList, varList, mapTable, contaminant=None):
-    # Global Variables
-    mtIndices = []
-    
-    # Populate GSSHAPY MTValue and MTIndex objects
-    for row in valueList:
-        mtIndex = MTIndex(index=row['index'], description1=row['description1'], description2=row['description2'])
-        mtIndices.append(mtIndex)
-        for i, value in enumerate(row['values']):
-            mtValue = MTValue(variable=varList[i], value=float(value))
-            mtValue.index = mtIndex
-            mtValue.mapTable = mapTable
-            if contaminant:
-                mtValue.contaminant = contaminant
-    return mtIndices

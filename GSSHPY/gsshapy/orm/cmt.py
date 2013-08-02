@@ -14,7 +14,7 @@ from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.idx import IndexMap
-from gsshapy.lib import parsetools as pt, mapTableChunk as mtc
+from gsshapy.lib import parsetools as pt, cmt_chunk as mtc
 
 __all__ = ['MapTableFile',
            'MapTable',

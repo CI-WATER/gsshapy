@@ -1,6 +1,6 @@
 '''
 ********************************************************************************
-* Name: StormPipeChunk
+* Name: Channel Input File Chunk
 * Author: Nathan Swain
 * Created On: July 26, 2013
 * Copyright: (c) Brigham Young University 2013
