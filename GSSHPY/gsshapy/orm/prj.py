@@ -18,7 +18,7 @@ from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.file_io import *
+from gsshapy.orm.file_object_imports import *
 from gsshapy.lib import io_writers as iow
 
 class ProjectFile(DeclarativeBase):
