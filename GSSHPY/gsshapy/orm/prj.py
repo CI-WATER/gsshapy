@@ -64,6 +64,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     replaceValFile = relationship('ReplaceValFile', back_populates='projectFile')
     outputLocationFiles = relationship('OutputLocationFile', back_populates='projectFile')
     maps = relationship('RasterMapFile', back_populates='projectFile')
+    linkNodeDatasets = relationship('LinkNodeDatasetFile', back_populates='projectFile')
     
     # File Properties
     INPUT_FILES = {'#PROJECTION_FILE':          {'filename': None, 'fileio': ProjectionFile},       # WMS
@@ -136,11 +137,11 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     'OUT_HYD_LOCATION':     {'filename': None, 'fileio': TimeSeriesFile},
                     'OUT_DEP_LOCATION':     {'filename': None, 'fileio': TimeSeriesFile},
                     'OUT_SED_LOC':          {'filename': None, 'fileio': TimeSeriesFile},
-                    'CHAN_DEPTH':           {'filename': None, 'fileio': None}, # Link/Node Format .cdp
-                    'CHAN_STAGE':           {'filename': None, 'fileio': None}, # Link/Node Format .cds
-                    'CHAN_DISCHARGE':       {'filename': None, 'fileio': None}, # Link/Node Format .cdq
-                    'CHAN_VELOCITY':        {'filename': None, 'fileio': None}, # Link/Node Format .cdv
-                    'LAKE_OUTPUT':          {'filename': None, 'fileio': None}, # Special? .lel
+                    'CHAN_DEPTH':           {'filename': None, 'fileio': LinkNodeDatasetFile},
+                    'CHAN_STAGE':           {'filename': None, 'fileio': LinkNodeDatasetFile},
+                    'CHAN_DISCHARGE':       {'filename': None, 'fileio': LinkNodeDatasetFile},
+                    'CHAN_VELOCITY':        {'filename': None, 'fileio': LinkNodeDatasetFile},
+                    'LAKE_OUTPUT':          {'filename': None, 'fileio': None},  ## TODO: Special format? .lel
                     'SNOW_SWE_FILE':        {'filename': None, 'fileio': None},                 # Continuous Simulation
                     'GW_WELL_LEVEL':        {'filename': None, 'fileio': None},                 # Saturated Groundwater Flow
                     'OUT_GWFULX_LOCATION':  {'filename': None, 'fileio': TimeSeriesFile},
@@ -150,7 +151,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     'OUT_TSS_LOC':          {'filename': None, 'fileio': TimeSeriesFile},
                     'NET_SED_VOLUME':       {'filename': None, 'fileio': None},
                     'VOL_SED_SUSP':         {'filename': None, 'fileio': None},
-                    'MAX_SED_FLUX':         {'filename': None, 'fileio': None},                 # Link/Node Format
+                    'MAX_SED_FLUX':         {'filename': None, 'fileio': LinkNodeDatasetFile},
                     'OUT_CON_LOCATION':     {'filename': None, 'fileio': TimeSeriesFile},       # Constituent Transport
                     'OUT_MASS_LOCATION':    {'filename': None, 'fileio': TimeSeriesFile},
                     'SUPERLINK_JUNC_FLOW':  {'filename': None, 'fileio': TimeSeriesFile},       # Subsurface Drainage

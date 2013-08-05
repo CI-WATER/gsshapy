@@ -54,6 +54,7 @@ from snw import *
 from loc import *
 from map import *
 from pro import *
-from replace import *
+from rep import *
+from lnd import *
 
 
