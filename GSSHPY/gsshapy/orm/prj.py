@@ -67,37 +67,37 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     maps = relationship('RasterMapFile', back_populates='projectFile')
     
     # File Properties
-    INPUT_FILES = {'#PROJECTION_FILE':          {'filename': None, 'fileio': ProjectionFile, 'write': iow.writeProjectionFile},         # WMS
-                   'MAPPING_TABLE':             {'filename': None, 'fileio': MapTableFile, 'write': iow.writeMappingTableFile},         # Mapping Table
-                   'ST_MAPPING_TABLE':          {'filename': None, 'fileio': None, 'write': None},
-                   'PRECIP_FILE':               {'filename': None, 'fileio': PrecipFile, 'write': iow.writePrecipitationFile},          # Precipitation
-                   'CHANNEL_INPUT':             {'filename': None, 'fileio': ChannelInputFile, 'write': iow.writeChannelInputFile},     # Channel Routing
-                   'STREAM_CELL':               {'filename': None, 'fileio': GridStreamFile, 'write': iow.writeGridStreamFile},
-                   'SECTION_TABLE':             {'filename': None, 'fileio': None, 'write': None},
-                   'SOIL_LAYER_INPUT_FILE':     {'filename': None, 'fileio': None, 'write': None},                                      # Infiltration
-                   'IN_THETA_LOCATION':         {'filename': None, 'fileio': OutputLocationFile, 'write': iow.writeOutputLocationFile},
-                   'EXPLIC_HOTSTART':           {'filename': None, 'fileio': None, 'write': None},
-                   'READ_CHAN_HOTSTART':        {'filename': None, 'fileio': None, 'write': None},
-                   'CHAN_POINT_INPUT':          {'filename': None, 'fileio': None, 'write': None},
-                   'IN_HYD_LOCATION':           {'filename': None, 'fileio': OutputLocationFile, 'write': iow.writeOutputLocationFile},
-                   'IN_SED_LOC':                {'filename': None, 'fileio': OutputLocationFile, 'write': iow.writeOutputLocationFile},
-                   'IN_GWFLUX_LOCATION':        {'filename': None, 'fileio': OutputLocationFile, 'write': iow.writeOutputLocationFile},
-                   'HMET_SURFAWAYS':            {'filename': None, 'fileio': None, 'write': None},                                      # Continuous Simulation
-                   'HMET_SAMSON':               {'filename': None, 'fileio': None, 'write': None},
-                   'HMET_WES':                  {'filename': None, 'fileio': HmetFile, 'write': iow.writeHmetFile},
-                   'NWSRFS_ELEV_SNOW':          {'filename': None, 'fileio': NwsrfsFile, 'write': iow.writeNwsrfsFile},
-                   'HMET_OROG_GAGES':           {'filename': None, 'fileio': OrthographicGageFile, 'write': iow.writeOrthoGageFile},
-                   'HMET_ASCII':                {'filename': None, 'fileio': None, 'write': None},
-                   'GW_FLUXBOUNDTABLE':         {'filename': None, 'fileio': None, 'write': None},                                      # Saturated Groundwater Flow
-                   'STORM_SEWER':               {'filename': None, 'fileio': StormPipeNetworkFile, 'write': iow.writePipeNetworkFile},  # Subsurface Drainage
-                   'GRID_PIPE':                 {'filename': None, 'fileio': GridPipeFile, 'write': iow.writeGridPipeFile},
-                   'SUPER_LINK_JUNC_LOCATION':  {'filename': None, 'fileio': None, 'write': None},
-                   'SUPERLINK_NODE_LOCATION':   {'filename': None, 'fileio': None, 'write': None},
-                   'OVERLAND_DEPTH_LOCATION':   {'filename': None, 'fileio': OutputLocationFile, 'write': iow.writeOutputLocationFile}, # Overland Flow (Other Output)
-                   'OVERLAND_WSE_LOCATION':     {'filename': None, 'fileio': OutputLocationFile, 'write': iow.writeOutputLocationFile},
-                   'OUT_WELL_LOCATION':         {'filename': None, 'fileio': OutputLocationFile, 'write': iow.writeOutputLocationFile},
-                   'REPLACE_PARAMS':            {'filename': None, 'fileio': ReplaceParamFile, 'write': iow.writeReplaceParamFile},     # Replacement Cards
-                   'REPLACE_VALS':              {'filename': None, 'fileio': ReplaceValFile, 'write': iow.writeFile}}
+    INPUT_FILES = {'#PROJECTION_FILE':          {'filename': None, 'fileio': ProjectionFile},         # WMS
+                   'MAPPING_TABLE':             {'filename': None, 'fileio': MapTableFile},         # Mapping Table
+                   'ST_MAPPING_TABLE':          {'filename': None, 'fileio': None},
+                   'PRECIP_FILE':               {'filename': None, 'fileio': PrecipFile},          # Precipitation
+                   'CHANNEL_INPUT':             {'filename': None, 'fileio': ChannelInputFile},     # Channel Routing
+                   'STREAM_CELL':               {'filename': None, 'fileio': GridStreamFile},
+                   'SECTION_TABLE':             {'filename': None, 'fileio': None},
+                   'SOIL_LAYER_INPUT_FILE':     {'filename': None, 'fileio': None},                                      # Infiltration
+                   'IN_THETA_LOCATION':         {'filename': None, 'fileio': OutputLocationFile},
+                   'EXPLIC_HOTSTART':           {'filename': None, 'fileio': None},
+                   'READ_CHAN_HOTSTART':        {'filename': None, 'fileio': None},
+                   'CHAN_POINT_INPUT':          {'filename': None, 'fileio': None},
+                   'IN_HYD_LOCATION':           {'filename': None, 'fileio': OutputLocationFile},
+                   'IN_SED_LOC':                {'filename': None, 'fileio': OutputLocationFile},
+                   'IN_GWFLUX_LOCATION':        {'filename': None, 'fileio': OutputLocationFile},
+                   'HMET_SURFAWAYS':            {'filename': None, 'fileio': None},                                      # Continuous Simulation
+                   'HMET_SAMSON':               {'filename': None, 'fileio': None},
+                   'HMET_WES':                  {'filename': None, 'fileio': HmetFile},
+                   'NWSRFS_ELEV_SNOW':          {'filename': None, 'fileio': NwsrfsFile},
+                   'HMET_OROG_GAGES':           {'filename': None, 'fileio': OrthographicGageFile},
+                   'HMET_ASCII':                {'filename': None, 'fileio': None},
+                   'GW_FLUXBOUNDTABLE':         {'filename': None, 'fileio': None},                                      # Saturated Groundwater Flow
+                   'STORM_SEWER':               {'filename': None, 'fileio': StormPipeNetworkFile},  # Subsurface Drainage
+                   'GRID_PIPE':                 {'filename': None, 'fileio': GridPipeFile},
+                   'SUPER_LINK_JUNC_LOCATION':  {'filename': None, 'fileio': None},
+                   'SUPERLINK_NODE_LOCATION':   {'filename': None, 'fileio': None},
+                   'OVERLAND_DEPTH_LOCATION':   {'filename': None, 'fileio': OutputLocationFile}, # Overland Flow (Other Output)
+                   'OVERLAND_WSE_LOCATION':     {'filename': None, 'fileio': OutputLocationFile},
+                   'OUT_WELL_LOCATION':         {'filename': None, 'fileio': OutputLocationFile},
+                   'REPLACE_PARAMS':            {'filename': None, 'fileio': ReplaceParamFile},     # Replacement Cards
+                   'REPLACE_VALS':              {'filename': None, 'fileio': ReplaceValFile}}
     
     INPUT_MAPS = {'ELEVATION':              {'filename': None}, # Required Inputs
                   'WATERSHED_MASK':         {'filename': None}, 
@@ -129,36 +129,36 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                   'GW_HYCOND_MAP':          {'filename': None},
                   'CONTAM_MAP':             {'filename': None}} # Constituent Transport
     
-    OUTPUT_FILES = {'SUMMARY':              {'filename': None, 'fileio': None, 'write': None},                                  # Required Output
-                    'OUTLET_HYDRO':         {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},
-                    'OUT_THETA_LOCATION':   {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},     # Infiltration
-                    'EXPLIC_BACKWATER':     {'filename': None, 'fileio': None, 'write': None},                                  # Channel Routing
-                    'WRITE_CHAN_HOTSTART':  {'filename': None, 'fileio': None, 'write': None},
-                    'OUT_HYD_LOCATION':     {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},
-                    'OUT_DEP_LOCATION':     {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},
-                    'OUT_SED_LOC':          {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},
-                    'CHAN_DEPTH':           {'filename': None, 'fileio': None, 'write': None}, # Link/Node Format .cdp
-                    'CHAN_STAGE':           {'filename': None, 'fileio': None, 'write': None}, # Link/Node Format .cds
-                    'CHAN_DISCHARGE':       {'filename': None, 'fileio': None, 'write': None}, # Link/Node Format .cdq
-                    'CHAN_VELOCITY':        {'filename': None, 'fileio': None, 'write': None}, # Link/Node Format .cdv
-                    'LAKE_OUTPUT':          {'filename': None, 'fileio': None, 'write': None}, # Special? .lel
-                    'SNOW_SWE_FILE':        {'filename': None, 'fileio': None, 'write': None},                                  # Continuous Simulation
-                    'GW_WELL_LEVEL':        {'filename': None, 'fileio': None, 'write': None},                                  # Saturated Groundwater Flow
-                    'OUT_GWFULX_LOCATION':  {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},
-                    'OUTLET_SED_FLUX':      {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},     # Soil Erosion
-                    'ADJUST_ELEV':          {'filename': None, 'fileio': None, 'write': None},
-                    'OUTLET_SED_TSS':       {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},
-                    'OUT_TSS_LOC':          {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},
-                    'NET_SED_VOLUME':       {'filename': None, 'fileio': None, 'write': None},
-                    'VOL_SED_SUSP':         {'filename': None, 'fileio': None, 'write': None},
-                    'MAX_SED_FLUX':         {'filename': None, 'fileio': None, 'write': None}, # Link/Node Format
-                    'OUT_CON_LOCATION':     {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},     # Constituent Transport
-                    'OUT_MASS_LOCATION':    {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},
-                    'SUPERLINK_JUNC_FLOW':  {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},     # Subsurface Drainage
-                    'SUPERLINK_NODE_FLOW':  {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},
-                    'OVERLAND_DEPTHS':      {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},
-                    'OVERLAND_WSE':         {'filename': None, 'fileio': TimeSeriesFile, 'write': iow.writeTimeSeriesFile},
-                    'OPTIMIZE':             {'filename': None, 'fileio': None, 'write': None}}
+    OUTPUT_FILES = {'SUMMARY':              {'filename': None, 'fileio': None},                                  # Required Output
+                    'OUTLET_HYDRO':         {'filename': None, 'fileio': TimeSeriesFile},
+                    'OUT_THETA_LOCATION':   {'filename': None, 'fileio': TimeSeriesFile},     # Infiltration
+                    'EXPLIC_BACKWATER':     {'filename': None, 'fileio': None},                                  # Channel Routing
+                    'WRITE_CHAN_HOTSTART':  {'filename': None, 'fileio': None},
+                    'OUT_HYD_LOCATION':     {'filename': None, 'fileio': TimeSeriesFile},
+                    'OUT_DEP_LOCATION':     {'filename': None, 'fileio': TimeSeriesFile},
+                    'OUT_SED_LOC':          {'filename': None, 'fileio': TimeSeriesFile},
+                    'CHAN_DEPTH':           {'filename': None, 'fileio': None}, # Link/Node Format .cdp
+                    'CHAN_STAGE':           {'filename': None, 'fileio': None}, # Link/Node Format .cds
+                    'CHAN_DISCHARGE':       {'filename': None, 'fileio': None}, # Link/Node Format .cdq
+                    'CHAN_VELOCITY':        {'filename': None, 'fileio': None}, # Link/Node Format .cdv
+                    'LAKE_OUTPUT':          {'filename': None, 'fileio': None}, # Special? .lel
+                    'SNOW_SWE_FILE':        {'filename': None, 'fileio': None},                                  # Continuous Simulation
+                    'GW_WELL_LEVEL':        {'filename': None, 'fileio': None},                                  # Saturated Groundwater Flow
+                    'OUT_GWFULX_LOCATION':  {'filename': None, 'fileio': TimeSeriesFile},
+                    'OUTLET_SED_FLUX':      {'filename': None, 'fileio': TimeSeriesFile},     # Soil Erosion
+                    'ADJUST_ELEV':          {'filename': None, 'fileio': None},
+                    'OUTLET_SED_TSS':       {'filename': None, 'fileio': TimeSeriesFile},
+                    'OUT_TSS_LOC':          {'filename': None, 'fileio': TimeSeriesFile},
+                    'NET_SED_VOLUME':       {'filename': None, 'fileio': None},
+                    'VOL_SED_SUSP':         {'filename': None, 'fileio': None},
+                    'MAX_SED_FLUX':         {'filename': None, 'fileio': None}, # Link/Node Format
+                    'OUT_CON_LOCATION':     {'filename': None, 'fileio': TimeSeriesFile},     # Constituent Transport
+                    'OUT_MASS_LOCATION':    {'filename': None, 'fileio': TimeSeriesFile},
+                    'SUPERLINK_JUNC_FLOW':  {'filename': None, 'fileio': TimeSeriesFile},     # Subsurface Drainage
+                    'SUPERLINK_NODE_FLOW':  {'filename': None, 'fileio': TimeSeriesFile},
+                    'OVERLAND_DEPTHS':      {'filename': None, 'fileio': TimeSeriesFile},
+                    'OVERLAND_WSE':         {'filename': None, 'fileio': TimeSeriesFile},
+                    'OPTIMIZE':             {'filename': None, 'fileio': None}}
     ## TODO: Handle Different Output Map Formats
     OUTPUT_MAPS = {'GW_OUTPUT':         {'filename': None}, # MAP_TYPE # Output Files
                    'DISCHARGE':         {'filename': None}, # MAP_TYPE
@@ -400,19 +400,18 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         # Write Input/Output Files
         for card, afile in fileDict.iteritems():
-            if afile['filename'] != None:
+            filename = afile['filename']
+            fileIO = afile['fileio']
+            
+            if (filename != None) and (fileIO != None):
                 # Determine new filename
                 filename = self._replaceNewFilename(afile['filename'], newName)
                 
-                # Extract write funtion from fileDict
-                write = afile['write']
-                
-                # Execute write function if not None
-                if write != None:
-                    write(projectFile=self,
-                          directory=directory,
-                          session=session,
-                          filename=filename)
+                # Initiate write method on each file
+                self._writeFile(fileIO=fileIO,
+                                session=session,
+                                directory=directory,
+                                filename=filename)
                     
     def _readXputMaps(self, fileDict):
         '''
@@ -437,10 +436,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 filename = self._replaceNewFilename(afile['filename'], newName)
                 
                 # Write map file
-                iow.writeRasterMapFile(projectFile=self,
-                                       session=session,
-                                       directory=directory,
-                                       filename=filename)
+                self._writeFile(fileIO=RasterMapFile,
+                                session=session,
+                                directory=directory,
+                                filename=filename)
                 
     def _readFile(self, fileIO, filename):
         '''
@@ -450,6 +449,32 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         instance.projectFile = self
         instance.read()
         print 'File Read:', filename
+        
+    def _writeFile(self, fileIO, session, directory, filename):
+        '''
+        Initiate Write Method on Other Files
+        '''
+        try:
+            # Handle case where fileIO interfaces with single file
+            # Retrieve File using FileIO
+            instance = session.query(fileIO).\
+                        filter(fileIO.projectFile == self).\
+                        one()
+                        
+        except:
+            # Handle case where fileIO interfaces with multiple files
+            # Retrieve File using FileIO and file extension
+            extension = filename.split('.')[1]
+            
+            instance = session.query(fileIO).\
+                        filter(fileIO.projectFile == self).\
+                        filter(fileIO.fileExtension == extension).\
+                        one()
+            
+            
+        # Initiate Write Method on File
+        instance.write(session=session, directory=directory, filename=filename)
+        print 'File Written:', filename
         
     def _replaceNewFilename(self, filename, newName):
         pro = False
