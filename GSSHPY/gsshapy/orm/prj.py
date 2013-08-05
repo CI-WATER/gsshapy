@@ -40,6 +40,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     gridPipeFileID = Column(Integer, ForeignKey('gpi_grid_pipe_files.id'))
     gridStreamFileID = Column(Integer, ForeignKey('gst_grid_stream_files.id'))
     projectionFileID = Column(Integer, ForeignKey('pro_projection_files.id'))
+    replaceParamFileID = Column(Integer, ForeignKey('rep_replace_param_files.id'))
+    replaceValFileID = Column(Integer, ForeignKey('rep_replace_val_files.id'))
     
     # Value Columns
     name = Column(String, nullable=False)
@@ -59,6 +61,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     gridStreamFile = relationship('GridStreamFile', back_populates='projectFile')
     timeSeriesFiles = relationship('TimeSeriesFile', back_populates='projectFile')
     projectionFile = relationship('ProjectionFile', back_populates='projectFile')
+    replaceParamFile = relationship('ReplaceParamFile', back_populates='projectFile')
+    replaceValFile = relationship('ReplaceValFile', back_populates='projectFile')
     outputLocationFiles = relationship('OutputLocationFile', back_populates='projectFile')
     maps = relationship('RasterMapFile', back_populates='projectFile')
     
@@ -78,8 +82,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                    'IN_HYD_LOCATION':           {'filename': None, 'fileio': OutputLocationFile, 'write': iow.writeOutputLocationFile},
                    'IN_SED_LOC':                {'filename': None, 'fileio': OutputLocationFile, 'write': iow.writeOutputLocationFile},
                    'IN_GWFLUX_LOCATION':        {'filename': None, 'fileio': OutputLocationFile, 'write': iow.writeOutputLocationFile},
-                   'HMET_SURFAWAYS':            {'filename': None, 'fileio': HmetFile, 'write': iow.writeHmetFile},                     # Continuous Simulation
-                   'HMET_SAMSON':               {'filename': None, 'fileio': HmetFile, 'write': iow.writeHmetFile},
+                   'HMET_SURFAWAYS':            {'filename': None, 'fileio': None, 'write': None},                                      # Continuous Simulation
+                   'HMET_SAMSON':               {'filename': None, 'fileio': None, 'write': None},
                    'HMET_WES':                  {'filename': None, 'fileio': HmetFile, 'write': iow.writeHmetFile},
                    'NWSRFS_ELEV_SNOW':          {'filename': None, 'fileio': NwsrfsFile, 'write': iow.writeNwsrfsFile},
                    'HMET_OROG_GAGES':           {'filename': None, 'fileio': OrthographicGageFile, 'write': iow.writeOrthoGageFile},
@@ -92,8 +96,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                    'OVERLAND_DEPTH_LOCATION':   {'filename': None, 'fileio': OutputLocationFile, 'write': iow.writeOutputLocationFile}, # Overland Flow (Other Output)
                    'OVERLAND_WSE_LOCATION':     {'filename': None, 'fileio': OutputLocationFile, 'write': iow.writeOutputLocationFile},
                    'OUT_WELL_LOCATION':         {'filename': None, 'fileio': OutputLocationFile, 'write': iow.writeOutputLocationFile},
-                   'REPLACE_PARAMS':            {'filename': None, 'fileio': None, 'write': None},                                      # Replacement Cards
-                   'REPLACE_VALS':              {'filename': None, 'fileio': None, 'write': None}}
+                   'REPLACE_PARAMS':            {'filename': None, 'fileio': ReplaceParamFile, 'write': iow.writeReplaceParamFile},     # Replacement Cards
+                   'REPLACE_VALS':              {'filename': None, 'fileio': ReplaceValFile, 'write': iow.writeFile}}
     
     INPUT_MAPS = {'ELEVATION':              {'filename': None}, # Required Inputs
                   'WATERSHED_MASK':         {'filename': None}, 

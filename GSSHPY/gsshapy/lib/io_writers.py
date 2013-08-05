@@ -7,6 +7,34 @@
 * License: BSD 2-Clause
 ********************************************************************************
 '''
+from gsshapy.orm.replace import ReplaceParamFile, ReplaceValFile
+
+def writeFile(projectFile, session, directory, filename, fileIO=ReplaceValFile):
+    '''
+    Initiate Write Method on Other Files
+    '''
+    # Retrieve File using FileIO
+    instance = session.query(fileIO).\
+                filter(fileIO.projectFile == projectFile).\
+                one()
+    
+    # Initiate Write Method on File
+    instance.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
+
+def writeReplaceParamFile(projectFile, session, directory, filename, fileIO=ReplaceParamFile):
+    '''
+    Initiate Write Replace Param File Method
+    '''
+    # Retrieve File using FileIO
+    instance = session.query(fileIO).\
+                filter(fileIO.projectFile == projectFile).\
+                one()
+    
+    # Initiate Write Method on File
+    instance.write(session=session, directory=directory, filename=filename)
+    print 'File Written:', filename
+    
 
 def writeMappingTableFile(projectFile, session, directory, filename):
     '''

@@ -21,3 +21,4 @@ from gsshapy.orm.timeseries import TimeSeriesFile
 from gsshapy.orm.loc import OutputLocationFile
 from gsshapy.orm.map import RasterMapFile
 from gsshapy.orm.pro import ProjectionFile
+from gsshapy.orm.replace import ReplaceParamFile, ReplaceValFile
