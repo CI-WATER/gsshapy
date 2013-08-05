@@ -26,7 +26,7 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
     classdocs
     '''
     
-    __tablename__ = 'time_series_files'
+    __tablename__ = 'tim_time_series_files'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
@@ -144,11 +144,11 @@ class TimeSeries(DeclarativeBase):
     classdocs
     '''
     
-    __tablename__ = 'time_series'
+    __tablename__ = 'tim_time_series'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    timeSeriesFileID = Column(Integer, ForeignKey('time_series_files.id'))
+    timeSeriesFileID = Column(Integer, ForeignKey('tim_time_series_files.id'))
     
     # Relationship Properties
     timeSeriesFile = relationship('TimeSeriesFile', back_populates='timeSeries')
@@ -161,11 +161,11 @@ class TimeSeriesValue(DeclarativeBase):
     classdocs
     '''
     
-    __tablename__ = 'time_series_values'
+    __tablename__ = 'tim_time_series_values'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
-    timeSeriesID = Column(Integer, ForeignKey('time_series.id'), nullable=False)
+    timeSeriesID = Column(Integer, ForeignKey('tim_time_series.id'), nullable=False)
     
     # Value Columns
     simTime = Column(Float, nullable=False)

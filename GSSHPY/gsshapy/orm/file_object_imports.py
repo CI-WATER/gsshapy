@@ -17,7 +17,7 @@ from gsshapy.orm.hmet import HmetFile
 from gsshapy.orm.snw import NwsrfsFile, OrthographicGageFile
 from gsshapy.orm.gpi import GridPipeFile
 from gsshapy.orm.gst import GridStreamFile
-from gsshapy.orm.timeseries import TimeSeriesFile
+from gsshapy.orm.tim import TimeSeriesFile
 from gsshapy.orm.loc import OutputLocationFile
 from gsshapy.orm.map import RasterMapFile
 from gsshapy.orm.pro import ProjectionFile
