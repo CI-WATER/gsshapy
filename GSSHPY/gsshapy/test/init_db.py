@@ -7,11 +7,12 @@
 * License: BSD 2-Clause
 ********************************************************************************
 '''
-import os
-
+import os, time
 from sqlalchemy import create_engine
 from gsshapy.orm import metadata
 from gsshapy import DBSession
+
+
 
 def delSQLiteDB(path):
     os.remove(path)
@@ -22,8 +23,11 @@ def delSQLiteDB(path):
 # sqlalchemy_url = 'sqlite://'                                               # SQLITE_MEMEORY
 # sqlalchemy_url = 'sqlite:///gsshapy_lite.db'                               # SQLITE_RELATIVE
 sqlalchemy_url = 'sqlite:////Users/swainn/testing/db/gsshapy_lite.db'      # SQLITE_ABSOLUTE
-delSQLiteDB('/Users/swainn/testing/db/gsshapy_lite.db')                    # DELETE_DB
+start = time.time()
+delSQLiteDB('/Users/swainn/testing/db/gsshapy_lite.db')                   # DELETE_DB
+print time.time() - start
 
+start2 = time.time()
 
 engine = create_engine(sqlalchemy_url)
 metadata.create_all(engine)
@@ -31,4 +35,4 @@ metadata.create_all(engine)
 DBSession.configure(bind=engine)
 
 DBSession.commit()
-print 'SUCCESS: Database Initialized'
+print 'SUCCESS: Database Initialized', time.time()-start2

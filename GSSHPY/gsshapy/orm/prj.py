@@ -44,6 +44,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     
     # Value Columns
     name = Column(String, nullable=False)
+    mapType = Column(Integer, nullable=False)
     
     # Relationship Properties
     projectCards = relationship('ProjectCard', back_populates='projectFile')
@@ -67,6 +68,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     linkNodeDatasets = relationship('LinkNodeDatasetFile', back_populates='projectFile')
     
     # File Properties
+    MAP_TYPES_SUPPORTED = (1,)
+    
     INPUT_FILES = {'#PROJECTION_FILE':          {'filename': None, 'fileio': ProjectionFile},       # WMS
                    'MAPPING_TABLE':             {'filename': None, 'fileio': MapTableFile},         # Mapping Table
                    'ST_MAPPING_TABLE':          {'filename': None, 'fileio': None},
@@ -215,6 +218,11 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     
                     # Associate ProjectCard with ProjectFile
                     prjCard.projectFile = self
+                    
+                    # Extract MAP_TYPE card value for convenience working
+                    # with output maps
+                    if card['name'] == 'MAP_TYPE':
+                        self.mapType = int(card['value'])
                 
                   
                 # Assemble list of files for reading
@@ -417,30 +425,36 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GSSHA Project Read Map Files from File Method
         '''
-        for card, afile in fileDict.iteritems():
-            filename = afile['filename']
-            
-            if filename != None:
-                # Create GSSHAPY RasterMapFile object
-                self._readFile(fileIO=RasterMapFile,
-                               filename=filename)
+        if self.mapType in self.MAP_TYPES_SUPPORTED:
+            for card, afile in fileDict.iteritems():
+                filename = afile['filename']
+                
+                if filename != None:
+                    # Create GSSHAPY RasterMapFile object
+                    self._readFile(fileIO=RasterMapFile,
+                                   filename=filename)
+        else:
+            print 'Error: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
                 
     def _writeXputMaps(self, session, directory, fileDict, newName=None):
         '''
         GSSHAPY Project Write Map Files to File Method
         '''
-        for card, afile in fileDict.iteritems():
-            if afile['filename'] != None:
-                
-                # Determine new filename
-                filename = self._replaceNewFilename(afile['filename'], newName)
-                
-                # Write map file
-                self._writeFile(fileIO=RasterMapFile,
-                                session=session,
-                                directory=directory,
-                                filename=filename)
-                
+        if self.mapType in self.MAP_TYPES_SUPPORTED:
+            for card, afile in fileDict.iteritems():
+                if afile['filename'] != None:
+                    
+                    # Determine new filename
+                    filename = self._replaceNewFilename(afile['filename'], newName)
+                    
+                    # Write map file
+                    self._writeFile(fileIO=RasterMapFile,
+                                    session=session,
+                                    directory=directory,
+                                    filename=filename)
+        else:
+            print 'Error: Could not write map files. MAP_TYPE', self.mapType, 'not supported.'
+            
     def _readFile(self, fileIO, filename):
         '''
         Initiate File Read Method on Other Files
