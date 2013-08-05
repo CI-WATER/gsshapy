@@ -59,8 +59,8 @@ class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self.numLocations = sline[0]
                 else:
                     # Create GSSAHPY OutputLocation object
-                    location = OutputLocation(linkNumber=sline[0],
-                                              nodeNumber=sline[1])
+                    location = OutputLocation(linkOrCellI=sline[0],
+                                              nodeOrCellJ=sline[1])
                     
                     # Associate OutputLocation with OutputLocationFile
                     location.outputLocationFile = self
@@ -81,8 +81,8 @@ class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
             locFile.write('%s\n' % self.numLocations)
             
             for location in locations:
-                locFile.write('%s %s\n' % (location.linkNumber,
-                                           location.nodeNumber))
+                locFile.write('%s %s\n' % (location.linkOrCellI,
+                                           location.nodeOrCellJ))
         
 class OutputLocation(DeclarativeBase):
     '''
@@ -96,16 +96,16 @@ class OutputLocation(DeclarativeBase):
     outputLocationFileID = Column(Integer, ForeignKey('loc_output_location_files.id'))
     
     # Value Columns
-    linkNumber = Column(Integer, nullable=False)
-    nodeNumber = Column(Integer, nullable=False)
+    linkOrCellI = Column(Integer, nullable=False)
+    nodeOrCellJ = Column(Integer, nullable=False)
     
     # Relationship Properties
     outputLocationFile = relationship('OutputLocationFile', back_populates='outputLocations')
     
-    def __init__(self, linkNumber, nodeNumber):
-        self.linkNumber = linkNumber
-        self.nodeNumber = nodeNumber
+    def __init__(self, linkOrCellI, nodeOrCellJ):
+        self.linkOrCellI = linkOrCellI
+        self.nodeOrCellJ = nodeOrCellJ
         
     def __repr__(self):
-        return '<OutputLocation: LinkNumber=%s, NodeNumber=%s>' % (self.linkNumber, self.nodeNumber)
+        return '<OutputLocation: LinkOrCellI=%s, NodeOrCellJ=%s>' % (self.linkNumber, self.nodeNumber)
         
