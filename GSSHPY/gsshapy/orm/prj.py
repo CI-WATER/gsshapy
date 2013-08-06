@@ -201,6 +201,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         HEADERS = ('GSSHAPROJECT', 'WMS')
         
+        # Add ProjectFile to session
+        self.SESSION.add(self)
+        
         with open(self.PATH, 'r') as f:
             for line in f:
                 card = {}
@@ -246,7 +249,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                         value = card['value'].strip('"')
                         self.OUTPUT_MAPS[card['name']]['filename'] = value
         
-        self.SESSION.add(self)
+        
                
     def write(self, session, directory, newName=None):
         '''
@@ -254,19 +257,21 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         # Change name of project
         if newName != None:
-            self.PROJECT_NAME = newName
+            prefix =  newName
         else:
-            self.PROJECT_NAME = self.name
+            prefix =  self.name
+            
+        filename = '%s.prj' % prefix
         
         # Initiate project file
-        fullPath = '%s%s.%s' % (directory, self.PROJECT_NAME, self.EXTENSION)
+        fullPath = '%s%s' % (directory, filename)
         
         with open(fullPath, 'w') as prjFile:
             prjFile.write('GSSHAPROJECT\n')
         
             # Initiate write on each ProjectCard that belongs to this ProjectFile
             for card in self.projectCards:
-                prjFile.write(card.write(originalPrefix = self.name, newPrefix=self.PROJECT_NAME))
+                prjFile.write(card.write(originalPrefix = self.name, newPrefix=prefix))
                 
                 # Assemble list of files for writing
                 if card.name in self.INPUT_FILES:
@@ -292,6 +297,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     
                     if self._noneOrNumValue(value):
                         self.OUTPUT_MAPS[card.name]['filename'] = value
+        
+        print 'File Written:', filename
                      
     def readAll(self):
         '''
@@ -312,6 +319,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         # Read Output Map Files
         self._readXputMaps(self.OUTPUT_MAPS)
+        
+        # Commit to database
+        self.SESSION.commit()
         
 
     def writeAll(self, session, directory, newName=None):
@@ -347,6 +357,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Read Input Map Files
         self._readXputMaps(self.INPUT_MAPS)
         
+        # Commit to database
+        self.SESSION.commit()
+        
     def writeInput(self, session, directory, newName=None):
         '''
         Front Facing GSSHA Write All Input Files Method
@@ -372,6 +385,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         # Read Output Map Files
         self._readXputMaps(self.OUTPUT_MAPS)
+        
+        # Commit to database
+        self.SESSION.commit()
     
     def writeOutput(self, session, directory, newName=None):
         '''
