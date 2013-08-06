@@ -50,7 +50,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
-    def read(self):
+    def _readWithoutCommit(self):
         '''
         Raster Map File Read from File Method
         '''

@@ -69,21 +69,8 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 self.theta == other.theta and
                 self.links == other.links and
                 self.maxNodes == other.maxNodes)
-        
-    def read(self):
-        '''
-        Front facing Channel Input File Read from File Method
-        '''
-        # Add Channel Input File to DB Session
-        self.SESSION.add(self)
-        
-        # Read
-        self._readSelf()
-        
-        # Commit
-        self.SESSION.commit()
     
-    def _readSelf(self):
+    def _readWithoutCommit(self):
         '''
         Channel Input File Read from File Method
         '''

@@ -43,7 +43,7 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
-    def read(self):
+    def _readWithoutCommit(self):
         '''
         NWSRFS Read from File Method
         '''
@@ -190,7 +190,7 @@ class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
-    def read(self):
+    def _readWithoutCommit(self):
         '''
         Orthographic Gage File Read from File Method
         '''

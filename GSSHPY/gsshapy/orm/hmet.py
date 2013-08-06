@@ -42,7 +42,7 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
     def __repr__(self):
         return '<HmetFile: Name=%s, Description=%s>' % (self.name, self.description)
     
-    def read(self):
+    def _readWithoutCommit(self):
         '''
         Read HMET WES from File Method
         '''

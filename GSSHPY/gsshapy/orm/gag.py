@@ -40,9 +40,9 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Constructor
         '''
-        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
-    
-    def read(self):
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)        
+        
+    def _readWithoutCommit(self):
         '''
         Precipitation Read from File Method
         '''
@@ -65,7 +65,7 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
                 
     def write(self, session, directory, filename):
         '''
-        Precipitation Write to File Method
+        Precipitation File Write to File Method
         '''
         # Assemble path to new precipitation file
         filePath = '%s%s' % (directory, filename)

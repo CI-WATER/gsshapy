@@ -40,8 +40,8 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
         Constructor
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
-        
-    def read(self):
+    
+    def _readWithoutCommit(self):
         '''
         Grid Pipe File Read from File Method
         '''

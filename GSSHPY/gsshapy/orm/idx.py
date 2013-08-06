@@ -39,13 +39,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     indices = relationship('MTIndex', back_populates='indexMap')
     contaminants = relationship('MTContaminant', back_populates='indexMap')
     
-    # Global Properties
-    PATH = ''
-    DIRECTORY = ''
-    SESSION = None
-    EXTENSION = 'idx'
-    
-    def __init__(self, name, directory, filename, session):
+    def __init__(self, directory, filename, session, name=None):
         '''
         Constructor
         '''
@@ -61,7 +55,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
                 self.filename == other.filename and
                 self.raster == other.raster)
     
-    def read(self):
+    def _readWithoutCommit(self):
         '''
         Index Map Read from File Method
         '''

@@ -43,7 +43,7 @@ class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
-    def read(self):
+    def _readWithoutCommit(self):
         '''
         Generic Output Location Read from File Method
         '''

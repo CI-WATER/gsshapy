@@ -43,21 +43,8 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         Constructor
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
-        
-    def read(self):
-        '''
-        Front Facing Mapping Table Read from File Method
-        '''
-        # Add self to session
-        self.SESSION.add(self)
-        
-        # Read Self
-        self._readSelf()
-        
-        # Commit
-        self.SESSION.commit()
     
-    def _readSelf(self):
+    def _readWithoutCommit(self):
         '''
         Mapping Table Read from File Method
         '''
@@ -113,7 +100,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     indexMap.mapTableFile = self
                     
                     # Initiate IndexMap read method
-                    indexMap.read()
+                    indexMap._readWithoutCommit()
                 
                 # Map Table handler
                 else:

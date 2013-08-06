@@ -41,7 +41,7 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
     def __repr__(self):
         return '<ProjectionFile: Projection=%s>' % (self.projection)
     
-    def read(self):
+    def _readWithoutCommit(self):
         '''
         Projection File Read from File Method
         '''

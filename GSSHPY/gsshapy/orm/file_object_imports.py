@@ -23,3 +23,4 @@ from gsshapy.orm.map import RasterMapFile
 from gsshapy.orm.pro import ProjectionFile
 from gsshapy.orm.rep import ReplaceParamFile, ReplaceValFile
 from gsshapy.orm.lnd import LinkNodeDatasetFile
+from gsshapy.orm.idx import IndexMap

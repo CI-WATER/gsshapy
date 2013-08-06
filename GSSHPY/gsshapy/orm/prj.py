@@ -195,23 +195,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.PROJECT_NAME = splitPath[-1].split('.')[0]
         self.name = self.PROJECT_NAME.strip('"')
     
-    def read(self):
-        '''
-        Outward Facing Project File Read from File Method
-        '''
-        self._readSelf()
-        
-        self.SESSION.commit()
     
-    
-    def _readSelf(self):
+    def _readWithoutCommit(self):
         '''
         Project File Read from File Method
         '''
         HEADERS = ('GSSHAPROJECT', 'WMS')
-        
-        # Add ProjectFile to session
-        self.SESSION.add(self)
         
         with open(self.PATH, 'r') as f:
             for line in f:
@@ -315,7 +304,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         
         # First read self
-        self._readSelf()
+        self._readWithoutCommit()
         
         # Read Input Files
         self._readXput(self.INPUT_FILES)
@@ -358,7 +347,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         Front Facing GSSHA Read All Input Files Method
         '''
         # Read Project File
-        self._readSelf()
+        self._readWithoutCommit()
         
         # Read Input Files
         self._readXput(self.INPUT_FILES)
@@ -486,7 +475,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         instance = fileIO(directory=self.DIRECTORY, filename=filename, session=self.SESSION)
         instance.projectFile = self
-        instance.read()
+        instance._readWithoutCommit()
         print 'File Read:', filename
         
     def _writeFile(self, fileIO, session, directory, filename):

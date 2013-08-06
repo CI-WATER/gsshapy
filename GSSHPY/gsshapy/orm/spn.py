@@ -1,6 +1,6 @@
 '''
 ********************************************************************************
-* Name: StormDrainNetworkModel
+* Name: StormPipeNetworkModel
 * Author: Nathan Swain
 * Created On: May 14, 2013
 * Copyright: (c) Brigham Young University 2013
@@ -49,7 +49,7 @@ class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
     def __repr__(self):
         return '<PipeNetwork: ID=%s>' %(self.id)
     
-    def read(self):
+    def _readWithoutCommit(self):
         '''
         Storm Pipe Network File Read from File Method
         '''

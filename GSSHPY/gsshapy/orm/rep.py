@@ -41,7 +41,7 @@ class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
-    def read(self):
+    def _readWithoutCommit(self):
         '''
         Replace Param File Read from File Method
         '''
@@ -124,7 +124,7 @@ class ReplaceValFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
-    def read(self):
+    def _readWithoutCommit(self):
         '''
         Replace Val File Read from File Method
         '''

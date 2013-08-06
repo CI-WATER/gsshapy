@@ -29,3 +29,16 @@ class GsshaPyFileObjectBase:
         self.SESSION = session                               # SQL Alchemy Session object
         self.PATH = '%s%s' % (self.DIRECTORY, self.FILENAME) # e.g.: /path/to/my/example/example.ext
         self.EXTENSION = filename.split('.')[1]              # e.g.: ext
+        
+    def read(self):
+        '''
+        Front Facing Read from File Method
+        '''
+        # Add self to session
+        self.SESSION.add(self)
+        
+        # Read
+        self._readWithoutCommit()
+        
+        # Commit
+        self.SESSION.commit()

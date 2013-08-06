@@ -42,7 +42,7 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
-    def read(self):
+    def _readWithoutCommit(self):
         '''
         Grid Stream File Read from File Method
         '''

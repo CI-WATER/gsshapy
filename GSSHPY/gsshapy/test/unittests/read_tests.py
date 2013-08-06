@@ -14,7 +14,7 @@ from gsshapy.orm.file_object_imports import *
 from gsshapy.orm import ProjectFile
 from gsshapy.lib import db_tools as dbt
 
-class TestReadMethods (unittest.TestCase):
+class TestReadMethods(unittest.TestCase):
     def setUp(self):
         # Create 
         sqlalchemy_url = dbt.init_sqlite_db('db/standard.db')
@@ -180,6 +180,149 @@ class TestReadMethods (unittest.TestCase):
                 indexQ = valQ.index
                 
                 self.assertEqual(indexR, indexQ)
+                
+    def test_precip_file_read(self):
+        '''
+        Test PrecipFile read method
+        '''
+        gagR, gagQ = self._read_n_query(fileIO=PrecipFile,
+                                        directory=self.directory,
+                                        filename='standard.gag')
+        
+    def test_grid_pipe_file_read(self):
+        '''
+        Test GridPipeFile read method
+        '''
+        gpiR, gpiQ = self._read_n_query(fileIO=GridPipeFile,
+                                        directory=self.directory,
+                                        filename='standard.gpi')
+        
+    def test_grid_stream_file_read(self):
+        '''
+        Test GridStreamFile read method
+        '''
+        gstR, gstQ = self._read_n_query(fileIO=GridStreamFile,
+                                        directory=self.directory,
+                                        filename='standard.gst')
+        
+    def test_hmet_file_read(self):
+        '''
+        Test HmetFile read method
+        '''
+        hmetR, hmetQ = self._read_n_query(fileIO=HmetFile,
+                                          directory=self.directory,
+                                          filename='hmet_wes.hmt')
+        
+    def test_output_location_file_read(self):
+        '''
+        Test OutputLocationFile read method
+        '''
+        locR, locQ = self._read_n_query(fileIO=OutputLocationFile,
+                                        directory=self.directory,
+                                        filename='standard.ihl')
+        
+    def test_link_node_dataset_file_read(self):
+        '''
+        Test LinkNodeDatasetFile read method
+        '''
+        lndR, lndQ = self._read_n_query(fileIO=LinkNodeDatasetFile,
+                                        directory=self.directory,
+                                        filename='standard.cdp')
+        
+    def test_raster_map_file_read(self):
+        '''
+        Test RasterMapFile read method
+        '''
+        mapR, mapQ = self._read_n_query(fileIO=RasterMapFile,
+                                        directory=self.directory,
+                                        filename='standard.msk')
+        
+    def test_projection_file_read(self):
+        '''
+        Test ProjectionFile read method
+        '''
+        proR, proQ = self._read_n_query(fileIO=ProjectionFile,
+                                        directory=self.directory,
+                                        filename='standard_prj.pro')
+        
+    def test_replace_param_file_read(self):
+        '''
+        Test ReplaceParamFile read method
+        '''
+        repR, repQ = self._read_n_query(fileIO=ReplaceParamFile,
+                                        directory=self.directory,
+                                        filename='replace_param.txt')
+        
+    def test_replace_val_file_read(self):
+        '''
+        Test ReplaceValFile read method
+        '''
+        repR, repQ = self._read_n_query(fileIO=ReplaceValFile,
+                                        directory=self.directory,
+                                        filename='replace_val.txt')
+        
+    def test_nwsrfs_file_read(self):
+        '''
+        Test NwsrfsFile read method
+        '''
+        snwR, snwQ = self._read_n_query(fileIO=NwsrfsFile,
+                                        directory=self.directory,
+                                        filename='nwsrfs_elev.txt')
+        
+    def test_ortho_gage_file_read(self):
+        '''
+        Test OrthographicGageFile read method
+        '''
+        snwR, snwQ = self._read_n_query(fileIO=OrthographicGageFile,
+                                        directory=self.directory,
+                                        filename='ortho_gages.txt')
+        
+    def test_storm_pipe_network_file_read(self):
+        '''
+        Test StormPipeNetworkFile read method
+        '''
+        spnR, spnQ = self._read_n_query(fileIO=StormPipeNetworkFile,
+                                        directory=self.directory,
+                                        filename='standard.spn')
+        
+    def test_time_series_file_read(self):
+        '''
+        Test TimeSeriesFile read method
+        '''
+        timR, timQ = self._read_n_query(fileIO=TimeSeriesFile,
+                                        directory=self.directory,
+                                        filename='standard.ohl')
+        
+    def test_index_map_read(self):
+        '''
+        Test IndexMap read method
+        '''
+        # Instantiate GSSHAPY object for reading to database
+        idxR = IndexMap(directory=self.directory,
+                        filename='Soil.idx',
+                        session=self.readSession,
+                        name='Soil')
+        
+        # Call read method
+        idxR.read()
+        
+        # Query from database
+        idxQ = self.querySession.query(IndexMap).one()
+        
+    def test_project_read_all(self):
+        '''
+        Test ProjectFile readAll method
+        '''
+        
+    def test_project_read_input(self):
+        '''
+        Test ProjecFile readInput method
+        '''
+        
+    def test_project_read_output(self):
+        '''
+        Test ProjectFile readOutput method
+        '''
             
         
         
