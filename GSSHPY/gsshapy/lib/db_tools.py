@@ -9,8 +9,8 @@
 '''
 import os, time
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from gsshapy.orm import metadata
-from gsshapy import DBSession
 
 
 def del_sqlite_db(path):
@@ -26,12 +26,8 @@ def init_db(sqlalchemy_url):
     '''
     
     engine = create_engine(sqlalchemy_url)
-    metadata.create_all(engine)
-    
-    DBSession.configure(bind=engine)
-    
     start = time.time()
-    DBSession.commit()
+    metadata.create_all(engine)
     return time.time() - start
     
 def init_sqlite_memory(time=False):
@@ -43,6 +39,8 @@ def init_sqlite_memory(time=False):
     
     if time:
         print 'Initialized in:', init_time, 'seconds'
+        
+    return sqlalchemy_url
     
     
 def init_sqlite_db(path, time=False):
@@ -56,6 +54,8 @@ def init_sqlite_db(path, time=False):
     
     if time:
         print 'TIME:', init_time, 'seconds'
+        
+    return sqlalchemy_url
     
     
 def init_postgresql_db(username, host, database, port='', password='', time=False):
@@ -86,6 +86,8 @@ def init_postgresql_db(username, host, database, port='', password='', time=Fals
     
     if time:
         print 'TIME:', init_time, 'seconds'
+    
+    return sqlalchemy_url
         
 def init_mysql_db(username, host, database, port='', password='', time=False):
     '''
@@ -115,4 +117,12 @@ def init_mysql_db(username, host, database, port='', password='', time=False):
     
     if time:
         print 'TIME:', init_time, 'seconds'
+    
+    return sqlalchemy_url
+
+def create_session(sqlalchemy_url):
+    engine = create_engine(sqlalchemy_url)
+    maker = sessionmaker(bind=engine)
+    session = maker()
+    return session
     

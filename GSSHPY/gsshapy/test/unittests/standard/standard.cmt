@@ -9,6 +9,7 @@ NUM_CONTAM 2
 "Nitrogen"  "lu_dairy"  C:\Users\swainn\Desktop\TEMP\GSSHATraining\Constituent\Contaminants\Nitrogen
 PRECIP_CONC          0.00
 PARTITION            2.70
+NUM_IDS 4
 ID    DESCRIPTION1                            DESCRIPTION2                            DECAY  DISPERSION  GW_CONC  INIT_CONC  LOADING  SOLUBILITY  SW_PART  UPTAKE  
 7     forest                                                                          0.000000   0.000000   1.000000   0.000000   4499.000000   360000.000000   2.700000   0.100000   
 9     grass                                                                           0.000000   0.000000   1.000000   0.000000   4847.000000   360000.000000   2.700000   0.100000   
@@ -17,6 +18,7 @@ ID    DESCRIPTION1                            DESCRIPTION2                      
 "Phosphorous"  "lu_dairy"  C:\Users\swainn\Desktop\TEMP\GSSHATraining\Constituent\Contaminants\Phosphorous
 PRECIP_CONC          0.00
 PARTITION            18.00
+NUM_IDS 4
 ID    DESCRIPTION1                            DESCRIPTION2                            DECAY  DISPERSION  GW_CONC  INIT_CONC  LOADING  SOLUBILITY  SW_PART  UPTAKE  
 7     forest                                                                          0.000000   0.000000   1.000000   0.000000   710.000000   220000.000000   18.000000   0.010000   
 9     grass                                                                           0.000000   0.000000   1.000000   0.000000   901.000000   220000.000000   18.000000   0.010000   

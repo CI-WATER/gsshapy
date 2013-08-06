@@ -10,7 +10,7 @@
 
 __all__ = ['IndexMap']
 
-from sqlalchemy import Column
+from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
@@ -26,6 +26,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
+    mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
     
     # Value Columns
     name = Column(String, nullable=False)
@@ -33,6 +34,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     raster = Column(String)
     
     # Relationship Properties
+    mapTableFile = relationship('MapTableFile', back_populates='indexMaps')
     mapTables = relationship('MapTable', back_populates='indexMap')
     indices = relationship('MTIndex', back_populates='indexMap')
     contaminants = relationship('MTContaminant', back_populates='indexMap')
@@ -53,6 +55,11 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         
     def __repr__(self):
         return '<IndexMap: Name=%s, Filename=%s, Raster=%s>' % (self.name, self.filename, self.raster)
+    
+    def __eq__(self, other):
+        return (self.name == other.name and
+                self.filename == other.filename and
+                self.raster == other.raster)
     
     def read(self):
         '''
@@ -76,6 +83,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
             mapFile.write(self.raster)
             
         print 'File Written:', self.filename
+        
     
 
     

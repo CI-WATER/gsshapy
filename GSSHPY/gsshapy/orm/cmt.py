@@ -34,6 +34,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
     id = Column(Integer, autoincrement=True, primary_key=True)
     
     # Relationship Properties
+    indexMaps = relationship('IndexMap', back_populates='mapTableFile')
     mapTables = relationship('MapTable', back_populates='mapTableFile')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile')
     
@@ -44,6 +45,19 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
     def read(self):
+        '''
+        Front Facing Mapping Table Read from File Method
+        '''
+        # Add self to session
+        self.SESSION.add(self)
+        
+        # Read Self
+        self._readSelf()
+        
+        # Commit
+        self.SESSION.commit()
+    
+    def _readSelf(self):
         '''
         Mapping Table Read from File Method
         '''
@@ -87,13 +101,16 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                 if key == 'INDEX_MAP':
                     
                     # Create GSSHAPY IndexMap object from result object
-                    indexMap = IndexMap(name = result['idxName'],
+                    indexMap = IndexMap(name=result['idxName'],
                                         directory=self.DIRECTORY,
                                         session=self.SESSION,
                                         filename=result['filename'])
                     
                     # Dictionary used to map index maps to mapping tables
                     indexMaps[result['idxName']] = indexMap
+                    
+                    # Associate IndexMap with MapTableFile 
+                    indexMap.mapTableFile = self
                     
                     # Initiate IndexMap read method
                     indexMap.read()
@@ -114,23 +131,23 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         ''' 
                 
         # Obtain a list of MTIndexMap objects
-        indexMapList = []
-        
-        for mapTable in self.mapTables:
-            if mapTable.name == 'CONTAMINANT_TRANSPORT': # Contaminant value case
-                contaminantList = []
-                for mtValue in mapTable.values:
-                    contaminantList.append(mtValue.contaminant)
-                    
-                contaminants = set(contaminantList)
-                for contaminant in contaminants:
-                    indexMapList.append(contaminant.indexMap)
-            else: # All others
-                if mapTable.indexMap != None:
-                    indexMapList.append(mapTable.indexMap)
-        
-        # Derive a set of unique MTIndexMap objects    
-        indexMaps = set(indexMapList)
+# #         indexMapList = []
+# #           
+# #         for mapTable in self.mapTables:
+# #             if mapTable.name == 'CONTAMINANT_TRANSPORT': # Contaminant value case
+# #                 contaminantList = []
+# #                 for mtValue in mapTable.values:
+# #                     contaminantList.append(mtValue.contaminant)
+# #                       
+# #                 contaminants = set(contaminantList)
+# #                 for contaminant in contaminants:
+# #                     indexMapList.append(contaminant.indexMap)
+# #             else: # All others
+# #                 if mapTable.indexMap != None:
+# #                     indexMapList.append(mapTable.indexMap)
+# #           
+# #         # Derive a set of unique MTIndexMap objects    
+        indexMaps = self.indexMaps
 
         # Initiate map table file and write
         filePath = '%s%s' % (directory, filename)
@@ -279,6 +296,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Write global variables for the contaminant
             fileObject.write('PRECIP_CONC%s%s\n' % (' '*10, precipConc))
             fileObject.write('PARTITION%s%s\n' % (' '*12, partition))
+            fileObject.write('NUM_IDS %s\n' % contaminant.numIDs)
             
             # Write value lines
             self._writeValues(session, fileObject, mapTable, contaminant)
@@ -457,6 +475,13 @@ class MapTable(DeclarativeBase):
                 self.maxNumCells,
                 self.numSed,
                 self.numContam)
+        
+    def __eq__(self, other):
+        return (self.name == other.name and
+                self.numIDs == other.numIDs and
+                self.maxNumCells == other.maxNumCells and
+                self.numSed == other.numSed and
+                self.numContam == other.numContam)
     
 class MTIndex(DeclarativeBase):
     '''
@@ -488,6 +513,11 @@ class MTIndex(DeclarativeBase):
 
     def __repr__(self):
         return '<MTIndex: Index=%s, Description1=%s, Description2=%s>' % (self.index, self.description1, self.description2)
+    
+    def __eq__(self, other):
+        return (self.index == other.index and
+                self.description1 == other.description1 and
+                self.description2 == other.description2)
 
 class MTValue(DeclarativeBase):
     '''
@@ -501,7 +531,7 @@ class MTValue(DeclarativeBase):
     mapTableID = Column(Integer, ForeignKey('cmt_map_tables.id'), nullable=False)
     mapTableIndexID = Column(Integer, ForeignKey('cmt_indexes.id'), nullable=False)
     contaminantID = Column(Integer, ForeignKey('cmt_contaminants.id'))
-    sedimentID = Column(Integer, ForeignKey('cmt_sediments.id'))
+
     
     # Value Columns
     variable = Column(String, nullable=False)
@@ -511,7 +541,6 @@ class MTValue(DeclarativeBase):
     mapTable = relationship('MapTable', back_populates='values')
     index = relationship('MTIndex', back_populates='values')
     contaminant = relationship('MTContaminant', back_populates='values')
-    sediment = relationship('MTSediment', back_populates='values')
     
     
     def __init__(self, variable, value=None):
@@ -523,6 +552,10 @@ class MTValue(DeclarativeBase):
         
     def __repr__(self):
         return '<MTValue: %s=%s>' % (self.variable, self.value)
+    
+    def __eq__(self, other):
+        return(self.variable == other.variable and
+               self.value == other.value)
 
 
 
@@ -565,6 +598,13 @@ class MTContaminant(DeclarativeBase):
                 self.partition, 
                 self.outputFilename,
                 self.numIDs)
+    
+    def __eq__(self, other):
+        return (self.name == other.name and
+                self.outputFilename == other.outputFilename and
+                self.precipConc == other.precipConc and
+                self.partition == other.partition and
+                self.numIDs == other.numIDs)
 
 
     
@@ -587,7 +627,6 @@ class MTSediment(DeclarativeBase):
     
     # Relationship Properties
     mapTable = relationship('MapTable', back_populates='sediments')
-    values = relationship('MTValue', back_populates='sediment')
     
     def __init__(self, description, specificGravity, particleDiameter, outputFilename):
         '''
@@ -601,3 +640,8 @@ class MTSediment(DeclarativeBase):
     def __repr__(self):
         return '<MTSediment: Description=%s, SpecificGravity=%s, ParticleDiameter=%s, OuputFilename=%s>' % (self.description, self.specificGravity, self.particleDiameter, self.outputFilename)
     
+    def __eq__(self, other):
+        return (self.description == other.description and
+                self.specificGravity == other.specificGravity and
+                self.particleDiameter == other.particleDiameter and
+                self.outputFilename == other.outputFilename)

@@ -197,6 +197,15 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     
     def read(self):
         '''
+        Outward Facing Project File Read from File Method
+        '''
+        self._readSelf()
+        
+        self.SESSION.commit()
+    
+    
+    def _readSelf(self):
+        '''
         Project File Read from File Method
         '''
         HEADERS = ('GSSHAPROJECT', 'WMS')
@@ -306,7 +315,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         
         # First read self
-        self.read()
+        self._readSelf()
         
         # Read Input Files
         self._readXput(self.INPUT_FILES)
@@ -349,7 +358,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         Front Facing GSSHA Read All Input Files Method
         '''
         # Read Project File
-        self.read()
+        self._readSelf()
         
         # Read Input Files
         self._readXput(self.INPUT_FILES)

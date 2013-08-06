@@ -63,7 +63,27 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.links = links
         self.maxNodes = maxNodes
         
+    def __eq__(self, other):
+        return (self.alpha == other.alpha and
+                self.beta == other.beta and
+                self.theta == other.theta and
+                self.links == other.links and
+                self.maxNodes == other.maxNodes)
+        
     def read(self):
+        '''
+        Front facing Channel Input File Read from File Method
+        '''
+        # Add Channel Input File to DB Session
+        self.SESSION.add(self)
+        
+        # Read
+        self._readSelf()
+        
+        # Commit
+        self.SESSION.commit()
+    
+    def _readSelf(self):
         '''
         Channel Input File Read from File Method
         '''
@@ -641,6 +661,16 @@ class StreamLink(DeclarativeBase):
                 self.subsurface, 
                 self.downstreamLinkID, 
                 self.numUpstreamLinks)
+        
+    def __eq__(self, other):
+        return (self.linkNumber == other.linkNumber and
+                self.type == other.type and
+                self.numElements == other.numElements and
+                self.dx == other.dx and
+                self.erode == other.erode and
+                self.subsurface == other.subsurface and
+                self.downstreamLinkID == other.downstreamLinkID and
+                self.numUpstreamLinks == other.numUpstreamLinks)
     
 
     
@@ -665,7 +695,9 @@ class UpstreamLink(DeclarativeBase):
         
     def __repr__(self):
         return '<UpstreamLink: LinkID=%s, UpstreamLinkID=%s>' % (self.linkID, self.upstreamLinkID)
-        
+
+    def __eq__(self, other):
+        return (self.upstreamLinkID == other.upstreamLinkID)
 
     
 class StreamNode(DeclarativeBase):
@@ -705,6 +737,12 @@ class StreamNode(DeclarativeBase):
                 self.x,
                 self.y,
                 self.elevation)
+    
+    def __eq__(self, other):
+        return (self.nodeNumber == other.nodeNumber and
+                self.x == other.x and
+                self.y == other.y and
+                self.elevation == other.elevation)
     
         
     
@@ -757,6 +795,16 @@ class Weir(DeclarativeBase):
                self.crestLowLocation,
                self.steepSlope,
                self.shallowSlope)
+        
+    def __eq__(self, other):
+        return(self.type == other.type and
+               self.crestLength == other.crestLength and
+               self.crestLowElevation == other.crestLowElevation and
+               self.dischargeCoeffForward == other.dischargeCoeffForward and
+               self.dischargeCoeffReverse == other.dischargeCoeffReverse and
+               self.crestLowLocation == other.crestLowLocation and
+               self.steepSlope == other.steepSlope and
+               self.shallowSlope == other.shallowSlope)
     
     
 
@@ -815,6 +863,19 @@ class Culvert(DeclarativeBase):
                 self.diameter,
                 self.width,
                 self.height)
+        
+    def __eq__(self, other):
+        return (self.type == other.type and
+                self.upstreamInvert == other.upstreamInvert and
+                self.downstreamInvert == other.downstreamInvert and
+                self.inletDischargeCoeff == other.inletDischargeCoeff and
+                self.reverseFlowDischargeCoeff == other.reverseFlowDischargeCoeff and
+                self.slope == other.slope and
+                self.length == other.length and
+                self.roughness == other.roughness and
+                self.diameter == other.diameter and
+                self.width == other.width and
+                self.height == other.height)
     
 
 
@@ -848,6 +909,11 @@ class Reservoir(DeclarativeBase):
     def __repr__(self):
         return '<Reservoir: InitialWSE=%s, MinWSE=%s, MaxWSE=%s>' % (self.initWSE, self.minWSE, self.maxWSE)
     
+    def __eq__(self, other):
+        return (self.initWSE == other.initWSE and
+                self.minWSE == other.minWSE and
+                self.maxWSE == other.maxWSE)
+    
 
 
 class ReservoirPoint(DeclarativeBase):
@@ -876,6 +942,10 @@ class ReservoirPoint(DeclarativeBase):
 
     def __repr__(self):
         return '<ReservoirPoint: CellI=%s, CellJ=%s>' % (self.i, self.j)
+    
+    def __eq__(self, other):
+        return (self.i == other.i and
+                self.j == other.j)
     
 
 
@@ -927,6 +997,16 @@ class BreakpointCS(DeclarativeBase):
                 self.erode, 
                 self.subsurface,
                 self.maxErosion)
+        
+    def __eq__(self, other):
+        return (self.mannings_n == other.mannings_n and
+                self.numPairs == other.numPairs and
+                self.numInterp == other.numInterp and
+                self.mRiver == other.mRiver and
+                self.kRiver == other.kRiver and
+                self.erode == other.erode and
+                self.subsurface == other.subsurface and
+                self.maxErosion == other.maxErosion)
     
 class Breakpoint(DeclarativeBase):
     '''
@@ -954,6 +1034,10 @@ class Breakpoint(DeclarativeBase):
 
     def __repr__(self):
         return '<Breakpoint: X=%s, Y=%s>' % (self.x, self.y)
+    
+    def __eq__(self, other):
+        return (self.x == other.x,
+                self.y == other.y)
     
     
 
@@ -1007,4 +1091,14 @@ class TrapezoidalCS(DeclarativeBase):
                 self.erode,
                 self.subsurface,
                 self.maxErosion)
-        
+    
+    def __eq__(self, other):
+        return (self.mannings_n == other.mannings_n and
+                self.bottomWidth == other.bottomWidth and
+                self.bankfullDepth == other.bankfullDepth and
+                self.sideSlope == other.sideSlope and
+                self.mRiver == other.mRiver and
+                self.kRiver == other.kRiver and
+                self.erode == other.erode and
+                self.subsurface == other.subsurface and
+                self.maxErosion == other.maxErosion)

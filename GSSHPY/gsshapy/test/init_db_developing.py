@@ -7,12 +7,12 @@
 * License: BSD 2-Clause
 ********************************************************************************
 '''
-from gsshapy.lib import init_db
+from gsshapy.lib import db_tools as dbt
 
-init_db.del_sqlite_db('/Users/swainn/testing/db/gsshapy_lite.db')
-init_db.init_sqlite_db('/Users/swainn/testing/db/gsshapy_lite.db', time=True)
+dbt.del_sqlite_db('/Users/swainn/testing/db/gsshapy_lite.db')
+dbt.init_sqlite_db('/Users/swainn/testing/db/gsshapy_lite.db', time=True)
 
-# init_db.init_postgresql_db(username='swainn',
+# dbt.init_postgresql_db(username='swainn',
 #                            host='localhost',
 #                            database='gsshapy_lite',
 #                            port='5432',
