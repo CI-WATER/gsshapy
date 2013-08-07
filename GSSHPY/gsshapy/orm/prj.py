@@ -177,23 +177,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                    'WRITE_SM_HOSTART':  {'filename': None}}             # Infiltration
     
     
-    def __init__(self, path, session):
-        self.PATH = path
-        self.SESSION = session
-        
-        
-        if '\\' in path:
-            splitPath = path.split('\\')
-            self.DIRECTORY = '\\'.join(splitPath[:-1]) + '\\'
-            
-        elif '/' in path:
-            splitPath = path.split('/')
-            self.DIRECTORY = '/'.join(splitPath[:-1]) + '/'
-        else:
-            self.DIRECTORY = '""'
-            
-        self.PROJECT_NAME = splitPath[-1].split('.')[0]
-        self.name = self.PROJECT_NAME.strip('"')
+    def __init__(self, directory, filename, session):
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
+        self.name = filename.strip('.')[0]
     
     
     def _readWithoutCommit(self):
@@ -298,10 +284,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         print 'File Written:', filename
                      
-    def readAll(self):
+    def readProject(self):
         '''
         Front Facing GSSHA Project Read from File Method
         '''
+        # Add project file to session
+        self.SESSION.add(self)
         
         # First read self
         self._readWithoutCommit()
@@ -322,7 +310,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.SESSION.commit()
         
 
-    def writeAll(self, session, directory, newName=None):
+    def writeProject(self, session, directory, newName=None):
         '''
         Frong Facing GSSHA Project Write All Files to File Method
         '''
@@ -346,6 +334,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Front Facing GSSHA Read All Input Files Method
         '''
+        # Add project file to session
+        self.SESSION.add(self)
+        
         # Read Project File
         self._readWithoutCommit()
         
@@ -375,6 +366,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Front Facing GSSHA Read All Output Files Method
         '''
+        # Add project file to session
+        self.SESSION.add(self)
+        
         # Read Project File
         self.read()
         
@@ -413,8 +407,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
             if (filename != None) and (fileio != None):
                 # Initiate read method on each file
-                self._readFile(fileIO=fileio,
-                               filename=filename)
+                self._invokeRead(fileIO=fileio,
+                                 filename=filename)
                 
     def _writeXput(self, session, directory, fileDict, newName=None):
         '''
@@ -430,10 +424,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 filename = self._replaceNewFilename(afile['filename'], newName)
                 
                 # Initiate write method on each file
-                self._writeFile(fileIO=fileIO,
-                                session=session,
-                                directory=directory,
-                                filename=filename)
+                self._invokeWrite(fileIO=fileIO,
+                                  session=session,
+                                  directory=directory,
+                                  filename=filename)
                     
     def _readXputMaps(self, fileDict):
         '''
@@ -445,8 +439,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 
                 if filename != None:
                     # Create GSSHAPY RasterMapFile object
-                    self._readFile(fileIO=RasterMapFile,
-                                   filename=filename)
+                    self._invokeRead(fileIO=RasterMapFile,
+                                     filename=filename)
         else:
             print 'Error: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
                 
@@ -462,25 +456,25 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     filename = self._replaceNewFilename(afile['filename'], newName)
                     
                     # Write map file
-                    self._writeFile(fileIO=RasterMapFile,
-                                    session=session,
-                                    directory=directory,
-                                    filename=filename)
+                    self._invokeWrite(fileIO=RasterMapFile,
+                                      session=session,
+                                      directory=directory,
+                                      filename=filename)
         else:
             print 'Error: Could not write map files. MAP_TYPE', self.mapType, 'not supported.'
             
-    def _readFile(self, fileIO, filename):
+    def _invokeRead(self, fileIO, filename):
         '''
-        Initiate File Read Method on Other Files
+        Invoke File Read Method on Other Files
         '''
         instance = fileIO(directory=self.DIRECTORY, filename=filename, session=self.SESSION)
         instance.projectFile = self
         instance._readWithoutCommit()
         print 'File Read:', filename
         
-    def _writeFile(self, fileIO, session, directory, filename):
+    def _invokeWrite(self, fileIO, session, directory, filename):
         '''
-        Initiate Write Method on Other Files
+        Invoke File Write Method on Other Files
         '''
         try:
             # Handle case where fileIO interfaces with single file
@@ -505,6 +499,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         print 'File Written:', filename
         
     def _replaceNewFilename(self, filename, newName):
+        # Variables
         pro = False
         originalProjectName = self.name
         originalFilename = filename
