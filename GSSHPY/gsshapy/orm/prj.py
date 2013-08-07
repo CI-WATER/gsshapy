@@ -236,12 +236,15 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         
                
-    def write(self, session, directory, name):
+    def write(self, session, directory, name=None):
         '''
         Project File Write to File Method
         '''
         # Compose filename
-        filename = '%s.%s' % (name, self.EXTENSION)
+        if name != None:
+            filename = '%s.%s' % (name, self.EXTENSION)
+        else:
+            filename = '%s.%s' % (self.name, self.EXTENSION)
         
         # Initiate project file
         filePath = '%s%s' % (directory, filename)
@@ -312,7 +315,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         
         # Write Project File
-        self.write(session=session, directory=directory, newName=newName)
+        self.write(session=session, directory=directory, name=newName)
         
         # Write input files
         self._writeXput(session=session, directory=directory, fileDict=self.INPUT_FILES, newName=newName)
@@ -350,7 +353,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         Front Facing GSSHA Write All Input Files Method
         '''
         # Write Project File
-        self.write(session=session, directory=directory, newName=newName)
+        self.write(session=session, directory=directory, name=newName)
         
         # Write input files
         self._writeXput(session=session, directory=directory, fileDict=self.INPUT_FILES, newName=newName)
@@ -382,7 +385,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         Front Facing GSSHA Write All Output Files Method
         '''
         # Write Project File
-        self.write(session=session, directory=directory, newName=newName)
+        self.write(session=session, directory=directory, name=newName)
         
         # Write output files
         self._writeXput(session=session, directory=directory, fileDict=self.OUTPUT_FILES, newName=newName)
@@ -491,8 +494,13 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             
             
         # Initiate Write Method on File
-        instance.write(session=session, directory=directory, filename=filename)
-        print 'File Written:', filename
+        try:
+            instance.write(session=session, directory=directory, filename=filename)
+        except:
+            name = filename.split('.')[0]
+            instance.write(session=session, directory=directory, name=name)
+        
+#         print 'File Written:', filename
         
     def _replaceNewFilename(self, filename, newName):
         # Variables
@@ -634,7 +642,7 @@ class ProjectCard(DeclarativeBase):
     def __repr__(self):
         return '<ProjectCard: Name=%s, Value=%s>' % (self.name, self.value)
     
-    def write(self, originalPrefix, newPrefix):
+    def write(self, originalPrefix, newPrefix=None):
         # Determine number of spaces between card and value for nice alignment
         numSpaces = 25 - len(self.name)
         
@@ -642,7 +650,9 @@ class ProjectCard(DeclarativeBase):
         if self.value is None:
             line = '%s\n' % (self.name)
         else:
-            if originalPrefix in self.value and newPrefix != originalPrefix:
+            if newPrefix == None:
+                line ='%s%s%s\n' % (self.name,' '*numSpaces, self.value)
+            elif originalPrefix in self.value:
                 line ='%s%s%s\n' % (self.name,' '*numSpaces, self.value.replace(originalPrefix, newPrefix))
             else:
                 line ='%s%s%s\n' % (self.name,' '*numSpaces, self.value)

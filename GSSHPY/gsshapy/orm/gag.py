@@ -189,7 +189,6 @@ class PrecipEvent(DeclarativeBase):
     
     # Relationship Properties
     values = relationship('PrecipValue', back_populates='event')
-    gages = relationship('PrecipGage', secondary=PrecipValue, back_populates='events')
     precipFile = relationship('PrecipFile', back_populates='precipEvents')
     
     def __init__(self, description, nrGag, nrPds):
