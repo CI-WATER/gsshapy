@@ -54,12 +54,12 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(self.PATH, 'r') as f:
             self.raster = f.read()
         
-    def write(self, directory, session, filename):
+    def write(self, directory, session, name):
         '''
         Raster Map File Write to File Method
         '''
         # Initiate file
-        filePath = '%s%s' % (directory, filename)
+        filePath = '%s%s.%s' % (directory, name, self.fileExtension)
 
         # Open file and write
         with open(filePath, 'w') as mapFile:

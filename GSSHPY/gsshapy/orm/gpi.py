@@ -33,7 +33,10 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
     projectFile = relationship('ProjectFile', uselist=False, back_populates='gridPipeFile')
     
     # Value Columns
-    pipeCells = Column(Integer, nullable=False)    
+    pipeCells = Column(Integer, nullable=False)
+    
+    # File Properties
+    EXTENSION = 'gpi'    
     
     def __init__(self, directory, filename, session):
         '''
@@ -73,11 +76,11 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self._createGsshaPyObjects(result)
 
         
-    def write(self, directory, session, filename):
+    def write(self, directory, session, name):
         '''
         Grid Pipe File Write to File Method
         '''
-        filePath = '%s%s' % (directory, filename)
+        filePath = '%s%s.%s' % (directory, name, self.EXTENSION)
         
         with open(filePath, 'w') as gpiFile:
             gpiFile.write('GRIDPIPEFILE\n')

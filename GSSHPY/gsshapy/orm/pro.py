@@ -32,6 +32,9 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
     # Relationship Properites
     projectFile = relationship('ProjectFile', uselist=False, back_populates='projectionFile')
     
+    # File Properties
+    EXTENSION = 'pro'
+    
     def __init__(self, directory, filename, session):
         '''
         Constructor
@@ -50,12 +53,12 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(self.PATH, 'r') as f:
             self.projection = f.read()
         
-    def write(self, directory, session, filename):
+    def write(self, directory, session, name):
         '''
         Projection File Write to File Method
         '''
         # Initiate file
-        filePath = '%s%s' % (directory, filename)
+        filePath = '%s%s_prj.%s' % (directory, name, self.EXTENSION)
 
         # Open file and write
         with open(filePath, 'w') as mapFile:

@@ -16,7 +16,7 @@ from gsshapy.lib import db_tools as dbt
 
 class TestReadMethods(unittest.TestCase):
     def setUp(self):
-        # Create 
+        # Create Test DB
         sqlalchemy_url = dbt.init_sqlite_db('db/standard.db')
         
         # Create DB Sessions
@@ -335,14 +335,14 @@ class TestReadMethods(unittest.TestCase):
         
     def test_project_read_all(self):
         '''
-        Test ProjectFile readAll method
+        Test ProjectFile read all method
         '''
         # Instantiate GSSHAPY ProjectFile object
         prjR = ProjectFile(directory=self.directory,
                            filename='standard.prj',
                            session=self.readSession)
         
-        # Invoke read output method
+        # Invoke read all method
         prjR.readProject()
         
         # Query Project File
@@ -352,14 +352,14 @@ class TestReadMethods(unittest.TestCase):
 
     def test_project_read_input(self):
         '''
-        Test ProjecFile readInput method
+        Test ProjecFile read input method
         '''
         # Instantiate GSSHAPY ProjectFile object
         prjR = ProjectFile(directory=self.directory,
                            filename='standard.prj',
                            session=self.readSession)
         
-        # Invoke read output method
+        # Invoke read input method
         prjR.readInput()
         
         # Query Project File
@@ -369,7 +369,7 @@ class TestReadMethods(unittest.TestCase):
         
     def test_project_read_output(self):
         '''
-        Test ProjectFile readOutput method
+        Test ProjectFile read output method
         '''
         # Instantiate GSSHAPY ProjectFile object
         prjR = ProjectFile(directory=self.directory,

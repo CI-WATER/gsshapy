@@ -35,7 +35,10 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
     # Relationship Properties
     precipEvents = relationship('PrecipEvent', back_populates='precipFile')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='precipFile')
-        
+    
+    # File Properties
+    EXTENSION = 'gag'
+    
     def __init__(self, directory, filename, session):
         '''
         Constructor
@@ -63,12 +66,12 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Add this PrecipFile to the database session
         self.SESSION.add(self)
                 
-    def write(self, session, directory, filename):
+    def write(self, session, directory, name):
         '''
         Precipitation File Write to File Method
         '''
         # Assemble path to new precipitation file
-        filePath = '%s%s' % (directory, filename)
+        filePath = '%s%s.%s' % (directory, name, self.EXTENSION)
         
         # Initialize file
         with open(filePath, 'w') as gagFile:
@@ -102,7 +105,6 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Create an empty set for obtaining a list of unique gages
                     gages = set()
                     
-                    # Get a list of unique gages
                     for value in values:
                         gages.add(value.gage)
                     
@@ -187,6 +189,7 @@ class PrecipEvent(DeclarativeBase):
     
     # Relationship Properties
     values = relationship('PrecipValue', back_populates='event')
+    gages = relationship('PrecipGage', secondary=PrecipValue, back_populates='events')
     precipFile = relationship('PrecipFile', back_populates='precipEvents')
     
     def __init__(self, description, nrGag, nrPds):

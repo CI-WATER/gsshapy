@@ -38,7 +38,7 @@ def init_sqlite_memory(time=False):
     init_time = init_db(sqlalchemy_url)
     
     if time:
-        print 'Initialized in:', init_time, 'seconds'
+        print 'TIME:', init_time, 'seconds'
         
     return sqlalchemy_url
     
@@ -50,7 +50,6 @@ def init_sqlite_db(path, time=False):
     sqlite_base_url = 'sqlite:///'
     sqlalchemy_url = sqlite_base_url + path
     init_time = init_db(sqlalchemy_url)
-    print 'SUCCESS: SQLite Database created at', path
     
     if time:
         print 'TIME:', init_time, 'seconds'
@@ -82,7 +81,6 @@ def init_postgresql_db(username, host, database, port='', password='', time=Fals
                       )
     
     init_time = init_db(sqlalchemy_url)
-    print 'SUCCESS: PostgreSQL database initialized'
     
     if time:
         print 'TIME:', init_time, 'seconds'
@@ -113,7 +111,6 @@ def init_mysql_db(username, host, database, port='', password='', time=False):
                       )
     
     init_time = init_db(sqlalchemy_url)
-    print 'SUCCESS: MySQL database initialized'
     
     if time:
         print 'TIME:', init_time, 'seconds'

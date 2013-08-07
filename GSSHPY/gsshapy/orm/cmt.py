@@ -38,6 +38,9 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
     mapTables = relationship('MapTable', back_populates='mapTableFile')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile')
     
+    # File Properties
+    EXTENSION = 'cmt'
+    
     def __init__(self, directory, filename, session):
         '''
         Constructor
@@ -112,32 +115,24 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         # returned from the parser functions
         self._createGsshaPyObjects(mapTables, indexMaps)
             
-    def write(self, session, directory, filename):
+    def write(self, session, directory, name):
         '''
         Map Table Write to File Method
         ''' 
-                
-        # Obtain a list of MTIndexMap objects
-# #         indexMapList = []
-# #           
-# #         for mapTable in self.mapTables:
-# #             if mapTable.name == 'CONTAMINANT_TRANSPORT': # Contaminant value case
-# #                 contaminantList = []
-# #                 for mtValue in mapTable.values:
-# #                     contaminantList.append(mtValue.contaminant)
-# #                       
-# #                 contaminants = set(contaminantList)
-# #                 for contaminant in contaminants:
-# #                     indexMapList.append(contaminant.indexMap)
-# #             else: # All others
-# #                 if mapTable.indexMap != None:
-# #                     indexMapList.append(mapTable.indexMap)
-# #           
-# #         # Derive a set of unique MTIndexMap objects    
+        # Derive a Unique Set of Contaminants
+        for mapTable in self.mapTables:
+            if mapTable.name == 'CONTAMINANT_TRANSPORT':
+                contaminantList = []
+                for mtValue in mapTable.values:
+                    contaminantList.append(mtValue.contaminant)
+                       
+                contaminants = set(contaminantList)
+           
+        # Derive a set of unique MTIndexMap objects    
         indexMaps = self.indexMaps
 
         # Initiate map table file and write
-        filePath = '%s%s' % (directory, filename)
+        filePath = '%s%s.%s' % (directory, name, self.EXTENSION)
         
         with open(filePath, 'w') as cmtFile:
 
@@ -349,7 +344,6 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     filter(MTValue.contaminant == contaminant).\
                     filter(MTValue.index == idx).\
                     order_by(MTValue.variable).\
-                    order_by(MTValue.sedimentID).\
                     all() 
             
             # NOTE: The second order_by modifier in the query above

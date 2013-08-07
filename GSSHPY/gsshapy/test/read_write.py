@@ -24,10 +24,10 @@ DBSession = maker()
 DBSession2 = maker()
 
 # Create an empty Project File Object
-project = ProjectFile(path='/Users/swainn/testing/LongTerm2/LongTerm2.prj', session=DBSession)
+project = ProjectFile(directory='/Users/swainn/testing/LongTerm2w/', filename='longterm2.prj', session=DBSession)
  
 # # Invoke read command on Project File Object
-project.readAll()
+project.readProject()
              
 print 'SUCCESS: Project Read to Database'
 
@@ -37,6 +37,6 @@ start = time.time()
 project1 = DBSession2.query(ProjectFile).filter(ProjectFile.id == 1).one()
                      
 # Invoke write command on Project File Query Object
-project1.writeAll(session=DBSession2, directory='/Users/swainn/testing/LongTerm2w/', newName='longterm2')
+project1.write(session=DBSession2, directory='/Users/swainn/testing/write/', newName='longterm2')
 print 'SUCCESS: Project Written to File', 'TIME:', time.time()-start
 

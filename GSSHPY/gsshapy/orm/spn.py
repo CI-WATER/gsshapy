@@ -40,6 +40,9 @@ class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
     superJunctions = relationship('SuperJunction', back_populates='stormPipeNetworkFile')
     projectFile = relationship('ProjectFile', uselist=False, back_populates='stormPipeNetworkFile')
     
+    # File Properties
+    EXTENSION = 'spn'
+    
     def __init__(self, directory, filename, session):
         '''
         Constructor
@@ -87,12 +90,12 @@ class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._createSlink(slinks)
         
         
-    def write(self, session, directory, filename):
+    def write(self, session, directory, name):
         '''
         Storm Pipe Network File Write to File Method
         '''
         # Initiate channel input file
-        filePath = '%s%s' % (directory, filename)
+        filePath = '%s%s.%s' % (directory, name, self.EXTENSION)
         
         with open(filePath, 'w') as spnFile:           
             # Retrieve Connection objects and write to file

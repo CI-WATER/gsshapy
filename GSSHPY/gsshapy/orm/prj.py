@@ -68,6 +68,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     linkNodeDatasets = relationship('LinkNodeDatasetFile', back_populates='projectFile')
     
     # File Properties
+    EXTENSION = 'prj'
     MAP_TYPES_SUPPORTED = (1,)
     
     INPUT_FILES = {'#PROJECTION_FILE':          {'filename': None, 'fileio': ProjectionFile},       # WMS
@@ -179,7 +180,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     
     def __init__(self, directory, filename, session):
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
-        self.name = filename.strip('.')[0]
+        self.name = filename.split('.')[0]
     
     
     def _readWithoutCommit(self):
@@ -235,27 +236,22 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         
                
-    def write(self, session, directory, newName=None):
+    def write(self, session, directory, name):
         '''
         Project File Write to File Method
         '''
-        # Change name of project
-        if newName != None:
-            prefix =  newName
-        else:
-            prefix =  self.name
-            
-        filename = '%s.prj' % prefix
+        # Compose filename
+        filename = '%s.%s' % (name, self.EXTENSION)
         
         # Initiate project file
-        fullPath = '%s%s' % (directory, filename)
+        filePath = '%s%s' % (directory, filename)
         
-        with open(fullPath, 'w') as prjFile:
+        with open(filePath, 'w') as prjFile:
             prjFile.write('GSSHAPROJECT\n')
         
             # Initiate write on each ProjectCard that belongs to this ProjectFile
             for card in self.projectCards:
-                prjFile.write(card.write(originalPrefix = self.name, newPrefix=prefix))
+                prjFile.write(card.write(originalPrefix=self.name, newPrefix=name))
                 
                 # Assemble list of files for writing
                 if card.name in self.INPUT_FILES:
@@ -282,7 +278,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     if self._noneOrNumValue(value):
                         self.OUTPUT_MAPS[card.name]['filename'] = value
         
-        print 'File Written:', filename
+#         print 'File Written:', filename
                      
     def readProject(self):
         '''
@@ -470,7 +466,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         instance = fileIO(directory=self.DIRECTORY, filename=filename, session=self.SESSION)
         instance.projectFile = self
         instance._readWithoutCommit()
-        print 'File Read:', filename
+#         print 'File Read:', filename
         
     def _invokeWrite(self, fileIO, session, directory, filename):
         '''

@@ -70,12 +70,12 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._createTimeSeriesObjects(timeSeries)
         
         
-    def write(self, directory, session, filename):
+    def write(self, directory, session, name):
         '''
         Generic Time Series Write to File Method
         '''
         # Initiate file
-        fullPath = '%s%s' % (directory, filename)
+        fullPath = '%s%s.%s' % (directory, name, self.fileExtension)
         
         # Retrieve all time series
         timeSeries = self.timeSeries

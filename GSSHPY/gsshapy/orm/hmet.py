@@ -46,8 +46,6 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Read HMET WES from File Method
         '''
-        ## TODO: Ensure Other HMET Formats are supported
-        
         # Open file and parse into HmetRecords
         with open(self.PATH, 'r') as hmetFile:
             

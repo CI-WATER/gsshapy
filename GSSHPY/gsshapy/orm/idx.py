@@ -39,6 +39,9 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     indices = relationship('MTIndex', back_populates='indexMap')
     contaminants = relationship('MTContaminant', back_populates='indexMap')
     
+    # File Properties
+    EXTENSION = 'idx'
+    
     def __init__(self, directory, filename, session, name=None):
         '''
         Constructor
@@ -63,20 +66,23 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         with open(self.PATH, 'r') as f:
             self.raster = f.read()
         
-        print 'File Read:', self.filename
+#         print 'File Read:', self.filename
         
-    def write(self, directory):
+    def write(self, directory, name=None, session=None):
         '''
         Index Map Write to File Method
         '''
         # Initiate file
-        filePath = '%s%s' % (directory, self.filename)
+        if name !=None:
+            filePath = '%s%s.%s' % (directory, name, self.EXTENSION)
+        else:
+            filePath = '%s%s' % (directory, self.filename)
 
         # Open file and write
         with open(filePath, 'w') as mapFile:
             mapFile.write(self.raster)
             
-        print 'File Written:', self.filename
+#         print 'File Written:', self.filename
         
     
 

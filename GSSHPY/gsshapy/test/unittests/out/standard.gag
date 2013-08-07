@@ -14,8 +14,8 @@ NRGAG 4
 NRPDS 4
 COORD 204555.0 4751268.0 "location of raingage #1"
 COORD 205642.0 4750491.0 "location of raingage #2"
-COORD 205921.0 4750330.0 "location of raingage #3"
 COORD 206170.0 4749611.0 "location of raingage #4"
+COORD 205921.0 4750330.0 "location of raingage #3"
 GAGES 1995 07  04  09  47  0.00  0.00  0.00  0.00
 GAGES 1995 07  04  10  01  38.00  2.00  0.00  0.00
 GAGES 1995 07  04  10  16  16.00  14.00  3.00  0.00

@@ -36,6 +36,9 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
     # Value Columns
     streamCells = Column(Integer, nullable=False)
     
+    # File Properties
+    EXTENSION = 'gst'
+    
     def __init__(self, directory, filename, session):
         '''
         Constructor
@@ -74,11 +77,11 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self._createGsshaPyObjects(result)
 
         
-    def write(self, directory, session, filename):
+    def write(self, directory, session, name):
         '''
         Grid Stream File Write to File Method
         '''
-        filePath = '%s%s' % (directory, filename)
+        filePath = '%s%s.%s' % (directory, name, self.EXTENSION)
         
         with open(filePath, 'w') as gpiFile:
             gpiFile.write('GRIDSTREAMFILE\n')

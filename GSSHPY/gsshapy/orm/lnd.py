@@ -117,12 +117,12 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 
         
-    def write(self, directory, session, filename):
+    def write(self, directory, session, name):
         '''
         Raster Map File Write to File Method
         '''
         # Initiate file
-        filePath = '%s%s' % (directory, filename)
+        filePath = '%s%s.%s' % (directory, name, self.fileExtension)
         
         # Retrieve TimeStep objects
         timeSteps = self.timeSteps
