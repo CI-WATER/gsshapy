@@ -1,6 +1,6 @@
 '''
 ********************************************************************************
-* Name: ORM Tests
+* Name: Read Tests
 * Author: Nathan Swain
 * Created On: May 16, 2013
 * Copyright: (c) Brigham Young University 2013
@@ -410,7 +410,7 @@ class TestReadMethods(unittest.TestCase):
     def tearDown(self):
         dbt.del_sqlite_db('db/standard.db')
         
-    
+suite = unittest.TestLoader().loadTestsFromTestCase(TestReadMethods)
 
 if __name__ == '__main__':
     unittest.main()

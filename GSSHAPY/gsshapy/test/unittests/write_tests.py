@@ -1,6 +1,6 @@
 '''
 ********************************************************************************
-* Name: ORM Tests
+* Name: Write Tests
 * Author: Nathan Swain
 * Created On: May 16, 2013
 * Copyright: (c) Brigham Young University 2013
@@ -370,9 +370,7 @@ class TestWriteMethods(unittest.TestCase):
             path = 'out/' + afile
             os.remove(path)
             
-        
-        
-        
+suite = unittest.TestLoader().loadTestsFromTestCase(TestWriteMethods)
     
 
 if __name__ == '__main__':

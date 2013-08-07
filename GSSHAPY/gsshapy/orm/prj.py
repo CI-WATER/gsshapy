@@ -212,7 +212,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     if card['name'] == 'MAP_TYPE':
                         self.mapType = int(card['value'])
                 
-                  
+                ## TODO: Consider refactoring how the lists of files to read and write are compiled
+                ##       i.e.: Don't want this to run when project file is read alone.  
                 # Assemble list of files for reading
                 if card['name'] in self.INPUT_FILES:
                     if self._noneOrNumValue(card['value']):
