@@ -15,13 +15,18 @@ __all__ = ['PrecipFile',
 
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, Column
+from sqlalchemy import ForeignKey, Column, Table
 from sqlalchemy.types import Integer, DateTime, String, Float
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import pivot, parsetools as pt, gag_chunk as gak
+
+gag_assoc_event_gage = Table('gag_assoc_event_gage', DeclarativeBase.metadata,
+                             Column('gageID', Integer, ForeignKey('gag_coord.id')),
+                             Column('eventID', Integer, ForeignKey('gag_events.id'))
+                             )
 
 class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
@@ -103,11 +108,11 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
                     ## objects explicitly without the costly conversion.
                     
                     # Create an empty set for obtaining a list of unique gages
-                    gages = set()
-                    
-                    for value in values:
-                        gages.add(value.gage)
-                    
+                    gages = session.query(PrecipGage).\
+                                    filter(PrecipGage.event == event).\
+                                    order_by(PrecipGage.id).\
+                                    all()
+
                     for gage in gages:
                         gagFile.write('COORD %s %s "%s"\n' % (gage.x, gage.y, gage.description))
 
@@ -157,6 +162,9 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
                               x=coord['x'],
                               y=coord['y'])
             
+            # Associate PrecipGage with PrecipEvent
+            gage.event = event
+            
             # Append to gages list for association with PrecipValues
             gages.append(gage)
         
@@ -189,6 +197,7 @@ class PrecipEvent(DeclarativeBase):
     
     # Relationship Properties
     values = relationship('PrecipValue', back_populates='event')
+    gages = relationship('PrecipGage', secondary=gag_assoc_event_gage, back_populates='event')
     precipFile = relationship('PrecipFile', back_populates='precipEvents')
     
     def __init__(self, description, nrGag, nrPds):
@@ -255,6 +264,8 @@ class PrecipGage(DeclarativeBase):
     
     # Relationship Properties
     values = relationship('PrecipValue', back_populates='gage')
+    event = relationship('PrecipEvent', secondary=gag_assoc_event_gage, 
+                          uselist=False, back_populates='gages')
     
     def __init__(self, description, x, y):
         '''

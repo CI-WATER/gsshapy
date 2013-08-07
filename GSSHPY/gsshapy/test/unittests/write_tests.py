@@ -14,7 +14,7 @@ from gsshapy.orm.file_object_imports import *
 from gsshapy.orm import ProjectFile
 from gsshapy.lib import db_tools as dbt
 
-class TestReadMethods(unittest.TestCase):
+class TestWriteMethods(unittest.TestCase):
     def setUp(self):
         # Create Test DB 
         sqlalchemy_url = dbt.init_sqlite_db('db/standard.db')
@@ -76,9 +76,8 @@ class TestReadMethods(unittest.TestCase):
         # Query and invoke write method
         self._query_n_write(PrecipFile)
         
-        print 'Need to refactor precip file'
-#         # Test
-#         self._compare_files(self.original, self.name, 'gag')
+        # Test
+        self._compare_files(self.original, self.name, 'gag')
         
         
     def test_grid_pipe_file_write(self):
@@ -257,6 +256,9 @@ class TestReadMethods(unittest.TestCase):
                                  directory=self.writeDirectory,
                                  newName='standard')
         
+        # Compare all files
+        self._compare_directories(self.readDirectory, self.writeDirectory)
+        
 
     def test_project_write_input(self):
         '''
@@ -270,6 +272,9 @@ class TestReadMethods(unittest.TestCase):
                                directory=self.writeDirectory,
                                newName='standard')
         
+        # Compare all files
+        self._compare_directories(self.readDirectory, self.writeDirectory)
+        
     def test_project_write_output(self):
         '''
         Test ProjectFile write output method
@@ -281,6 +286,9 @@ class TestReadMethods(unittest.TestCase):
         projectFile.writeOutput(session=self.writeSession,
                                 directory=self.writeDirectory,
                                 newName='standard')
+        
+        # Compare all files
+        self._compare_directories(self.readDirectory, self.writeDirectory)
     
     def _query_n_write(self, fileIO):
         '''
@@ -321,6 +329,9 @@ class TestReadMethods(unittest.TestCase):
                        name=self.name)
         
     def _compare_files(self, original, new, ext):
+        '''
+        Compare the contents of two files
+        '''
         filePathO = '%s%s.%s' % (self.readDirectory, original, ext)
         filePathN = '%s%s.%s' % (self.writeDirectory, new, ext)
         
@@ -331,6 +342,19 @@ class TestReadMethods(unittest.TestCase):
             contentsN = fileN.read()
         self.assertEqual(contentsO, contentsN)
         
+    def _compare_directories(self, dir1, dir2):
+        '''
+        Compare the contents of the files of two directories
+        '''
+        fileList2 = os.listdir(dir2)
+        
+        for afile in fileList2:
+            name = afile.split('.')[0]
+            ext = afile.split('.')[1]
+            
+            # Compare files with same name
+            self._compare_files(name, name, ext)
+            
     def _list_compare(self, listone, listtwo):
         for one, two in itertools.izip(listone, listtwo):
             self.assertEqual(one, two)
@@ -342,8 +366,8 @@ class TestReadMethods(unittest.TestCase):
         # Clear out directory
         fileList = os.listdir('out/')
         
-        for file in fileList:
-            path = 'out/' + file
+        for afile in fileList:
+            path = 'out/' + afile
             os.remove(path)
             
         

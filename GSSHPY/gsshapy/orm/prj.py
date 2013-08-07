@@ -497,7 +497,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         try:
             instance.write(session=session, directory=directory, filename=filename)
         except:
-            name = filename.split('.')[0]
+            if '_' in filename:
+                # Projection file
+                name = filename.split('_')[0]
+            else:
+                name = filename.split('.')[0]
+                
             instance.write(session=session, directory=directory, name=name)
         
 #         print 'File Written:', filename
