@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: gsshapy
+Version: 0.1
+Summary: An SQLAlchemy ORM GSSHA model files.
+Home-page: UNKNOWN
+Author: Nathan Swain
+Author-email: nathan.swain86@gmail.com
+License: UNKNOWN
+Description: UNKNOWN
+Keywords: gssha database model
+Platform: UNKNOWN
