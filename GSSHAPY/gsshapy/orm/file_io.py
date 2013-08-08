@@ -1,6 +1,6 @@
 '''
 ********************************************************************************
-* Name: File IO Imports
+* Name: File IO
 * Author: Nathan Swain
 * Created On: August 2, 2013
 * Copyright: (c) Brigham Young University 2013

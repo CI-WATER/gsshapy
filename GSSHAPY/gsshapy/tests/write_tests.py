@@ -10,7 +10,7 @@
 
 import unittest, itertools, os
 
-from gsshapy.orm.file_object_imports import *
+from gsshapy.orm.file_io import *
 from gsshapy.orm import ProjectFile
 from gsshapy.lib import db_tools as dbt
 

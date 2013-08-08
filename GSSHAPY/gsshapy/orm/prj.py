@@ -19,7 +19,7 @@ from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
-from gsshapy.orm.file_object_imports import *
+from gsshapy.orm.file_io import *
 
 class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''

@@ -22,9 +22,8 @@ def del_sqlite_db(path):
 
 def init_db(sqlalchemy_url):
     '''
-    Initialize database
+    Initialize database with gsshapy tables
     '''
-    
     engine = create_engine(sqlalchemy_url)
     start = time.time()
     metadata.create_all(engine)
