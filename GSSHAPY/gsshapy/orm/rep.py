@@ -61,22 +61,18 @@ class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Associate TargetParameter with ReplaceParamFile
                     target.replaceParamFile = self
         
-    def write(self, directory, session, filename):
+    def _writeToOpenFile(self, session, openFile):
         '''
         Replace Param File Write to File Method
         '''
-        # Initiate file
-        filePath = os.path.join(directory, filename)
-        
         # Retrieve TargetParameter objects
         targets = self.targetParameters
 
-        # Open file and write
-        with open(filePath, 'w') as repFile:
-            repFile.write('%s\n' % self.numParameters)
-            
-            for target in targets:
-                repFile.write('%s %s\n' % (target.targetVariable, target.varFormat))
+        # Write lines
+        openFile.write('%s\n' % self.numParameters)
+        
+        for target in targets:
+            openFile.write('%s %s\n' % (target.targetVariable, target.varFormat))
             
 class TargetParameter(DeclarativeBase):
     '''
@@ -131,15 +127,11 @@ class ReplaceValFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(self.PATH, 'r') as f:
             self.values = f.read()
         
-    def write(self, directory, session, filename):
+    def _writeToOpenFile(self, session, openFile):
         '''
         Replace Val File Write to File Method
         '''
-        # Initiate file
-        filePath = os.path.join(directory, filename)
-        
-        # Open file and write
-        with open(filePath, 'w') as repFile:               
-            repFile.write(self.values)
+        # Write lines               
+        openFile.write(self.values)
             
 

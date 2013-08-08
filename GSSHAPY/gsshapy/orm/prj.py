@@ -237,12 +237,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         
                
-    def _writeToOpenFile(self, session, directory, name, openFile):
+    def _writeToOpenFile(self, session, openFile):
         '''
         Project File Write to File Method
         '''
         # Write lines
         openFile.write('GSSHAPROJECT\n')
+        filename = os.path.split(openFile.name)[1]
+        name = filename.split('.')[0]
     
         # Initiate write on each ProjectCard that belongs to this ProjectFile
         for card in self.projectCards:
@@ -491,19 +493,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             
             
         # Initiate Write Method on File
-        try:
-            instance.write(session=session, directory=directory, filename=filename)
-        except:
-            if fileIO == ProjectionFile:
-                # Projection file
-                split = filename.split('_')
-                name = '_'.join(split[0:(len(split)-1)])
-                name += '_prj'
-                    
-            else:
-                name = filename.split('.')[0]
-                
-            instance.write(session=session, directory=directory, name=name)
+        instance.write(session=session, directory=directory, name=filename)
+
         
 #         print 'File Written:', filename
         

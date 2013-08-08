@@ -21,7 +21,7 @@ class GsshaPyFileObjectBase:
     PROJECT_NAME = None
     DIRECTORY = None
     SESSION = None
-    EXTENSION = None
+    EXTENSION = 'txt'
     
     def __init__(self, directory, filename, session):
         '''
@@ -50,7 +50,23 @@ class GsshaPyFileObjectBase:
         '''
         Front Facting Write to File Method
         '''
+        # Assemble Path to file
+        try:
+            # Handle name with extension case (e.g.: name.ext)
+            name, extension = name.split('.')   # Will fail if '.' not present
+            
+            if extension != self.EXTENSION:
+                self.EXTENSION = extension
+        except:
+            '''DO NOTHING'''
+            
+        # Run name preprocessor method if present
+        try:
+            name=self._namePreprocessor(name)
+        except:
+            '''DO NOTHING'''
         
+        # Handle name only case (e.g.: name). Append fileExtension.
         try:
             # Handles case where file object handles
             # files with varying extentions 
@@ -68,8 +84,6 @@ class GsshaPyFileObjectBase:
         with open(filePath, 'w') as openFile:
             # Write Lines
             self._writeToOpenFile(session=session,
-                                  directory=directory,
-                                  name=name,
                                   openFile=openFile)
     
     def _readWithoutCommit(self):
@@ -89,7 +103,7 @@ class GsshaPyFileObjectBase:
         commit once at the end of reading files.
         '''
         
-    def _writeToOpenFile(self, directory, session, name, openFile):
+    def _writeToOpenFile(self, directory, openFile):
         '''
         This private method must be defined in each file object for
         the write() method to work properly. The write() method handles

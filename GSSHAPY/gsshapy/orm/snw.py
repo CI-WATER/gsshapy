@@ -75,41 +75,38 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
                     record.nwsrfsFile = self
 
         
-    def write(self, session, directory, filename):
+    def _writeToOpenFile(self, session, openFile):
         '''
         NWSRFS Write to File Method
         '''
-        # Initiate file
-        fullPath = os.path.join(directory, filename)
+        # Write lines
+        openFile.write('Number_Bands:    %s\n' % self.numBands)
+        openFile.write('Lower_Elevation  Upper_Elevation  MF_Min  MF_Max  SCF  FR_USE  TIPM  NMF  FUA  PCWHC\n')
         
-        with open(fullPath, 'w') as nwsrfsFile:
-            nwsrfsFile.write('Number_Bands:    %s\n' % self.numBands)
-            nwsrfsFile.write('Lower_Elevation  Upper_Elevation  MF_Min  MF_Max  SCF  FR_USE  TIPM  NMF  FUA  PCWHC\n')
-            
-            # Retrieve NwsrfsRecords
-            records = self.nwsrfsRecords
-            
-            for record in records:
-                nwsrfsFile.write('%s%s%s%s%.1f%s%.1f%s%.1f%s%.1f%s%.1f%s%.1f%s%.1f%s%.1f\n' % (
-                                 record.lowerElev,
-                                 ' '*(17-len(str(record.lowerElev))), # Num Spaces
-                                 record.upperElev,
-                                 ' '*(17-len(str(record.upperElev))), # Num Spaces
-                                 record.mfMin,
-                                 ' '*(8-len(str(record.mfMin))), # Num Spaces
-                                 record.mfMax,
-                                 ' '*(8-len(str(record.mfMax))), # Num Spaces
-                                 record.scf,
-                                 ' '*(5-len(str(record.scf))), # Num Spaces
-                                 record.frUse,
-                                 ' '*(8-len(str(record.frUse))), # Num Spaces
-                                 record.tipm,
-                                 ' '*(6-len(str(record.tipm))), # Num Spaces
-                                 record.nmf,
-                                 ' '*(5-len(str(record.nmf))), # Num Spaces
-                                 record.fua,
-                                 ' '*(5-len(str(record.fua))), # Num Spaces
-                                 record.plwhc))
+        # Retrieve NwsrfsRecords
+        records = self.nwsrfsRecords
+        
+        for record in records:
+            openFile.write('%s%s%s%s%.1f%s%.1f%s%.1f%s%.1f%s%.1f%s%.1f%s%.1f%s%.1f\n' % (
+                             record.lowerElev,
+                             ' '*(17-len(str(record.lowerElev))), # Num Spaces
+                             record.upperElev,
+                             ' '*(17-len(str(record.upperElev))), # Num Spaces
+                             record.mfMin,
+                             ' '*(8-len(str(record.mfMin))), # Num Spaces
+                             record.mfMax,
+                             ' '*(8-len(str(record.mfMax))), # Num Spaces
+                             record.scf,
+                             ' '*(5-len(str(record.scf))), # Num Spaces
+                             record.frUse,
+                             ' '*(8-len(str(record.frUse))), # Num Spaces
+                             record.tipm,
+                             ' '*(6-len(str(record.tipm))), # Num Spaces
+                             record.nmf,
+                             ' '*(5-len(str(record.nmf))), # Num Spaces
+                             record.fua,
+                             ' '*(5-len(str(record.fua))), # Num Spaces
+                             record.plwhc))
     
     
     
@@ -223,34 +220,31 @@ class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Associate OrthoMeasuerment with OrthographicGageFile
                     measurement.orthoGageFile = self
         
-    def write(self, session, directory, filename):
+    def _writeToOpenFile(self, session, openFile):
         '''
         Orthographic Gage File Write to File Method
         '''
-        # Initiate file
-        fullPath = os.path.join(directory, filename)
-        
-        with open(fullPath, 'w') as orthoFile:
-            orthoFile.write('Num_Sites:    %s\n' % self.numSites)
-            orthoFile.write('Elev_Base     %s\n' % self.elevBase)
-            orthoFile.write('Elev_2        %s\n' % self.elev2)
-            orthoFile.write('Year    Month   Day     Hour    Temp_2\n')
+        # Write lines
+        openFile.write('Num_Sites:    %s\n' % self.numSites)
+        openFile.write('Elev_Base     %s\n' % self.elevBase)
+        openFile.write('Elev_2        %s\n' % self.elev2)
+        openFile.write('Year    Month   Day     Hour    Temp_2\n')
 
-            # Retrieve OrthoMeasurements
-            measurements = self.orthoMeasurements
-            
-            for measurement in measurements:
-                dateTime = measurement.dateTime
-                orthoFile.write('%s%s%s%s%s%s%s%s%.3f\n' % (
-                                dateTime.year,
-                                '    ',
-                                dateTime.month,
-                                ' '*(8-len(str(dateTime.month))),
-                                dateTime.day,
-                                ' '*(8-len(str(dateTime.day))),
-                                dateTime.hour,
-                                ' '*(8-len(str(dateTime.hour))),
-                                measurement.temp2))
+        # Retrieve OrthoMeasurements
+        measurements = self.orthoMeasurements
+        
+        for measurement in measurements:
+            dateTime = measurement.dateTime
+            openFile.write('%s%s%s%s%s%s%s%s%.3f\n' % (
+                            dateTime.year,
+                            '    ',
+                            dateTime.month,
+                            ' '*(8-len(str(dateTime.month))),
+                            dateTime.day,
+                            ' '*(8-len(str(dateTime.day))),
+                            dateTime.hour,
+                            ' '*(8-len(str(dateTime.hour))),
+                            measurement.temp2))
             
             
     

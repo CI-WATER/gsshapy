@@ -78,7 +78,7 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self._createGsshaPyObjects(result)
 
         
-    def _writeToOpenFile(self, directory, session, name, openFile):
+    def _writeToOpenFile(self, session, openFile):
         '''
         Grid Pipe File Write to File Method
         '''

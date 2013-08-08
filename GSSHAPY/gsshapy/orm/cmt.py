@@ -116,10 +116,13 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         # returned from the parser functions
         self._createGsshaPyObjects(mapTables, indexMaps)
             
-    def _writeToOpenFile(self, session, directory, name, openFile):
+    def _writeToOpenFile(self, session, openFile):
         '''
         Map Table Write to File Method
-        ''' 
+        '''
+        # Extract directory
+        directory = os.path.split(openFile.name)[0]
+        
         # Derive a Unique Set of Contaminants
         for mapTable in self.mapTables:
             if mapTable.name == 'CONTAMINANT_TRANSPORT':

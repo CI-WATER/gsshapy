@@ -55,9 +55,18 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(self.PATH, 'r') as f:
             self.projection = f.read()
         
-    def _writeToOpenFile(self, directory, session, name, openFile):
+    def _writeToOpenFile(self, session, openFile):
         '''
         Projection File Write to File Method
         '''
         # Write lines
         openFile.write(self.projection)
+        
+    def _namePreprocessor(self, name):
+        '''
+        Preprocess Name Method
+        '''
+        if '_prj' not in name:
+            name += '_prj'
+        
+        return name

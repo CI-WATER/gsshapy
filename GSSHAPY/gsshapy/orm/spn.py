@@ -92,7 +92,7 @@ class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._createSlink(slinks)
         
         
-    def _writeToOpenFile(self, session, directory, name, openFile):
+    def _writeToOpenFile(self, session, openFile):
         '''
         Storm Pipe Network File Write to File Method
         '''           

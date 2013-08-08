@@ -16,7 +16,7 @@ import os
 from datetime import datetime
 
 from sqlalchemy import Column, ForeignKey
-from sqlalchemy.types import Integer, String, DateTime
+from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
@@ -119,7 +119,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 
         
-    def _writeToOpenFile(self, directory, session, name, openFile):
+    def _writeToOpenFile(self, session, openFile):
         '''
         Link Node Dataset File Write to File Method
         '''

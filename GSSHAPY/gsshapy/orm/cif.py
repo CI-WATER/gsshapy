@@ -129,7 +129,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         self._createConnectivity(linkList=links, connectList=connectivity)                
                     
-    def _writeToOpenFile(self, session, directory, name, openFile):
+    def _writeToOpenFile(self, session, openFile):
         '''
         Channel Input File Write to File Method
         '''

@@ -70,32 +70,26 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # Associate HmetRecord with HmetFile
                 hmetRecord.hmetFile = self
         
-    def write(self, session, directory, filename):
+    def _writeToOpenFile(self, session, openFile):
         '''
         Write HMET WES to File Method
         '''
         ## TODO: Ensure Other HMET Formats are supported
-
-        # Initiate hmet wes file
-        filePath = os.path.join(directory, filename)
+        hmetRecords = self.hmetRecords
         
-        with open(filePath, 'w') as hmetFile:
-            # Retrieve HmetRecords
-            hmetRecords = self.hmetRecords
-            
-            for record in hmetRecords:
-                hmetFile.write('%s\t%s\t%s\t%s\t%.3g\t%s\t%s\t%s\t%s\t%.2f\t%.2f\n' % (
-                               record.hmetDateTime.year,
-                               record.hmetDateTime.month,
-                               record.hmetDateTime.day,
-                               record.hmetDateTime.hour,
-                               record.barometricPress,
-                               record.relHumidity,
-                               record.totalSkyCover,
-                               record.windSpeed,
-                               record.dryBulbTemp,
-                               record.directRad,
-                               record.globalRad))
+        for record in hmetRecords:
+            openFile.write('%s\t%s\t%s\t%s\t%.3g\t%s\t%s\t%s\t%s\t%.2f\t%.2f\n' % (
+                           record.hmetDateTime.year,
+                           record.hmetDateTime.month,
+                           record.hmetDateTime.day,
+                           record.hmetDateTime.hour,
+                           record.barometricPress,
+                           record.relHumidity,
+                           record.totalSkyCover,
+                           record.windSpeed,
+                           record.dryBulbTemp,
+                           record.directRad,
+                           record.globalRad))
                 
 
 

@@ -72,7 +72,7 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._createTimeSeriesObjects(timeSeries)
         
         
-    def _writeToOpenFile(self, directory, session, name, openFile):
+    def _writeToOpenFile(self, session, openFile):
         '''
         Generic Time Series Write to File Method
         '''        

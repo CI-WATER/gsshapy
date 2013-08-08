@@ -160,7 +160,7 @@ class TestWriteMethods(unittest.TestCase):
         self._query_n_write(ProjectionFile)
         
         # Test
-        self._compare_files('standard', 'standard', 'pro')
+        self._compare_files('standard_prj', 'standard_prj', 'pro')
         
         
     def test_replace_param_file_write(self):
@@ -316,7 +316,7 @@ class TestWriteMethods(unittest.TestCase):
         # Invoke write method
         instance.write(session=self.writeSession,
                        directory=self.writeDirectory,
-                       filename=filename)
+                       name=filename)
         
     def _query_n_write_multiple(self, fileIO, ext):
         '''
@@ -343,10 +343,13 @@ class TestWriteMethods(unittest.TestCase):
         
         with open(filePathO) as fileO:
             contentsO = fileO.read()
+            linesO = contentsO.strip().split()
             
         with open(filePathN) as fileN:
             contentsN = fileN.read()
-        self.assertEqual(contentsO, contentsN)
+            linesN = contentsN.strip().split()
+            
+        self.assertEqual(linesO, linesN)
         
     def _compare_directories(self, dir1, dir2):
         '''
