@@ -10,6 +10,8 @@
 
 __all__ = ['IndexMap']
 
+import os
+
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
@@ -74,9 +76,10 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         # Initiate file
         if name !=None:
-            filePath = '%s%s.%s' % (directory, name, self.EXTENSION)
+            filename = '%s.%s' % (name, self.EXTENSION)
+            filePath = os.path.join(directory, filename)
         else:
-            filePath = '%s%s' % (directory, self.filename)
+            filePath = os.path.join(directory, self.filename)
 
         # Open file and write
         with open(filePath, 'w') as mapFile:

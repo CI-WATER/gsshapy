@@ -11,6 +11,8 @@
 __all__ = ['OutputLocationFile',
            'OutputLocation']
 
+import os
+
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
@@ -66,23 +68,19 @@ class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
                     location.outputLocationFile = self
         
         
-    def write(self, directory, session, name):
+    def _writeToOpenFile(self, directory, session, name, openFile):
         '''
         Generic Output Location Write to File Method
-        '''
-        # Initiate file
-        filePath = '%s%s.%s' % (directory, name, self.fileExtension)
-        
+        '''        
         # Retrieve output locations
         locations = self.outputLocations
         
-        # Open file and write
-        with open(filePath, 'w') as locFile:
-            locFile.write('%s\n' % self.numLocations)
-            
-            for location in locations:
-                locFile.write('%s %s\n' % (location.linkOrCellI,
-                                           location.nodeOrCellJ))
+        # Write lines
+        openFile.write('%s\n' % self.numLocations)
+        
+        for location in locations:
+            openFile.write('%s %s\n' % (location.linkOrCellI,
+                                        location.nodeOrCellJ))
         
 class OutputLocation(DeclarativeBase):
     '''

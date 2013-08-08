@@ -11,7 +11,7 @@
 __all__ = ['ProjectFile',
            'ProjectCard']
 
-import re, shlex
+import re, shlex, os
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String
@@ -237,50 +237,41 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         
                
-    def write(self, session, directory, name=None):
+    def _writeToOpenFile(self, session, directory, name, openFile):
         '''
         Project File Write to File Method
         '''
-        # Compose filename
-        if name != None:
-            filename = '%s.%s' % (name, self.EXTENSION)
-        else:
-            filename = '%s.%s' % (self.name, self.EXTENSION)
-        
-        # Initiate project file
-        filePath = '%s%s' % (directory, filename)
-        
-        with open(filePath, 'w') as prjFile:
-            prjFile.write('GSSHAPROJECT\n')
-        
-            # Initiate write on each ProjectCard that belongs to this ProjectFile
-            for card in self.projectCards:
-                prjFile.write(card.write(originalPrefix=self.name, newPrefix=name))
+        # Write lines
+        openFile.write('GSSHAPROJECT\n')
+    
+        # Initiate write on each ProjectCard that belongs to this ProjectFile
+        for card in self.projectCards:
+            openFile.write(card.write(originalPrefix=self.name, newPrefix=name))
+            
+            # Assemble list of files for writing
+            if card.name in self.INPUT_FILES:
+                value = card.value.strip('"')
                 
-                # Assemble list of files for writing
-                if card.name in self.INPUT_FILES:
-                    value = card.value.strip('"')
-                    
-                    if self._noneOrNumValue(value):
-                        self.INPUT_FILES[card.name]['filename'] = value
-                    
-                elif card.name in self.INPUT_MAPS:
-                    value = card.value.strip('"')
-                    
-                    if self._noneOrNumValue(value):
-                        self.INPUT_MAPS[card.name]['filename'] = value
-                    
-                elif card.name in self.OUTPUT_FILES:
-                    value = card.value.strip('"')
-                    
-                    if self._noneOrNumValue(value):
-                        self.OUTPUT_FILES[card.name]['filename'] = value
+                if self._noneOrNumValue(value):
+                    self.INPUT_FILES[card.name]['filename'] = value
                 
-                elif card.name in self.OUTPUT_MAPS:
-                    value = card.value.strip('"')
-                    
-                    if self._noneOrNumValue(value):
-                        self.OUTPUT_MAPS[card.name]['filename'] = value
+            elif card.name in self.INPUT_MAPS:
+                value = card.value.strip('"')
+                
+                if self._noneOrNumValue(value):
+                    self.INPUT_MAPS[card.name]['filename'] = value
+                
+            elif card.name in self.OUTPUT_FILES:
+                value = card.value.strip('"')
+                
+                if self._noneOrNumValue(value):
+                    self.OUTPUT_FILES[card.name]['filename'] = value
+            
+            elif card.name in self.OUTPUT_MAPS:
+                value = card.value.strip('"')
+                
+                if self._noneOrNumValue(value):
+                    self.OUTPUT_MAPS[card.name]['filename'] = value
         
 #         print 'File Written:', filename
                      
@@ -309,6 +300,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Commit to database
         self.SESSION.commit()
         
+        # Feedback
+#         print 'SUCCESS: Project successfully read to database.'
+        
 
     def writeProject(self, session, directory, newName=None):
         '''
@@ -329,6 +323,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         # Write output map files
         self._writeXputMaps(session=session, directory=directory, fileDict=self.OUTPUT_MAPS, newName=newName)
+        
+#         print 'SUCCESS: Project successfully written to file.'
         
     def readInput(self):
         '''
@@ -498,9 +494,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         try:
             instance.write(session=session, directory=directory, filename=filename)
         except:
-            if '_' in filename:
+            if fileIO == ProjectionFile:
                 # Projection file
-                name = filename.split('_')[0]
+                split = filename.split('_')
+                name = '_'.join(split[0:(len(split)-1)])
+                name += '_prj'
+                    
             else:
                 name = filename.split('.')[0]
                 

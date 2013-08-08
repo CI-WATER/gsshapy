@@ -12,6 +12,7 @@ __all__ = ['PrecipFile',
            'PrecipEvent',
            'PrecipValue',
            'PrecipGage']
+import os
 
 from datetime import datetime
 
@@ -71,74 +72,69 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Add this PrecipFile to the database session
         self.SESSION.add(self)
                 
-    def write(self, session, directory, name):
+    def _writeToOpenFile(self, session, directory, name, openFile):
         '''
         Precipitation File Write to File Method
         '''
-        # Assemble path to new precipitation file
-        filePath = '%s%s.%s' % (directory, name, self.EXTENSION)
+        # Retrieve the events associated with this PrecipFile
+        events = self.precipEvents
         
-        # Initialize file
-        with open(filePath, 'w') as gagFile:
-            # Retrieve the events associated with this PrecipFile
-            events = self.precipEvents
+        # Write each event to file
+        for event in events:
+            openFile.write('EVENT "%s"\nNRGAG %s\nNRPDS %s\n' % (event.description, event.nrGag, event.nrPds))
             
-            # Write each event to file
-            for event in events:
-                gagFile.write('EVENT "%s"\nNRGAG %s\nNRPDS %s\n' % (event.description, event.nrGag, event.nrPds))
+            if event.nrGag > 0:
+                values = event.values
                 
-                if event.nrGag > 0:
-                    values = event.values
-                    
-                    valList = []
-                    
-                    # Convert PrecipValue objects into a list of dictionaries, valList,
-                    # so that it is compatible with the pivot function.
-                    for value in values:
-                        valList.append({'ValueType': value.valueType,
-                                        'DateTime': value.dateTime,
-                                        'Gage': value.gage.id,
-                                        'Value': value.value})
-                    
-                    # Pivot using the function found at:
-                    # code.activestate.com/recipes/334695
-                    pivotedValues = pivot.pivot(valList, ('DateTime', 'ValueType'), ('Gage',), 'Value')
-                    
-                    ## TODO: Create custom pivot function that can work with sqlalchemy 
-                    ## objects explicitly without the costly conversion.
-                    
-                    # Create an empty set for obtaining a list of unique gages
-                    gages = session.query(PrecipGage).\
-                                    filter(PrecipGage.event == event).\
-                                    order_by(PrecipGage.id).\
-                                    all()
+                valList = []
+                
+                # Convert PrecipValue objects into a list of dictionaries, valList,
+                # so that it is compatible with the pivot function.
+                for value in values:
+                    valList.append({'ValueType': value.valueType,
+                                    'DateTime': value.dateTime,
+                                    'Gage': value.gage.id,
+                                    'Value': value.value})
+                
+                # Pivot using the function found at:
+                # code.activestate.com/recipes/334695
+                pivotedValues = pivot.pivot(valList, ('DateTime', 'ValueType'), ('Gage',), 'Value')
+                
+                ## TODO: Create custom pivot function that can work with sqlalchemy 
+                ## objects explicitly without the costly conversion.
+                
+                # Create an empty set for obtaining a list of unique gages
+                gages = session.query(PrecipGage).\
+                                filter(PrecipGage.event == event).\
+                                order_by(PrecipGage.id).\
+                                all()
 
-                    for gage in gages:
-                        gagFile.write('COORD %s %s "%s"\n' % (gage.x, gage.y, gage.description))
+                for gage in gages:
+                    openFile.write('COORD %s %s "%s"\n' % (gage.x, gage.y, gage.description))
 
-                    # Write the value rows out to file
-                    for row in pivotedValues:
-                        # Extract the PrecipValues
-                        valString = ''
-                        
-                        # Retreive a list of sorted keys. This assumes the values are 
-                        # read into the database in order
-                        keys = sorted(row)
-                        
-                        # String all of the values together into valString
-                        for key in keys:
-                            if key <> 'DateTime' and key <> 'ValueType':
-                                valString = '%s  %.2f' % (valString, row[key])
+                # Write the value rows out to file
+                for row in pivotedValues:
+                    # Extract the PrecipValues
+                    valString = ''
+                    
+                    # Retreive a list of sorted keys. This assumes the values are 
+                    # read into the database in order
+                    keys = sorted(row)
+                    
+                    # String all of the values together into valString
+                    for key in keys:
+                        if key <> 'DateTime' and key <> 'ValueType':
+                            valString = '%s  %.2f' % (valString, row[key])
 
-                        # Write value line to file with appropriate formatting
-                        gagFile.write('%s %.4d %.2d  %.2d  %.2d  %.2d%s\n' % (
-                                      row['ValueType'],
-                                      row['DateTime'].year,
-                                      row['DateTime'].month,
-                                      row['DateTime'].day,
-                                      row['DateTime'].hour,
-                                      row['DateTime'].minute,
-                                      valString))
+                    # Write value line to file with appropriate formatting
+                    openFile.write('%s %.4d %.2d  %.2d  %.2d  %.2d%s\n' % (
+                                   row['ValueType'],
+                                   row['DateTime'].year,
+                                   row['DateTime'].month,
+                                   row['DateTime'].day,
+                                   row['DateTime'].hour,
+                                   row['DateTime'].minute,
+                                   valString))
                 
     def _createGsshaPyObjects(self, eventChunk):
         '''

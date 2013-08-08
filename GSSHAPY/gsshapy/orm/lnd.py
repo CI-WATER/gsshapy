@@ -11,6 +11,8 @@ __all__ = ['LinkNodeDatasetFile',
            'TimeStep',
            'LinkNodeLine']
 
+import os
+
 from datetime import datetime
 
 from sqlalchemy import Column, ForeignKey
@@ -52,7 +54,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
     
     def _readWithoutCommit(self):
         '''
-        Raster Map File Read from File Method
+        Link Node Dataset File Read from File Method
         '''
         # Assign file extension attribute to file object
         self.fileExtension = self.EXTENSION
@@ -117,35 +119,31 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 
         
-    def write(self, directory, session, name):
+    def _writeToOpenFile(self, directory, session, name, openFile):
         '''
-        Raster Map File Write to File Method
+        Link Node Dataset File Write to File Method
         '''
-        # Initiate file
-        filePath = '%s%s.%s' % (directory, name, self.fileExtension)
-        
         # Retrieve TimeStep objects
         timeSteps = self.timeSteps
 
-        # Open file and write
-        with open(filePath, 'w') as lndFile:
-            lndFile.write('%s\n' % self.name)
-            lndFile.write('NUM_LINKS     %s\n' % self.numLinks)
-            lndFile.write('TIME_STEP     %s\n' % self.timeStep)
-            lndFile.write('NUM_TS        %s\n' % self.numTimeSteps)
-            lndFile.write('START_TIME    %s\n' % self.startTime)
+        # Write Lines
+        openFile.write('%s\n' % self.name)
+        openFile.write('NUM_LINKS     %s\n' % self.numLinks)
+        openFile.write('TIME_STEP     %s\n' % self.timeStep)
+        openFile.write('NUM_TS        %s\n' % self.numTimeSteps)
+        openFile.write('START_TIME    %s\n' % self.startTime)
+        
+        for timeStep in timeSteps:
+            openFile.write('TS    %s\n' % timeStep.timeStep)
             
-            for timeStep in timeSteps:
-                lndFile.write('TS    %s\n' % timeStep.timeStep)
-                
-                # Retrieve LinkNodeLine objects
-                lnLines = timeStep.linkNodeLines
-                
-                for lnLine in lnLines:
-                    lndFile.write('%s\n' % lnLine.value)
-                
-                # Insert empty line between time steps 
-                lndFile.write('\n')
+            # Retrieve LinkNodeLine objects
+            lnLines = timeStep.linkNodeLines
+            
+            for lnLine in lnLines:
+                openFile.write('%s\n' % lnLine.value)
+            
+            # Insert empty line between time steps 
+            openFile.write('\n')
             
 class TimeStep(DeclarativeBase):
     '''

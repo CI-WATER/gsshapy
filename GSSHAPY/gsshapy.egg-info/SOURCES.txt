@@ -7,6 +7,9 @@ gsshapy.egg-info/SOURCES.txt
 gsshapy.egg-info/dependency_links.txt
 gsshapy.egg-info/requires.txt
 gsshapy.egg-info/top_level.txt
+gsshapy/develop/__init__.py
+gsshapy/develop/init_db_developing.py
+gsshapy/develop/read_write.py
 gsshapy/lib/__init__.py
 gsshapy/lib/cif_chunk.py
 gsshapy/lib/cmt_chunk.py
@@ -16,6 +19,7 @@ gsshapy/lib/gsshaDateTime.py
 gsshapy/lib/parsetools.py
 gsshapy/lib/pivot.py
 gsshapy/lib/spn_chunk.py
+gsshapy/lib/test_tools.py
 gsshapy/orm/__init__.py
 gsshapy/orm/cif.py
 gsshapy/orm/cmt.py
@@ -35,10 +39,6 @@ gsshapy/orm/rep.py
 gsshapy/orm/snw.py
 gsshapy/orm/spn.py
 gsshapy/orm/tim.py
-gsshapy/test/__init__.py
-gsshapy/test/init_db_developing.py
-gsshapy/test/read_write.py
-gsshapy/test/unittests/__init__.py
-gsshapy/test/unittests/read_tests.py
-gsshapy/test/unittests/tests.py
-gsshapy/test/unittests/write_tests.py
+gsshapy/tests/__init__.py
+gsshapy/tests/read_tests.py
+gsshapy/tests/write_tests.py

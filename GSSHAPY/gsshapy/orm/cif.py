@@ -22,6 +22,8 @@ __all__ = ['ChannelInputFile',
            'Breakpoint', 
            'TrapezoidalCS']
 
+import os
+
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String, Float, Boolean
 from sqlalchemy.orm import  relationship
@@ -127,27 +129,25 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         self._createConnectivity(linkList=links, connectList=connectivity)                
                     
-    def write(self, session, directory, name):
+    def _writeToOpenFile(self, session, directory, name, openFile):
         '''
         Channel Input File Write to File Method
         '''
-        # Initiate channel input file
-        filePath = '%s%s.%s' % (directory, name, self.EXTENSION)
+        # Write lines
+        openFile.write('GSSHA_CHAN\n')
+        openFile.write('ALPHA%s%.6f\n' % (' '*7, self.alpha))
+        openFile.write('BETA%s%.6f\n' % (' '*8, self.beta))
+        openFile.write('THETA%s%.6f\n' % (' '*7, self.theta))
+        openFile.write('LINKS%s%s\n' % (' '*7, self.links))
+        openFile.write('MAXNODES%s%s\n' % (' '*4, self.maxNodes))
         
-        with open(filePath, 'w') as cifFile:
-            cifFile.write('GSSHA_CHAN\n')
-            
-            cifFile.write('ALPHA%s%.6f\n' % (' '*7, self.alpha))
-            cifFile.write('BETA%s%.6f\n' % (' '*8, self.beta))
-            cifFile.write('THETA%s%.6f\n' % (' '*7, self.theta))
-            cifFile.write('LINKS%s%s\n' % (' '*7, self.links))
-            cifFile.write('MAXNODES%s%s\n' % (' '*4, self.maxNodes))
-            
-            # Retrieve StreamLinks
-            links = self.streamLinks
-            
-            self._writeConnectivity(links, cifFile)
-            self._writeLinks(links, cifFile)
+        # Retrieve StreamLinks
+        links = self.streamLinks
+        
+        self._writeConnectivity(links=links,
+                                fileObject=openFile)
+        self._writeLinks(links=links,
+                         fileObject=openFile)
         
     def _createLink(self, linkResult):
         '''

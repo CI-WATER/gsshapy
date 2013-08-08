@@ -12,6 +12,8 @@ __all__ = ['TimeSeriesFile',
            'TimeSeries',
            'TimeSeriesValue']
 
+import os
+
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
@@ -70,13 +72,10 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._createTimeSeriesObjects(timeSeries)
         
         
-    def write(self, directory, session, name):
+    def _writeToOpenFile(self, directory, session, name, openFile):
         '''
         Generic Time Series Write to File Method
-        '''
-        # Initiate file
-        fullPath = '%s%s.%s' % (directory, name, self.fileExtension)
-        
+        '''        
         # Retrieve all time series
         timeSeries = self.timeSeries
         
@@ -98,20 +97,19 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
         # a format that is easy to write.
         result = pivot(valList, ('time',), ('tsNum',), 'value')
         
-        # Open file and write
-        with open(fullPath, 'w') as tsFile:
-            for line in result:
+        # Write lines
+        for line in result:
+            
+            valString = ''
+            # Compile value string
+            for n in range(0, numTS):
+                val = '%.6f' % line[(n,)]
+                valString = '%s%s%s' % (
+                             valString,
+                             ' '*(13-len(str(val))), # Fancy spacing trick
+                             val)
                 
-                valString = ''
-                # Compile value string
-                for n in range(0, numTS):
-                    val = '%.6f' % line[(n,)]
-                    valString = '%s%s%s' % (
-                                 valString,
-                                 ' '*(13-len(str(val))), # Fance spacing trick
-                                 val)
-                    
-                tsFile.write('   %.8f%s\n' % (line['time'], valString))
+            openFile.write('   %.8f%s\n' % (line['time'], valString))
             
         
     def _createTimeSeriesObjects(self, timeSeries):

@@ -13,6 +13,7 @@ __all__ = ['NwsrfsFile',
            'NwsrfsRecord',
            'OrthographicGageFile',
            'OrthoMeasurement']
+import os
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, DateTime
@@ -79,7 +80,7 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
         NWSRFS Write to File Method
         '''
         # Initiate file
-        fullPath = '%s%s' % (directory, filename)
+        fullPath = os.path.join(directory, filename)
         
         with open(fullPath, 'w') as nwsrfsFile:
             nwsrfsFile.write('Number_Bands:    %s\n' % self.numBands)
@@ -227,7 +228,7 @@ class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
         Orthographic Gage File Write to File Method
         '''
         # Initiate file
-        fullPath = '%s%s' % (directory, filename)
+        fullPath = os.path.join(directory, filename)
         
         with open(fullPath, 'w') as orthoFile:
             orthoFile.write('Num_Sites:    %s\n' % self.numSites)

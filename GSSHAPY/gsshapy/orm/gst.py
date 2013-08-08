@@ -12,6 +12,7 @@ from gsshapy.lib import parsetools as pt
 __all__ = ['GridStreamFile',
            'GridStreamCell',
            'GridStreamNode']
+import os
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float
@@ -77,25 +78,23 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self._createGsshaPyObjects(result)
 
         
-    def write(self, directory, session, name):
+    def _writeToOpenFile(self, directory, session, name, openFile):
         '''
         Grid Stream File Write to File Method
         '''
-        filePath = '%s%s.%s' % (directory, name, self.EXTENSION)
+        # Write lines
+        openFile.write('GRIDSTREAMFILE\n')
+        openFile.write('STREAMCELLS %s\n' % self.streamCells)
         
-        with open(filePath, 'w') as gpiFile:
-            gpiFile.write('GRIDSTREAMFILE\n')
-            gpiFile.write('STREAMCELLS %s\n' % self.streamCells)
+        for cell in self.gridStreamCells:
+            openFile.write('CELLIJ    %s  %s\n' % (cell.cellI, cell.cellJ))
+            openFile.write('NUMNODES  %s\n' % cell.numNodes)
             
-            for cell in self.gridStreamCells:
-                gpiFile.write('CELLIJ    %s  %s\n' % (cell.cellI, cell.cellJ))
-                gpiFile.write('NUMNODES  %s\n' % cell.numNodes)
-                
-                for node in cell.gridStreamNodes:
-                    gpiFile.write('LINKNODE  %s  %s  %.6f\n' % (
-                                  node.linkNumber,
-                                  node.nodeNumber,
-                                  node.nodePercentGrid))
+            for node in cell.gridStreamNodes:
+                openFile.write('LINKNODE  %s  %s  %.6f\n' % (
+                              node.linkNumber,
+                              node.nodeNumber,
+                              node.nodePercentGrid))
                     
     def _createGsshaPyObjects(self, cell):
         '''

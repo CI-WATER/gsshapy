@@ -13,6 +13,7 @@ __all__ = ['MapTableFile',
            'MTIndex',
            'MTContaminant',
            'MTSediment']
+import os
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
@@ -115,7 +116,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         # returned from the parser functions
         self._createGsshaPyObjects(mapTables, indexMaps)
             
-    def write(self, session, directory, name):
+    def _writeToOpenFile(self, session, directory, name, openFile):
         '''
         Map Table Write to File Method
         ''' 
@@ -131,29 +132,31 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Derive a set of unique MTIndexMap objects    
         indexMaps = self.indexMaps
 
-        # Initiate map table file and write
-        filePath = '%s%s.%s' % (directory, name, self.EXTENSION)
+        # Write first line to file
+        openFile.write('GSSHA_INDEX_MAP_TABLES\n')
         
-        with open(filePath, 'w') as cmtFile:
-
-            # Write first line to file
-            cmtFile.write('GSSHA_INDEX_MAP_TABLES\n')
+        # Write list of index maps
+        for indexMap in indexMaps:
+            # Write to map table file
+            openFile.write('INDEX_MAP%s"%s" "%s"\n' % (' '*16, indexMap.filename, indexMap.name))
             
-            # Write list of index maps
-            for indexMap in indexMaps:
-                # Write to map table file
-                cmtFile.write('INDEX_MAP%s"%s" "%s"\n' % (' '*16, indexMap.filename, indexMap.name))
-                
-                # Initiate index map write
-                indexMap.write(directory)
-            
-            for mapTable in self.mapTables:
-                if mapTable.name == 'SEDIMENTS':
-                    self._writeSedimentTable(session, cmtFile, mapTable)
-                elif mapTable.name == 'CONTAMINANT_TRANSPORT':
-                    self._writeContaminantTable(session, cmtFile, mapTable, contaminants)
-                else:
-                    self._writeMapTable(session, cmtFile, mapTable)  
+            # Initiate index map write
+            indexMap.write(directory)
+        
+        for mapTable in self.mapTables:
+            if mapTable.name == 'SEDIMENTS':
+                self._writeSedimentTable(session=session, 
+                                         fileObject=openFile, 
+                                         mapTable=mapTable)
+            elif mapTable.name == 'CONTAMINANT_TRANSPORT':
+                self._writeContaminantTable(session=session,
+                                            fileObject=openFile,
+                                            mapTable=mapTable,
+                                            contaminants=contaminants)
+            else:
+                self._writeMapTable(session=session,
+                                    fileObject=openFile,
+                                    mapTable=mapTable)  
     
     
     def _createGsshaPyObjects(self, mapTables, indexMaps):

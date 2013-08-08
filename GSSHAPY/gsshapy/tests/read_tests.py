@@ -8,7 +8,7 @@
 ********************************************************************************
 '''
 
-import unittest, itertools
+import unittest, itertools, os
 
 from gsshapy.orm.file_object_imports import *
 from gsshapy.orm import ProjectFile
@@ -16,18 +16,22 @@ from gsshapy.lib import db_tools as dbt
 
 class TestReadMethods(unittest.TestCase):
     def setUp(self):
+        # Find db directory path
+        here = os.path.abspath(os.path.dirname(__file__))
+        self.db_path = os.path.join(here, 'db','standard.db')
+
         # Create Test DB
-        sqlalchemy_url = dbt.init_sqlite_db('db/standard.db')
+        sqlalchemy_url = dbt.init_sqlite_db(self.db_path)
         
         # Create DB Sessions
         self.readSession = dbt.create_session(sqlalchemy_url)
         self.querySession = dbt.create_session(sqlalchemy_url)
         
         # Define directory of test files to read
-        self.directory = 'standard/'
+        self.directory = os.path.join(here,'standard')
         
     
-    def test_project_read(self):
+    def test_project_file_read(self):
         '''
         Test ProjectFile read method
         '''
@@ -122,7 +126,7 @@ class TestReadMethods(unittest.TestCase):
                 
                 self._list_compare(bpR, bpQ)
 
-    def test_map_table_read(self):
+    def test_map_table_file_read(self):
         '''
         Test MapTableFile read method
         '''
@@ -333,7 +337,7 @@ class TestReadMethods(unittest.TestCase):
         
         # Tests
         
-    def test_project_read_all(self):
+    def test_project_file_read_all(self):
         '''
         Test ProjectFile read all method
         '''
@@ -350,7 +354,7 @@ class TestReadMethods(unittest.TestCase):
         
         # Tests
 
-    def test_project_read_input(self):
+    def test_project_file_read_input(self):
         '''
         Test ProjecFile read input method
         '''
@@ -367,7 +371,7 @@ class TestReadMethods(unittest.TestCase):
         
         # Tests
         
-    def test_project_read_output(self):
+    def test_project_file_read_output(self):
         '''
         Test ProjectFile read output method
         '''
@@ -405,10 +409,8 @@ class TestReadMethods(unittest.TestCase):
         for one, two in itertools.izip(listone, listtwo):
             self.assertEqual(one, two)
         
-        
-        
     def tearDown(self):
-        dbt.del_sqlite_db('db/standard.db')
+        dbt.del_sqlite_db(self.db_path)
         
 suite = unittest.TestLoader().loadTestsFromTestCase(TestReadMethods)
 

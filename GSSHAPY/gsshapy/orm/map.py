@@ -10,6 +10,8 @@
 
 __all__ = ['RasterMapFile']
 
+import os
+
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
@@ -54,14 +56,10 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(self.PATH, 'r') as f:
             self.raster = f.read()
         
-    def write(self, directory, session, name):
+    def _writeToOpenFile(self, directory, session, name, openFile):
         '''
         Raster Map File Write to File Method
         '''
-        # Initiate file
-        filePath = '%s%s.%s' % (directory, name, self.fileExtension)
-
-        # Open file and write
-        with open(filePath, 'w') as mapFile:
-            mapFile.write(self.raster)
+        # Write file
+        openFile.write(self.raster)
 

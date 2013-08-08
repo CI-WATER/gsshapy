@@ -11,6 +11,8 @@
 __all__ = ['GridPipeCell',
            'GridPipeFile']
 
+import os
+
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float
 from sqlalchemy.orm import  relationship
@@ -76,25 +78,23 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self._createGsshaPyObjects(result)
 
         
-    def write(self, directory, session, name):
+    def _writeToOpenFile(self, directory, session, name, openFile):
         '''
         Grid Pipe File Write to File Method
         '''
-        filePath = '%s%s.%s' % (directory, name, self.EXTENSION)
+        # Write Lines
+        openFile.write('GRIDPIPEFILE\n')
+        openFile.write('PIPECELLS %s\n' % self.pipeCells)
         
-        with open(filePath, 'w') as gpiFile:
-            gpiFile.write('GRIDPIPEFILE\n')
-            gpiFile.write('PIPECELLS %s\n' % self.pipeCells)
+        for cell in self.gridPipeCells:
+            openFile.write('CELLIJ    %s  %s\n' % (cell.cellI, cell.cellJ))
+            openFile.write('NUMPIPES  %s\n' % cell.numPipes)
             
-            for cell in self.gridPipeCells:
-                gpiFile.write('CELLIJ    %s  %s\n' % (cell.cellI, cell.cellJ))
-                gpiFile.write('NUMPIPES  %s\n' % cell.numPipes)
-                
-                for node in cell.gridPipeNodes:
-                    gpiFile.write('SPIPE     %s  %s  %.6f\n' % (
-                                  node.linkNumber,
-                                  node.nodeNumber,
-                                  node.fractPipeLength))
+            for node in cell.gridPipeNodes:
+                openFile.write('SPIPE     %s  %s  %.6f\n' % (
+                              node.linkNumber,
+                              node.nodeNumber,
+                              node.fractPipeLength))
         
     def _createGsshaPyObjects(self, cell):
         '''

@@ -11,6 +11,7 @@
 __all__ = ['ReplaceParamFile',
            'TargetParameter',
            'ReplaceValFile']
+import os
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
@@ -65,7 +66,7 @@ class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
         Replace Param File Write to File Method
         '''
         # Initiate file
-        filePath = '%s%s' % (directory, filename)
+        filePath = os.path.join(directory, filename)
         
         # Retrieve TargetParameter objects
         targets = self.targetParameters
@@ -76,8 +77,6 @@ class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
             
             for target in targets:
                 repFile.write('%s %s\n' % (target.targetVariable, target.varFormat))
-            
-            
             
 class TargetParameter(DeclarativeBase):
     '''
@@ -137,7 +136,7 @@ class ReplaceValFile(DeclarativeBase, GsshaPyFileObjectBase):
         Replace Val File Write to File Method
         '''
         # Initiate file
-        filePath = '%s%s' % (directory, filename)
+        filePath = os.path.join(directory, filename)
         
         # Open file and write
         with open(filePath, 'w') as repFile:               

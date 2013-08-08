@@ -12,6 +12,8 @@ from datetime import datetime
 
 __all__ = ['HmetFile','HmetRecord']
 
+import os
+
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, DateTime
 from sqlalchemy.orm import  relationship
@@ -75,7 +77,7 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
         ## TODO: Ensure Other HMET Formats are supported
 
         # Initiate hmet wes file
-        filePath = '%s%s' % (directory, filename)
+        filePath = os.path.join(directory, filename)
         
         with open(filePath, 'w') as hmetFile:
             # Retrieve HmetRecords

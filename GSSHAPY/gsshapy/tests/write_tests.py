@@ -16,12 +16,16 @@ from gsshapy.lib import db_tools as dbt
 
 class TestWriteMethods(unittest.TestCase):
     def setUp(self):
+        # Find db directory path
+        here = os.path.abspath(os.path.dirname(__file__))
+        self.db_path = os.path.join(here, 'db','standard.db')
+        
         # Create Test DB 
-        sqlalchemy_url = dbt.init_sqlite_db('db/standard.db')
+        sqlalchemy_url = dbt.init_sqlite_db(self.db_path)
         
         # Define workspace
-        self.readDirectory = 'standard/'
-        self.writeDirectory = 'out/'
+        self.readDirectory = os.path.join(here, 'standard')
+        self.writeDirectory = os.path.join(here, 'out')
         self.original = 'standard'
         self.name = 'standard'
         
@@ -38,7 +42,7 @@ class TestWriteMethods(unittest.TestCase):
         prjR.readProject()
         
     
-    def test_project_write(self):
+    def test_project_file_write(self):
         '''
         Test ProjectFile write method
         '''
@@ -59,7 +63,7 @@ class TestWriteMethods(unittest.TestCase):
         self._compare_files(self.original, self.name, 'cif')
         
 
-    def test_map_table_write(self):
+    def test_map_table_file_write(self):
         '''
         Test MapTableFile write method
         '''
@@ -156,7 +160,7 @@ class TestWriteMethods(unittest.TestCase):
         self._query_n_write(ProjectionFile)
         
         # Test
-        self._compare_files('standard_prj', 'standard_prj', 'pro')
+        self._compare_files('standard', 'standard', 'pro')
         
         
     def test_replace_param_file_write(self):
@@ -244,7 +248,7 @@ class TestWriteMethods(unittest.TestCase):
         self._compare_files('Soil', 'soil_new_name', 'idx')
         
         
-    def test_project_write_all(self):
+    def test_project_file_write_all(self):
         '''
         Test ProjectFile write all method
         '''
@@ -260,7 +264,7 @@ class TestWriteMethods(unittest.TestCase):
         self._compare_directories(self.readDirectory, self.writeDirectory)
         
 
-    def test_project_write_input(self):
+    def test_project_file_write_input(self):
         '''
         Test ProjecFile write input method
         '''
@@ -275,7 +279,7 @@ class TestWriteMethods(unittest.TestCase):
         # Compare all files
         self._compare_directories(self.readDirectory, self.writeDirectory)
         
-    def test_project_write_output(self):
+    def test_project_file_write_output(self):
         '''
         Test ProjectFile write output method
         '''
@@ -332,8 +336,10 @@ class TestWriteMethods(unittest.TestCase):
         '''
         Compare the contents of two files
         '''
-        filePathO = '%s%s.%s' % (self.readDirectory, original, ext)
-        filePathN = '%s%s.%s' % (self.writeDirectory, new, ext)
+        filenameO = '%s.%s' % (original, ext)
+        filePathO = os.path.join(self.readDirectory, filenameO)
+        filenameN = '%s.%s' % (new, ext)
+        filePathN = os.path.join(self.writeDirectory, filenameN)
         
         with open(filePathO) as fileO:
             contentsO = fileO.read()
@@ -361,13 +367,13 @@ class TestWriteMethods(unittest.TestCase):
         
     def tearDown(self):
         # Remove temp database
-        dbt.del_sqlite_db('db/standard.db')
+        dbt.del_sqlite_db(self.db_path)
         
         # Clear out directory
-        fileList = os.listdir('out/')
+        fileList = os.listdir(self.writeDirectory)
         
         for afile in fileList:
-            path = 'out/' + afile
+            path = os.path.join(self.writeDirectory, afile)
             os.remove(path)
             
 suite = unittest.TestLoader().loadTestsFromTestCase(TestWriteMethods)

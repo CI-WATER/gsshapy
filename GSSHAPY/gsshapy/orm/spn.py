@@ -15,6 +15,8 @@ __all__ = ['StormPipeNetworkFile',
            'SuperJunction', 
            'Connection']
 
+import os
+
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float
 from sqlalchemy.orm import  relationship
@@ -90,25 +92,24 @@ class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._createSlink(slinks)
         
         
-    def write(self, session, directory, name):
+    def _writeToOpenFile(self, session, directory, name, openFile):
         '''
         Storm Pipe Network File Write to File Method
-        '''
-        # Initiate channel input file
-        filePath = '%s%s.%s' % (directory, name, self.EXTENSION)
+        '''           
+        # Retrieve Connection objects and write to file
+        connections = self.connections
+        self._writeConnections(connections=connections, 
+                               fileObject=openFile)
         
-        with open(filePath, 'w') as spnFile:           
-            # Retrieve Connection objects and write to file
-            connections = self.connections
-            self._writeConnections(connections, spnFile)
-            
-            # Retrieve SuperJuntion objects and write to file
-            sjuncs = self.superJunctions
-            self._writeSuperJunctions(sjuncs, spnFile)
-            
-            # Retrieve SuperLink objects and write to file
-            slinks = self.superLinks
-            self._writeSuperLinks(slinks, spnFile)
+        # Retrieve SuperJuntion objects and write to file
+        sjuncs = self.superJunctions
+        self._writeSuperJunctions(superJunctions=sjuncs,
+                                  fileObject=openFile)
+        
+        # Retrieve SuperLink objects and write to file
+        slinks = self.superLinks
+        self._writeSuperLinks(superLinks=slinks,
+                              fileObject=openFile)
         
         
     def _createConnection(self, connections):

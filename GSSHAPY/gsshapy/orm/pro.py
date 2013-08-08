@@ -10,6 +10,8 @@
 
 __all__ = ['ProjectionFile']
 
+import os
+
 from sqlalchemy import Column
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
@@ -53,13 +55,9 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(self.PATH, 'r') as f:
             self.projection = f.read()
         
-    def write(self, directory, session, name):
+    def _writeToOpenFile(self, directory, session, name, openFile):
         '''
         Projection File Write to File Method
         '''
-        # Initiate file
-        filePath = '%s%s_prj.%s' % (directory, name, self.EXTENSION)
-
-        # Open file and write
-        with open(filePath, 'w') as mapFile:
-            mapFile.write(self.projection)
+        # Write lines
+        openFile.write(self.projection)
