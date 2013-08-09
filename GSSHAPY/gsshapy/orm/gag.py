@@ -124,10 +124,10 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # String all of the values together into valString
                     for key in keys:
                         if key <> 'DateTime' and key <> 'ValueType':
-                            valString = '%s  %.2f' % (valString, row[key])
+                            valString = '%s %.2f' % (valString, row[key])
 
                     # Write value line to file with appropriate formatting
-                    openFile.write('%s %.4d %.2d  %.2d  %.2d  %.2d%s\n' % (
+                    openFile.write('%s %.4d %.2d %.2d %.2d %.2d%s\n' % (
                                    row['ValueType'],
                                    row['DateTime'].year,
                                    row['DateTime'].month,

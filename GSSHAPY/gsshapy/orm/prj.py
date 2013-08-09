@@ -131,6 +131,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                   'GW_BOUNDFILE':           {'filename': None},
                   'GW_POROSITY_MAP':        {'filename': None},
                   'GW_HYCOND_MAP':          {'filename': None},
+                  'EMBANKMENT':             {'filename': None}, # Embankment Structures
+                  'DIKE_MASK':              {'filename': None},
                   'CONTAM_MAP':             {'filename': None}} # Constituent Transport
     
     OUTPUT_FILES = {'SUMMARY':              {'filename': None, 'fileio': None},                 # Required Output
