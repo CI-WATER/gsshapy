@@ -135,6 +135,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     
     OUTPUT_FILES = {'SUMMARY':              {'filename': None, 'fileio': None},                 # Required Output
                     'OUTLET_HYDRO':         {'filename': None, 'fileio': TimeSeriesFile},
+                    'DEPTH':                {'filename': None, 'fileio': None},
                     'OUT_THETA_LOCATION':   {'filename': None, 'fileio': TimeSeriesFile},       # Infiltration
                     'EXPLIC_BACKWATER':     {'filename': None, 'fileio': None},                 # Channel Routing
                     'WRITE_CHAN_HOTSTART':  {'filename': None, 'fileio': None},
@@ -166,7 +167,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     ## TODO: Handle Different Output Map Formats
     OUTPUT_MAPS = {'GW_OUTPUT':         {'filename': None}, # MAP_TYPE  # Output Files
                    'DISCHARGE':         {'filename': None}, # MAP_TYPE
-                   'DEPTH':             {'filename': None}, # MAP_TYPE
                    'INF_DEPTH':         {'filename': None}, # MAP_TYPE
                    'SURF_MOIS':         {'filename': None}, # MAP_TYPE
                    'RATE_OF_INFIL':     {'filename': None}, # MAP_TYPE
@@ -187,7 +187,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Project File Read from File Method
         '''
-        HEADERS = ('GSSHAPROJECT', 'WMS')
+        HEADERS = ('GSSHAPROJECT')
         
         with open(self.PATH, 'r') as f:
             for line in f:
@@ -561,30 +561,41 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             # item to store relative paths as Card Value
             pathSplit = re.split('/|\\\\', splitLine[1])
             
-            # Wrap paths in double quotes
             try:
                 # If the value is able to be converted to a
-                # float (any number) then store value only
+                # float (any number) then store value only.
+                # Store all values if there are multiple.
                 float(pathSplit[-1])
-                cardValue = pathSplit[-1]
+                cardValue = ' '.join(splitLine[1:])
             except:
-                # A string will through an exception with
+                # A string will throw an exception with
                 # an atempt to convert to float. In this 
                 # case wrap the string in double quotes.
-                if '.' in pathSplit[-1]:
-                    # If the string contains a '.' it is a
-                    # path: wrap in double quotes
-                    cardValue = '"%s"' % pathSplit[-1]
+                if cardName == 'WMS':
+                    cardValue = ' '.join(splitLine[1:])
+                elif '.' in pathSplit[-1]:
+                    if cardName == '#INDEXGRID_GUID':
+                        try:
+                            # Get WMS ID for Index Map as part of value
+                            cardValue = '"%s" "%s"' % (pathSplit[-1], splitLine[2])
+                        except:
+                            # Like normal if the ID isn't there
+                            cardValue = '"%s"' % pathSplit[-1]
+                    else:
+                        # If the string contains a '.' it is a
+                        # path: wrap in double quotes
+                        cardValue = '"%s"' % pathSplit[-1]
                 elif pathSplit[-1] == '':
                     # For directory cards with unix paths 
-                    # use double quotes
+                    # use double quotes (all paths will be
+                    # stored as relative).
                     cardValue = '""'
                 else:
                     # Else it is a card name/option
                     # don't wrap in quotes
                     cardValue = pathSplit[-1]
         
-        # For boolean cards store the empty string
+        # For boolean cards store None
         except:
             cardValue = None
             
@@ -646,7 +657,9 @@ class ProjectCard(DeclarativeBase):
         if self.value is None:
             line = '%s\n' % (self.name)
         else:
-            if newPrefix == None:
+            if self.name == 'WMS':
+                line = '%s %s\n' % (self.name, self.value)
+            elif newPrefix == None:
                 line ='%s%s%s\n' % (self.name,' '*numSpaces, self.value)
             elif originalPrefix in self.value:
                 line ='%s%s%s\n' % (self.name,' '*numSpaces, self.value.replace(originalPrefix, newPrefix))

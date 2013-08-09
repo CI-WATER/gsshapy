@@ -7,7 +7,7 @@
 * License: BSD 2-Clause
 ********************************************************************************
 '''
-
+import warnings
 from gsshapy.lib import parsetools as pt
 
 def indexMapChunk(key, chunk):
@@ -36,9 +36,12 @@ def mapTableChunk(key, chunk):
     mtName = chunk[0].strip().split()[0]
     idxName = chunk[0].strip().split()[1].strip('\"')
     
-    # Check if the mapping table is being used via 
-    # index map name.
+    # Check if the mapping table is valid via the 
+    # index map name. If now index map name, stop 
+    # processing.
     if idxName == '':
+        print ('WARNING: No index map identified for %s table. The table will '
+               'not be read into the database.') % mtName
         # No need to process if the index map is empty
         return None
     
@@ -49,8 +52,10 @@ def mapTableChunk(key, chunk):
         valDict = {}
         
         if token == key:
-            '''DO NOTHING'''        
-            
+            '''
+            DO NOTHING: The map table name and index map name
+            has already been extracted above.
+            '''        
         elif token in numVars:
             # Extract NUM type variables
             numVars[sline[0]] = sline[1]
@@ -86,6 +91,9 @@ def contamChunk(key, chunk):
     # Check if there are any contaminants. No need
     # to process further if there are 0.
     if numVars['NUM_CONTAM'] == 0:
+        ## TODO: ERROR
+        print ('WARNING: NUM_CONTAM = 0. CONTAMINANT_TRANSPORT table will '
+               'not be read into the database.')
         return None
     
     # Parse the chunk into a data structure
@@ -158,7 +166,18 @@ def sedimentChunk(key, chunk):
         if token == key:
             mtName = sline[0]
         elif token == 'NUM_SED':
-            numVars['NUM_SED'] = int(sline[1])
+            if int(sline[1]) == 0:
+                # If there are no sediments
+                # return nothing
+                ## TODO: ERROR
+                print ('WARNING: NUM_SED = 0. SEDIMENTS table will '
+                       'not be read into the database.')
+                return None
+            else:
+                # This is the test for an empty
+                # SEDIMENTS table
+                numVars['NUM_SED'] = int(sline[1]) 
+                
         elif token == 'Sediment':
             '''DO NOTHING'''
         else:

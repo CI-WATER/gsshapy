@@ -9,7 +9,7 @@ gsshapy.egg-info/requires.txt
 gsshapy.egg-info/top_level.txt
 gsshapy/develop/__init__.py
 gsshapy/develop/init_db_developing.py
-gsshapy/develop/read_write.py
+gsshapy/develop/testing.py
 gsshapy/lib/__init__.py
 gsshapy/lib/cif_chunk.py
 gsshapy/lib/cmt_chunk.py
@@ -24,7 +24,7 @@ gsshapy/orm/__init__.py
 gsshapy/orm/cif.py
 gsshapy/orm/cmt.py
 gsshapy/orm/file_base.py
-gsshapy/orm/file_object_imports.py
+gsshapy/orm/file_io.py
 gsshapy/orm/gag.py
 gsshapy/orm/gpi.py
 gsshapy/orm/gst.py

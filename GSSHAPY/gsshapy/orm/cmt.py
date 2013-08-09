@@ -168,55 +168,67 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         for mt in mapTables:
             # Create GSSHAPY MapTable object
-            mapTable = MapTable(name=mt['name'], 
-                                numIDs=mt['numVars']['NUM_IDS'], 
-                                maxNumCells=mt['numVars']['MAX_NUMBER_CELLS'], 
-                                numSed=mt['numVars']['NUM_SED'],
-                                numContam=mt['numVars']['NUM_CONTAM'])
-            
-            # Associate MapTable with this MapTableFile and IndexMaps
-            mapTable.mapTableFile = self
-            ## NOTE: Index maps are associated wth contaminants for CONTAMINANT_TRANSPORT map
-            ## tables. The SEDIMENTS map table are associated with index maps via the 
-            ## SOIL_EROSION_PROPS map table.
-            if mt['indexMapName']:
-                mapTable.indexMap = indexMaps[mt['indexMapName']]
-            
-            # CONTAMINANT_TRANSPORT map table handler
-            if mt['name'] == 'CONTAMINANT_TRANSPORT':
-                for contam in mt['contaminants']:
-                    # Initialize GSSHAPY MTContaminant object
-                    contaminant = MTContaminant(name=contam['name'],
-                                                outputFilename=contam['outPath'],
-                                                precipConc=contam['contamVars']['PRECIP_CONC'],
-                                                partition=contam['contamVars']['PARTITION'],
-                                                numIDs=contam['contamVars']['NUM_IDS'])
-                    
-                    # Associate MTContaminant with appropriate IndexMap
-                    indexMap = indexMaps[contam['indexMapName']]
-                    contaminant.indexMap = indexMap
-                    
-                    self._createValueObjects(contam['valueList'], contam['varList'], mapTable, indexMap, contaminant)
-            
-            # SEDIMENTS map table handler
-            elif mt['name'] == 'SEDIMENTS':
-                for line in mt['valueList']:
-                    # Create GSSHAPY MTSediment object
-                    sediment = MTSediment(description=line[0],
-                                          specificGravity=line[1],
-                                          particleDiameter=line[2],
-                                          outputFilename=line[3])
-                    
-                    # Associate the MTSediment with the MapTable
-                    sediment.mapTable = mapTable
-            
-            # All other map table handler
-            else:
-                indexMap = indexMaps[mt['indexMapName']]
+            try:
+                # Make sure the index map name listed with the map table is in the list of 
+                # index maps read from the top of the mapping table file
+                if mt['indexMapName'] != None:
+                    indexMaps[mt['indexMapName']]
+
+                mapTable = MapTable(name=mt['name'], 
+                                    numIDs=mt['numVars']['NUM_IDS'], 
+                                    maxNumCells=mt['numVars']['MAX_NUMBER_CELLS'], 
+                                    numSed=mt['numVars']['NUM_SED'],
+                                    numContam=mt['numVars']['NUM_CONTAM'])
                 
-                # Create MTValue and MTIndex objects
-                self._createValueObjects(mt['valueList'], mt['varList'], mapTable, indexMap, None)
-    
+                # Associate MapTable with this MapTableFile and IndexMaps
+                mapTable.mapTableFile = self
+                ## NOTE: Index maps are associated wth contaminants for CONTAMINANT_TRANSPORT map
+                ## tables. The SEDIMENTS map table are associated with index maps via the 
+                ## SOIL_EROSION_PROPS map table.
+                if mt['indexMapName']:
+                    mapTable.indexMap = indexMaps[mt['indexMapName']]
+                        
+                
+                # CONTAMINANT_TRANSPORT map table handler
+                if mt['name'] == 'CONTAMINANT_TRANSPORT':
+                    for contam in mt['contaminants']:
+                        # Initialize GSSHAPY MTContaminant object
+                        contaminant = MTContaminant(name=contam['name'],
+                                                    outputFilename=contam['outPath'],
+                                                    precipConc=contam['contamVars']['PRECIP_CONC'],
+                                                    partition=contam['contamVars']['PARTITION'],
+                                                    numIDs=contam['contamVars']['NUM_IDS'])
+                        
+                        # Associate MTContaminant with appropriate IndexMap
+                        indexMap = indexMaps[contam['indexMapName']]
+                        contaminant.indexMap = indexMap
+                        
+                        self._createValueObjects(contam['valueList'], contam['varList'], mapTable, indexMap, contaminant)
+                
+                # SEDIMENTS map table handler
+                elif mt['name'] == 'SEDIMENTS':
+                    for line in mt['valueList']:
+                        # Create GSSHAPY MTSediment object
+                        sediment = MTSediment(description=line[0],
+                                              specificGravity=line[1],
+                                              particleDiameter=line[2],
+                                              outputFilename=line[3])
+                        
+                        # Associate the MTSediment with the MapTable
+                        sediment.mapTable = mapTable
+                
+                # All other map table handler
+                else:
+                    indexMap = indexMaps[mt['indexMapName']]
+                    
+                    # Create MTValue and MTIndex objects
+                    self._createValueObjects(mt['valueList'], mt['varList'], mapTable, indexMap, None)
+            
+            except:
+                ## TODO: Formalize warning messages as Error objects
+                print ('WARNING: Index Map "%s" for Mapping Table "%s" not found in list of index maps in the mapping '
+                       'table file. The Mapping Table was not read into the database.') % (mt['indexMapName'], mt['name'])
+                
     def _createValueObjects(self, valueList, varList, mapTable, indexMap, contaminant):
         '''
         Populate GSSHAPY MTValue and MTIndex Objects Method
