@@ -16,7 +16,7 @@ readDirectory='/Users/swainn/testing/test models/ContaminentTransport'
 projectFile='contam.prj'
 
 # Write Parameters
-writeDirectory='/Users/swainn/testing/test models/ContaminantTransport/write'
+writeDirectory='/Users/swainn/testing/test models/ContaminentTransport/write'
 newName='test_contam'
 
 

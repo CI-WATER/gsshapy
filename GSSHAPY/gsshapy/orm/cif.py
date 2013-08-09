@@ -212,7 +212,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         xSection = linkResult['xSection']
         
         # Cases
-        if link.type == 'TRAPEZOID':
+        if 'TRAPEZOID' in link.type or 'TRAP' in link.type:
             # Trapezoid cross section handler
             # Initialize GSSHPY TrapeziodalCS object
             trapezoidCS = TrapezoidalCS(mannings_n=xSection['mannings_n'],
@@ -228,7 +228,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Associate TrapezoidalCS with StreamLink
             trapezoidCS.streamLink = link
             
-        elif link.type == 'BREAKPOINT':
+        elif 'BREAKPOINT' in link.type:
             # Breakpoint cross section handler
             # Initialize GSSHAPY BreakpointCS objects
             breakpointCS = BreakpointCS(mannings_n=xSection['mannings_n'],
@@ -394,6 +394,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             
             line = 'CONNECT    %s    %s    %s    %s\n' % (linkNum, downLink, numUpLinks, '    '.join(upLinks))
             fileObject.write(line)
+        fileObject.write('\n')
         
     def _writeLinks(self, links, fileObject):
         '''
@@ -404,7 +405,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             fileObject.write('LINK           %s\n' % link.linkNumber)
             
             # Cases
-            if linkType in ('TRAPEZOID', 'BREAKPOINT'):
+            if 'TRAP' in linkType or 'TRAPEZOID' in linkType or 'BREAKPOINT' in linkType:
                 self._writeCrossSectionLink(link, fileObject)
                             
             elif linkType == 'STRUCTURE':
@@ -414,7 +415,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 self._writeReservoirLink(link, fileObject)
                 
             else:
-                print 'OOPS'
+                print 'OOPS: CIF LINE 417' # THIS SHOULDN"T HAPPEN
                 
             fileObject.write('\n')
     
@@ -547,7 +548,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 fileObject.write('XSEC\n')
                 
                 # Cases
-                if linkType == 'TRAPEZOID':
+                if 'TRAPEZOID' in linkType or 'TRAP' in linkType:
                     # Retrieve cross section
                     xSec = link.trapezoidalCS
                     
@@ -560,7 +561,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Write optional cross section properties
                     self._writeOptionalXsecCards(fileObject=fileObject, xSec=xSec)
                                     
-                elif linkType == 'BREAKPOINT':
+                elif 'BREAKPOINT' in linkType:
                     # Retrieve cross section
                     xSec = link.breakpointCS
                     
@@ -575,6 +576,8 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Write breakpoint lines
                     for bp in xSec.breakpoints:
                         fileObject.write('X1   %.6f %.6f\n' % (bp.x, bp.y))
+                else:
+                    print 'OOPS: MISSED A CROSS SECTION TYPE. CIF LINE 580.', linkType
 
     def _writeOptionalXsecCards(self, fileObject, xSec):
         '''

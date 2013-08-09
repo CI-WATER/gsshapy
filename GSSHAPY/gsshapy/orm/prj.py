@@ -258,10 +258,15 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self.INPUT_FILES[card.name]['filename'] = value
                 
             elif card.name in self.INPUT_MAPS:
-                value = card.value.strip('"')
+                try:
+                    value = card.value.strip('"')
+                    
+                    if self._noneOrNumValue(value):
+                        self.INPUT_MAPS[card.name]['filename'] = value
+                except:
+                    '''DO NOTHING'''
                 
-                if self._noneOrNumValue(value):
-                    self.INPUT_MAPS[card.name]['filename'] = value
+                
                 
             elif card.name in self.OUTPUT_FILES:
                 value = card.value.strip('"')

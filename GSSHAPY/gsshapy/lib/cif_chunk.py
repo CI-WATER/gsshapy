@@ -173,11 +173,19 @@ def xSectionLink(lines):
                 'BREAKPOINT_SUBSURFACE',
                 'BREAKPOINT_SUBSURFACE_ERODE',
                 'BREAKPOINT_ERODE_SUBSURFACE',
+                'TRAP',
+                'TRAP_ERODE',
+                'TRAP_SUBSURFACE',
+                'TRAP_SUBSURFACE_ERODE',
+                'TRAP_ERODE_SUBSURFACE',
                 'NODES',
                 'NODE',
                 'XSEC')
     
     ERODE = ('TRAPEZOID_ERODE',
+             'TRAP_ERODE',
+             'TRAP_SUBSURFACE_ERODE',
+             'TRAP_ERODE_SUBSURFACE',
              'BREAKPOINT_ERODE',
              'TRAPEZOID_SUBSURFACE_ERODE', 
              'TRAPEZOID_ERODE_SUBSURFACE',
@@ -185,6 +193,9 @@ def xSectionLink(lines):
              'BREAKPOINT_ERODE_SUBSURFACE')
     
     SUBSURFACE = ('TRAPEZOID_SUBSURFACE',
+                  'TRAP_SUBSURFACE',
+                  'TRAP_SUBSURFACE_ERODE',
+                  'TRAP_ERODE_SUBSURFACE',
                   'BREAKPOINT_SUBSURFACE',
                   'TRAPEZOID_SUBSURFACE_ERODE', 
                   'TRAPEZOID_ERODE_SUBSURFACE',
@@ -216,7 +227,7 @@ def xSectionLink(lines):
                 # Extract cross section information
                 result['xSection'] = xSectionChunk(chunk)
                 
-            elif key in ['TRAPEZOID', 'BREAKPOINT']:
+            elif ('TRAPEZOID' in key) or ('BREAKPOINT' in key) or ('TRAP' in key):
                 # Cross section type handler
                 result['header']['xSecType'] = key
             
