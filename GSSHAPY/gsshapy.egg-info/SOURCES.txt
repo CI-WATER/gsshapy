@@ -1,4 +1,3 @@
-MANIFEST.in
 README.txt
 setup.py
 gsshapy/__init__.py
@@ -9,6 +8,7 @@ gsshapy.egg-info/requires.txt
 gsshapy.egg-info/top_level.txt
 gsshapy/develop/__init__.py
 gsshapy/develop/init_db_developing.py
+gsshapy/develop/perm.py
 gsshapy/develop/testing.py
 gsshapy/lib/__init__.py
 gsshapy/lib/cif_chunk.py
