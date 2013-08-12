@@ -9,6 +9,8 @@
 '''
 import os
 
+from sqlalchemy.exc import IntegrityError
+
 __all__ = ['GsshaPyFileObjectBase']
 
 class GsshaPyFileObjectBase:
@@ -17,11 +19,15 @@ class GsshaPyFileObjectBase:
     '''
     
     # File Properties
+    FILENAME = None
     PATH = None
     PROJECT_NAME = None
     DIRECTORY = None
     SESSION = None
     EXTENSION = 'txt'
+    
+    # Error Messages
+    COMMIT_ERROR_MESSAGE = 'Ensure the file is not empty and try again.'
     
     def __init__(self, directory, filename, session):
         '''
@@ -43,8 +49,8 @@ class GsshaPyFileObjectBase:
         # Read
         self._readWithoutCommit()
         
-        # Commit
-        self.SESSION.commit()
+        # Commit to database
+        self._commit(self.COMMIT_ERROR_MESSAGE)
         
     def write(self, session, directory, name):
         '''
@@ -85,6 +91,19 @@ class GsshaPyFileObjectBase:
             # Write Lines
             self._writeToOpenFile(session=session,
                                   openFile=openFile)
+            
+    def _commit(self, errorMessage):
+        '''
+        Custom commit function for file objects
+        '''
+        try:
+            self.SESSION.commit()
+        except IntegrityError:
+            # Raise special error if the commit fails due to empty files
+            print 'ERROR: Commit to database failed. %s' % errorMessage
+        except:
+            # Raise other errors as normal
+            raise
     
     def _readWithoutCommit(self):
         '''

@@ -12,12 +12,12 @@ from gsshapy.orm import ProjectFile
 from gsshapy.lib import db_tools as dbt
 
 # Read Parameters
-readDirectory='/Users/swainn/testing/test models/ParkCityBasic'
-projectFile='parkcity.prj'
+readDirectory='/Users/swainn/testing/test models/Wetland'
+projectFile='WETLAND.prj'
 
 # Write Parameters
-writeDirectory='/Users/swainn/testing/test models/ParkCityBasic/write'
-newName='parkcity'
+writeDirectory='/Users/swainn/testing/test models/Wetland/write'
+newName='WETLAND'
 
 
 

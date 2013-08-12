@@ -64,9 +64,17 @@ def eventChunk(key, lines):
             elif card == 'COORD':
                 # COORD handler
                 schunk = pt.splitLine(chunk[0])
+                
+                try:
+                    # Extract the event description
+                    desc = schunk[3]
+                except:
+                    # Handle case where the event description is blank
+                    desc = ""
+                
                 coord = {'x': schunk[1],
                          'y': schunk[2],
-                         'description': schunk[3]}
+                         'description': desc}
                 
                 result['coords'].append(coord)
             

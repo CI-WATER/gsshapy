@@ -133,6 +133,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                   'GW_HYCOND_MAP':          {'filename': None},
                   'EMBANKMENT':             {'filename': None}, # Embankment Structures
                   'DIKE_MASK':              {'filename': None},
+                  'WETLAND':                {'filename': None}, # Wetlands
                   'CONTAM_MAP':             {'filename': None}} # Constituent Transport
     
     OUTPUT_FILES = {'SUMMARY':              {'filename': None, 'fileio': None},                 # Required Output
@@ -178,6 +179,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                    'GW_RECHARGE_INC':   {'filename': None}, # MAP_TYPE
                    'WRITE_OV_HOTSTART': {'filename': None},             # Overland Flow
                    'WRITE_SM_HOSTART':  {'filename': None}}             # Infiltration
+    
+    # Error Messages
+    COMMIT_ERROR_MESSAGE = ('Ensure the files listed in the project file '
+                            'are not empty and try again.')
     
     
     def __init__(self, directory, filename, session):
@@ -307,7 +312,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._readXputMaps(self.OUTPUT_MAPS)
         
         # Commit to database
-        self.SESSION.commit()
+        self._commit(self.COMMIT_ERROR_MESSAGE)
         
         # Feedback
 #         print 'SUCCESS: Project successfully read to database.'
@@ -352,7 +357,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._readXputMaps(self.INPUT_MAPS)
         
         # Commit to database
-        self.SESSION.commit()
+        self._commit(self.COMMIT_ERROR_MESSAGE)
         
     def writeInput(self, session, directory, newName=None):
         '''
@@ -384,7 +389,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._readXputMaps(self.OUTPUT_MAPS)
         
         # Commit to database
-        self.SESSION.commit()
+        self._commit(self.COMMIT_ERROR_MESSAGE)
     
     def writeOutput(self, session, directory, newName=None):
         '''

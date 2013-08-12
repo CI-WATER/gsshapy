@@ -40,7 +40,7 @@ def mapTableChunk(key, chunk):
     # index map name. If now index map name, stop 
     # processing.
     if idxName == '':
-        print ('WARNING: No index map identified for %s table. The table will '
+        print ('WARNING: No index map assigned to %s table. The table will '
                'not be read into the database.') % mtName
         # No need to process if the index map is empty
         return None
@@ -92,8 +92,8 @@ def contamChunk(key, chunk):
     # to process further if there are 0.
     if numVars['NUM_CONTAM'] == 0:
         ## TODO: ERROR
-        print ('WARNING: NUM_CONTAM = 0. CONTAMINANT_TRANSPORT table will '
-               'not be read into the database.')
+        print ('WARNING: No contaminants found in the CONTAMINANT_TRANSPORT TABLE (NUM_CONTAM = 0).' 
+               'This table will not be read into the database.')
         return None
     
     # Parse the chunk into a data structure
@@ -170,8 +170,8 @@ def sedimentChunk(key, chunk):
                 # If there are no sediments
                 # return nothing
                 ## TODO: ERROR
-                print ('WARNING: NUM_SED = 0. SEDIMENTS table will '
-                       'not be read into the database.')
+                print ('WARNING: No sediments found in the SEDIMENTS table (NUM_SED = 0).'
+                       'This table will not be read into the database.')
                 return None
             else:
                 # This is the test for an empty

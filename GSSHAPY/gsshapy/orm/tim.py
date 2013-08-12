@@ -116,25 +116,30 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Create GSSHAPY TimeSeries and TimeSeriesValue Objects Method
         '''
-        
-        # Determine number of value columns
-        valColumns = len(timeSeries[0]['values'])
-        
-        # Create List of GSSHAPY TimeSeries objects
-        series = []
-        for i in range(0, valColumns):
-            ts = TimeSeries()
-            ts.timeSeriesFile = self
-            series.append(ts)
-        
-        for record in timeSeries:
-            for index, value in enumerate(record['values']):
-                # Create GSSHAPY TimeSeriesValue objects
-                tsVal = TimeSeriesValue(simTime=record['time'],
-                                        value=value)
-                
-                # Associate with appropriate TimeSeries object via the index
-                tsVal.timeSeries = series[index]
+        try:
+            # Determine number of value columns
+            valColumns = len(timeSeries[0]['values'])
+            
+            # Create List of GSSHAPY TimeSeries objects
+            series = []
+            for i in range(0, valColumns):
+                ts = TimeSeries()
+                ts.timeSeriesFile = self
+                series.append(ts)
+            
+            for record in timeSeries:
+                for index, value in enumerate(record['values']):
+                    # Create GSSHAPY TimeSeriesValue objects
+                    tsVal = TimeSeriesValue(simTime=record['time'],
+                                            value=value)
+                    
+                    # Associate with appropriate TimeSeries object via the index
+                    tsVal.timeSeries = series[index]
+        except IndexError:
+            print ('WARNING: %s was opened, but the contents of the file were empty.' 
+                   'This file will not be read into the database.') % self.FILENAME
+        except:
+            raise
          
         
 class TimeSeries(DeclarativeBase):

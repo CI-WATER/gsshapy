@@ -38,7 +38,7 @@ def chunk(keywords, lines):
     '''
     chunks = dict()
     chunk = []
-    
+      
     # Create an empty dictionary using all the keywords
     for keyword in keywords:
         chunks[keyword] = []

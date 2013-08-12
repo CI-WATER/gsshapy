@@ -74,48 +74,48 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Parse chunks associated with each key    
         for card, chunkList in chunks.iteritems():
             # Parse each chunk in the chunk list
-            for chunk in chunkList:
-                schunk = chunk[0].strip().split()
-                
-                # Cases
-                if card == 'NUM_LINKS':
-                    # NUM_LINKS handler
-                    self.numLinks = schunk[1]
-                                        
-                elif card == 'TIME_STEP':
-                    # TIME_STEP handler
-                    self.timeStep = schunk[1]
+                for chunk in chunkList:
+                    schunk = chunk[0].strip().split()
                     
-                elif card == 'NUM_TS':
-                    # NUM_TS handler
-                    self.numTimeSteps = schunk[1]
-                    
-                elif card == 'START_TIME':
-                    # START_TIME handler
-                    self.startTime = '%s  %s    %s  %s  %s  %s' % (
-                                      schunk[1],
-                                      schunk[2],
-                                      schunk[3],
-                                      schunk[4],
-                                      schunk[5],
-                                      schunk[6])
-                    
-                elif card == 'TS':
-                    # TS handler
-                    for line in chunk:
-                        sline = line.strip().split()
-                        token = sline[0]
+                    # Cases
+                    if card == 'NUM_LINKS':
+                        # NUM_LINKS handler
+                        self.numLinks = schunk[1]
+                                            
+                    elif card == 'TIME_STEP':
+                        # TIME_STEP handler
+                        self.timeStep = schunk[1]
                         
-                        # Cases
-                        if token == 'TS':
-                            # Time Step line handler
-                            timeStep = TimeStep(timeStep=sline[1])
-                            timeStep.linkNodeDataset = self
-
-                        else:
-                            # LinkNodeLine handler
-                            lnLine = LinkNodeLine(value=line.strip())
-                            lnLine.timeStep = timeStep
+                    elif card == 'NUM_TS':
+                        # NUM_TS handler
+                        self.numTimeSteps = schunk[1]
+                        
+                    elif card == 'START_TIME':
+                        # START_TIME handler
+                        self.startTime = '%s  %s    %s  %s  %s  %s' % (
+                                          schunk[1],
+                                          schunk[2],
+                                          schunk[3],
+                                          schunk[4],
+                                          schunk[5],
+                                          schunk[6])
+                        
+                    elif card == 'TS':
+                        # TS handler
+                        for line in chunk:
+                            sline = line.strip().split()
+                            token = sline[0]
+                            
+                            # Cases
+                            if token == 'TS':
+                                # Time Step line handler
+                                timeStep = TimeStep(timeStep=sline[1])
+                                timeStep.linkNodeDataset = self
+    
+                            else:
+                                # LinkNodeLine handler
+                                lnLine = LinkNodeLine(value=line.strip())
+                                lnLine.timeStep = timeStep
 
                 
         
