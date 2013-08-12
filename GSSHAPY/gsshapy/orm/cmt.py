@@ -182,6 +182,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                 
                 # Associate MapTable with this MapTableFile and IndexMaps
                 mapTable.mapTableFile = self
+                
                 ## NOTE: Index maps are associated wth contaminants for CONTAMINANT_TRANSPORT map
                 ## tables. The SEDIMENTS map table are associated with index maps via the 
                 ## SOIL_EROSION_PROPS map table.
@@ -342,11 +343,11 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         # Retrieve the indices for the current mapping table and mapping table file
         indexes = session.query(MTIndex).\
-                    join(MTValue.index).\
-                    filter(MTValue.mapTable == mapTable).\
-                    filter(MTValue.contaminant == contaminant).\
-                    order_by(MTIndex.index).\
-                    all()
+                          join(MTValue.index).\
+                          filter(MTValue.mapTable == mapTable).\
+                          filter(MTValue.contaminant == contaminant).\
+                          order_by(MTIndex.index).\
+                          all()
         
         # ----------------------------------------
         # Construct each line in the mapping table
@@ -358,11 +359,11 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         for idx in indexes:
             # Retrieve values for the current index
             values = session.query(MTValue).\
-                    filter(MTValue.mapTable == mapTable).\
-                    filter(MTValue.contaminant == contaminant).\
-                    filter(MTValue.index == idx).\
-                    order_by(MTValue.variable).\
-                    all() 
+                             filter(MTValue.mapTable == mapTable).\
+                             filter(MTValue.contaminant == contaminant).\
+                             filter(MTValue.index == idx).\
+                             order_by(MTValue.id).\
+                             all() 
             
             # NOTE: The second order_by modifier in the query above
             # handles the special ordering of XSEDIMENT columns 
