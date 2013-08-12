@@ -54,8 +54,12 @@ class GsshaPyFileObjectBase:
         
     def write(self, session, directory, name):
         '''
-        Front Facting Write to File Method
+        Front Facing Write to File Method
         '''
+        # For future use
+        self.SESSION = session
+        self.DIRECTORY = directory
+
         # Assemble Path to file
         try:
             # Handle name with extension case (e.g.: name.ext)
@@ -86,6 +90,9 @@ class GsshaPyFileObjectBase:
             # (e.g.: MapTableFile).
             filename = '%s.%s' % (name, self.EXTENSION)
             filePath = os.path.join(directory, filename)
+        
+        # For use after the file has been written
+        self.PATH = os.path.join(directory, filename)
         
         with open(filePath, 'w') as openFile:
             # Write Lines

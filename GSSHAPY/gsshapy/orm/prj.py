@@ -288,6 +288,49 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self.OUTPUT_MAPS[card.name]['filename'] = value
         
 #         print 'File Written:', filename
+
+    def appendDirectory(self, directory):
+        '''
+        Append directory to relative paths in project file.
+        By default, the project files are written with relative paths.
+        '''
+        lines = []
+        with open(self.PATH, 'r') as original:
+            for l in original:
+                lines.append(l)
+                
+                
+        with open(self.PATH, 'w') as new:
+            for line in lines:
+                card = {}
+                try:
+                    card = self._extractCard(line)    
+                    
+                except:
+                    card = self._extractDirectoryCard(line)
+                
+                # Determine number of spaces between card and value for nice alignment
+                numSpaces = 25 - len(card['name'])
+                
+                if card['value'] is None:
+                    rewriteLine = '%s\n' % (card['name'])
+                else:
+                    if card['name'] == 'WMS':
+                        rewriteLine = '%s %s\n' % (card['name'], card['value'])
+                    elif card['name'] == 'PROJECT_PATH':
+                        filePath = '"%s"' % os.path.normpath(directory)
+                        rewriteLine ='%s%s%s\n' % (card['name'],' '*numSpaces, filePath)
+                    elif '"' in card['value']:
+                        filename = card['value'].strip('"')
+                        filePath = '"%s"' % os.path.join(directory, filename)
+                        rewriteLine ='%s%s%s\n' % (card['name'],' '*numSpaces, filePath)
+                    else:
+                        rewriteLine ='%s%s%s\n' % (card['name'],' '*numSpaces, card['value'])
+                
+                new.write(rewriteLine)
+            
+            
+        
                      
     def readProject(self):
         '''

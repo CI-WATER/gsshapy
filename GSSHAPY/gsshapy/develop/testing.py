@@ -12,12 +12,12 @@ from gsshapy.orm import ProjectFile
 from gsshapy.lib import db_tools as dbt
 
 # Read Parameters
-readDirectory='/Users/swainn/testing/test models/Wetland'
-projectFile='WETLAND.prj'
+readDirectory='/Users/swainn/testing/test models/GWAdv'
+projectFile='GWAdv.prj'
 
 # Write Parameters
-writeDirectory='/Users/swainn/testing/test models/Wetland/write'
-newName='WETLAND'
+writeDirectory='/Users/swainn/testing/test models/GWAdv/write'
+newName='GWAdv'
 
 
 
@@ -28,6 +28,9 @@ sqlalchemy_url = dbt.init_sqlite_db('/Users/swainn/testing/db/gsshapy_lite.db', 
 # Initialize the Session
 readSession = dbt.create_session(sqlalchemy_url)
 writeSession = dbt.create_session(sqlalchemy_url)
+
+# Directory to append to project file
+directory = '/home/swainn/GSSHA/GWAdv'
 
 # Create an empty Project File Object
 project = ProjectFile(directory=readDirectory, filename=projectFile, session=readSession)
@@ -50,6 +53,10 @@ start = time.time()
                        
 # Invoke write command on Project File Query Object
 project1.writeProject(session=writeSession, directory=writeDirectory, newName=newName)
+
+# Test append directory method
+project1.appendDirectory(directory)
+
 
 # Report Write Time
 print 'WRITE TIME:', time.time() - start
