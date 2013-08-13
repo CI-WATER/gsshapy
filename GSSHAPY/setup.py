@@ -11,7 +11,7 @@ requires = [
     ]
 
 setup(name='gsshapy',
-      version='0.1.0',
+      version='1.0.0',
       description='An SQLAlchemy ORM for GSSHA model files.',
       long_description=README,
       author='Nathan Swain',
