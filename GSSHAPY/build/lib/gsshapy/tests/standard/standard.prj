@@ -1,0 +1,53 @@
+GSSHAPROJECT
+WATERSHED_MASK           "standard.msk"
+PROJECT_PATH             ""
+#LandSoil                "standard.lsf"
+#PROJECTION_FILE         "standard_prj.pro"
+NON_ORTHO_CHANNELS
+FLINE                    "standard.map"
+METRIC
+QOUT_CFS
+GRIDSIZE                 90.000000
+ROWS                     70
+COLS                     75
+TOT_TIME                 2880
+TIMESTEP                 10
+OUTROW                   64
+OUTCOL                   1
+OUTSLOPE                 0.001000
+MAP_FREQ                 60
+HYD_FREQ                 30
+MAP_TYPE                 1
+ELEVATION                "standard.ele"
+CHAN_DEPTH               "standard.cdp"
+DIFFUSIVE_WAVE
+CHANNEL_INPUT            "standard.cif"
+STREAM_CELL              "standard.gst"
+OVERTYPE                 ADE-PC
+ET_CALC_DEARDORFF
+INF_REDIST
+SOIL_MOIST_DEPTH         0.500000
+#INDEXGRID_GUID          "Soil.idx"
+#INDEXGRID_GUID          "LandUse.idx"
+#INDEXGRID_GUID          "Combined.idx"
+MAPPING_TABLE            "standard.cmt"
+ST_MAPPING_TABLE         "standard.smt"
+SUMMARY                  "standard.sum"
+OUTLET_HYDRO             "standard.otl"
+QUIET
+PRECIP_FILE              "standard.gag"
+RAIN_INV_DISTANCE
+LONG_TERM
+LATITUDE                 38.769600
+LONGITUDE                270.050000
+GMT                      -6.000000
+EVENT_MIN_Q              0.100000
+HMET_WES                 "hmet_wes.hmt"
+IN_HYD_LOCATION          "standard.ihl"
+OUT_HYD_LOCATION         "standard.ohl"
+NWSRFS_ELEV_SNOW         "nwsrfs_elev.txt"
+HMET_OROG_GAGES          "ortho_gages.txt"
+STORM_SEWER              "standard.spn"
+GRID_PIPE                "standard.gpi"
+REPLACE_PARAMS           "replace_param.txt"
+REPLACE_VALS             "replace_val.txt"
