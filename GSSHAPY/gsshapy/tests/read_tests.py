@@ -8,7 +8,7 @@
 ********************************************************************************
 '''
 
-import unittest, itertools, os
+import unittest, itertools, os, uuid
 
 from gsshapy.orm.file_io import *
 from gsshapy.orm import ProjectFile
@@ -18,7 +18,9 @@ class TestReadMethods(unittest.TestCase):
     def setUp(self):
         # Find db directory path
         here = os.path.abspath(os.path.dirname(__file__))
-        self.db_path = os.path.join(here, 'db','standard.db')
+        
+        dbName = '%s.db' % uuid.uuid4()
+        self.db_path = os.path.join(here, 'db', 'standard.db')
 
         # Create Test DB
         sqlalchemy_url = dbt.init_sqlite_db(self.db_path)

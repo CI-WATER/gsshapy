@@ -10,6 +10,7 @@ gsshapy/develop/__init__.py
 gsshapy/develop/init_db_developing.py
 gsshapy/develop/perm.py
 gsshapy/develop/testing.py
+gsshapy/develop/testing_windows.py
 gsshapy/lib/__init__.py
 gsshapy/lib/cif_chunk.py
 gsshapy/lib/cmt_chunk.py
@@ -19,7 +20,6 @@ gsshapy/lib/gsshaDateTime.py
 gsshapy/lib/parsetools.py
 gsshapy/lib/pivot.py
 gsshapy/lib/spn_chunk.py
-gsshapy/lib/test_tools.py
 gsshapy/orm/__init__.py
 gsshapy/orm/cif.py
 gsshapy/orm/cmt.py
@@ -42,3 +42,5 @@ gsshapy/orm/tim.py
 gsshapy/tests/__init__.py
 gsshapy/tests/read_tests.py
 gsshapy/tests/write_tests.py
+gsshapy/tests/out/__init__.py
+gsshapy/tests/standard/__init__.py

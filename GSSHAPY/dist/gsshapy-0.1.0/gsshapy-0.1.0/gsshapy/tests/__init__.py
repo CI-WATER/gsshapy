@@ -1,15 +1,15 @@
 '''
 ********************************************************************************
-* Name: All Tests
+* Name: Tests
 * Author: Nathan Swain
-* Created On: August 7, 2013
+* Created On: August 13, 2013
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
 '''
 import unittest
-from gsshapy.tests.read_tests import TestReadMethods
-from gsshapy.tests.write_tests import TestWriteMethods
+from read_tests import TestReadMethods
+from write_tests import TestWriteMethods
 
 def all_tests():
     # Retrieve tests

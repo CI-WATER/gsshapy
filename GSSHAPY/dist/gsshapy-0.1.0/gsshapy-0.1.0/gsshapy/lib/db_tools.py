@@ -10,6 +10,8 @@
 import os, time
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import SingletonThreadPool
+
 from gsshapy.orm import metadata
 
 
@@ -29,34 +31,39 @@ def init_db(sqlalchemy_url):
     metadata.create_all(engine)
     return time.time() - start
     
-def init_sqlite_memory(time=False):
+def init_sqlite_memory(initTime=False):
     '''
     Initialize SQLite in Memory Only Database
     '''
     sqlalchemy_url = 'sqlite://'
-    init_time = init_db(sqlalchemy_url)
+    engine = create_engine(sqlalchemy_url,
+                           poolclass=SingletonThreadPool)
+    start = time.time()
+    metadata.create_all(engine)
     
-    if time:
-        print 'TIME:', init_time, 'seconds'
+    if initTime:
+        print 'TIME:', time.time() - start, 'seconds'
         
     return sqlalchemy_url
     
     
-def init_sqlite_db(path, time=False):
+def init_sqlite_db(path, initTime=False):
     '''
     Initialize SQLite Database
     '''
     sqlite_base_url = 'sqlite:///'
+    
     sqlalchemy_url = sqlite_base_url + path
+
     init_time = init_db(sqlalchemy_url)
     
-    if time:
+    if initTime:
         print 'TIME:', init_time, 'seconds'
         
     return sqlalchemy_url
     
     
-def init_postgresql_db(username, host, database, port='', password='', time=False):
+def init_postgresql_db(username, host, database, port='', password='', initTime=False):
     '''
     Initialize PostgreSQL Database
     '''
@@ -81,12 +88,12 @@ def init_postgresql_db(username, host, database, port='', password='', time=Fals
     
     init_time = init_db(sqlalchemy_url)
     
-    if time:
+    if initTime:
         print 'TIME:', init_time, 'seconds'
     
     return sqlalchemy_url
         
-def init_mysql_db(username, host, database, port='', password='', time=False):
+def init_mysql_db(username, host, database, port='', password='', initTime=False):
     '''
     Initialize MySQL Database
     '''
@@ -111,7 +118,7 @@ def init_mysql_db(username, host, database, port='', password='', time=False):
     
     init_time = init_db(sqlalchemy_url)
     
-    if time:
+    if initTime:
         print 'TIME:', init_time, 'seconds'
     
     return sqlalchemy_url
