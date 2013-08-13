@@ -1,3 +1,0 @@
-prune schema
-prune gsshapy/develop
-graft gsshapy/tests
