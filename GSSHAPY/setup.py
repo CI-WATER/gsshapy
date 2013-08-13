@@ -23,5 +23,5 @@ setup(name='gsshapy',
       include_package_data=True,
       install_requires=requires,
       tests_require=requires,
-      test_suite='gsshapy.lib.test_tools.all_tests'
+      test_suite='gsshapy.tests.all_tests'
       )

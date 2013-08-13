@@ -12,21 +12,21 @@ from gsshapy.orm import ProjectFile
 from gsshapy.lib import db_tools as dbt
 
 # Read Parameters
-readDirectory='/Users/swainn/testing/ci_water_models/LittleDellNathanTest'
-projectFile='LittleDellNathanTest.prj'
+readDirectory='C:\\Users\\Nathan Swain\\Documents\\tmp\\ParkCityBasic'
+projectFile='parkcity.prj'
 
 # Write Parameters
-writeDirectory='/Users/swainn/testing/ci_water_models/LittleDellNathanTest/write'
-newName='LittleDellNathanTest'
+writeDirectory='C:\\Users\\Nathan Swain\\Documents\\tmp\\ParkCityBasic\write'
+newName='parkcity'
 
 # Directory to append to project file
-directory = '/home/swainn/post_read_LittleDellNathanTest'
+directory = ''
 
 
 
 # Reset Database
-dbt.del_sqlite_db('/Users/swainn/testing/db/gsshapy_lite.db')
-sqlalchemy_url = dbt.init_sqlite_db('/Users/swainn/testing/db/gsshapy_lite.db', time=True)
+dbt.del_sqlite_db('C:\\Users\\Nathan Swain\\Documents\\tmp\\db\\gsshapy_lite.db')
+sqlalchemy_url = dbt.init_sqlite_db('C:\\Users\\Nathan Swain\\Documents\\tmp\\db\\gsshapy_lite.db', initTime=True)
 
 # Initialize the Session
 readSession = dbt.create_session(sqlalchemy_url)
@@ -57,7 +57,7 @@ start = time.time()
 project1.writeInput(session=writeSession, directory=writeDirectory, newName=newName)
 
 # Test append directory method
-project1.appendDirectory(directory)
+# project1.appendDirectory(directory)
 
 
 # Report Write Time
