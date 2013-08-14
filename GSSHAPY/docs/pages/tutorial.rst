@@ -3,14 +3,114 @@ Tutorial
 ********
 
 This is a simple tutorial meant to show GsshaPy users how to use the 
-GsshaPy ORM objects.
+GsshaPy ORM objects. The full tutorial script can be downloaded here:
+:download:`tutorial-script.py <../tutorial-data/tutorial-script.py>`
 
-Sample Data
+Requirements
+============
+
+Since GsshaPy is meant to read GSSHA model files into a database and write
+them out again, a set of example GSSHA model files will be needed for the
+tutorial. These can be downloaded here:
+:download:`tutorial-data.zip <../tutorial-data/tutorial-data.zip>`.
+
+Unzip the contents of the file. This file will become the working directory 
+for the tutorial. The ``tutorial-data/write`` directory is purposely left empty.
+
+The tutorial uses an SQLite database. Ensure that you have SQLite installed 
+on your system. Visit http://www.sqlite.org/ for download and installation
+instructions. Windows users ensure that the sqlite executable is added to
+your path.
+
+Abstraction
 ===========
 
-A set of example GSSHA model files can be downloaded 
-:download:`here <../tutorial-data/tutorial-data.zip>`. Unzip the contents
-of the file. This file will become the working directory for the tutorial.
-The ``tutorial-data/write`` directory is purposely left empty.
+The abstraction of GsshaPy is the GSSHA model file. There are many input and ouput
+files that make up a GSSHA model. Each model file is represented in the GsshaPy ORM
+by a ``GsshaPyFileObject``. This object contains the ``read()`` and ``write()`` 
+methods that are used to read the file into an SQL database. There may also be one
+or more ``TableObjects`` that are used to create tables for storing and organizing
+the file data in the relational database fashion.
+
+Both the ``TableObjects`` and the ``GsshaPyFileObjects`` inherit from the SQLAlchemy
+declarative base class As a result, each object maps to a table in the database where 
+each record in the table is one object. For an explanation of the SQLAlchemy ORM see
+http://docs.sqlalchemy.org/en/rel_0_8/orm/tutorial.html. If you are not familiar with
+SQLAlchemy, it strongly recommended that you follow this tutorial before you continue,
+because GsshaPy relies on SQLAlchemy ORM concepts.
+
+For this tutorial, we will play with the project file. The project file is the controlling 
+file for GSSHA models. It is denoted by the ``.prj`` file extension. The class associated 
+with the project file is called **ProjectFile**.
+
+Initiate GsshaPy Database
+=========================
+
+The fisrt step is to create a database and populate it with all of the GsshaPy tables. For this
+tutorial we will create an SQLite. This can be done by using the ``init_sqlite_db(path)`` 
+method::
+
+	>>> from gsshapy.lib import db_tools as dbt
+	>>> sqlalchemy_url = dbt.init_sqlite_db('/path/to/tutorial-data/db/gsshapy_parkcity.db')
+	
+This method creates the SQLite database and  populates it with the GsshaPy tables returing 
+the SQLAlchemy url for creating session objects. Next create an SQLAlchemy session object for
+interacting with the database::
+	
+	>>> session = dbt.create_session(sqlalchemy_url)
+	
+Instantiate ProjectFile
+=======================
+
+Before we instantiate ProjectFile we need to define a few variables that will define 
+our workspace. GsshaPy needs to know the directory and file name of the file that will 
+be read into the database::
+	
+	>>> readDirectory = '/path/to/tutorial-data/directory'
+	>>> filename = 'parkcity.prj'
+	
+Now we can create an instance of ProjectFile::
+
+	>>> from gsshapy.orm import ProjectFile
+	>>> projectFile = ProjectFile(directory=readDirectory, filename=filename, session=session)
+	
+Read the File into the Database
+===============================
+
+The newly created ProjectFile object has all the necessary information it needs to find
+the file, parse it, and read it into the database. This is done by invoking the ``read()``
+method on ``projectFile``::
+
+	>>> projectFile.read()
+	
+Explore the Database
+====================
+
+To prove that the excercise has actually done something, it is userful to explore database.
+Before we do this using the GsshaPy objects, lets explore a little using the ``sqlite`` commandline
+utility. Open a terminal or command prompt and issue the following commands::
+
+	$ cd /path/to/tutorial-data/db
+	$ sqlite3 gsshapy_parkcity.db
+	SQLite version 3.7.15.2
+	Enter ".help" for instructions
+	Enter SQL statements terminated with a ";"
+	sqlite> .tables
+	
+.. warning::
+
+	GSSHAPY was only tested with sqlite3. Use older versions at your own risk.
+	
+If the database was initialized correctly, you should see a list of about 50 or so tables. The three
+letter prefix on the filename is associted with the file extension or in some cases the type of file.
+Notice that there are two tables used to store project files: ``prj_project_files`` and ``prj_project_cards``.
+Most of the data is stored in the ``prj_project_cards`` table. Inspect the data by issuing the following 
+query::
+
+	sqlite> SELECT * FROM prj_project_cards;
+	
+The project file stores all of the GSSHA model preferences using a card system. Each record in the ``prj_project_cards`` 
+table represents the ``name`` and ``value`` of one card in the project file.
+
 
 

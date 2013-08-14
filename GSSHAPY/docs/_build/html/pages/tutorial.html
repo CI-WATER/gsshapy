@@ -53,13 +53,104 @@
   <div class="section" id="tutorial">
 <h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
 <p>This is a simple tutorial meant to show GsshaPy users how to use the
-GsshaPy ORM objects.</p>
-<div class="section" id="sample-data">
-<h2>Sample Data<a class="headerlink" href="#sample-data" title="Permalink to this headline">¶</a></h2>
-<p>A set of example GSSHA model files can be downloaded
-<a class="reference download internal" href="../_downloads/tutorial-data.zip"><tt class="xref download docutils literal"><span class="pre">here</span></tt></a>. Unzip the contents
-of the file. This file will become the working directory for the tutorial.
-The <tt class="docutils literal"><span class="pre">tutorial-data/write</span></tt> directory is purposely left empty.</p>
+GsshaPy ORM objects. The full tutorial script can be downloaded here:
+<a class="reference download internal" href="../_downloads/tutorial-script.py"><tt class="xref download docutils literal"><span class="pre">tutorial-script.py</span></tt></a></p>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>Since GsshaPy is meant to read GSSHA model files into a database and write
+them out again, a set of example GSSHA model files will be needed for the
+tutorial. These can be downloaded here:
+<a class="reference download internal" href="../_downloads/tutorial-data.zip"><tt class="xref download docutils literal"><span class="pre">tutorial-data.zip</span></tt></a>.</p>
+<p>Unzip the contents of the file. This file will become the working directory
+for the tutorial. The <tt class="docutils literal"><span class="pre">tutorial-data/write</span></tt> directory is purposely left empty.</p>
+<p>The tutorial uses an SQLite database. Ensure that you have SQLite installed
+on your system. Visit <a class="reference external" href="http://www.sqlite.org/">http://www.sqlite.org/</a> for download and installation
+instructions. Windows users ensure that the sqlite executable is added to
+your path.</p>
+</div>
+<div class="section" id="abstraction">
+<h2>Abstraction<a class="headerlink" href="#abstraction" title="Permalink to this headline">¶</a></h2>
+<p>The abstraction of GsshaPy is the GSSHA model file. There are many input and ouput
+files that make up a GSSHA model. Each model file is represented in the GsshaPy ORM
+by a <tt class="docutils literal"><span class="pre">GsshaPyFileObject</span></tt>. This object contains the <tt class="docutils literal"><span class="pre">read()</span></tt> and <tt class="docutils literal"><span class="pre">write()</span></tt>
+methods that are used to read the file into an SQL database. There may also be one
+or more <tt class="docutils literal"><span class="pre">TableObjects</span></tt> that are used to create tables for storing and organizing
+the file data in the relational database fashion.</p>
+<p>Both the <tt class="docutils literal"><span class="pre">TableObjects</span></tt> and the <tt class="docutils literal"><span class="pre">GsshaPyFileObjects</span></tt> inherit from the SQLAlchemy
+declarative base class As a result, each object maps to a table in the database where
+each record in the table is one object. For an explanation of the SQLAlchemy ORM see
+<a class="reference external" href="http://docs.sqlalchemy.org/en/rel_0_8/orm/tutorial.html">http://docs.sqlalchemy.org/en/rel_0_8/orm/tutorial.html</a>. If you are not familiar with
+SQLAlchemy, it strongly recommended that you follow this tutorial before you continue,
+because GsshaPy relies on SQLAlchemy ORM concepts.</p>
+<p>For this tutorial, we will play with the project file. The project file is the controlling
+file for GSSHA models. It is denoted by the <tt class="docutils literal"><span class="pre">.prj</span></tt> file extension. The class associated
+with the project file is called <strong>ProjectFile</strong>.</p>
+</div>
+<div class="section" id="initiate-gsshapy-database">
+<h2>Initiate GsshaPy Database<a class="headerlink" href="#initiate-gsshapy-database" title="Permalink to this headline">¶</a></h2>
+<p>The fisrt step is to create a database and populate it with all of the GsshaPy tables. For this
+tutorial we will create an SQLite. This can be done by using the <tt class="docutils literal"><span class="pre">init_sqlite_db(path)</span></tt>
+method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gsshapy.lib</span> <span class="kn">import</span> <span class="n">db_tools</span> <span class="k">as</span> <span class="n">dbt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sqlalchemy_url</span> <span class="o">=</span> <span class="n">dbt</span><span class="o">.</span><span class="n">init_sqlite_db</span><span class="p">(</span><span class="s">&#39;/path/to/tutorial-data/db/gsshapy_parkcity.db&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This method creates the SQLite database and  populates it with the GsshaPy tables returing
+the SQLAlchemy url for creating session objects. Next create an SQLAlchemy session object for
+interacting with the database:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">session</span> <span class="o">=</span> <span class="n">dbt</span><span class="o">.</span><span class="n">create_session</span><span class="p">(</span><span class="n">sqlalchemy_url</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="instantiate-projectfile">
+<h2>Instantiate ProjectFile<a class="headerlink" href="#instantiate-projectfile" title="Permalink to this headline">¶</a></h2>
+<p>Before we instantiate ProjectFile we need to define a few variables that will define
+our workspace. GsshaPy needs to know the directory and file name of the file that will
+be read into the database:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">readDirectory</span> <span class="o">=</span> <span class="s">&#39;/path/to/tutorial-data/directory&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;parkcity.prj&#39;</span>
+</pre></div>
+</div>
+<p>Now we can create an instance of ProjectFile:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gsshapy.orm</span> <span class="kn">import</span> <span class="n">ProjectFile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">projectFile</span> <span class="o">=</span> <span class="n">ProjectFile</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">readDirectory</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="n">session</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="read-the-file-into-the-database">
+<h2>Read the File into the Database<a class="headerlink" href="#read-the-file-into-the-database" title="Permalink to this headline">¶</a></h2>
+<p>The newly created ProjectFile object has all the necessary information it needs to find
+the file, parse it, and read it into the database. This is done by invoking the <tt class="docutils literal"><span class="pre">read()</span></tt>
+method on <tt class="docutils literal"><span class="pre">projectFile</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">projectFile</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="explore-the-database">
+<h2>Explore the Database<a class="headerlink" href="#explore-the-database" title="Permalink to this headline">¶</a></h2>
+<p>To prove that the excercise has actually done something, it is userful to explore database.
+Before we do this using the GsshaPy objects, lets explore a little using the <tt class="docutils literal"><span class="pre">sqlite</span></tt> commandline
+utility. Open a terminal or command prompt and issue the following commands:</p>
+<div class="highlight-python"><pre>$ cd /path/to/tutorial-data/db
+$ sqlite3 gsshapy_parkcity.db
+SQLite version 3.7.15.2
+Enter ".help" for instructions
+Enter SQL statements terminated with a ";"
+sqlite&gt; .tables</pre>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">GSSHAPY was only tested with sqlite3. Use older versions at your own risk.</p>
+</div>
+<p>If the database was initialized correctly, you should see a list of about 50 or so tables. The three
+letter prefix on the filename is associted with the file extension or in some cases the type of file.
+Notice that there are two tables used to store project files: <tt class="docutils literal"><span class="pre">prj_project_files</span></tt> and <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt>.
+Most of the data is stored in the <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt> table. Inspect the data by issuing the following
+query:</p>
+<div class="highlight-python"><pre>sqlite&gt; SELECT * FROM prj_project_cards;</pre>
+</div>
+<p>The project file stores all of the GSSHA model preferences using a card system. The <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt> table
+stores the <tt class="docutils literal"><span class="pre">name</span></tt> of the card and the <tt class="docutils literal"><span class="pre">value</span></tt>.</p>
 </div>
 </div>
 
@@ -72,7 +163,12 @@ The <tt class="docutils literal"><span class="pre">tutorial-data/write</span></t
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Tutorial</a><ul>
-<li><a class="reference internal" href="#sample-data">Sample Data</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#abstraction">Abstraction</a></li>
+<li><a class="reference internal" href="#initiate-gsshapy-database">Initiate GsshaPy Database</a></li>
+<li><a class="reference internal" href="#instantiate-projectfile">Instantiate ProjectFile</a></li>
+<li><a class="reference internal" href="#read-the-file-into-the-database">Read the File into the Database</a></li>
+<li><a class="reference internal" href="#explore-the-database">Explore the Database</a></li>
 </ul>
 </li>
 </ul>
