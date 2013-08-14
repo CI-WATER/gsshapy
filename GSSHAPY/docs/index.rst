@@ -3,18 +3,24 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to GSSHAPY's documentation!
-===================================
+GsshaPy Documentation
+=====================
+
+An ORM for GSSHA model files.
 
 Contents:
+---------
 
 .. toctree::
-   :maxdepth: 2
+	:maxdepth: 2
+	
+	Introduction <pages/intro>
+	Tutorial <pages/tutorial>
+	API Documentation <pages/apidocs/api_intro>
 
 
-
-Indices and tables
-==================
+Indices and Tables:
+-------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
