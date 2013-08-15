@@ -12,11 +12,12 @@ Contents:
 ---------
 
 .. toctree::
-	:maxdepth: 2
+	:maxdepth: 3
 	
-	Introduction <pages/intro>
-	Tutorial <pages/tutorial>
-	API Documentation <pages/apidocs/api_intro>
+	pages/intro
+	pages/tutorial/tutorial
+	pages/support
+	pages/apidocs/api_intro
 
 
 Indices and Tables:

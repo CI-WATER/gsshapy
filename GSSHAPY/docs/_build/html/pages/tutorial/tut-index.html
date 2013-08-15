@@ -8,40 +8,40 @@
     
     <title>Tutorial &mdash; GSSHAPY 1.0.0 documentation</title>
     
-    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
+        URL_ROOT:    '../../',
         VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../index.html" />
-    <link rel="next" title="Files Supported" href="support.html" />
-    <link rel="prev" title="Introduction" href="intro.html" /> 
+    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../../index.html" />
+    <link rel="next" title="Abstraction" href="tut-abstraction.html" />
+    <link rel="prev" title="Introduction" href="../intro.html" /> 
   </head>
   <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
+          <a href="../../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="support.html" title="Files Supported"
+          <a href="tut-abstraction.html" title="Abstraction"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="intro.html" title="Introduction"
+          <a href="../intro.html" title="Introduction"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li> 
+        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -54,13 +54,21 @@
 <h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
 <p>This is a simple tutorial meant to show GsshaPy users how to use the
 GsshaPy ORM objects. The full tutorial script can be downloaded here:
-<a class="reference download internal" href="../_downloads/tutorial-script.py"><tt class="xref download docutils literal"><span class="pre">tutorial-script.py</span></tt></a></p>
+<tt class="xref download docutils literal"><span class="pre">tutorial-script.py</span></tt></p>
+<div class="section" id="overview">
+<h2>Overview:<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tut-abstraction.html">Abstraction</a></li>
+</ul>
+</div>
+</div>
 <div class="section" id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p>Since GsshaPy is meant to read GSSHA model files into a database and write
 them out again, a set of example GSSHA model files will be needed for the
 tutorial. These can be downloaded here:
-<a class="reference download internal" href="../_downloads/tutorial-data.zip"><tt class="xref download docutils literal"><span class="pre">tutorial-data.zip</span></tt></a>.</p>
+<tt class="xref download docutils literal"><span class="pre">tutorial-data.zip</span></tt>.</p>
 <p>Unzip the contents of the file. This file will become the working directory
 for the tutorial. The <tt class="docutils literal"><span class="pre">tutorial-data/write</span></tt> and <tt class="docutils literal"><span class="pre">tutorial-data/db</span></tt> directories
 are purposely left empty.</p>
@@ -69,8 +77,8 @@ on your system. Visit <a class="reference external" href="http://www.sqlite.org/
 instructions. Windows users ensure that the sqlite executable is added to
 your path.</p>
 </div>
-<div class="section" id="abstraction">
-<h2>Abstraction<a class="headerlink" href="#abstraction" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="abstractio">
+<h2>Abstractio<a class="headerlink" href="#abstractio" title="Permalink to this headline">¶</a></h2>
 <p>The abstraction of GsshaPy is the GSSHA model file. There are many input and ouput
 files that make up a GSSHA model. Each model file is represented in the GsshaPy ORM
 by a <tt class="docutils literal"><span class="pre">GsshaPyFileObject</span></tt>. This object contains the <tt class="docutils literal"><span class="pre">read()</span></tt> and <tt class="docutils literal"><span class="pre">write()</span></tt>
@@ -217,11 +225,14 @@ data back to the proper file format.</p>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Tutorial</a><ul>
+<li><a class="reference internal" href="#overview">Overview:</a><ul>
+</ul>
+</li>
 <li><a class="reference internal" href="#requirements">Requirements</a></li>
-<li><a class="reference internal" href="#abstraction">Abstraction</a></li>
+<li><a class="reference internal" href="#abstractio">Abstractio</a></li>
 <li><a class="reference internal" href="#initiate-gsshapy-database">Initiate GsshaPy Database</a></li>
 <li><a class="reference internal" href="#instantiate-projectfile">Instantiate ProjectFile</a></li>
 <li><a class="reference internal" href="#read-the-file-into-the-database">Read the File into the Database</a></li>
@@ -233,19 +244,19 @@ data back to the proper file format.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="intro.html"
+  <p class="topless"><a href="../intro.html"
                         title="previous chapter">Introduction</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="support.html"
-                        title="next chapter">Files Supported</a></p>
+  <p class="topless"><a href="tut-abstraction.html"
+                        title="next chapter">Abstraction</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="../_sources/pages/tutorial.txt"
+    <li><a href="../../_sources/pages/tutorial/tut-index.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
+    <form class="search" action="../../search.html" method="get">
       <input type="text" name="q" />
       <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
@@ -264,15 +275,15 @@ data back to the proper file format.</p>
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
+          <a href="../../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="support.html" title="Files Supported"
+          <a href="tut-abstraction.html" title="Abstraction"
              >next</a> |</li>
         <li class="right" >
-          <a href="intro.html" title="Introduction"
+          <a href="../intro.html" title="Introduction"
              >previous</a> |</li>
-        <li><a href="../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li> 
+        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

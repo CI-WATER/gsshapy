@@ -60,6 +60,13 @@ GsshaPy is released under the `BSD 2-Clause license`_.
 	<div>
 		<script src="https://bitbucket.org/swainn/gsshapy/src/48944590dcc5957d6e97bd80a95f03e0857a734f/GSSHAPY/LICENSE.txt?embed=t"></script>
 	</div>
+	
+Source
+======
+
+The source code is available on bitbucket::
+	
+	$ git clone git@bitbucket.org:swainn/gsshapy.git
 
 Author
 ======
