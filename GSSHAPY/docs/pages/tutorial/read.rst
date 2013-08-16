@@ -11,7 +11,7 @@ previous page.
 Initiate GsshaPy Database
 =========================
 
-The fisrt step is to create a database and populate it with all of the GsshaPy tables. For this
+The first step is to create a database and populate it with all of the GsshaPy tables. For this
 tutorial we will create an SQLite database. This can be done by using the ``init_sqlite_db()`` 
 method::
 

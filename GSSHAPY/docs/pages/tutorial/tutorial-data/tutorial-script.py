@@ -26,7 +26,7 @@ projectFile.read()
 
 # Querying the database using the GsshaPy objects
 
-# 1. Retrieve all project cards for a given project file
+# Retrieve all project cards for a given project file
 from gsshapy.orm import ProjectCard
 cards = session.query(ProjectCard).filter(ProjectCard.projectFileID == 1).all()
 for card in cards:
@@ -50,3 +50,31 @@ name = 'mymodel'
 
 # Invoke write method
 projectFile1.write(session=session, directory=writeDirectory, name=name)
+
+'''
+Use readProject() and writeProject() methods
+'''
+# Create new Database and session
+from gsshapy.lib import db_tools as dbt
+sqlalchemy_url = dbt.init_sqlite_db('/path/to/tutorial-data/db/gsshapy_parkcity_all.db')
+all_session = dbt.create_session(sqlalchemy_url)
+
+# Instantiate a new ProjectFile object
+from gsshapy.orm import ProjectFile
+readDirectory = '/path/to/tutorial-data/directory'
+filename = 'parkcity.prj'
+projectFileAll = ProjectFile(directory=readDirectory, filename=filename, session=all_session)
+
+# Invoke the readProject() method
+projectFileAll.readProject()
+
+# Retrieve project file from dataabase and invoke writeProject()
+projectFileAll1 = all_session.query(ProjectFile).filter(ProjectFile.id == 1).one()
+writeDirectory = '/path/to/tutorial-data/directory/write'
+name = 'mymodel'
+projectFileAll1.writeProject(session=all_session, directory=writeDirectory, newName=name)
+
+
+
+
+

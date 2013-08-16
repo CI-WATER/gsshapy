@@ -55,14 +55,52 @@
   <div class="section" id="read-and-write-entire-gssha-projects">
 <h1>Read and Write Entire GSSHA Projects<a class="headerlink" href="#read-and-write-entire-gssha-projects" title="Permalink to this headline">¶</a></h1>
 <p><strong>Last Updated:</strong> August 15, 2013</p>
-<p>Each of the GSSHA model files can be read or written the same manner as was illustrated.
-The <strong>ProjectFile</strong> class also has methods that can be used to read and write <em>all</em> of
-the files in a GSSHA project.</p>
+<p>Each of the GSSHA model files can be read or written in the same manner that was illustrated.
+The <strong>ProjectFile</strong> class also has methods that can be used to read and write an entire
+GSSHA project.</p>
 <div class="section" id="read-all-files">
 <h2>Read All Files<a class="headerlink" href="#read-all-files" title="Permalink to this headline">¶</a></h2>
+<p>Create a new database and session for this part of the tutorial:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gsshapy.lib</span> <span class="kn">import</span> <span class="n">db_tools</span> <span class="k">as</span> <span class="n">dbt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sqlalchemy_url</span> <span class="o">=</span> <span class="n">dbt</span><span class="o">.</span><span class="n">init_sqlite_db</span><span class="p">(</span><span class="s">&#39;/path/to/tutorial-data/db/gsshapy_parkcity_all.db&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">all_session</span> <span class="o">=</span> <span class="n">dbt</span><span class="o">.</span><span class="n">create_session</span><span class="p">(</span><span class="n">sqlalchemy_url</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Instantiate a new <strong>ProjectFile</strong> object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gsshapy.orm</span> <span class="kn">import</span> <span class="n">ProjectFile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">readDirectory</span> <span class="o">=</span> <span class="s">&#39;/path/to/tutorial-data/directory&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;parkcity.prj&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">projectFileAll</span> <span class="o">=</span> <span class="n">ProjectFile</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">readDirectory</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="n">all_session</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Invoke the <tt class="docutils literal"><span class="pre">readProject()</span></tt> method to read all supported GSSHA input and output files into the
+database:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">projectFileAll</span><span class="o">.</span><span class="n">readProject</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>There <strong>ProjectFile</strong> has two other methods that can be used to read only input files or only output
+files: <tt class="docutils literal"><span class="pre">readInput()</span></tt> and <tt class="docutils literal"><span class="pre">readOutput</span></tt>, respectively.</p>
 </div>
 <div class="section" id="write-all-files">
 <h2>Write All Files<a class="headerlink" href="#write-all-files" title="Permalink to this headline">¶</a></h2>
+<p>Now that all of the files have been read into the database, we can write them back out to file. Retrieve
+the project file from the database and invoke the <tt class="docutils literal"><span class="pre">writeProject()</span></tt> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">projectFileAll1</span> <span class="o">=</span> <span class="n">all_session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ProjectFile</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ProjectFile</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">writeDirectory</span> <span class="o">=</span> <span class="s">&#39;/path/to/tutorial-data/directory/write&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;mymodel&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">projectFileAll1</span><span class="o">.</span><span class="n">writeProject</span><span class="p">(</span><span class="n">session</span><span class="o">=</span><span class="n">all_session</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="n">writeDirectory</span><span class="p">,</span> <span class="n">newName</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All of the files that were read into the database should be written to file in the <em>write</em> directory
+of the tutorial files. For the files the use the project name prefix for filename convention, the prefix
+has been changed to match the name supplied by the user.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Not all GSSHA files are supported in GsshaPy. Unsupported files may need to be added manually to the
+write directory for the GSSHA model to execute properly. In this case the name parameter of the write
+method must be the same as the orignial project name. Refer to <a class="reference internal" href="../support.html"><em>Files Supported</em></a> for a list of all the
+GSSHA files that are supported with this release of GsshaPy.</p>
+</div>
 </div>
 </div>
 
