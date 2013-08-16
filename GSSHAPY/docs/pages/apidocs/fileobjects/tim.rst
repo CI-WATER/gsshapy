@@ -18,12 +18,12 @@ Table Objects
 
 .. autoclass:: gsshapy.orm.TimeSeries
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.TimeSeries.__tablename__
 	
 .. autoclass:: gsshapy.orm.TimeSeriesValue
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.TimeSeriesValue.__tablename__

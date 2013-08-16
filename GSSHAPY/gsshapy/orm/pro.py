@@ -21,18 +21,17 @@ from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
 class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     __tablename__ = 'pro_projection_files'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
     # Value Columns
-    projection = Column(String, nullable=False)
+    projection = Column(String, nullable=False) #: STRING
     
     # Relationship Properites
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='projectionFile')
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='projectionFile') #: RELATIONSHIP
     
     # File Properties
     EXTENSION = 'pro'

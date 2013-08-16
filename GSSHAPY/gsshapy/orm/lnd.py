@@ -26,25 +26,24 @@ from gsshapy.lib import parsetools as pt
 
 class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     __tablename__ = 'lnd_link_node_dataset_files'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    projectFileID = Column(Integer, ForeignKey('prj_project_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    projectFileID = Column(Integer, ForeignKey('prj_project_files.id')) #: FK
     
     # Value Columns
-    fileExtension = Column(String, nullable=False)
-    name = Column(String, nullable=False)
-    numLinks = Column(Integer, nullable=False)
-    timeStep = Column(Integer, nullable=False)
-    numTimeSteps = Column(Integer, nullable=False)
-    startTime= Column(String, nullable=False)
+    fileExtension = Column(String, nullable=False) #: STRING
+    name = Column(String, nullable=False) #: STRING
+    numLinks = Column(Integer, nullable=False) #: INTEGER
+    timeStep = Column(Integer, nullable=False) #: INTEGER
+    numTimeSteps = Column(Integer, nullable=False) #: INTEGER
+    startTime= Column(String, nullable=False) #: STRING
     
     # Relationship Properites
-    projectFile = relationship('ProjectFile', back_populates='linkNodeDatasets')
-    timeSteps = relationship('TimeStep', back_populates='linkNodeDataset')
+    projectFile = relationship('ProjectFile', back_populates='linkNodeDatasets') #: RELATIONSHIP
+    timeSteps = relationship('TimeStep', back_populates='linkNodeDataset') #: RELATIONSHIP
     
     def __init__(self, directory, filename, session):
         '''
@@ -147,20 +146,19 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             
 class TimeStep(DeclarativeBase):
     '''
-    classdocs
     '''
     __tablename__ = 'lnd_time_steps'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    linkNodeDatasetFileID = Column(Integer, ForeignKey('lnd_link_node_dataset_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    linkNodeDatasetFileID = Column(Integer, ForeignKey('lnd_link_node_dataset_files.id')) #: FK
     
     # Value Columns
-    timeStep = Column(Integer, nullable=False)
+    timeStep = Column(Integer, nullable=False) #: INTEGER
     
     # Relationship Properites
-    linkNodeDataset = relationship('LinkNodeDatasetFile', back_populates='timeSteps')
-    linkNodeLines = relationship('LinkNodeLine', back_populates='timeStep')
+    linkNodeDataset = relationship('LinkNodeDatasetFile', back_populates='timeSteps') #: RELATIONSHIP
+    linkNodeLines = relationship('LinkNodeLine', back_populates='timeStep') #: RELATIONSHIP
     
     def __init__(self, timeStep):
         self.timeStep = timeStep
@@ -170,19 +168,19 @@ class TimeStep(DeclarativeBase):
 
 class LinkNodeLine(DeclarativeBase):
     '''
-    classdocs
+    
     '''
     __tablename__ = 'lnd_link_node_lines'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    timeStepID = Column(Integer, ForeignKey('lnd_time_steps.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    timeStepID = Column(Integer, ForeignKey('lnd_time_steps.id')) #: FK
     
     # Value Columns
-    value = Column(String, nullable=False)
+    value = Column(String, nullable=False) #: STRING
     
     # Relationship Properties
-    timeStep = relationship('TimeStep', back_populates='linkNodeLines')
+    timeStep = relationship('TimeStep', back_populates='linkNodeLines') #: RELATIONSHIP
     
     def __init__(self, value):
         self.value = value

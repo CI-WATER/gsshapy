@@ -23,16 +23,15 @@ from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
 class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     __tablename__ = 'hmet_files'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
     # Relationship Properties
-    hmetRecords = relationship('HmetRecord', back_populates='hmetFile')
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='hmetFile')
+    hmetRecords = relationship('HmetRecord', back_populates='hmetFile') #: RELATIONSHIP
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='hmetFile') #: RELATIONSHIP
     
     def __init__(self, directory, filename, session):
         '''
@@ -96,26 +95,25 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class HmetRecord(DeclarativeBase):
     '''
-    classdocs
     '''
     __tablename__ = 'hmet_records'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    hmetConfigID = Column(Integer, ForeignKey('hmet_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    hmetConfigID = Column(Integer, ForeignKey('hmet_files.id')) #: INTEGER
     
     # Value Columns
-    hmetDateTime = Column(DateTime, nullable=False)
-    barometricPress = Column(Float, nullable=False)
-    relHumidity = Column(Integer, nullable=False)
-    totalSkyCover = Column(Integer, nullable=False)
-    windSpeed = Column(Integer, nullable=False)
-    dryBulbTemp = Column(Integer, nullable=False)
-    directRad = Column(Float, nullable=False)
-    globalRad = Column(Float, nullable=False)
+    hmetDateTime = Column(DateTime, nullable=False) #: DATETIME
+    barometricPress = Column(Float, nullable=False) #: FLOAT
+    relHumidity = Column(Integer, nullable=False) #: INTEGER
+    totalSkyCover = Column(Integer, nullable=False) #: INTEGER
+    windSpeed = Column(Integer, nullable=False) #: INTEGER
+    dryBulbTemp = Column(Integer, nullable=False) #: INTEGER
+    directRad = Column(Float, nullable=False) #: FLOAT
+    globalRad = Column(Float, nullable=False) #: FLOAT
     
     # Relationship Properties
-    hmetFile = relationship('HmetFile', back_populates='hmetRecords')
+    hmetFile = relationship('HmetFile', back_populates='hmetRecords') #: RELATIONSHIP
     
     def __init__(self, hmetDateTime, barometricPress, relHumidity, totalSkyCover, windSpeed, dryBulbTemp, directRad, globalRad):
         '''

@@ -248,4 +248,4 @@ texinfo_documents = [
 #texinfo_no_detailmenu = False
 
 # Autodoc configuration
-# autodoc_member_order = 'bysource'
+autodoc_member_order = 'bysource'

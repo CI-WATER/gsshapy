@@ -22,19 +22,18 @@ from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
 class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     __tablename__ = 'rep_replace_param_files'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
     # Value Columns
-    numParameters = Column(Integer, nullable=False)
+    numParameters = Column(Integer, nullable=False) #: INTEGER
     
     # Relationship Properites
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='replaceParamFile')
-    targetParameters = relationship('TargetParameter', back_populates='replaceParamFile')
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='replaceParamFile') #: RELATIONSHIP
+    targetParameters = relationship('TargetParameter', back_populates='replaceParamFile') #: RELATIONSHIP
     
     def __init__(self, directory, filename, session):
         '''
@@ -76,20 +75,19 @@ class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
             
 class TargetParameter(DeclarativeBase):
     '''
-    classdocs
     '''
     __tablename__ = 'rep_target_parameter'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    replaceParamFileID = Column(Integer, ForeignKey('rep_replace_param_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    replaceParamFileID = Column(Integer, ForeignKey('rep_replace_param_files.id')) #: FK
     
     # Value Columns
-    targetVariable = Column(String, nullable=False)
-    varFormat = Column(String, nullable=False)
+    targetVariable = Column(String, nullable=False) #: STRING
+    varFormat = Column(String, nullable=False) #: STRING
     
     # Relationship Properites
-    replaceParamFile = relationship('ReplaceParamFile', back_populates='targetParameters')
+    replaceParamFile = relationship('ReplaceParamFile', back_populates='targetParameters') #: RELATIONSHIP
     
     def __init__(self, targetVariable, varFormat):
         self.targetVariable = targetVariable
@@ -100,18 +98,17 @@ class TargetParameter(DeclarativeBase):
 
 class ReplaceValFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     __tablename__ = 'rep_replace_val_files'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
     # Value Columns
-    values = Column(String, nullable=False)
+    values = Column(String, nullable=False) #: STRING
     
     # Relationship Properites
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='replaceValFile')
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='replaceValFile') #: RELATIONSHIP
     
     def __init__(self, directory, filename, session):
         '''

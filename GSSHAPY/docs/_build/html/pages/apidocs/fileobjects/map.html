@@ -62,11 +62,64 @@ table was created for index maps for easier implementation.</p>
 <dl class="class">
 <dt id="gsshapy.orm.IndexMap">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">IndexMap</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#gsshapy.orm.IndexMap" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.IndexMap.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'idx_index_maps'</em><a class="headerlink" href="#gsshapy.orm.IndexMap.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.mapTableFileID">
+<tt class="descname">mapTableFileID</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.mapTableFileID" title="Permalink to this definition">¶</a></dt>
+<dd><p>FK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.raster">
+<tt class="descname">raster</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.raster" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.mapTableFile">
+<tt class="descname">mapTableFile</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.mapTableFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.mapTables">
+<tt class="descname">mapTables</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.mapTables" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.indices">
+<tt class="descname">indices</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.contaminants">
+<tt class="descname">contaminants</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.contaminants" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.name">
+<tt class="descname">name</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.filename">
+<tt class="descname">filename</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="gsshapy.orm.IndexMap.read">
@@ -89,11 +142,40 @@ table was created for index maps for easier implementation.</p>
 <dl class="class">
 <dt id="gsshapy.orm.RasterMapFile">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">RasterMapFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.RasterMapFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.RasterMapFile.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'raster_maps'</em><a class="headerlink" href="#gsshapy.orm.RasterMapFile.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.RasterMapFile.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.RasterMapFile.projectFileID">
+<tt class="descname">projectFileID</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.projectFileID" title="Permalink to this definition">¶</a></dt>
+<dd><p>FK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.RasterMapFile.fileExtension">
+<tt class="descname">fileExtension</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.fileExtension" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.RasterMapFile.raster">
+<tt class="descname">raster</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.raster" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.RasterMapFile.projectFile">
+<tt class="descname">projectFile</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.projectFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="gsshapy.orm.RasterMapFile.read">

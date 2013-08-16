@@ -18,12 +18,12 @@ Table Objects
 
 .. autoclass:: gsshapy.orm.GridStreamCell
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.GridStreamCell.__tablename__
 	
 .. autoclass:: gsshapy.orm.GridStreamNode
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.GridStreamNode.__tablename__

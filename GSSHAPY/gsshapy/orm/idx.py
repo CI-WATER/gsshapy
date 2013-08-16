@@ -21,25 +21,24 @@ from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
 
 class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
-    """
-    classdocs
-    """
+    '''
+    '''
     __tablename__ = 'idx_index_maps'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id')) #: FK
     
     # Value Columns
-    name = Column(String, nullable=False)
-    filename = Column(String, nullable=False)
-    raster = Column(String)
+    name = Column(String, nullable=False) #: STRING
+    filename = Column(String, nullable=False) #: STRING
+    raster = Column(String) #: STRING
     
     # Relationship Properties
-    mapTableFile = relationship('MapTableFile', back_populates='indexMaps')
-    mapTables = relationship('MapTable', back_populates='indexMap')
-    indices = relationship('MTIndex', back_populates='indexMap')
-    contaminants = relationship('MTContaminant', back_populates='indexMap')
+    mapTableFile = relationship('MapTableFile', back_populates='indexMaps') #: RELATIONSHIP
+    mapTables = relationship('MapTable', back_populates='indexMap') #: RELATIONSHIP
+    indices = relationship('MTIndex', back_populates='indexMap') #: RELATIONSHIP
+    contaminants = relationship('MTContaminant', back_populates='indexMap') #: RELATIONSHIP
     
     # File Properties
     EXTENSION = 'idx'

@@ -24,19 +24,18 @@ from gsshapy.lib import parsetools as pt
 
 class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     __tablename__ = 'gpi_grid_pipe_files'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
     # Relationship Properties
-    gridPipeCells = relationship('GridPipeCell', back_populates='gridPipeFile')
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='gridPipeFile')
+    gridPipeCells = relationship('GridPipeCell', back_populates='gridPipeFile') #: RELATIONSHIP
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='gridPipeFile') #: RELATIONSHIP
     
     # Value Columns
-    pipeCells = Column(Integer, nullable=False)
+    pipeCells = Column(Integer, nullable=False) #: INTEGER
     
     # File Properties
     EXTENSION = 'gpi'    
@@ -164,23 +163,22 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
                 
 class GridPipeCell(DeclarativeBase):
     '''
-    classdocs
     '''
     __tablename__ = 'gpi_grid_pipe_cells'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    gridPipeFileID = Column(Integer, ForeignKey('gpi_grid_pipe_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    gridPipeFileID = Column(Integer, ForeignKey('gpi_grid_pipe_files.id')) #: FK
     
     # Value Columns
-    cellI = Column(Integer, nullable=False)
-    cellJ = Column(Integer, nullable=False)
-    numPipes = Column(Integer, nullable=False)
+    cellI = Column(Integer, nullable=False) #: INTEGER
+    cellJ = Column(Integer, nullable=False) #: INTEGER
+    numPipes = Column(Integer, nullable=False) #: INTEGER
     
     
     # Relationship Properties
-    gridPipeFile = relationship('GridPipeFile', back_populates='gridPipeCells')
-    gridPipeNodes = relationship('GridPipeNode', back_populates='gridPipeCell')
+    gridPipeFile = relationship('GridPipeFile', back_populates='gridPipeCells') #: RELATIONSHIP
+    gridPipeNodes = relationship('GridPipeNode', back_populates='gridPipeCell') #: RELATIONSHIP
     
     def __init__(self, cellI, cellJ, numPipes):
         '''
@@ -199,21 +197,20 @@ class GridPipeCell(DeclarativeBase):
         
 class GridPipeNode(DeclarativeBase):
     '''
-    classdocs
     '''
     __tablename__ = 'gpi_grid_pipe_nodes'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    gridPipeCellID = Column(Integer, ForeignKey('gpi_grid_pipe_cells.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    gridPipeCellID = Column(Integer, ForeignKey('gpi_grid_pipe_cells.id')) #: FK
     
     # Value Columns
-    linkNumber = Column(Integer, nullable=False)
-    nodeNumber = Column(Integer, nullable=False)
-    fractPipeLength = Column(Float, nullable=False)
+    linkNumber = Column(Integer, nullable=False) #: INTEGER
+    nodeNumber = Column(Integer, nullable=False) #: INTEGER
+    fractPipeLength = Column(Float, nullable=False) #: FLOAT
     
     # Relationship Properties
-    gridPipeCell = relationship('GridPipeCell', back_populates='gridPipeNodes')
+    gridPipeCell = relationship('GridPipeCell', back_populates='gridPipeNodes') #: RELATIONSHIP
     
     def __init__(self, linkNumber, nodeNumber, fractPipeLength):
         '''

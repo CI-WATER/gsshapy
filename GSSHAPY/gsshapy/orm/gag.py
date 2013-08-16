@@ -31,16 +31,15 @@ gag_assoc_event_gage = Table('gag_assoc_event_gage', DeclarativeBase.metadata,
 
 class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     __tablename__ = 'gag_precipitation_files'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
     # Relationship Properties
-    precipEvents = relationship('PrecipEvent', back_populates='precipFile')
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='precipFile')
+    precipEvents = relationship('PrecipEvent', back_populates='precipFile') #: RELATIONSHIP
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='precipFile') #: RELATIONSHIP
     
     # File Properties
     EXTENSION = 'gag'
@@ -178,23 +177,23 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
                 
 class PrecipEvent(DeclarativeBase):
     '''
-    classdocs
+    
     '''
     __tablename__ = 'gag_events'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    precipFileID = Column(Integer, ForeignKey('gag_precipitation_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    precipFileID = Column(Integer, ForeignKey('gag_precipitation_files.id')) #: FK
     
     # Value Columns
-    description = Column(String, nullable=False)
-    nrGag = Column(Integer, nullable=False)
-    nrPds = Column(Integer, nullable=False)
+    description = Column(String, nullable=False) #: STRING
+    nrGag = Column(Integer, nullable=False) #: INTEGER
+    nrPds = Column(Integer, nullable=False) #: INTEGER
     
     # Relationship Properties
-    values = relationship('PrecipValue', back_populates='event')
-    gages = relationship('PrecipGage', secondary=gag_assoc_event_gage, back_populates='event')
-    precipFile = relationship('PrecipFile', back_populates='precipEvents')
+    values = relationship('PrecipValue', back_populates='event') #: RELATIONSHIP
+    gages = relationship('PrecipGage', secondary=gag_assoc_event_gage, back_populates='event') #: RELATIONSHIP
+    precipFile = relationship('PrecipFile', back_populates='precipEvents') #: RELATIONSHIP
     
     def __init__(self, description, nrGag, nrPds):
         '''
@@ -212,23 +211,23 @@ class PrecipEvent(DeclarativeBase):
     
 class PrecipValue(DeclarativeBase):
     '''
-    classdocs
+    
     '''
     __tablename__ = 'gag_values'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    eventID = Column(Integer, ForeignKey('gag_events.id'))
-    coordID = Column(Integer, ForeignKey('gag_coord.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    eventID = Column(Integer, ForeignKey('gag_events.id')) #: FK
+    coordID = Column(Integer, ForeignKey('gag_coord.id')) #: FK
     
     # Value Columns
-    valueType = Column(String, nullable=False)
-    dateTime = Column(DateTime, nullable=False)
-    value = Column(Float, nullable=False)
+    valueType = Column(String, nullable=False) #: STRING
+    dateTime = Column(DateTime, nullable=False) #: DATETIME
+    value = Column(Float, nullable=False) #: FLOAT
     
     # Relationship Properties
-    event = relationship('PrecipEvent', back_populates='values')
-    gage = relationship('PrecipGage', back_populates='values')
+    event = relationship('PrecipEvent', back_populates='values') #: RELATIONSHIP
+    gage = relationship('PrecipGage', back_populates='values') #: RELATIONSHIP
 
     def __init__(self, valueType, dateTime, value):
         '''
@@ -246,22 +245,20 @@ class PrecipValue(DeclarativeBase):
     
 class PrecipGage(DeclarativeBase):
     '''
-    classdocs
     '''
     __tablename__ = 'gag_coord'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
     # Value Columns
-    description = Column(String)
-    x = Column(Float, nullable=False)
-    y = Column(Float, nullable=False)
+    description = Column(String) #: STRING
+    x = Column(Float, nullable=False) #: FLOAT
+    y = Column(Float, nullable=False) #: FLOAT
     
     # Relationship Properties
-    values = relationship('PrecipValue', back_populates='gage')
-    event = relationship('PrecipEvent', secondary=gag_assoc_event_gage, 
-                          uselist=False, back_populates='gages')
+    values = relationship('PrecipValue', back_populates='gage') #: RELATIONSHIP
+    event = relationship('PrecipEvent', secondary=gag_assoc_event_gage, uselist=False, back_populates='gages') #: RELATIONSHIP
     
     def __init__(self, description, x, y):
         '''

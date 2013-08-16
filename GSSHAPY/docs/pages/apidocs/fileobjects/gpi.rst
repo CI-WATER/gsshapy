@@ -18,12 +18,12 @@ Table Objects
 
 .. autoclass:: gsshapy.orm.GridPipeCell
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.GridPipeCell.__tablename__
 	
 .. autoclass:: gsshapy.orm.GridPipeNode
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.GridPipeNode.__tablename__

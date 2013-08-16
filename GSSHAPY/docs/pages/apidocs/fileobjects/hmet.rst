@@ -18,6 +18,6 @@ Table Objects
 
 .. autoclass:: gsshapy.orm.HmetRecord
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.HmetRecord.__tablename__

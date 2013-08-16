@@ -21,20 +21,19 @@ from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
 class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     __tablename__ = 'raster_maps'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    projectFileID = Column(Integer, ForeignKey('prj_project_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    projectFileID = Column(Integer, ForeignKey('prj_project_files.id')) #: FK
     
     # Value Columns
-    fileExtension = Column(String, nullable=False)
-    raster = Column(String, nullable=False)
+    fileExtension = Column(String, nullable=False) #: STRING
+    raster = Column(String, nullable=False) #: STRING
     
     # Relationship Properites
-    projectFile = relationship('ProjectFile', back_populates='maps')
+    projectFile = relationship('ProjectFile', back_populates='maps') #: RELATIONSHIP
     
     def __init__(self, directory, filename, session):
         '''

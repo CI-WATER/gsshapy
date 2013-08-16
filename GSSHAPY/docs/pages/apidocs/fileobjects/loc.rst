@@ -18,6 +18,6 @@ Table Objects
 
 .. autoclass:: gsshapy.orm.OutputLocation
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.OutputLocation.__tablename__

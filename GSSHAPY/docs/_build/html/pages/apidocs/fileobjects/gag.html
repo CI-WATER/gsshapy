@@ -60,11 +60,28 @@
 <dl class="class">
 <dt id="gsshapy.orm.PrecipFile">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">PrecipFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.PrecipFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.PrecipFile.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'gag_precipitation_files'</em><a class="headerlink" href="#gsshapy.orm.PrecipFile.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipFile.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.PrecipFile.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipFile.precipEvents">
+<tt class="descname">precipEvents</tt><a class="headerlink" href="#gsshapy.orm.PrecipFile.precipEvents" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipFile.projectFile">
+<tt class="descname">projectFile</tt><a class="headerlink" href="#gsshapy.orm.PrecipFile.projectFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="gsshapy.orm.PrecipFile.read">
@@ -85,143 +102,162 @@
 <dl class="class">
 <dt id="gsshapy.orm.PrecipEvent">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">PrecipEvent</tt><big>(</big><em>description</em>, <em>nrGag</em>, <em>nrPds</em><big>)</big><a class="headerlink" href="#gsshapy.orm.PrecipEvent" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.PrecipEvent.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'gag_events'</em><a class="headerlink" href="#gsshapy.orm.PrecipEvent.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="gsshapy.orm.PrecipEvent.description">
-<tt class="descname">description</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.description" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.PrecipEvent.gages">
-<tt class="descname">gages</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.gages" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
 <dt id="gsshapy.orm.PrecipEvent.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.id" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.PrecipEvent.nrGag">
-<tt class="descname">nrGag</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.nrGag" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.PrecipEvent.nrPds">
-<tt class="descname">nrPds</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.nrPds" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.PrecipEvent.precipFile">
-<tt class="descname">precipFile</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.precipFile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>PK</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.PrecipEvent.precipFileID">
 <tt class="descname">precipFileID</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.precipFileID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>FK</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.PrecipEvent.values">
 <tt class="descname">values</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.values" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.gages">
+<tt class="descname">gages</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.gages" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.precipFile">
+<tt class="descname">precipFile</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.precipFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.description">
+<tt class="descname">description</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.nrGag">
+<tt class="descname">nrGag</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.nrGag" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.nrPds">
+<tt class="descname">nrPds</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.nrPds" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="gsshapy.orm.PrecipValue">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">PrecipValue</tt><big>(</big><em>valueType</em>, <em>dateTime</em>, <em>value</em><big>)</big><a class="headerlink" href="#gsshapy.orm.PrecipValue" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.PrecipValue.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'gag_values'</em><a class="headerlink" href="#gsshapy.orm.PrecipValue.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="gsshapy.orm.PrecipValue.coordID">
-<tt class="descname">coordID</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.coordID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.PrecipValue.dateTime">
-<tt class="descname">dateTime</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.dateTime" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.PrecipValue.event">
-<tt class="descname">event</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.event" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="gsshapy.orm.PrecipValue.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.PrecipValue.eventID">
 <tt class="descname">eventID</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.eventID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>FK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipValue.coordID">
+<tt class="descname">coordID</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.coordID" title="Permalink to this definition">¶</a></dt>
+<dd><p>FK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipValue.event">
+<tt class="descname">event</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.event" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.PrecipValue.gage">
 <tt class="descname">gage</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.gage" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.PrecipValue.id">
-<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.id" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.PrecipValue.value">
-<tt class="descname">value</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.value" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.PrecipValue.valueType">
 <tt class="descname">valueType</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.valueType" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>STRING</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipValue.dateTime">
+<tt class="descname">dateTime</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.dateTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>DATETIME</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipValue.value">
+<tt class="descname">value</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="gsshapy.orm.PrecipGage">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">PrecipGage</tt><big>(</big><em>description</em>, <em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#gsshapy.orm.PrecipGage" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.PrecipGage.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'gag_coord'</em><a class="headerlink" href="#gsshapy.orm.PrecipGage.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="gsshapy.orm.PrecipGage.description">
-<tt class="descname">description</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.description" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.PrecipGage.event">
-<tt class="descname">event</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.event" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
 <dt id="gsshapy.orm.PrecipGage.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.id" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>PK</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.PrecipGage.values">
 <tt class="descname">values</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.values" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipGage.event">
+<tt class="descname">event</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.event" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipGage.description">
+<tt class="descname">description</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.PrecipGage.x">
 <tt class="descname">x</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.x" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>FLOAT</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.PrecipGage.y">
 <tt class="descname">y</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.y" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>FLOAT</p>
+</dd></dl>
 
 </dd></dl>
 

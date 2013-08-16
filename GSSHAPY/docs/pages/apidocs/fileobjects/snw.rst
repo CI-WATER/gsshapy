@@ -20,7 +20,7 @@ Table Objects
 
 .. autoclass:: gsshapy.orm.NwsrfsRecord
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.NwsrfsRecord.__tablename__
 	
@@ -42,6 +42,6 @@ Table Objects
 
 .. autoclass:: gsshapy.orm.OrthoMeasurement
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.OrthoMeasurement.__tablename__

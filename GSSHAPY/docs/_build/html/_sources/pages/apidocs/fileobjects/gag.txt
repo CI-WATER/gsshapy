@@ -18,19 +18,19 @@ Table Objects
 
 .. autoclass:: gsshapy.orm.PrecipEvent
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.PrecipEvent.__tablename__
 	
 .. autoclass:: gsshapy.orm.PrecipValue
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.PrecipValue.__tablename__
 	
 .. autoclass:: gsshapy.orm.PrecipGage
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.PrecipGage.__tablename__
 	

@@ -21,7 +21,6 @@ Table Objects
 
 .. autoclass:: gsshapy.orm.TargetParameter
 	:members:
-	:undoc-members:
 	
 	.. autoattribute:: gsshapy.orm.TargetParameter.__tablename__
 	
@@ -36,4 +35,3 @@ File extension: **None**
 	:inherited-members:
 	
 	.. autoattribute:: gsshapy.orm.ReplaceValFile.__tablename__
-	

@@ -23,19 +23,18 @@ from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
 class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     __tablename__ = 'gst_grid_stream_files'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
     # Value Columns
-    streamCells = Column(Integer, nullable=False)
+    streamCells = Column(Integer, nullable=False) #: INTEGER
     
     # Relationship Properties
-    gridStreamCells = relationship('GridStreamCell', back_populates='gridStreamFile')
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='gridStreamFile')
+    gridStreamCells = relationship('GridStreamCell', back_populates='gridStreamFile') #: RELATIONSHIP
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='gridStreamFile') #: RELATIONSHIP
 
     # File Properties
     EXTENSION = 'gst'
@@ -163,22 +162,21 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class GridStreamCell(DeclarativeBase):
     '''
-    classdocs
     '''
     __tablename__ = 'gst_grid_stream_cells'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    gridStreamFileID = Column(Integer, ForeignKey('gst_grid_stream_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    gridStreamFileID = Column(Integer, ForeignKey('gst_grid_stream_files.id')) #: FK
     
     # Value Columns
-    cellI = Column(Integer, nullable=False)
-    cellJ = Column(Integer, nullable=False)
-    numNodes = Column(Integer, nullable=False)
+    cellI = Column(Integer, nullable=False) #: INTEGER
+    cellJ = Column(Integer, nullable=False) #: INTEGER
+    numNodes = Column(Integer, nullable=False) #: INTEGER
     
     # Relationship Properties
-    gridStreamFile = relationship('GridStreamFile', back_populates='gridStreamCells')
-    gridStreamNodes = relationship('GridStreamNode', back_populates='gridStreamCell')
+    gridStreamFile = relationship('GridStreamFile', back_populates='gridStreamCells') #: RELATIONSHIP
+    gridStreamNodes = relationship('GridStreamNode', back_populates='gridStreamCell') #: RELATIONSHIP
     
     def __init__(self, cellI, cellJ, numNodes):
         '''
@@ -193,21 +191,20 @@ class GridStreamCell(DeclarativeBase):
     
 class GridStreamNode(DeclarativeBase):
     '''
-    classdocs
     '''
     __tablename__ = 'gst_grid_stream_nodes'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    gridStreamCellID = Column(Integer, ForeignKey('gst_grid_stream_cells.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    gridStreamCellID = Column(Integer, ForeignKey('gst_grid_stream_cells.id')) #: FK
     
     # Value Columns
-    linkNumber = Column(Integer, nullable=False)
-    nodeNumber = Column(Integer, nullable=False)
-    nodePercentGrid = Column(Float, nullable=False)
+    linkNumber = Column(Integer, nullable=False) #: INTEGER
+    nodeNumber = Column(Integer, nullable=False) #: INTEGER
+    nodePercentGrid = Column(Float, nullable=False) #: FLOAT
     
     # Relationship Properties
-    gridStreamCell = relationship('GridStreamCell', back_populates='gridStreamNodes')
+    gridStreamCell = relationship('GridStreamCell', back_populates='gridStreamNodes') #: RELATIONSHIP
     
     def __init__(self, linkNumber, nodeNumber, nodePercentGrid):
         '''

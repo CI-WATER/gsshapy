@@ -18,6 +18,5 @@ Table Objects
 
 .. autoclass:: gsshapy.orm.ProjectCard
 	:members:
-	:undoc-members:
 	
 	.. autoattribute:: gsshapy.orm.ProjectCard.__tablename__

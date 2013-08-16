@@ -62,11 +62,34 @@ functionality in GSSHA models.</p>
 <dl class="class">
 <dt id="gsshapy.orm.ReplaceParamFile">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">ReplaceParamFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ReplaceParamFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.ReplaceParamFile.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'rep_replace_param_files'</em><a class="headerlink" href="#gsshapy.orm.ReplaceParamFile.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ReplaceParamFile.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.ReplaceParamFile.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ReplaceParamFile.numParameters">
+<tt class="descname">numParameters</tt><a class="headerlink" href="#gsshapy.orm.ReplaceParamFile.numParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ReplaceParamFile.projectFile">
+<tt class="descname">projectFile</tt><a class="headerlink" href="#gsshapy.orm.ReplaceParamFile.projectFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ReplaceParamFile.targetParameters">
+<tt class="descname">targetParameters</tt><a class="headerlink" href="#gsshapy.orm.ReplaceParamFile.targetParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="gsshapy.orm.ReplaceParamFile.read">
@@ -87,8 +110,7 @@ functionality in GSSHA models.</p>
 <dl class="class">
 <dt id="gsshapy.orm.TargetParameter">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">TargetParameter</tt><big>(</big><em>targetVariable</em>, <em>varFormat</em><big>)</big><a class="headerlink" href="#gsshapy.orm.TargetParameter" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.TargetParameter.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'rep_target_parameter'</em><a class="headerlink" href="#gsshapy.orm.TargetParameter.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -96,27 +118,32 @@ functionality in GSSHA models.</p>
 <dl class="attribute">
 <dt id="gsshapy.orm.TargetParameter.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.TargetParameter.id" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.TargetParameter.replaceParamFile">
-<tt class="descname">replaceParamFile</tt><a class="headerlink" href="#gsshapy.orm.TargetParameter.replaceParamFile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>PK</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.TargetParameter.replaceParamFileID">
 <tt class="descname">replaceParamFileID</tt><a class="headerlink" href="#gsshapy.orm.TargetParameter.replaceParamFileID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>FK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.TargetParameter.replaceParamFile">
+<tt class="descname">replaceParamFile</tt><a class="headerlink" href="#gsshapy.orm.TargetParameter.replaceParamFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.TargetParameter.targetVariable">
 <tt class="descname">targetVariable</tt><a class="headerlink" href="#gsshapy.orm.TargetParameter.targetVariable" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>STRING</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.TargetParameter.varFormat">
 <tt class="descname">varFormat</tt><a class="headerlink" href="#gsshapy.orm.TargetParameter.varFormat" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>STRING</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -128,11 +155,28 @@ functionality in GSSHA models.</p>
 <dl class="class">
 <dt id="gsshapy.orm.ReplaceValFile">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">ReplaceValFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ReplaceValFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.ReplaceValFile.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'rep_replace_val_files'</em><a class="headerlink" href="#gsshapy.orm.ReplaceValFile.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ReplaceValFile.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.ReplaceValFile.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ReplaceValFile.values">
+<tt class="descname">values</tt><a class="headerlink" href="#gsshapy.orm.ReplaceValFile.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ReplaceValFile.projectFile">
+<tt class="descname">projectFile</tt><a class="headerlink" href="#gsshapy.orm.ReplaceValFile.projectFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="gsshapy.orm.ReplaceValFile.read">

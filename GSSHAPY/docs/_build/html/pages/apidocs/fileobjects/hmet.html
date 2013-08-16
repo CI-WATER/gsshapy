@@ -60,11 +60,28 @@
 <dl class="class">
 <dt id="gsshapy.orm.HmetFile">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">HmetFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.HmetFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.HmetFile.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'hmet_files'</em><a class="headerlink" href="#gsshapy.orm.HmetFile.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.HmetFile.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.HmetFile.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.HmetFile.hmetRecords">
+<tt class="descname">hmetRecords</tt><a class="headerlink" href="#gsshapy.orm.HmetFile.hmetRecords" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.HmetFile.projectFile">
+<tt class="descname">projectFile</tt><a class="headerlink" href="#gsshapy.orm.HmetFile.projectFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="gsshapy.orm.HmetFile.read">
@@ -85,66 +102,76 @@
 <dl class="class">
 <dt id="gsshapy.orm.HmetRecord">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">HmetRecord</tt><big>(</big><em>hmetDateTime</em>, <em>barometricPress</em>, <em>relHumidity</em>, <em>totalSkyCover</em>, <em>windSpeed</em>, <em>dryBulbTemp</em>, <em>directRad</em>, <em>globalRad</em><big>)</big><a class="headerlink" href="#gsshapy.orm.HmetRecord" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.HmetRecord.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'hmet_records'</em><a class="headerlink" href="#gsshapy.orm.HmetRecord.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="gsshapy.orm.HmetRecord.barometricPress">
-<tt class="descname">barometricPress</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.barometricPress" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.HmetRecord.directRad">
-<tt class="descname">directRad</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.directRad" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.HmetRecord.dryBulbTemp">
-<tt class="descname">dryBulbTemp</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.dryBulbTemp" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.HmetRecord.globalRad">
-<tt class="descname">globalRad</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.globalRad" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="gsshapy.orm.HmetRecord.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.HmetRecord.hmetConfigID">
 <tt class="descname">hmetConfigID</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.hmetConfigID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.HmetRecord.hmetDateTime">
-<tt class="descname">hmetDateTime</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.hmetDateTime" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>INTEGER</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.HmetRecord.hmetFile">
 <tt class="descname">hmetFile</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.hmetFile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="attribute">
-<dt id="gsshapy.orm.HmetRecord.id">
-<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.id" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="gsshapy.orm.HmetRecord.hmetDateTime">
+<tt class="descname">hmetDateTime</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.hmetDateTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>DATETIME</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.HmetRecord.barometricPress">
+<tt class="descname">barometricPress</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.barometricPress" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.HmetRecord.relHumidity">
 <tt class="descname">relHumidity</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.relHumidity" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>INTEGER</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.HmetRecord.totalSkyCover">
 <tt class="descname">totalSkyCover</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.totalSkyCover" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>INTEGER</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.HmetRecord.windSpeed">
 <tt class="descname">windSpeed</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.windSpeed" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.HmetRecord.dryBulbTemp">
+<tt class="descname">dryBulbTemp</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.dryBulbTemp" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.HmetRecord.directRad">
+<tt class="descname">directRad</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.directRad" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.HmetRecord.globalRad">
+<tt class="descname">globalRad</tt><a class="headerlink" href="#gsshapy.orm.HmetRecord.globalRad" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
 
 </dd></dl>
 

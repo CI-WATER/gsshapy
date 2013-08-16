@@ -60,11 +60,46 @@
 <dl class="class">
 <dt id="gsshapy.orm.OutputLocationFile">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">OutputLocationFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.OutputLocationFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.OutputLocationFile.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'loc_output_location_files'</em><a class="headerlink" href="#gsshapy.orm.OutputLocationFile.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OutputLocationFile.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.OutputLocationFile.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OutputLocationFile.projectFileID">
+<tt class="descname">projectFileID</tt><a class="headerlink" href="#gsshapy.orm.OutputLocationFile.projectFileID" title="Permalink to this definition">¶</a></dt>
+<dd><p>FK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OutputLocationFile.fileExtension">
+<tt class="descname">fileExtension</tt><a class="headerlink" href="#gsshapy.orm.OutputLocationFile.fileExtension" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OutputLocationFile.numLocations">
+<tt class="descname">numLocations</tt><a class="headerlink" href="#gsshapy.orm.OutputLocationFile.numLocations" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OutputLocationFile.projectFile">
+<tt class="descname">projectFile</tt><a class="headerlink" href="#gsshapy.orm.OutputLocationFile.projectFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OutputLocationFile.outputLocations">
+<tt class="descname">outputLocations</tt><a class="headerlink" href="#gsshapy.orm.OutputLocationFile.outputLocations" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="gsshapy.orm.OutputLocationFile.read">
@@ -85,8 +120,7 @@
 <dl class="class">
 <dt id="gsshapy.orm.OutputLocation">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">OutputLocation</tt><big>(</big><em>linkOrCellI</em>, <em>nodeOrCellJ</em><big>)</big><a class="headerlink" href="#gsshapy.orm.OutputLocation" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.OutputLocation.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'loc_output_locations'</em><a class="headerlink" href="#gsshapy.orm.OutputLocation.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -94,27 +128,32 @@
 <dl class="attribute">
 <dt id="gsshapy.orm.OutputLocation.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.OutputLocation.id" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.OutputLocation.linkOrCellI">
-<tt class="descname">linkOrCellI</tt><a class="headerlink" href="#gsshapy.orm.OutputLocation.linkOrCellI" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.OutputLocation.nodeOrCellJ">
-<tt class="descname">nodeOrCellJ</tt><a class="headerlink" href="#gsshapy.orm.OutputLocation.nodeOrCellJ" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.OutputLocation.outputLocationFile">
-<tt class="descname">outputLocationFile</tt><a class="headerlink" href="#gsshapy.orm.OutputLocation.outputLocationFile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>PK</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.OutputLocation.outputLocationFileID">
 <tt class="descname">outputLocationFileID</tt><a class="headerlink" href="#gsshapy.orm.OutputLocation.outputLocationFileID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>FK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OutputLocation.outputLocationFile">
+<tt class="descname">outputLocationFile</tt><a class="headerlink" href="#gsshapy.orm.OutputLocation.outputLocationFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OutputLocation.linkOrCellI">
+<tt class="descname">linkOrCellI</tt><a class="headerlink" href="#gsshapy.orm.OutputLocation.linkOrCellI" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OutputLocation.nodeOrCellJ">
+<tt class="descname">nodeOrCellJ</tt><a class="headerlink" href="#gsshapy.orm.OutputLocation.nodeOrCellJ" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
 
 </dd></dl>
 

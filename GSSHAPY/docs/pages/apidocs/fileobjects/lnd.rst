@@ -18,12 +18,12 @@ Table Objects
 
 .. autoclass:: gsshapy.orm.TimeStep
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.GridStreamCell.__tablename__
 	
 .. autoclass:: gsshapy.orm.LinkNodeLine
 	:members:
-	:undoc-members:
+	
 	
 	.. autoattribute:: gsshapy.orm.GridStreamNode.__tablename__

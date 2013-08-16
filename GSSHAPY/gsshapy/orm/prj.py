@@ -23,49 +23,48 @@ from gsshapy.orm.file_io import *
 
 class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    ProjectFile is the file ORM object that interfaces with the project files directly.
     '''
     __tablename__ = 'prj_project_files'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    precipFileID = Column(Integer, ForeignKey('gag_precipitation_files.id'))
-    mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
-    channelInputFileID = Column(Integer, ForeignKey('cif_channel_input_files.id'))
-    stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id'))
-    hmetFileID = Column(Integer, ForeignKey('hmet_files.id'))
-    nwsrfsFileID = Column(Integer, ForeignKey('snw_nwsrfs_files.id'))
-    orthoGageFileID = Column(Integer, ForeignKey('snw_orthographic_gage_files.id'))
-    gridPipeFileID = Column(Integer, ForeignKey('gpi_grid_pipe_files.id'))
-    gridStreamFileID = Column(Integer, ForeignKey('gst_grid_stream_files.id'))
-    projectionFileID = Column(Integer, ForeignKey('pro_projection_files.id'))
-    replaceParamFileID = Column(Integer, ForeignKey('rep_replace_param_files.id'))
-    replaceValFileID = Column(Integer, ForeignKey('rep_replace_val_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    precipFileID = Column(Integer, ForeignKey('gag_precipitation_files.id')) #: FK
+    mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id')) #: FK
+    channelInputFileID = Column(Integer, ForeignKey('cif_channel_input_files.id')) #: FK
+    stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id')) #: FK
+    hmetFileID = Column(Integer, ForeignKey('hmet_files.id')) #: FK
+    nwsrfsFileID = Column(Integer, ForeignKey('snw_nwsrfs_files.id')) #: FK
+    orthoGageFileID = Column(Integer, ForeignKey('snw_orthographic_gage_files.id')) #: FK
+    gridPipeFileID = Column(Integer, ForeignKey('gpi_grid_pipe_files.id')) #: FK
+    gridStreamFileID = Column(Integer, ForeignKey('gst_grid_stream_files.id')) #: FK
+    projectionFileID = Column(Integer, ForeignKey('pro_projection_files.id')) #: FK
+    replaceParamFileID = Column(Integer, ForeignKey('rep_replace_param_files.id')) #: FK
+    replaceValFileID = Column(Integer, ForeignKey('rep_replace_val_files.id')) #: FK
     
     # Value Columns
-    name = Column(String, nullable=False)
-    mapType = Column(Integer, nullable=False)
+    name = Column(String, nullable=False) #: STRING
+    mapType = Column(Integer, nullable=False) #: INTEGER
     
     # Relationship Properties
-    projectCards = relationship('ProjectCard', back_populates='projectFile')
+    projectCards = relationship('ProjectCard', back_populates='projectFile') #: RELATIONSHIP
     
     # File Relationship Properties
-    mapTableFile = relationship('MapTableFile', back_populates='projectFile')
-    channelInputFile = relationship('ChannelInputFile', back_populates='projectFile')
-    precipFile = relationship('PrecipFile', back_populates='projectFile')
-    stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='projectFile')
-    hmetFile = relationship('HmetFile', back_populates='projectFile')
-    nwsrfsFile = relationship('NwsrfsFile', back_populates='projectFile')
-    orthoGageFile = relationship('OrthographicGageFile', back_populates='projectFile')
-    gridPipeFile = relationship('GridPipeFile', back_populates='projectFile')
-    gridStreamFile = relationship('GridStreamFile', back_populates='projectFile')
-    timeSeriesFiles = relationship('TimeSeriesFile', back_populates='projectFile')
-    projectionFile = relationship('ProjectionFile', back_populates='projectFile')
-    replaceParamFile = relationship('ReplaceParamFile', back_populates='projectFile')
-    replaceValFile = relationship('ReplaceValFile', back_populates='projectFile')
-    outputLocationFiles = relationship('OutputLocationFile', back_populates='projectFile')
-    maps = relationship('RasterMapFile', back_populates='projectFile')
-    linkNodeDatasets = relationship('LinkNodeDatasetFile', back_populates='projectFile')
+    mapTableFile = relationship('MapTableFile', back_populates='projectFile') #: RELATIONSHIP
+    channelInputFile = relationship('ChannelInputFile', back_populates='projectFile') #: RELATIONSHIP
+    precipFile = relationship('PrecipFile', back_populates='projectFile') #: RELATIONSHIP
+    stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='projectFile') #: RELATIONSHIP
+    hmetFile = relationship('HmetFile', back_populates='projectFile') #: RELATIONSHIP
+    nwsrfsFile = relationship('NwsrfsFile', back_populates='projectFile') #: RELATIONSHIP
+    orthoGageFile = relationship('OrthographicGageFile', back_populates='projectFile') #: RELATIONSHIP
+    gridPipeFile = relationship('GridPipeFile', back_populates='projectFile') #: RELATIONSHIP
+    gridStreamFile = relationship('GridStreamFile', back_populates='projectFile') #: RELATIONSHIP
+    timeSeriesFiles = relationship('TimeSeriesFile', back_populates='projectFile') #: RELATIONSHIP
+    projectionFile = relationship('ProjectionFile', back_populates='projectFile') #: RELATIONSHIP
+    replaceParamFile = relationship('ReplaceParamFile', back_populates='projectFile') #: RELATIONSHIP
+    replaceValFile = relationship('ReplaceValFile', back_populates='projectFile') #: RELATIONSHIP
+    outputLocationFiles = relationship('OutputLocationFile', back_populates='projectFile') #: RELATIONSHIP
+    maps = relationship('RasterMapFile', back_populates='projectFile') #: RELATIONSHIP
+    linkNodeDatasets = relationship('LinkNodeDatasetFile', back_populates='projectFile') #: RELATIONSHIP
     
     # File Properties
     EXTENSION = 'prj'
@@ -678,20 +677,19 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     
 class ProjectCard(DeclarativeBase):
     '''
-    classdocs
     '''
     __tablename__ = 'prj_project_cards'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    projectFileID = Column(Integer, ForeignKey('prj_project_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    projectFileID = Column(Integer, ForeignKey('prj_project_files.id')) #: FK
     
     # Value Columns
-    name = Column(String, nullable=False)
-    value = Column(String)
+    name = Column(String, nullable=False) #: STRING
+    value = Column(String) #: STRING
     
     # Relationship Properties
-    projectFile = relationship('ProjectFile', back_populates='projectCards')
+    projectFile = relationship('ProjectFile', back_populates='projectCards') #: RELATIONSHIP
     
     def __init__(self, name, value):
         '''

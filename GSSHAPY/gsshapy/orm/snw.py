@@ -24,19 +24,18 @@ from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
 class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     __tablename__ = 'snw_nwsrfs_files'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
     # Value Columns
-    numBands = Column(Integer, nullable=False)
+    numBands = Column(Integer, nullable=False) #: INTEGER
     
     # Relationship Properties
-    nwsrfsRecords = relationship('NwsrfsRecord', back_populates='nwsrfsFile')
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='nwsrfsFile')
+    nwsrfsRecords = relationship('NwsrfsRecord', back_populates='nwsrfsFile') #: RELATIONSHIP
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='nwsrfsFile') #: RELATIONSHIP
     
     def __init__(self, directory, filename, session):
         '''
@@ -112,28 +111,27 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
     
 class NwsrfsRecord(DeclarativeBase):
     '''
-    classdocs
     '''
     __tablename__ = 'snw_nwsrfs_records'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    nwsrfsFileID = Column(Integer, ForeignKey('snw_nwsrfs_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    nwsrfsFileID = Column(Integer, ForeignKey('snw_nwsrfs_files.id')) #: FK
     
     # Value Columns
-    lowerElev = Column(Integer, nullable=False)
-    upperElev = Column(Integer, nullable=False)
-    mfMin = Column(Float, nullable=False)
-    mfMax = Column(Float, nullable=False)
-    scf = Column(Float, nullable=False)
-    frUse = Column(Float, nullable=False)
-    tipm = Column(Float, nullable=False)
-    nmf = Column(Float, nullable=False)
-    fua = Column(Float, nullable=False)
-    plwhc = Column(Float, nullable=False)
+    lowerElev = Column(Integer, nullable=False) #: INTEGER
+    upperElev = Column(Integer, nullable=False) #: INTEGER
+    mfMin = Column(Float, nullable=False) #: FLOAT
+    mfMax = Column(Float, nullable=False) #: FLOAT
+    scf = Column(Float, nullable=False) #: FLOAT
+    frUse = Column(Float, nullable=False) #: FLOAT
+    tipm = Column(Float, nullable=False) #: FLOAT
+    nmf = Column(Float, nullable=False) #: FLOAT
+    fua = Column(Float, nullable=False) #: FLOAT
+    plwhc = Column(Float, nullable=False) #: FLOAT
     
     # Relationship Properties
-    nwsrfsFile = relationship('NwsrfsFile', back_populates='nwsrfsRecords')
+    nwsrfsFile = relationship('NwsrfsFile', back_populates='nwsrfsRecords') #: RELATIONSHIP
     
     def __init__(self, lowerElev, upperElev, mfMin, mfMax, scf, frUse, tipm, nmf, fua, plwhc):
         '''
@@ -166,21 +164,20 @@ class NwsrfsRecord(DeclarativeBase):
 
 class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     __tablename__ = 'snw_orthographic_gage_files'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)    
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
     # Value Columns
-    numSites = Column(Integer, nullable=False)
-    elevBase = Column(Float, nullable=False)
-    elev2 = Column(Float, nullable=False)
+    numSites = Column(Integer, nullable=False) #: INTEGER
+    elevBase = Column(Float, nullable=False) #: FLOAT
+    elev2 = Column(Float, nullable=False) #: FLOAT
     
     # Relationship Properties
-    orthoMeasurements = relationship('OrthoMeasurement', back_populates='orthoGageFile')
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='orthoGageFile')
+    orthoMeasurements = relationship('OrthoMeasurement', back_populates='orthoGageFile') #: RELATIONSHIP
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='orthoGageFile') #: RELATIONSHIP
     
     def __init__(self, directory, filename, session):
         '''
@@ -250,20 +247,19 @@ class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
     
 class OrthoMeasurement(DeclarativeBase):
     '''
-    classdocs
     '''
     __tablename__ = 'snw_orthographic_measurements'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    orthoGageID = Column(Integer, ForeignKey('snw_orthographic_gage_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    orthoGageID = Column(Integer, ForeignKey('snw_orthographic_gage_files.id')) #: FK
     
     # Value Columns
-    dateTime = Column(DateTime, nullable=False)
-    temp2 = Column(Float, nullable=False)
+    dateTime = Column(DateTime, nullable=False) #: DATETIME
+    temp2 = Column(Float, nullable=False) #: FLOAT
     
     # Relationship Properties
-    orthoGageFile = relationship('OrthographicGageFile', back_populates='orthoMeasurements')
+    orthoGageFile = relationship('OrthographicGageFile', back_populates='orthoMeasurements') #: RELATIONSHIP
     
     
     def __init__(self, dateTime, temp2):

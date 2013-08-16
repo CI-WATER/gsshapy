@@ -60,11 +60,34 @@
 <dl class="class">
 <dt id="gsshapy.orm.GridStreamFile">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">GridStreamFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.GridStreamFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.GridStreamFile.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'gst_grid_stream_files'</em><a class="headerlink" href="#gsshapy.orm.GridStreamFile.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamFile.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.GridStreamFile.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamFile.streamCells">
+<tt class="descname">streamCells</tt><a class="headerlink" href="#gsshapy.orm.GridStreamFile.streamCells" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamFile.gridStreamCells">
+<tt class="descname">gridStreamCells</tt><a class="headerlink" href="#gsshapy.orm.GridStreamFile.gridStreamCells" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamFile.projectFile">
+<tt class="descname">projectFile</tt><a class="headerlink" href="#gsshapy.orm.GridStreamFile.projectFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="gsshapy.orm.GridStreamFile.read">
@@ -85,87 +108,98 @@
 <dl class="class">
 <dt id="gsshapy.orm.GridStreamCell">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">GridStreamCell</tt><big>(</big><em>cellI</em>, <em>cellJ</em>, <em>numNodes</em><big>)</big><a class="headerlink" href="#gsshapy.orm.GridStreamCell" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.GridStreamCell.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'gst_grid_stream_cells'</em><a class="headerlink" href="#gsshapy.orm.GridStreamCell.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="gsshapy.orm.GridStreamCell.cellI">
-<tt class="descname">cellI</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.cellI" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.GridStreamCell.cellJ">
-<tt class="descname">cellJ</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.cellJ" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gsshapy.orm.GridStreamCell.gridStreamFile">
-<tt class="descname">gridStreamFile</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.gridStreamFile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="gsshapy.orm.GridStreamCell.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.GridStreamCell.gridStreamFileID">
 <tt class="descname">gridStreamFileID</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.gridStreamFileID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>FK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamCell.gridStreamFile">
+<tt class="descname">gridStreamFile</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.gridStreamFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.GridStreamCell.gridStreamNodes">
 <tt class="descname">gridStreamNodes</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.gridStreamNodes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="attribute">
-<dt id="gsshapy.orm.GridStreamCell.id">
-<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.id" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="gsshapy.orm.GridStreamCell.cellI">
+<tt class="descname">cellI</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.cellI" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamCell.cellJ">
+<tt class="descname">cellJ</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.cellJ" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.GridStreamCell.numNodes">
 <tt class="descname">numNodes</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.numNodes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>INTEGER</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="gsshapy.orm.GridStreamNode">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">GridStreamNode</tt><big>(</big><em>linkNumber</em>, <em>nodeNumber</em>, <em>nodePercentGrid</em><big>)</big><a class="headerlink" href="#gsshapy.orm.GridStreamNode" title="Permalink to this definition">¶</a></dt>
-<dd><p>classdocs</p>
-<dl class="attribute">
+<dd><dl class="attribute">
 <dt id="gsshapy.orm.GridStreamNode.__tablename__">
 <tt class="descname">__tablename__</tt><em class="property"> = 'gst_grid_stream_nodes'</em><a class="headerlink" href="#gsshapy.orm.GridStreamNode.__tablename__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="gsshapy.orm.GridStreamNode.gridStreamCell">
-<tt class="descname">gridStreamCell</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.gridStreamCell" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="gsshapy.orm.GridStreamNode.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.GridStreamNode.gridStreamCellID">
 <tt class="descname">gridStreamCellID</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.gridStreamCellID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>FK</p>
+</dd></dl>
 
 <dl class="attribute">
-<dt id="gsshapy.orm.GridStreamNode.id">
-<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.id" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="gsshapy.orm.GridStreamNode.gridStreamCell">
+<tt class="descname">gridStreamCell</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.gridStreamCell" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.GridStreamNode.linkNumber">
 <tt class="descname">linkNumber</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.linkNumber" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>INTEGER</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.GridStreamNode.nodeNumber">
 <tt class="descname">nodeNumber</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.nodeNumber" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>INTEGER</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="gsshapy.orm.GridStreamNode.nodePercentGrid">
 <tt class="descname">nodePercentGrid</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.nodePercentGrid" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>FLOAT</p>
+</dd></dl>
 
 </dd></dl>
 
