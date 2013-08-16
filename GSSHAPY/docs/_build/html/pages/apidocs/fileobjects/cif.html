@@ -1,0 +1,740 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Channel Input File &mdash; GSSHAPY 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../../../index.html" />
+    <link rel="up" title="API Documentation" href="../api.html" />
+    <link rel="next" title="Mapping Table File" href="cmt.html" />
+    <link rel="prev" title="Project File" href="prj.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="cmt.html" title="Mapping Table File"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="prj.html" title="Project File"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../api.html" accesskey="U">API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="channel-input-file">
+<h1>Channel Input File<a class="headerlink" href="#channel-input-file" title="Permalink to this headline">¶</a></h1>
+<p>File extension: <strong>cif</strong></p>
+<div class="section" id="file-object">
+<h2>File Object<a class="headerlink" href="#file-object" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gsshapy.orm.ChannelInputFile">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">ChannelInputFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em>, <em>alpha=None</em>, <em>beta=None</em>, <em>theta=None</em>, <em>links=None</em>, <em>maxNodes=None</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ChannelInputFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Channel Input File</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.ChannelInputFile.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'cif_channel_input_files'</em><a class="headerlink" href="#gsshapy.orm.ChannelInputFile.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.ChannelInputFile.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.ChannelInputFile.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Front Facing Read from File Method</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.ChannelInputFile.write">
+<tt class="descname">write</tt><big>(</big><em>session</em>, <em>directory</em>, <em>name</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ChannelInputFile.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Front Facing Write to File Method</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="table-objects">
+<h3>Table Objects<a class="headerlink" href="#table-objects" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="gsshapy.orm.StreamLink">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">StreamLink</tt><big>(</big><em>linkNumber</em>, <em>type</em>, <em>numElements</em>, <em>dx=None</em>, <em>erode=False</em>, <em>subsurface=False</em><big>)</big><a class="headerlink" href="#gsshapy.orm.StreamLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'cif_links'</em><a class="headerlink" href="#gsshapy.orm.StreamLink.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.breakpointCS">
+<tt class="descname">breakpointCS</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.breakpointCS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.channelInputFile">
+<tt class="descname">channelInputFile</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.channelInputFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.channelInputFileID">
+<tt class="descname">channelInputFileID</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.channelInputFileID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.culverts">
+<tt class="descname">culverts</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.culverts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.downstreamLinkID">
+<tt class="descname">downstreamLinkID</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.downstreamLinkID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.dx">
+<tt class="descname">dx</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.dx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.erode">
+<tt class="descname">erode</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.erode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.linkNumber">
+<tt class="descname">linkNumber</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.linkNumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.nodes">
+<tt class="descname">nodes</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.nodes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.numElements">
+<tt class="descname">numElements</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.numElements" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.numUpstreamLinks">
+<tt class="descname">numUpstreamLinks</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.numUpstreamLinks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.reservoir">
+<tt class="descname">reservoir</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.reservoir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.subsurface">
+<tt class="descname">subsurface</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.subsurface" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.trapezoidalCS">
+<tt class="descname">trapezoidalCS</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.trapezoidalCS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.type">
+<tt class="descname">type</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.upstreamLinks">
+<tt class="descname">upstreamLinks</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.upstreamLinks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.weirs">
+<tt class="descname">weirs</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.weirs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gsshapy.orm.StreamNode">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">StreamNode</tt><big>(</big><em>nodeNumber</em>, <em>x</em>, <em>y</em>, <em>elevation</em><big>)</big><a class="headerlink" href="#gsshapy.orm.StreamNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamNode.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'cif_nodes'</em><a class="headerlink" href="#gsshapy.orm.StreamNode.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamNode.elevation">
+<tt class="descname">elevation</tt><a class="headerlink" href="#gsshapy.orm.StreamNode.elevation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamNode.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.StreamNode.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamNode.linkID">
+<tt class="descname">linkID</tt><a class="headerlink" href="#gsshapy.orm.StreamNode.linkID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamNode.nodeNumber">
+<tt class="descname">nodeNumber</tt><a class="headerlink" href="#gsshapy.orm.StreamNode.nodeNumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamNode.streamLink">
+<tt class="descname">streamLink</tt><a class="headerlink" href="#gsshapy.orm.StreamNode.streamLink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamNode.x">
+<tt class="descname">x</tt><a class="headerlink" href="#gsshapy.orm.StreamNode.x" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamNode.y">
+<tt class="descname">y</tt><a class="headerlink" href="#gsshapy.orm.StreamNode.y" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gsshapy.orm.UpstreamLink">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">UpstreamLink</tt><big>(</big><em>upstreamLinkID</em><big>)</big><a class="headerlink" href="#gsshapy.orm.UpstreamLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.UpstreamLink.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'cif_upstream_links'</em><a class="headerlink" href="#gsshapy.orm.UpstreamLink.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.UpstreamLink.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.UpstreamLink.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.UpstreamLink.linkID">
+<tt class="descname">linkID</tt><a class="headerlink" href="#gsshapy.orm.UpstreamLink.linkID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.UpstreamLink.streamLink">
+<tt class="descname">streamLink</tt><a class="headerlink" href="#gsshapy.orm.UpstreamLink.streamLink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.UpstreamLink.upstreamLinkID">
+<tt class="descname">upstreamLinkID</tt><a class="headerlink" href="#gsshapy.orm.UpstreamLink.upstreamLinkID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gsshapy.orm.Weir">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">Weir</tt><big>(</big><em>type</em>, <em>crestLength</em>, <em>crestLowElevation</em>, <em>dischargeCoeffForward</em>, <em>dischargeCoeffReverse</em>, <em>crestLowLocation</em>, <em>steepSlope</em>, <em>shallowSlope</em><big>)</big><a class="headerlink" href="#gsshapy.orm.Weir" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.Weir.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'cif_weirs'</em><a class="headerlink" href="#gsshapy.orm.Weir.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Weir.crestLength">
+<tt class="descname">crestLength</tt><a class="headerlink" href="#gsshapy.orm.Weir.crestLength" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Weir.crestLowElevation">
+<tt class="descname">crestLowElevation</tt><a class="headerlink" href="#gsshapy.orm.Weir.crestLowElevation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Weir.crestLowLocation">
+<tt class="descname">crestLowLocation</tt><a class="headerlink" href="#gsshapy.orm.Weir.crestLowLocation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Weir.dischargeCoeffForward">
+<tt class="descname">dischargeCoeffForward</tt><a class="headerlink" href="#gsshapy.orm.Weir.dischargeCoeffForward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Weir.dischargeCoeffReverse">
+<tt class="descname">dischargeCoeffReverse</tt><a class="headerlink" href="#gsshapy.orm.Weir.dischargeCoeffReverse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Weir.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.Weir.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Weir.linkID">
+<tt class="descname">linkID</tt><a class="headerlink" href="#gsshapy.orm.Weir.linkID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Weir.shallowSlope">
+<tt class="descname">shallowSlope</tt><a class="headerlink" href="#gsshapy.orm.Weir.shallowSlope" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Weir.steepSlope">
+<tt class="descname">steepSlope</tt><a class="headerlink" href="#gsshapy.orm.Weir.steepSlope" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Weir.streamLink">
+<tt class="descname">streamLink</tt><a class="headerlink" href="#gsshapy.orm.Weir.streamLink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Weir.type">
+<tt class="descname">type</tt><a class="headerlink" href="#gsshapy.orm.Weir.type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gsshapy.orm.Culvert">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">Culvert</tt><big>(</big><em>type</em>, <em>upstreamInvert</em>, <em>downstreamInvert</em>, <em>inletDischargeCoeff</em>, <em>reverseFlowDischargeCoeff</em>, <em>slope</em>, <em>length</em>, <em>roughness</em>, <em>diameter</em>, <em>width</em>, <em>height</em><big>)</big><a class="headerlink" href="#gsshapy.orm.Culvert" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'cif_culverts'</em><a class="headerlink" href="#gsshapy.orm.Culvert.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.diameter">
+<tt class="descname">diameter</tt><a class="headerlink" href="#gsshapy.orm.Culvert.diameter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.downstreamInvert">
+<tt class="descname">downstreamInvert</tt><a class="headerlink" href="#gsshapy.orm.Culvert.downstreamInvert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.height">
+<tt class="descname">height</tt><a class="headerlink" href="#gsshapy.orm.Culvert.height" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.Culvert.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.inletDischargeCoeff">
+<tt class="descname">inletDischargeCoeff</tt><a class="headerlink" href="#gsshapy.orm.Culvert.inletDischargeCoeff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.length">
+<tt class="descname">length</tt><a class="headerlink" href="#gsshapy.orm.Culvert.length" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.linkID">
+<tt class="descname">linkID</tt><a class="headerlink" href="#gsshapy.orm.Culvert.linkID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.reverseFlowDischargeCoeff">
+<tt class="descname">reverseFlowDischargeCoeff</tt><a class="headerlink" href="#gsshapy.orm.Culvert.reverseFlowDischargeCoeff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.roughness">
+<tt class="descname">roughness</tt><a class="headerlink" href="#gsshapy.orm.Culvert.roughness" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.slope">
+<tt class="descname">slope</tt><a class="headerlink" href="#gsshapy.orm.Culvert.slope" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.streamLink">
+<tt class="descname">streamLink</tt><a class="headerlink" href="#gsshapy.orm.Culvert.streamLink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.type">
+<tt class="descname">type</tt><a class="headerlink" href="#gsshapy.orm.Culvert.type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.upstreamInvert">
+<tt class="descname">upstreamInvert</tt><a class="headerlink" href="#gsshapy.orm.Culvert.upstreamInvert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Culvert.width">
+<tt class="descname">width</tt><a class="headerlink" href="#gsshapy.orm.Culvert.width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gsshapy.orm.Reservoir">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">Reservoir</tt><big>(</big><em>initWSE</em>, <em>minWSE</em>, <em>maxWSE</em><big>)</big><a class="headerlink" href="#gsshapy.orm.Reservoir" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.Reservoir.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'cif_reservoirs'</em><a class="headerlink" href="#gsshapy.orm.Reservoir.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Reservoir.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.Reservoir.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Reservoir.initWSE">
+<tt class="descname">initWSE</tt><a class="headerlink" href="#gsshapy.orm.Reservoir.initWSE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Reservoir.linkID">
+<tt class="descname">linkID</tt><a class="headerlink" href="#gsshapy.orm.Reservoir.linkID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Reservoir.maxWSE">
+<tt class="descname">maxWSE</tt><a class="headerlink" href="#gsshapy.orm.Reservoir.maxWSE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Reservoir.minWSE">
+<tt class="descname">minWSE</tt><a class="headerlink" href="#gsshapy.orm.Reservoir.minWSE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Reservoir.reservoirPoints">
+<tt class="descname">reservoirPoints</tt><a class="headerlink" href="#gsshapy.orm.Reservoir.reservoirPoints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Reservoir.streamLink">
+<tt class="descname">streamLink</tt><a class="headerlink" href="#gsshapy.orm.Reservoir.streamLink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gsshapy.orm.ReservoirPoint">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">ReservoirPoint</tt><big>(</big><em>i</em>, <em>j</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ReservoirPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.ReservoirPoint.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'cif_reservoir_points'</em><a class="headerlink" href="#gsshapy.orm.ReservoirPoint.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ReservoirPoint.i">
+<tt class="descname">i</tt><a class="headerlink" href="#gsshapy.orm.ReservoirPoint.i" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ReservoirPoint.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.ReservoirPoint.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ReservoirPoint.j">
+<tt class="descname">j</tt><a class="headerlink" href="#gsshapy.orm.ReservoirPoint.j" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ReservoirPoint.reservoir">
+<tt class="descname">reservoir</tt><a class="headerlink" href="#gsshapy.orm.ReservoirPoint.reservoir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ReservoirPoint.reservoirID">
+<tt class="descname">reservoirID</tt><a class="headerlink" href="#gsshapy.orm.ReservoirPoint.reservoirID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gsshapy.orm.BreakpointCS">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">BreakpointCS</tt><big>(</big><em>mannings_n</em>, <em>numPairs</em>, <em>numInterp</em>, <em>mRiver</em>, <em>kRiver</em>, <em>erode</em>, <em>subsurface</em>, <em>maxErosion</em><big>)</big><a class="headerlink" href="#gsshapy.orm.BreakpointCS" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.BreakpointCS.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'cif_breakpoint'</em><a class="headerlink" href="#gsshapy.orm.BreakpointCS.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.BreakpointCS.breakpoints">
+<tt class="descname">breakpoints</tt><a class="headerlink" href="#gsshapy.orm.BreakpointCS.breakpoints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.BreakpointCS.erode">
+<tt class="descname">erode</tt><a class="headerlink" href="#gsshapy.orm.BreakpointCS.erode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.BreakpointCS.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.BreakpointCS.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.BreakpointCS.kRiver">
+<tt class="descname">kRiver</tt><a class="headerlink" href="#gsshapy.orm.BreakpointCS.kRiver" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.BreakpointCS.linkID">
+<tt class="descname">linkID</tt><a class="headerlink" href="#gsshapy.orm.BreakpointCS.linkID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.BreakpointCS.mRiver">
+<tt class="descname">mRiver</tt><a class="headerlink" href="#gsshapy.orm.BreakpointCS.mRiver" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.BreakpointCS.mannings_n">
+<tt class="descname">mannings_n</tt><a class="headerlink" href="#gsshapy.orm.BreakpointCS.mannings_n" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.BreakpointCS.maxErosion">
+<tt class="descname">maxErosion</tt><a class="headerlink" href="#gsshapy.orm.BreakpointCS.maxErosion" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.BreakpointCS.numInterp">
+<tt class="descname">numInterp</tt><a class="headerlink" href="#gsshapy.orm.BreakpointCS.numInterp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.BreakpointCS.numPairs">
+<tt class="descname">numPairs</tt><a class="headerlink" href="#gsshapy.orm.BreakpointCS.numPairs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.BreakpointCS.streamLink">
+<tt class="descname">streamLink</tt><a class="headerlink" href="#gsshapy.orm.BreakpointCS.streamLink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.BreakpointCS.subsurface">
+<tt class="descname">subsurface</tt><a class="headerlink" href="#gsshapy.orm.BreakpointCS.subsurface" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gsshapy.orm.Breakpoint">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">Breakpoint</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#gsshapy.orm.Breakpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.Breakpoint.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'cif_bcs_points'</em><a class="headerlink" href="#gsshapy.orm.Breakpoint.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Breakpoint.crossSection">
+<tt class="descname">crossSection</tt><a class="headerlink" href="#gsshapy.orm.Breakpoint.crossSection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Breakpoint.crossSectionID">
+<tt class="descname">crossSectionID</tt><a class="headerlink" href="#gsshapy.orm.Breakpoint.crossSectionID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Breakpoint.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.Breakpoint.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Breakpoint.x">
+<tt class="descname">x</tt><a class="headerlink" href="#gsshapy.orm.Breakpoint.x" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.Breakpoint.y">
+<tt class="descname">y</tt><a class="headerlink" href="#gsshapy.orm.Breakpoint.y" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gsshapy.orm.TrapezoidalCS">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">TrapezoidalCS</tt><big>(</big><em>mannings_n</em>, <em>bottomWidth</em>, <em>bankfullDepth</em>, <em>sideSlope</em>, <em>mRiver</em>, <em>kRiver</em>, <em>erode</em>, <em>subsurface</em>, <em>maxErosion</em><big>)</big><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.TrapezoidalCS.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'cif_trapeziod'</em><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.TrapezoidalCS.bankfullDepth">
+<tt class="descname">bankfullDepth</tt><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.bankfullDepth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.TrapezoidalCS.bottomWidth">
+<tt class="descname">bottomWidth</tt><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.bottomWidth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.TrapezoidalCS.erode">
+<tt class="descname">erode</tt><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.erode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.TrapezoidalCS.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.TrapezoidalCS.kRiver">
+<tt class="descname">kRiver</tt><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.kRiver" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.TrapezoidalCS.linkID">
+<tt class="descname">linkID</tt><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.linkID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.TrapezoidalCS.mRiver">
+<tt class="descname">mRiver</tt><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.mRiver" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.TrapezoidalCS.mannings_n">
+<tt class="descname">mannings_n</tt><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.mannings_n" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.TrapezoidalCS.maxErosion">
+<tt class="descname">maxErosion</tt><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.maxErosion" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.TrapezoidalCS.sideSlope">
+<tt class="descname">sideSlope</tt><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.sideSlope" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.TrapezoidalCS.streamLink">
+<tt class="descname">streamLink</tt><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.streamLink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.TrapezoidalCS.subsurface">
+<tt class="descname">subsurface</tt><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.subsurface" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Channel Input File</a><ul>
+<li><a class="reference internal" href="#file-object">File Object</a><ul>
+<li><a class="reference internal" href="#table-objects">Table Objects</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="prj.html"
+                        title="previous chapter">Project File</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="cmt.html"
+                        title="next chapter">Mapping Table File</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../../_sources/pages/apidocs/fileobjects/cif.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="cmt.html" title="Mapping Table File"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="prj.html" title="Project File"
+             >previous</a> |</li>
+        <li><a href="../../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../api.html" >API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

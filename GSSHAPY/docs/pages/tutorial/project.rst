@@ -2,7 +2,7 @@
 Read and Write Entire GSSHA Projects
 ************************************
 
-**Last Updated:** August 15, 2013
+**Last Updated:** August 16, 2013
 
 Each of the GSSHA model files can be read or written in the same manner that was illustrated. 
 The **ProjectFile** class also has methods that can be used to read and write an entire 
@@ -46,7 +46,9 @@ the project file from the database and invoke the ``writeProject()`` method::
 	
 All of the files that were read into the database should be written to file in the *write* directory
 of the tutorial files. For the files the use the project name prefix for filename convention, the prefix
-has been changed to match the name supplied by the user. 
+has been changed to match the name supplied by the user. Like the read methods, there are two other write
+methods that can be used to write only the input files or only the output files: ``writeInput()`` and 
+``writeOutput()``, respectively.
 
 .. warning::
 	

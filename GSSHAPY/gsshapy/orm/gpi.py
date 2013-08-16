@@ -9,7 +9,8 @@
 '''
 
 __all__ = ['GridPipeCell',
-           'GridPipeFile']
+           'GridPipeFile',
+           'GridPipeNode']
 
 import os
 

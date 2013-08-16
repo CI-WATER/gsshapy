@@ -1,0 +1,234 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gsshapy.orm.file_base &mdash; GSSHAPY 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../../../index.html" />
+    <link rel="up" title="gsshapy.orm" href="../orm.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="../../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../orm.html" accesskey="U">gsshapy.orm</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for gsshapy.orm.file_base</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">********************************************************************************</span>
+<span class="sd">* Name: Gssha File Object Base</span>
+<span class="sd">* Author: Nathan Swain</span>
+<span class="sd">* Created On: August 2, 2013</span>
+<span class="sd">* Copyright: (c) Brigham Young University 2013</span>
+<span class="sd">* License: BSD 2-Clause</span>
+<span class="sd">********************************************************************************</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">sqlalchemy.exc</span> <span class="kn">import</span> <span class="n">IntegrityError</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;GsshaPyFileObjectBase&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="GsshaPyFileObjectBase"><a class="viewcode-back" href="../../../pages/apidocs/fileobjects/file-base.html#gsshapy.orm.file_base.GsshaPyFileObjectBase">[docs]</a><span class="k">class</span> <span class="nc">GsshaPyFileObjectBase</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    classdocs</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="c"># File Properties</span>
+    <span class="n">FILENAME</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">PATH</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">PROJECT_NAME</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">DIRECTORY</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">SESSION</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">EXTENSION</span> <span class="o">=</span> <span class="s">&#39;txt&#39;</span>
+    
+    <span class="c"># Error Messages</span>
+    <span class="n">COMMIT_ERROR_MESSAGE</span> <span class="o">=</span> <span class="s">&#39;Ensure the file is not empty and try again.&#39;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Constructor</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FILENAME</span> <span class="o">=</span> <span class="n">filename</span>                                 <span class="c"># e.g.: example.ext</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DIRECTORY</span> <span class="o">=</span> <span class="n">directory</span>                               <span class="c"># e.g.: /path/to/my/example</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SESSION</span> <span class="o">=</span> <span class="n">session</span>                                   <span class="c"># SQL Alchemy Session object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">FILENAME</span><span class="p">)</span>  <span class="c"># e.g.: /path/to/my/example/example.ext</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EXTENSION</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>                  <span class="c"># e.g.: ext</span>
+        
+<div class="viewcode-block" id="GsshaPyFileObjectBase.read"><a class="viewcode-back" href="../../../pages/apidocs/fileobjects/file-base.html#gsshapy.orm.file_base.GsshaPyFileObjectBase.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Front Facing Read from File Method</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c"># Add self to session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SESSION</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        
+        <span class="c"># Read</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_readWithoutCommit</span><span class="p">()</span>
+        
+        <span class="c"># Commit to database</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_commit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COMMIT_ERROR_MESSAGE</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="GsshaPyFileObjectBase.write"><a class="viewcode-back" href="../../../pages/apidocs/fileobjects/file-base.html#gsshapy.orm.file_base.GsshaPyFileObjectBase.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Front Facing Write to File Method</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c"># For future use</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SESSION</span> <span class="o">=</span> <span class="n">session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DIRECTORY</span> <span class="o">=</span> <span class="n">directory</span>
+
+        <span class="c"># Assemble Path to file</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c"># Handle name with extension case (e.g.: name.ext)</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">extension</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>   <span class="c"># Will fail if &#39;.&#39; not present</span>
+            
+            <span class="k">if</span> <span class="n">extension</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">EXTENSION</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">EXTENSION</span> <span class="o">=</span> <span class="n">extension</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="sd">&#39;&#39;&#39;DO NOTHING&#39;&#39;&#39;</span>
+            
+        <span class="c"># Run name preprocessor method if present</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_namePreprocessor</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="sd">&#39;&#39;&#39;DO NOTHING&#39;&#39;&#39;</span>
+        
+        <span class="c"># Handle name only case (e.g.: name). Append fileExtension.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c"># Handles case where file object handles</span>
+            <span class="c"># files with varying extentions </span>
+            <span class="c"># (e.g.: TimeSeriesFile).</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fileExtension</span><span class="p">)</span>
+            <span class="n">filePath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        
+        <span class="k">except</span><span class="p">:</span>
+            <span class="c"># Handles the case where file object handles</span>
+            <span class="c"># files with a set extension</span>
+            <span class="c"># (e.g.: MapTableFile).</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">EXTENSION</span><span class="p">)</span>
+            <span class="n">filePath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        
+        <span class="c"># For use after the file has been written</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">openFile</span><span class="p">:</span>
+            <span class="c"># Write Lines</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_writeToOpenFile</span><span class="p">(</span><span class="n">session</span><span class="o">=</span><span class="n">session</span><span class="p">,</span>
+                                  <span class="n">openFile</span><span class="o">=</span><span class="n">openFile</span><span class="p">)</span>
+            </div>
+    <span class="k">def</span> <span class="nf">_commit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errorMessage</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Custom commit function for file objects</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SESSION</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">IntegrityError</span><span class="p">:</span>
+            <span class="c"># Raise special error if the commit fails due to empty files</span>
+            <span class="k">print</span> <span class="s">&#39;ERROR: Commit to database failed. </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">errorMessage</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="c"># Raise other errors as normal</span>
+            <span class="k">raise</span>
+    
+    <span class="k">def</span> <span class="nf">_readWithoutCommit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This Private method must be defined in each file object for</span>
+<span class="sd">        the read() method to work properly.The intent of the method </span>
+<span class="sd">        is to prevent unecessary commits. The method should read the</span>
+<span class="sd">        file into GSSHAPY objects and associate them with the file </span>
+<span class="sd">        object via relationship properties without committing to the </span>
+<span class="sd">        database. The read() method associates the file object to </span>
+<span class="sd">        the session, calls this method, and then performs the commit </span>
+<span class="sd">        to the database.</span>
+<span class="sd">        </span>
+<span class="sd">        This is useful for methods that read multiple files (e.g.: </span>
+<span class="sd">        ProjectFile.readProject()). They call this method directly, </span>
+<span class="sd">        associate each file object with the ProjectFile object and </span>
+<span class="sd">        commit once at the end of reading files.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        
+    <span class="k">def</span> <span class="nf">_writeToOpenFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="n">openFile</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This private method must be defined in each file object for</span>
+<span class="sd">        the write() method to work properly. The write() method handles</span>
+<span class="sd">        assmbly of the file path and initializing the file for writing</span>
+<span class="sd">        (i.e.: opening the file). The open file object is passed to </span>
+<span class="sd">        this method to allow this method to write the lines to the file</span>
+<span class="sd">        and perform any logic that is necessary to do so (retrieve </span>
+<span class="sd">        file data from database and pivot).</span>
+<span class="sd">        </span>
+<span class="sd">        Some files have special naming conventions. In these cases, </span>
+<span class="sd">        override the write() method and write a custom method.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        </div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="../../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../orm.html" >gsshapy.orm</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

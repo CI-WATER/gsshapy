@@ -14,7 +14,7 @@ the powerful SQLAlchemy ORM.
 What is GSSHA?
 ==============
 
-GSSHA is a physically-based, distributed hydrologic model. It is developed 
+GSSHA is a physically-based, distributed hydrologic model. GSSHA is developed 
 and maintained by Coastal and Hydraulics Laboratory (CHL) which is
 a member of the Engineer Research & Development Center of the United
 States Army Corps of Engineers (USACE). GSSHA is used to predict soil 

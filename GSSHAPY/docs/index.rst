@@ -8,8 +8,8 @@ GsshaPy Documentation
 
 An ORM for GSSHA model files.
 
-Contents:
----------
+Contents
+--------
 
 .. toctree::
 	:maxdepth: 3
@@ -17,11 +17,11 @@ Contents:
 	pages/intro
 	pages/tutorial/tutorial
 	pages/support
-	pages/apidocs/api_intro
+	pages/apidocs/api
 
 
-Indices and Tables:
--------------------
+Indices and Tables
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`

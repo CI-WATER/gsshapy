@@ -30,13 +30,13 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)
     
-    # Relationship Properties
-    gridStreamCells = relationship('GridStreamCell', back_populates='gridStreamFile')
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='gridStreamFile')
-    
     # Value Columns
     streamCells = Column(Integer, nullable=False)
     
+    # Relationship Properties
+    gridStreamCells = relationship('GridStreamCell', back_populates='gridStreamFile')
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='gridStreamFile')
+
     # File Properties
     EXTENSION = 'gst'
     
