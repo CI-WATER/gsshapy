@@ -1,0 +1,298 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Precipitation File &mdash; GSSHAPY 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../../../index.html" />
+    <link rel="up" title="API Documentation" href="../api.html" />
+    <link rel="next" title="Grid Pipe File" href="gpi.html" />
+    <link rel="prev" title="Mapping Table File" href="cmt.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="gpi.html" title="Grid Pipe File"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cmt.html" title="Mapping Table File"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../api.html" accesskey="U">API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="precipitation-file">
+<h1>Precipitation File<a class="headerlink" href="#precipitation-file" title="Permalink to this headline">¶</a></h1>
+<p>File extension: <strong>gag</strong></p>
+<div class="section" id="file-object">
+<h2>File Object<a class="headerlink" href="#file-object" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gsshapy.orm.PrecipFile">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">PrecipFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.PrecipFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipFile.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'gag_precipitation_files'</em><a class="headerlink" href="#gsshapy.orm.PrecipFile.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.PrecipFile.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.PrecipFile.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Front Facing Read from File Method</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.PrecipFile.write">
+<tt class="descname">write</tt><big>(</big><em>session</em>, <em>directory</em>, <em>name</em><big>)</big><a class="headerlink" href="#gsshapy.orm.PrecipFile.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Front Facing Write to File Method</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="table-objects">
+<h3>Table Objects<a class="headerlink" href="#table-objects" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="gsshapy.orm.PrecipEvent">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">PrecipEvent</tt><big>(</big><em>description</em>, <em>nrGag</em>, <em>nrPds</em><big>)</big><a class="headerlink" href="#gsshapy.orm.PrecipEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'gag_events'</em><a class="headerlink" href="#gsshapy.orm.PrecipEvent.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.description">
+<tt class="descname">description</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.gages">
+<tt class="descname">gages</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.gages" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.nrGag">
+<tt class="descname">nrGag</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.nrGag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.nrPds">
+<tt class="descname">nrPds</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.nrPds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.precipFile">
+<tt class="descname">precipFile</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.precipFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.precipFileID">
+<tt class="descname">precipFileID</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.precipFileID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipEvent.values">
+<tt class="descname">values</tt><a class="headerlink" href="#gsshapy.orm.PrecipEvent.values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gsshapy.orm.PrecipValue">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">PrecipValue</tt><big>(</big><em>valueType</em>, <em>dateTime</em>, <em>value</em><big>)</big><a class="headerlink" href="#gsshapy.orm.PrecipValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipValue.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'gag_values'</em><a class="headerlink" href="#gsshapy.orm.PrecipValue.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipValue.coordID">
+<tt class="descname">coordID</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.coordID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipValue.dateTime">
+<tt class="descname">dateTime</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.dateTime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipValue.event">
+<tt class="descname">event</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.event" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipValue.eventID">
+<tt class="descname">eventID</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.eventID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipValue.gage">
+<tt class="descname">gage</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.gage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipValue.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipValue.value">
+<tt class="descname">value</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipValue.valueType">
+<tt class="descname">valueType</tt><a class="headerlink" href="#gsshapy.orm.PrecipValue.valueType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gsshapy.orm.PrecipGage">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">PrecipGage</tt><big>(</big><em>description</em>, <em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#gsshapy.orm.PrecipGage" title="Permalink to this definition">¶</a></dt>
+<dd><p>classdocs</p>
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipGage.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'gag_coord'</em><a class="headerlink" href="#gsshapy.orm.PrecipGage.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipGage.description">
+<tt class="descname">description</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipGage.event">
+<tt class="descname">event</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.event" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipGage.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipGage.values">
+<tt class="descname">values</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipGage.x">
+<tt class="descname">x</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.x" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.PrecipGage.y">
+<tt class="descname">y</tt><a class="headerlink" href="#gsshapy.orm.PrecipGage.y" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Precipitation File</a><ul>
+<li><a class="reference internal" href="#file-object">File Object</a><ul>
+<li><a class="reference internal" href="#table-objects">Table Objects</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="cmt.html"
+                        title="previous chapter">Mapping Table File</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="gpi.html"
+                        title="next chapter">Grid Pipe File</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../../_sources/pages/apidocs/fileobjects/gag.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="gpi.html" title="Grid Pipe File"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="cmt.html" title="Mapping Table File"
+             >previous</a> |</li>
+        <li><a href="../../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../api.html" >API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

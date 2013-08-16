@@ -1,0 +1,169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Read Files to a Database &mdash; GSSHAPY 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Getting Started" href="tutorial.html" />
+    <link rel="next" title="Query using GsshaPy Objects" href="query.html" />
+    <link rel="prev" title="Getting Started" href="tutorial.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="query.html" title="Query using GsshaPy Objects"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tutorial.html" title="Getting Started"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="tutorial.html" accesskey="U">Getting Started</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="read-files-to-a-database">
+<h1>Read Files to a Database<a class="headerlink" href="#read-files-to-a-database" title="Permalink to this headline">¶</a></h1>
+<p><strong>Last Updated:</strong> August 15, 2013</p>
+<p>This page will give an example of how GsshaPy can be used to read a GSSHA model file into an SQL
+database. We will read in the project file from the Park City model that you downloaded on the
+previous page.</p>
+<div class="section" id="initiate-gsshapy-database">
+<h2>Initiate GsshaPy Database<a class="headerlink" href="#initiate-gsshapy-database" title="Permalink to this headline">¶</a></h2>
+<p>The first step is to create a database and populate it with all of the GsshaPy tables. For this
+tutorial we will create an SQLite database. This can be done by using the <tt class="docutils literal"><span class="pre">init_sqlite_db()</span></tt>
+method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gsshapy.lib</span> <span class="kn">import</span> <span class="n">db_tools</span> <span class="k">as</span> <span class="n">dbt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sqlalchemy_url</span> <span class="o">=</span> <span class="n">dbt</span><span class="o">.</span><span class="n">init_sqlite_db</span><span class="p">(</span><span class="s">&#39;/path/to/tutorial-data/db/gsshapy_parkcity.db&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This method creates the SQLite database  at the path specified and populates it with the GsshaPy
+tables returing an <a class="reference external" href="http://www.sqlalchemy.org/">SQLAlchemy</a> url. This url is used to create <a class="reference external" href="http://www.sqlalchemy.org/">SQLAlchemy</a> session objects. Create
+an SQLAlchemy session object for interacting with the database:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">session</span> <span class="o">=</span> <span class="n">dbt</span><span class="o">.</span><span class="n">create_session</span><span class="p">(</span><span class="n">sqlalchemy_url</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="create-a-gsshapy-object">
+<h2>Create a GsshaPy Object<a class="headerlink" href="#create-a-gsshapy-object" title="Permalink to this headline">¶</a></h2>
+<p>We need to create an instance of the GsshaPy <strong>ProjectFile</strong> <em>file</em> class to be able to read the project
+file into the database. Before we instantiate <strong>ProjectFile</strong> we need to define a few variables that
+will define our workspace. GsshaPy needs to know the directory and filename of the file that will
+be read into the database:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">readDirectory</span> <span class="o">=</span> <span class="s">&#39;/path/to/tutorial-data/directory&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;parkcity.prj&#39;</span>
+</pre></div>
+</div>
+<p>Now we can create an instance of <strong>ProjectFile</strong>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gsshapy.orm</span> <span class="kn">import</span> <span class="n">ProjectFile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">projectFile</span> <span class="o">=</span> <span class="n">ProjectFile</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">readDirectory</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="n">session</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="read-the-file-into-the-database">
+<h2>Read the File into the Database<a class="headerlink" href="#read-the-file-into-the-database" title="Permalink to this headline">¶</a></h2>
+<p>The newly created <strong>ProjectFile</strong> object, <tt class="docutils literal"><span class="pre">projectFile</span></tt>, has all the necessary information it needs to find
+the file, parse it, and read it into the database. This can be done by invoking the <tt class="docutils literal"><span class="pre">read()</span></tt>
+method on <tt class="docutils literal"><span class="pre">projectFile</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">projectFile</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Read Files to a Database</a><ul>
+<li><a class="reference internal" href="#initiate-gsshapy-database">Initiate GsshaPy Database</a></li>
+<li><a class="reference internal" href="#create-a-gsshapy-object">Create a GsshaPy Object</a></li>
+<li><a class="reference internal" href="#read-the-file-into-the-database">Read the File into the Database</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="tutorial.html"
+                        title="previous chapter">Getting Started</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="query.html"
+                        title="next chapter">Query using GsshaPy Objects</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/pages/tutorial/read.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="query.html" title="Query using GsshaPy Objects"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tutorial.html" title="Getting Started"
+             >previous</a> |</li>
+        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="tutorial.html" >Getting Started</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
