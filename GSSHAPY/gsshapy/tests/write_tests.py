@@ -260,7 +260,7 @@ class TestWriteMethods(unittest.TestCase):
         # Invoke write all method
         projectFile.writeProject(session=self.writeSession,
                                  directory=self.writeDirectory,
-                                 newName='standard')
+                                 name='standard')
         
         # Compare all files
         self._compare_directories(self.readDirectory, self.writeDirectory)
@@ -276,7 +276,7 @@ class TestWriteMethods(unittest.TestCase):
         # Invoke write input method
         projectFile.writeInput(session=self.writeSession,
                                directory=self.writeDirectory,
-                               newName='standard')
+                               name='standard')
         
         # Compare all files
         self._compare_directories(self.readDirectory, self.writeDirectory)
@@ -291,7 +291,7 @@ class TestWriteMethods(unittest.TestCase):
         # Invoke write output method
         projectFile.writeOutput(session=self.writeSession,
                                 directory=self.writeDirectory,
-                                newName='standard')
+                                name='standard')
         
         # Compare all files
         self._compare_directories(self.readDirectory, self.writeDirectory)

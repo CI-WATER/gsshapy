@@ -360,25 +360,25 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 #         print 'SUCCESS: Project successfully read to database.'
         
 
-    def writeProject(self, session, directory, newName):
+    def writeProject(self, session, directory, name):
         '''
         Frong Facing GSSHA Project Write All Files to File Method
         '''
         
         # Write Project File
-        self.write(session=session, directory=directory, name=newName)
+        self.write(session=session, directory=directory, name=name)
         
         # Write input files
-        self._writeXput(session=session, directory=directory, fileDict=self.INPUT_FILES, newName=newName)
+        self._writeXput(session=session, directory=directory, fileDict=self.INPUT_FILES, name=name)
         
         # Write output files
-        self._writeXput(session=session, directory=directory, fileDict=self.OUTPUT_FILES, newName=newName)
+        self._writeXput(session=session, directory=directory, fileDict=self.OUTPUT_FILES, name=name)
         
         # Write input map files
-        self._writeXputMaps(session=session, directory=directory, fileDict=self.INPUT_MAPS, newName=newName)
+        self._writeXputMaps(session=session, directory=directory, fileDict=self.INPUT_MAPS, name=name)
         
         # Write output map files
-        self._writeXputMaps(session=session, directory=directory, fileDict=self.OUTPUT_MAPS, newName=newName)
+        self._writeXputMaps(session=session, directory=directory, fileDict=self.OUTPUT_MAPS, name=name)
         
 #         print 'SUCCESS: Project successfully written to file.'
         
@@ -401,18 +401,18 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Commit to database
         self._commit(self.COMMIT_ERROR_MESSAGE)
         
-    def writeInput(self, session, directory, newName):
+    def writeInput(self, session, directory, name):
         '''
         Front Facing GSSHA Write All Input Files Method
         '''
         # Write Project File
-        self.write(session=session, directory=directory, name=newName)
+        self.write(session=session, directory=directory, name=name)
         
         # Write input files
-        self._writeXput(session=session, directory=directory, fileDict=self.INPUT_FILES, newName=newName)
+        self._writeXput(session=session, directory=directory, fileDict=self.INPUT_FILES, name=name)
         
         # Write input map files
-        self._writeXputMaps(session=session, directory=directory, fileDict=self.INPUT_MAPS, newName=newName)
+        self._writeXputMaps(session=session, directory=directory, fileDict=self.INPUT_MAPS, name=name)
         
     def readOutput(self):
         '''
@@ -433,18 +433,18 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Commit to database
         self._commit(self.COMMIT_ERROR_MESSAGE)
     
-    def writeOutput(self, session, directory, newName):
+    def writeOutput(self, session, directory, name):
         '''
         Front Facing GSSHA Write All Output Files Method
         '''
         # Write Project File
-        self.write(session=session, directory=directory, name=newName)
+        self.write(session=session, directory=directory, name=name)
         
         # Write output files
-        self._writeXput(session=session, directory=directory, fileDict=self.OUTPUT_FILES, newName=newName)
+        self._writeXput(session=session, directory=directory, fileDict=self.OUTPUT_FILES, name=name)
         
         # Write output map files
-        self._writeXputMaps(session=session, directory=directory, fileDict=self.OUTPUT_MAPS, newName=newName)
+        self._writeXputMaps(session=session, directory=directory, fileDict=self.OUTPUT_MAPS, name=name)
         
         
     def _readXput(self, fileDict):
@@ -462,7 +462,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 self._invokeRead(fileIO=fileio,
                                  filename=filename)
                 
-    def _writeXput(self, session, directory, fileDict, newName=None):
+    def _writeXput(self, session, directory, fileDict, name=None):
         '''
         GSSHA Project Write Files to File Method
         '''
@@ -473,7 +473,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             
             if (filename != None) and (fileIO != None):
                 # Determine new filename
-                filename = self._replaceNewFilename(afile['filename'], newName)
+                filename = self._replaceNewFilename(afile['filename'], name)
                 
                 # Initiate write method on each file
                 self._invokeWrite(fileIO=fileIO,
@@ -496,7 +496,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         else:
             print 'Error: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
                 
-    def _writeXputMaps(self, session, directory, fileDict, newName=None):
+    def _writeXputMaps(self, session, directory, fileDict, name=None):
         '''
         GSSHAPY Project Write Map Files to File Method
         '''
@@ -505,7 +505,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 if afile['filename'] != None:
                     
                     # Determine new filename
-                    filename = self._replaceNewFilename(afile['filename'], newName)
+                    filename = self._replaceNewFilename(afile['filename'], name)
                     
                     # Write map file
                     self._invokeWrite(fileIO=RasterMapFile,
@@ -552,7 +552,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
 #         print 'File Written:', filename
         
-    def _replaceNewFilename(self, filename, newName):
+    def _replaceNewFilename(self, filename, name):
         # Variables
         pro = False
         originalProjectName = self.name
@@ -566,21 +566,21 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             pro = True
         
         # Handle new name
-        if newName == None:
+        if name == None:
             # The project name is not changed and file names
             # stay the same
             filename = originalFilename
         
         elif originalPrefix == originalProjectName and pro:
             # Handle renaming of projection file
-            filename = '%s_prj.%s' % (newName, extension)
+            filename = '%s_prj.%s' % (name, extension)
             
         elif originalPrefix == originalProjectName:
             # This check is necessary because not all filenames are 
             # prefixed with the project name. Thus the file prefix
             # is only changed for files that are prefixed with the 
             # project name
-            filename = '%s.%s' % (newName, extension)
+            filename = '%s.%s' % (name, extension)
         
         else:
             # Filename doesn't change for files that don't share the 
