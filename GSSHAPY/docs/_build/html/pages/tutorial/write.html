@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Write Files from a Database &mdash; GSSHAPY 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Getting Started" href="tutorial.html" />
+    <link rel="next" title="Read and Write Entire GSSHA Projects" href="project.html" />
+    <link rel="prev" title="Query using GsshaPy Objects" href="query.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="project.html" title="Read and Write Entire GSSHA Projects"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="query.html" title="Query using GsshaPy Objects"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="tutorial.html" accesskey="U">Getting Started</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="write-files-from-a-database">
+<h1>Write Files from a Database<a class="headerlink" href="#write-files-from-a-database" title="Permalink to this headline">¶</a></h1>
+<p><strong>Last Updated:</strong> August 15, 2013</p>
+<p>Reading GSSHA files is only half the story. GsshaPy is also able to read a GsshaPy database and export the
+data back to the proper file format.</p>
+<div class="section" id="retrieve-object-from-database">
+<h2>Retrieve Object from Database<a class="headerlink" href="#retrieve-object-from-database" title="Permalink to this headline">¶</a></h2>
+<p>Like reading to the database, we need and instance of a <strong>ProjectFile</strong>
+class to call the <tt class="docutils literal"><span class="pre">write()</span></tt> method on. When writing, the <strong>ProjectFile</strong> instance is created by querying
+the database for the project file we wish to write:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">projectFile1</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ProjectFile</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ProjectFile</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The query instantiates <strong>ProjectFile</strong> with the data from the database.</p>
+</div>
+<div class="section" id="write-to-file">
+<h2>Write to File<a class="headerlink" href="#write-to-file" title="Permalink to this headline">¶</a></h2>
+<p>Now we call the <tt class="docutils literal"><span class="pre">write()</span></tt> method on the new instance of <strong>ProjectFile</strong>, <tt class="docutils literal"><span class="pre">projectFile1</span></tt>. This method
+requires three arguments: an SQLAlchemy session object, a directory to write to, and the name you wish
+the project to be saved as. Define these attributes and call the write method as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">writeDirectory</span> <span class="o">=</span> <span class="s">&#39;/path/to/tutorial-data/directory/write&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;mymodel&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">projectFile1</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">session</span><span class="o">=</span><span class="n">session</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="n">writeDirectory</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If all has gone well, you will find a copy of the project file in the <em>write</em> directory. If you compare the
+file with the original you will notice some differences. Notice that most of the path prefixes have been changed
+to match the name of the project file. This is a GSSHA convention. If you change the only project file using
+GsshaPy, be sure it is written out with the same name as the original. The <strong>ProjectFile</strong> <tt class="docutils literal"><span class="pre">read()</span></tt> method
+stores paths as relative paths in the database. Thus, all the paths will be written out again as relative paths.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Write Files from a Database</a><ul>
+<li><a class="reference internal" href="#retrieve-object-from-database">Retrieve Object from Database</a></li>
+<li><a class="reference internal" href="#write-to-file">Write to File</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="query.html"
+                        title="previous chapter">Query using GsshaPy Objects</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="project.html"
+                        title="next chapter">Read and Write Entire GSSHA Projects</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/pages/tutorial/write.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="project.html" title="Read and Write Entire GSSHA Projects"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="query.html" title="Query using GsshaPy Objects"
+             >previous</a> |</li>
+        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="tutorial.html" >Getting Started</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
