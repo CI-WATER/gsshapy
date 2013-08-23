@@ -14,10 +14,10 @@ Contents
 .. toctree::
 	:maxdepth: 3
 	
-	pages/intro
-	pages/tutorial/tutorial
-	pages/support
-	pages/apidocs/api
+	intro
+	tutorial
+	support
+	api
 
 
 Indices and Tables

@@ -1,0 +1,382 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Snow Simulation Related Files &mdash; GSSHAPY 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="API Documentation" href="../../api.html" />
+    <link rel="next" title="Storm Pipe Network File" href="spn.html" />
+    <link rel="prev" title="Replacement File" href="rep.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="spn.html" title="Storm Pipe Network File"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rep.html" title="Replacement File"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../../api.html" accesskey="U">API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="snow-simulation-related-files">
+<h1>Snow Simulation Related Files<a class="headerlink" href="#snow-simulation-related-files" title="Permalink to this headline">¶</a></h1>
+<p>There are two files that are used for snow simulations.</p>
+<div class="section" id="nwsrfs-file">
+<h2>NWSRFS File<a class="headerlink" href="#nwsrfs-file" title="Permalink to this headline">¶</a></h2>
+<p>File extension: <strong>None</strong></p>
+<dl class="class">
+<dt id="gsshapy.orm.NwsrfsFile">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">NwsrfsFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.NwsrfsFile" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsFile.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'snw_nwsrfs_files'</em><a class="headerlink" href="#gsshapy.orm.NwsrfsFile.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsFile.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsFile.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsFile.numBands">
+<tt class="descname">numBands</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsFile.numBands" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsFile.nwsrfsRecords">
+<tt class="descname">nwsrfsRecords</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsFile.nwsrfsRecords" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsFile.projectFile">
+<tt class="descname">projectFile</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsFile.projectFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.NwsrfsFile.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.NwsrfsFile.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read file into the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.NwsrfsFile.write">
+<tt class="descname">write</tt><big>(</big><em>session</em>, <em>directory</em>, <em>name</em><big>)</big><a class="headerlink" href="#gsshapy.orm.NwsrfsFile.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write from database to file.</p>
+<p><em>session</em> = SQLAlchemy session object</p>
+<p><em>directory</em> = to which directory will the files be written (e.g.: &#8216;/example/path&#8217;)</p>
+<p><em>name</em> = project name (e.g.: &#8216;my_project&#8217;)</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="table-objects">
+<h3>Table Objects<a class="headerlink" href="#table-objects" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="gsshapy.orm.NwsrfsRecord">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">NwsrfsRecord</tt><big>(</big><em>lowerElev</em>, <em>upperElev</em>, <em>mfMin</em>, <em>mfMax</em>, <em>scf</em>, <em>frUse</em>, <em>tipm</em>, <em>nmf</em>, <em>fua</em>, <em>plwhc</em><big>)</big><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'snw_nwsrfs_records'</em><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.nwsrfsFileID">
+<tt class="descname">nwsrfsFileID</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.nwsrfsFileID" title="Permalink to this definition">¶</a></dt>
+<dd><p>FK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.nwsrfsFile">
+<tt class="descname">nwsrfsFile</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.nwsrfsFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.lowerElev">
+<tt class="descname">lowerElev</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.lowerElev" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.upperElev">
+<tt class="descname">upperElev</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.upperElev" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.mfMin">
+<tt class="descname">mfMin</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.mfMin" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.mfMax">
+<tt class="descname">mfMax</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.mfMax" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.scf">
+<tt class="descname">scf</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.scf" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.frUse">
+<tt class="descname">frUse</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.frUse" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.tipm">
+<tt class="descname">tipm</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.tipm" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.nmf">
+<tt class="descname">nmf</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.nmf" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.fua">
+<tt class="descname">fua</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.fua" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.NwsrfsRecord.plwhc">
+<tt class="descname">plwhc</tt><a class="headerlink" href="#gsshapy.orm.NwsrfsRecord.plwhc" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="orthographic-gage-file">
+<h2>Orthographic Gage File<a class="headerlink" href="#orthographic-gage-file" title="Permalink to this headline">¶</a></h2>
+<p>File extension: <strong>None</strong></p>
+<dl class="class">
+<dt id="gsshapy.orm.OrthographicGageFile">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">OrthographicGageFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.OrthographicGageFile" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="gsshapy.orm.OrthographicGageFile.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'snw_orthographic_gage_files'</em><a class="headerlink" href="#gsshapy.orm.OrthographicGageFile.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OrthographicGageFile.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.OrthographicGageFile.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OrthographicGageFile.numSites">
+<tt class="descname">numSites</tt><a class="headerlink" href="#gsshapy.orm.OrthographicGageFile.numSites" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OrthographicGageFile.elevBase">
+<tt class="descname">elevBase</tt><a class="headerlink" href="#gsshapy.orm.OrthographicGageFile.elevBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OrthographicGageFile.elev2">
+<tt class="descname">elev2</tt><a class="headerlink" href="#gsshapy.orm.OrthographicGageFile.elev2" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OrthographicGageFile.orthoMeasurements">
+<tt class="descname">orthoMeasurements</tt><a class="headerlink" href="#gsshapy.orm.OrthographicGageFile.orthoMeasurements" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OrthographicGageFile.projectFile">
+<tt class="descname">projectFile</tt><a class="headerlink" href="#gsshapy.orm.OrthographicGageFile.projectFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.OrthographicGageFile.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.OrthographicGageFile.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read file into the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.OrthographicGageFile.write">
+<tt class="descname">write</tt><big>(</big><em>session</em>, <em>directory</em>, <em>name</em><big>)</big><a class="headerlink" href="#gsshapy.orm.OrthographicGageFile.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write from database to file.</p>
+<p><em>session</em> = SQLAlchemy session object</p>
+<p><em>directory</em> = to which directory will the files be written (e.g.: &#8216;/example/path&#8217;)</p>
+<p><em>name</em> = project name (e.g.: &#8216;my_project&#8217;)</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="id1">
+<h3>Table Objects<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="gsshapy.orm.OrthoMeasurement">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">OrthoMeasurement</tt><big>(</big><em>dateTime</em>, <em>temp2</em><big>)</big><a class="headerlink" href="#gsshapy.orm.OrthoMeasurement" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="gsshapy.orm.OrthoMeasurement.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'snw_orthographic_measurements'</em><a class="headerlink" href="#gsshapy.orm.OrthoMeasurement.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OrthoMeasurement.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.OrthoMeasurement.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OrthoMeasurement.orthoGageID">
+<tt class="descname">orthoGageID</tt><a class="headerlink" href="#gsshapy.orm.OrthoMeasurement.orthoGageID" title="Permalink to this definition">¶</a></dt>
+<dd><p>FK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OrthoMeasurement.orthoGageFile">
+<tt class="descname">orthoGageFile</tt><a class="headerlink" href="#gsshapy.orm.OrthoMeasurement.orthoGageFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OrthoMeasurement.dateTime">
+<tt class="descname">dateTime</tt><a class="headerlink" href="#gsshapy.orm.OrthoMeasurement.dateTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>DATETIME</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.OrthoMeasurement.temp2">
+<tt class="descname">temp2</tt><a class="headerlink" href="#gsshapy.orm.OrthoMeasurement.temp2" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Snow Simulation Related Files</a><ul>
+<li><a class="reference internal" href="#nwsrfs-file">NWSRFS File</a><ul>
+<li><a class="reference internal" href="#table-objects">Table Objects</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#orthographic-gage-file">Orthographic Gage File</a><ul>
+<li><a class="reference internal" href="#id1">Table Objects</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="rep.html"
+                        title="previous chapter">Replacement File</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="spn.html"
+                        title="next chapter">Storm Pipe Network File</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/api/file-io/snw.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="spn.html" title="Storm Pipe Network File"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rep.html" title="Replacement File"
+             >previous</a> |</li>
+        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../../api.html" >API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

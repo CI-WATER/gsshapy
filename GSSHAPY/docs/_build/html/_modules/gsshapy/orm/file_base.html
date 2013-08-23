@@ -61,7 +61,7 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;GsshaPyFileObjectBase&#39;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="GsshaPyFileObjectBase"><a class="viewcode-back" href="../../../pages/apidocs/fileobjects/file-base.html#gsshapy.orm.file_base.GsshaPyFileObjectBase">[docs]</a><span class="k">class</span> <span class="nc">GsshaPyFileObjectBase</span><span class="p">:</span>
+<div class="viewcode-block" id="GsshaPyFileObjectBase"><a class="viewcode-back" href="../../../api/file-io/file-base.html#gsshapy.orm.file_base.GsshaPyFileObjectBase">[docs]</a><span class="k">class</span> <span class="nc">GsshaPyFileObjectBase</span><span class="p">:</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    classdocs</span>
 <span class="sd">    &#39;&#39;&#39;</span>
@@ -87,9 +87,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DIRECTORY</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">FILENAME</span><span class="p">)</span>  <span class="c"># e.g.: /path/to/my/example/example.ext</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">EXTENSION</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>                  <span class="c"># e.g.: ext</span>
         
-<div class="viewcode-block" id="GsshaPyFileObjectBase.read"><a class="viewcode-back" href="../../../pages/apidocs/fileobjects/file-base.html#gsshapy.orm.file_base.GsshaPyFileObjectBase.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GsshaPyFileObjectBase.read"><a class="viewcode-back" href="../../../api/file-io/file-base.html#gsshapy.orm.file_base.GsshaPyFileObjectBase.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Front Facing Read from File Method</span>
+<span class="sd">        Read file into the database.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c"># Add self to session</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">SESSION</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -100,9 +100,13 @@
         <span class="c"># Commit to database</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_commit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COMMIT_ERROR_MESSAGE</span><span class="p">)</span>
         </div>
-<div class="viewcode-block" id="GsshaPyFileObjectBase.write"><a class="viewcode-back" href="../../../pages/apidocs/fileobjects/file-base.html#gsshapy.orm.file_base.GsshaPyFileObjectBase.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="GsshaPyFileObjectBase.write"><a class="viewcode-back" href="../../../api/file-io/file-base.html#gsshapy.orm.file_base.GsshaPyFileObjectBase.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Front Facing Write to File Method</span>
+<span class="sd">        Write from database to file.</span>
+<span class="sd">        </span>
+<span class="sd">        *session* = SQLAlchemy session object\n</span>
+<span class="sd">        *directory* = to which directory will the files be written (e.g.: &#39;/example/path&#39;)\n</span>
+<span class="sd">        *name* = project name (e.g.: &#39;my_project&#39;)\n</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c"># For future use</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">SESSION</span> <span class="o">=</span> <span class="n">session</span>

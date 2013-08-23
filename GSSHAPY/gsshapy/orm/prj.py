@@ -333,7 +333,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                      
     def readProject(self):
         '''
-        Front Facing GSSHA Project Read from File Method
+        Read all files for a GSSHA project into the database.
         '''
         # Add project file to session
         self.SESSION.add(self)
@@ -362,7 +362,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def writeProject(self, session, directory, name):
         '''
-        Frong Facing GSSHA Project Write All Files to File Method
+        Write all files for a project from the database to file.
+        
+        
+        *session* = SQLAlchemy session object\n
+        *directory* = to which directory will the files be written (e.g.: '/example/path')\n
+        *name* = project name (e.g.: 'my_project')\n
         '''
         
         # Write Project File
@@ -384,7 +389,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
     def readInput(self):
         '''
-        Front Facing GSSHA Read All Input Files Method
+        Read only input files for a GSSHA project into the database.
         '''
         # Add project file to session
         self.SESSION.add(self)
@@ -403,7 +408,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
     def writeInput(self, session, directory, name):
         '''
-        Front Facing GSSHA Write All Input Files Method
+        Write only input files for a GSSHA project from the database to file.
+        
+        
+        *session* = SQLAlchemy session object\n
+        *directory* = to which directory will the files be written (e.g.: '/example/path')\n
+        *name* = project name (e.g.: 'my_project')\n
         '''
         # Write Project File
         self.write(session=session, directory=directory, name=name)
@@ -416,7 +426,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
     def readOutput(self):
         '''
-        Front Facing GSSHA Read All Output Files Method
+        Read only output files for a GSSHA project to the database.
         '''
         # Add project file to session
         self.SESSION.add(self)
@@ -435,7 +445,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     
     def writeOutput(self, session, directory, name):
         '''
-        Front Facing GSSHA Write All Output Files Method
+        Write only output files for a GSSHA project from the database to file.
+        
+        
+        *session* = SQLAlchemy session object\n
+        *directory* = to which directory will the files be written (e.g.: '/example/path')\n
+        *name* = project name (e.g.: 'my_project')\n
         '''
         # Write Project File
         self.write(session=session, directory=directory, name=name)

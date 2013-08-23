@@ -1,0 +1,279 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Grid Stream File &mdash; GSSHAPY 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="API Documentation" href="../../api.html" />
+    <link rel="next" title="Hydrometeorological Files" href="hmet.html" />
+    <link rel="prev" title="Grid Pipe File" href="gpi.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="hmet.html" title="Hydrometeorological Files"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="gpi.html" title="Grid Pipe File"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../../api.html" accesskey="U">API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="grid-stream-file">
+<h1>Grid Stream File<a class="headerlink" href="#grid-stream-file" title="Permalink to this headline">¶</a></h1>
+<p>File extension: <strong>gst</strong></p>
+<div class="section" id="file-object">
+<h2>File Object<a class="headerlink" href="#file-object" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gsshapy.orm.GridStreamFile">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">GridStreamFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.GridStreamFile" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="gsshapy.orm.GridStreamFile.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'gst_grid_stream_files'</em><a class="headerlink" href="#gsshapy.orm.GridStreamFile.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamFile.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.GridStreamFile.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamFile.streamCells">
+<tt class="descname">streamCells</tt><a class="headerlink" href="#gsshapy.orm.GridStreamFile.streamCells" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamFile.gridStreamCells">
+<tt class="descname">gridStreamCells</tt><a class="headerlink" href="#gsshapy.orm.GridStreamFile.gridStreamCells" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamFile.projectFile">
+<tt class="descname">projectFile</tt><a class="headerlink" href="#gsshapy.orm.GridStreamFile.projectFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.GridStreamFile.read">
+<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.GridStreamFile.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read file into the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.GridStreamFile.write">
+<tt class="descname">write</tt><big>(</big><em>session</em>, <em>directory</em>, <em>name</em><big>)</big><a class="headerlink" href="#gsshapy.orm.GridStreamFile.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write from database to file.</p>
+<p><em>session</em> = SQLAlchemy session object</p>
+<p><em>directory</em> = to which directory will the files be written (e.g.: &#8216;/example/path&#8217;)</p>
+<p><em>name</em> = project name (e.g.: &#8216;my_project&#8217;)</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="table-objects">
+<h3>Table Objects<a class="headerlink" href="#table-objects" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="gsshapy.orm.GridStreamCell">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">GridStreamCell</tt><big>(</big><em>cellI</em>, <em>cellJ</em>, <em>numNodes</em><big>)</big><a class="headerlink" href="#gsshapy.orm.GridStreamCell" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="gsshapy.orm.GridStreamCell.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'gst_grid_stream_cells'</em><a class="headerlink" href="#gsshapy.orm.GridStreamCell.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamCell.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamCell.gridStreamFileID">
+<tt class="descname">gridStreamFileID</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.gridStreamFileID" title="Permalink to this definition">¶</a></dt>
+<dd><p>FK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamCell.gridStreamFile">
+<tt class="descname">gridStreamFile</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.gridStreamFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamCell.gridStreamNodes">
+<tt class="descname">gridStreamNodes</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.gridStreamNodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamCell.cellI">
+<tt class="descname">cellI</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.cellI" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamCell.cellJ">
+<tt class="descname">cellJ</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.cellJ" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamCell.numNodes">
+<tt class="descname">numNodes</tt><a class="headerlink" href="#gsshapy.orm.GridStreamCell.numNodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gsshapy.orm.GridStreamNode">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">GridStreamNode</tt><big>(</big><em>linkNumber</em>, <em>nodeNumber</em>, <em>nodePercentGrid</em><big>)</big><a class="headerlink" href="#gsshapy.orm.GridStreamNode" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="gsshapy.orm.GridStreamNode.__tablename__">
+<tt class="descname">__tablename__</tt><em class="property"> = 'gst_grid_stream_nodes'</em><a class="headerlink" href="#gsshapy.orm.GridStreamNode.__tablename__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamNode.id">
+<tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamNode.gridStreamCellID">
+<tt class="descname">gridStreamCellID</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.gridStreamCellID" title="Permalink to this definition">¶</a></dt>
+<dd><p>FK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamNode.gridStreamCell">
+<tt class="descname">gridStreamCell</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.gridStreamCell" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamNode.linkNumber">
+<tt class="descname">linkNumber</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.linkNumber" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamNode.nodeNumber">
+<tt class="descname">nodeNumber</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.nodeNumber" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.GridStreamNode.nodePercentGrid">
+<tt class="descname">nodePercentGrid</tt><a class="headerlink" href="#gsshapy.orm.GridStreamNode.nodePercentGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Grid Stream File</a><ul>
+<li><a class="reference internal" href="#file-object">File Object</a><ul>
+<li><a class="reference internal" href="#table-objects">Table Objects</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="gpi.html"
+                        title="previous chapter">Grid Pipe File</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="hmet.html"
+                        title="next chapter">Hydrometeorological Files</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/api/file-io/gst.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="hmet.html" title="Hydrometeorological Files"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="gpi.html" title="Grid Pipe File"
+             >previous</a> |</li>
+        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../../api.html" >API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Query using GsshaPy Objects &mdash; GSSHAPY 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../index.html" />
+    <link rel="up" title="Getting Started" href="../tutorial.html" />
+    <link rel="next" title="Write Files from a Database" href="write.html" />
+    <link rel="prev" title="Read Files to a Database" href="read.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="write.html" title="Write Files from a Database"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="read.html" title="Read Files to a Database"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../tutorial.html" accesskey="U">Getting Started</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="query-using-gsshapy-objects">
+<h1>Query using GsshaPy Objects<a class="headerlink" href="#query-using-gsshapy-objects" title="Permalink to this headline">¶</a></h1>
+<p><strong>Last Updated:</strong> August 23, 2013</p>
+<div class="section" id="explore-the-database">
+<h2>Explore the Database<a class="headerlink" href="#explore-the-database" title="Permalink to this headline">¶</a></h2>
+<p>To prove that the excercise has actually done something, let&#8217;s explore database.
+Before we do this using the GsshaPy objects, lets explore a little using the <tt class="docutils literal"><span class="pre">sqlite</span></tt> commandline
+utility. Open a terminal or command prompt and issue the following commands:</p>
+<div class="highlight-python"><pre>$ cd /path/to/tutorial-data/db
+$ sqlite3 gsshapy_parkcity.db
+sqlite&gt; .tables</pre>
+</div>
+<p>If the database was initialized correctly, you should see a list of about 50 or so tables. The three
+letter prefix on the filename is associted with the file extension or in some cases the type of file.
+For example, there are two tables used to store project files: <tt class="docutils literal"><span class="pre">prj_project_files</span></tt> and <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt>.
+Most of the data is stored in the <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt> table. Inspect the data in this table by issuing the following query:</p>
+<div class="highlight-python"><pre>sqlite&gt; SELECT * FROM prj_project_cards;</pre>
+</div>
+<p>Each record in the <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt> table stores the name and value of one card in the project file.
+The <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt> table is related to the <tt class="docutils literal"><span class="pre">prj_project_files</span></tt> table through a foreign
+key column called <em>projectFileID</em> (the column with all 1&#8217;s).</p>
+</div>
+<div class="section" id="querying-using-gsshapy-objects">
+<h2>Querying Using GsshaPy Objects<a class="headerlink" href="#querying-using-gsshapy-objects" title="Permalink to this headline">¶</a></h2>
+<p>The <strong>ProjectCard</strong> <em>table</em> class maps to the <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt> table and the <strong>ProjectFile</strong> class
+maps to the <tt class="docutils literal"><span class="pre">prj_project_files</span></tt> table. Instances of these classes can be used to query the
+database. Suppose we need to retrieve all of the project cards from a project file. We can use <a class="reference external" href="http://www.sqlalchemy.org/">SQLAlchemy</a>
+session object and SQL expression language to do this. Back in the python console, do the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">gsshapy.orm</span> <span class="kn">import</span> <span class="n">ProjectCard</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cards</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ProjectCard</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ProjectCard</span><span class="o">.</span><span class="n">projectFileID</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">card</span> <span class="ow">in</span> <span class="n">cards</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">card</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">For an overview of the <a class="reference external" href="http://www.sqlalchemy.org/">SQLAlchemy</a> SQL expression language see the following tutorials:
+<a class="reference external" href="http://docs.sqlalchemy.org/en/rel_0_8/orm/tutorial.html">Object Relational Tutorial</a> and <a class="reference external" href="http://docs.sqlalchemy.org/en/rel_0_8/core/tutorial.html">SQL Expression Language</a>.</p>
+</div>
+<p>The query returns a list of ProjectCard objects that represent the records in the <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt>
+table that have <em>projectFileID</em> equal to 1, where <em>projectFileID</em> is the foreign key field used
+in the relationship between the <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt> and <tt class="docutils literal"><span class="pre">prj_project_files</span></tt> tables. The <strong>ProjectCard</strong>
+class also has a relationship property called <em>projectFile</em> that maps to the associated <strong>ProjectFile</strong>
+class. Equivalently, we can filter the query using the <strong>ProjectFile</strong> instance we have already created:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cards</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ProjectCard</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ProjectCard</span><span class="o">.</span><span class="n">projectFile</span> <span class="o">==</span> <span class="n">projectFile</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">card</span> <span class="ow">in</span> <span class="n">cards</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">card</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<p>Alternatively, the relationship properties can be used to issue the queries to the database.
+The <strong>ProjectFile</strong> also has a relationship property, <em>projectCards</em>, that back references the <em>projectFile</em>
+property of the <strong>ProjectCard</strong> class. It can be used through the instance of our <strong>ProjectFile</strong> class
+in this way:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cards</span> <span class="o">=</span> <span class="n">projectFile</span><span class="o">.</span><span class="n">projectCards</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">card</span> <span class="ow">in</span> <span class="n">cards</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">card</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<p>The attributes of each <strong>ProjectCard</strong> object can be retrieved using normal dot notation. The <strong>ProjectCard</strong>
+has two value column attributes: <em>name</em> and <em>value</em>. Access their values like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">card</span> <span class="ow">in</span> <span class="n">cards</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">card</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">card</span><span class="o">.</span><span class="n">value</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Query using GsshaPy Objects</a><ul>
+<li><a class="reference internal" href="#explore-the-database">Explore the Database</a></li>
+<li><a class="reference internal" href="#querying-using-gsshapy-objects">Querying Using GsshaPy Objects</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="read.html"
+                        title="previous chapter">Read Files to a Database</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="write.html"
+                        title="next chapter">Write Files from a Database</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/tutorial/query.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="write.html" title="Write Files from a Database"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="read.html" title="Read Files to a Database"
+             >previous</a> |</li>
+        <li><a href="../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../tutorial.html" >Getting Started</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

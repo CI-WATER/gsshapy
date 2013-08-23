@@ -41,7 +41,7 @@ class GsshaPyFileObjectBase:
         
     def read(self):
         '''
-        Front Facing Read from File Method
+        Read file into the database.
         '''
         # Add self to session
         self.SESSION.add(self)
@@ -54,7 +54,11 @@ class GsshaPyFileObjectBase:
         
     def write(self, session, directory, name):
         '''
-        Front Facing Write to File Method
+        Write from database to file.
+        
+        *session* = SQLAlchemy session object\n
+        *directory* = to which directory will the files be written (e.g.: '/example/path')\n
+        *name* = project name (e.g.: 'my_project')\n
         '''
         # For future use
         self.SESSION = session
