@@ -1,0 +1,75 @@
+GSSHA_INDEX_MAP_TABLES
+INDEX_MAP                "LU DAIRY.idx" "lu_dairy"
+INDEX_MAP                "SkiTracks.idx" "SkiTracks"
+INDEX_MAP                "Combined.idx" "Combined"
+INDEX_MAP                "Soil.idx" "Soil"
+INDEX_MAP                "LandUse.idx" "LandUse"
+CONTAMINANT_TRANSPORT
+NUM_CONTAM 2
+"Nitrogen"  "lu_dairy"  C:\Users\swainn\Desktop\TEMP\GSSHATraining\Constituent\Contaminants\Nitrogen
+PRECIP_CONC          0.00
+PARTITION            2.70
+NUM_IDS 4
+ID    DESCRIPTION1                            DESCRIPTION2                            DECAY  DISPERSION  GW_CONC  INIT_CONC  LOADING  SOLUBILITY  SW_PART  UPTAKE  
+7     forest                                                                          0.000000   0.000000   1.000000   0.000000   4499.000000   360000.000000   2.700000   0.100000   
+9     grass                                                                           0.000000   0.000000   1.000000   0.000000   4847.000000   360000.000000   2.700000   0.100000   
+13    row crop                                                                        0.000000   0.000000   1.000000   0.000000   2169.000000   360000.000000   2.700000   0.100000   
+111   dairy                                                                           0.000000   0.000000   0.000000   0.000000   15854.000000   360000.000000   2.700000   0.100000   
+"Phosphorous"  "lu_dairy"  C:\Users\swainn\Desktop\TEMP\GSSHATraining\Constituent\Contaminants\Phosphorous
+PRECIP_CONC          0.00
+PARTITION            18.00
+NUM_IDS 4
+ID    DESCRIPTION1                            DESCRIPTION2                            DECAY  DISPERSION  GW_CONC  INIT_CONC  LOADING  SOLUBILITY  SW_PART  UPTAKE  
+7     forest                                                                          0.000000   0.000000   1.000000   0.000000   710.000000   220000.000000   18.000000   0.010000   
+9     grass                                                                           0.000000   0.000000   1.000000   0.000000   901.000000   220000.000000   18.000000   0.010000   
+13    row crop                                                                        0.000000   0.000000   1.000000   0.000000   629.000000   220000.000000   18.000000   0.010000   
+111   dairy                                                                           0.000000   0.000000   1.000000   0.000000   3115.000000   220000.000000   18.000000   0.010000   
+SOIL_EROSION_PROPS "SkiTracks"
+NUM_IDS 4
+NUM_SED 3
+ID    DESCRIPTION1                            DESCRIPTION2                            DETACH_COEF  DETACH_CRIT  DETACH_EXP  SED_COEF  SPLASH_COEF  3 SEDIMENTS....  
+13    Soil erosion properties ID                                                      0.000400   0.100000   0.650000   0.120000   10.800000   0.650000   0.200000   0.150000   
+14    Soil erosion properties ID                                                      0.000400   0.100000   0.650000   0.110000   20.500000   0.450000   0.350000   0.200000   
+15    Soil erosion properties ID                                                      0.000400   0.100000   0.650000   0.130000   18.500000   0.200000   0.650000   0.150000   
+100   Soil erosion properties ID                                                      0.000400   0.100000   0.650000   0.110000   20.500000   0.340000   0.330000   0.330000   
+GREEN_AMPT_INITIAL_SOIL_MOISTURE "Soil"
+NUM_IDS 3
+ID    DESCRIPTION1                            DESCRIPTION2                            SOIL_MOISTURE  
+17    Silt loam                                                                       0.100000   
+18    Silty clay loam                                                                 0.100000   
+19    Silty clay                                                                      0.100000   
+ROUGHNESS "LandUse"
+NUM_IDS 5
+ID    DESCRIPTION1                            DESCRIPTION2                            ROUGH  
+11    Untitled landuse                                                                0.011000   
+14    Untitled landuse                                                                0.011000   
+16    Untitled landuse                                                                0.011000   
+21    Untitled landuse                                                                0.035000   
+41    Untitled landuse                                                                0.100000   
+EVAPOTRANSPIRATION "Soil"
+NUM_IDS 3
+ID    DESCRIPTION1                            DESCRIPTION2                            ALBEDO  CANOPY_RESIST  VEG_HEIGHT  V_RAD_COEF  
+17    Evapotrans ID                                                                   0.250000   0.000000   0.000000   0.000000   
+18    Evapotrans ID                                                                   0.100000   0.000000   0.000000   0.000000   
+19    Evapotrans ID                                                                   0.150000   0.000000   0.000000   0.000000   
+GREEN_AMPT_INFILTRATION "Combined"
+NUM_IDS 12
+ID    DESCRIPTION1                            DESCRIPTION2                            CAPIL_HEAD  FIELD_CAPACITY  HYDR_COND  PORE_INDEX  POROSITY  RESID_SAT  WILTING_PT  
+1     Silt loam                               Land ID #21, Untitled landuse           8.000000   0.330000   0.340000   0.234000   0.501000   0.015000   0.000000   
+2     Silty clay loam                         Land ID #21, Untitled landuse           14.000000   0.366000   0.100000   0.177000   0.471000   0.040000   0.000000   
+3     Silty clay                              Land ID #21, Untitled landuse           15.000000   0.387000   0.050000   0.150000   0.479000   0.056000   0.000000   
+4     Silty clay loam                         Land ID #11, Untitled landuse           3.500000   0.366000   0.025000   0.177000   0.471000   0.040000   0.000000   
+5     Silt loam                               Land ID #11, Untitled landuse           2.000000   0.330000   0.080000   0.234000   0.501000   0.015000   0.000000   
+6     Silty clay                              Land ID #11, Untitled landuse           4.500000   0.387000   0.012500   0.150000   0.479000   0.056000   0.000000   
+7     Silt loam                               Land ID #41, Untitled landuse           8.000000   0.330000   0.340000   0.234000   0.501000   0.015000   0.000000   
+8     Silty clay loam                         Land ID #41, Untitled landuse           14.000000   0.366000   0.100000   0.177000   0.471000   0.040000   0.000000   
+9     Silty clay                              Land ID #41, Untitled landuse           1.300000   0.387000   0.010000   0.150000   0.479000   0.056000   0.000000   
+10    Silt loam                               Land ID #14, Untitled landuse           2.000000   0.330000   0.080000   0.234000   0.501000   0.015000   0.000000   
+11    Silty clay loam                         Land ID #14, Untitled landuse           1.300000   0.366000   0.005000   0.177000   0.471000   0.040000   0.000000   
+12    Silt loam                               Land ID #16, Untitled landuse           0.800000   0.330000   0.005000   0.234000   0.501000   0.015000   0.000000   
+SEDIMENTS
+NUM_SED 3
+Sediment Description                      Spec. Grav   Part. Dia     Output Filename
+Sand                                      2.650000     0.250000      Sand
+Silt                                      2.650000     0.160000      Silt
+Clay                                      2.650000     0.001000      Clay

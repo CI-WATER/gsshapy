@@ -1,0 +1,22 @@
+EVENT "Event of 30 June 1995- rainfall stops on July 1st"
+NRGAG 3
+NRPDS 5
+COORD 205150.0 4750212.0 "center of radar pixel #1"
+COORD 205045.0 4750104.0 "center of radar pixel #2"
+COORD 205320.0 4751173.0 "center of radar pixel #3"
+RADAR 1995 06  30  22  56  0.00  0.00  0.00
+RADAR 1995 06  30  23  18  10.75  2.25  5.80
+RADAR 1995 06  30  23  39  21.16  1.80  41.50
+RADAR 1995 06  30  23  57  12.13  20.90  20.70
+RADAR 1995 07  01  00  09  11.71  16.50  2.30
+EVENT "Event of 4 July 1995- new raingage network data"
+NRGAG 4
+NRPDS 4
+COORD 204555.0 4751268.0 "location of raingage #1"
+COORD 205642.0 4750491.0 "location of raingage #2"
+COORD 205921.0 4750330.0 "location of raingage #3"
+COORD 206170.0 4749611.0 "location of raingage #4"
+GAGES 1995 07  04  09  47  0.00  0.00  0.00  0.00
+GAGES 1995 07  04  10  01  38.00  2.00  0.00  0.00
+GAGES 1995 07  04  10  16  16.00  14.00  3.00  0.00
+GAGES 1995 07  04  10  35  19.00  20.00  16.00  8.00

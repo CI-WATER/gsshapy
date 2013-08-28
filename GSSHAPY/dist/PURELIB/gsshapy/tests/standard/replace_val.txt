@@ -1,0 +1,1 @@
+10 0.10 "/This/Is a/Fake/Path with/Spaces.txt" 100.00 ADE COW 9 321 0.33 777.77

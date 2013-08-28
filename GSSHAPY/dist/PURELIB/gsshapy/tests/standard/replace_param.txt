@@ -1,0 +1,11 @@
+10
+[ts] "%d"
+[silty_loam_HydCond] "%6.2lf"
+[ov_type] "%s"
+[residential_albedo] "%6.2lf"
+[this] "%s"
+[that] "%s"
+[it] "%d"
+[them] "%d"
+[hi] "%6.2lf"
+[last] "%6.2lf"
