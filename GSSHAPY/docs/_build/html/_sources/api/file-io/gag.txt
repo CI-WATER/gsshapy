@@ -11,7 +11,6 @@ File Object
 	:members:
 	:inherited-members:
 	
-	.. autoattribute:: gsshapy.orm.PrecipFile.__tablename__
 	
 Table Objects
 +++++++++++++
@@ -20,17 +19,14 @@ Table Objects
 	:members:
 	
 	
-	.. autoattribute:: gsshapy.orm.PrecipEvent.__tablename__
 	
 .. autoclass:: gsshapy.orm.PrecipValue
 	:members:
 	
 	
-	.. autoattribute:: gsshapy.orm.PrecipValue.__tablename__
 	
 .. autoclass:: gsshapy.orm.PrecipGage
 	:members:
 	
 	
-	.. autoattribute:: gsshapy.orm.PrecipGage.__tablename__
 	

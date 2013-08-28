@@ -14,7 +14,6 @@ File extension: **None**
 	:members:
 	:inherited-members:
 	
-	.. autoattribute:: gsshapy.orm.ReplaceParamFile.__tablename__
 	
 Table Objects
 +++++++++++++
@@ -22,7 +21,6 @@ Table Objects
 .. autoclass:: gsshapy.orm.TargetParameter
 	:members:
 	
-	.. autoattribute:: gsshapy.orm.TargetParameter.__tablename__
 	
 	
 Replace Value File
@@ -34,4 +32,3 @@ File extension: **None**
 	:members:
 	:inherited-members:
 	
-	.. autoattribute:: gsshapy.orm.ReplaceValFile.__tablename__

@@ -27,6 +27,8 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'snw_nwsrfs_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
@@ -43,7 +45,7 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         NWSRFS Read from File Method
         '''
@@ -74,7 +76,7 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
                     record.nwsrfsFile = self
 
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         NWSRFS Write to File Method
         '''
@@ -113,6 +115,8 @@ class NwsrfsRecord(DeclarativeBase):
     '''
     '''
     __tablename__ = 'snw_nwsrfs_records'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
@@ -167,6 +171,8 @@ class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'snw_orthographic_gage_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
@@ -185,7 +191,7 @@ class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Orthographic Gage File Read from File Method
         '''
@@ -217,7 +223,7 @@ class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Associate OrthoMeasuerment with OrthographicGageFile
                     measurement.orthoGageFile = self
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Orthographic Gage File Write to File Method
         '''
@@ -249,6 +255,8 @@ class OrthoMeasurement(DeclarativeBase):
     '''
     '''
     __tablename__ = 'snw_orthographic_measurements'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK

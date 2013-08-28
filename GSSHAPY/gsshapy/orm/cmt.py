@@ -47,7 +47,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Mapping Table Read from File Method
         '''
@@ -103,7 +103,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     indexMap.mapTableFile = self
                     
                     # Initiate IndexMap read method
-                    indexMap._readWithoutCommit()
+                    indexMap._read()
                 
                 # Map Table handler
                 else:
@@ -115,7 +115,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         # returned from the parser functions
         self._createGsshaPyObjects(mapTables, indexMaps)
             
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Map Table Write to File Method
         '''
@@ -436,6 +436,8 @@ class MapTable(DeclarativeBase):
     '''
     __tablename__ = 'cmt_map_tables'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     idxMapID = Column(Integer, ForeignKey('idx_index_maps.id')) #: FK
@@ -485,6 +487,8 @@ class MTIndex(DeclarativeBase):
     '''
     __tablename__ = 'cmt_indexes'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'), nullable=False) #: FK
@@ -519,6 +523,8 @@ class MTValue(DeclarativeBase):
     '''
     '''
     __tablename__ = 'cmt_map_table_values'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
@@ -557,6 +563,8 @@ class MTContaminant(DeclarativeBase):
     '''
     '''
     __tablename__ = 'cmt_contaminants'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
@@ -604,6 +612,8 @@ class MTSediment(DeclarativeBase):
     '''
     '''
     __tablename__ = 'cmt_sediments'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK

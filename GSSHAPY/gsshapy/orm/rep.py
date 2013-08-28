@@ -25,6 +25,8 @@ class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'rep_replace_param_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
@@ -41,7 +43,7 @@ class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Replace Param File Read from File Method
         '''
@@ -60,7 +62,7 @@ class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Associate TargetParameter with ReplaceParamFile
                     target.replaceParamFile = self
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Replace Param File Write to File Method
         '''
@@ -77,6 +79,8 @@ class TargetParameter(DeclarativeBase):
     '''
     '''
     __tablename__ = 'rep_target_parameter'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
@@ -101,6 +105,8 @@ class ReplaceValFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'rep_replace_val_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
@@ -116,7 +122,7 @@ class ReplaceValFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Replace Val File Read from File Method
         '''
@@ -124,7 +130,7 @@ class ReplaceValFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(self.PATH, 'r') as f:
             self.values = f.read()
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Replace Val File Write to File Method
         '''

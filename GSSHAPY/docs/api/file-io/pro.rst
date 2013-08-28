@@ -11,5 +11,4 @@ File Object
 	:members:
 	:inherited-members:
 	
-	.. autoattribute:: gsshapy.orm.ProjectionFile.__tablename__
 	

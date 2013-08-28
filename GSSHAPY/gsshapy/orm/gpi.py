@@ -27,6 +27,8 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'gpi_grid_pipe_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
@@ -46,7 +48,7 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Grid Pipe File Read from File Method
         '''
@@ -78,7 +80,7 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self._createGsshaPyObjects(result)
 
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Grid Pipe File Write to File Method
         '''
@@ -166,6 +168,8 @@ class GridPipeCell(DeclarativeBase):
     '''
     __tablename__ = 'gpi_grid_pipe_cells'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     gridPipeFileID = Column(Integer, ForeignKey('gpi_grid_pipe_files.id')) #: FK
@@ -199,6 +203,8 @@ class GridPipeNode(DeclarativeBase):
     '''
     '''
     __tablename__ = 'gpi_grid_pipe_nodes'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK

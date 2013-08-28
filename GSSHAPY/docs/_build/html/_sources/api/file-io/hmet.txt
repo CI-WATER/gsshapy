@@ -11,7 +11,7 @@ File Object
 	:members:
 	:inherited-members:
 	
-	.. autoattribute:: gsshapy.orm.HmetFile.__tablename__
+
 	
 Table Objects
 +++++++++++++
@@ -20,4 +20,3 @@ Table Objects
 	:members:
 	
 	
-	.. autoattribute:: gsshapy.orm.HmetRecord.__tablename__

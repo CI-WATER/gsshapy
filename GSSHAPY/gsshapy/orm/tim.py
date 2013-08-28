@@ -29,6 +29,8 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
     
     __tablename__ = 'tim_time_series_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     projectFileID = Column(Integer, ForeignKey('prj_project_files.id')) #: FK
@@ -46,7 +48,7 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Generic Time Series Read from File Method
         '''
@@ -71,7 +73,7 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._createTimeSeriesObjects(timeSeries)
         
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Generic Time Series Write to File Method
         '''        
@@ -147,6 +149,8 @@ class TimeSeries(DeclarativeBase):
     
     __tablename__ = 'tim_time_series'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     timeSeriesFileID = Column(Integer, ForeignKey('tim_time_series_files.id')) #: FK
@@ -162,6 +166,8 @@ class TimeSeriesValue(DeclarativeBase):
     '''
     
     __tablename__ = 'tim_time_series_values'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK

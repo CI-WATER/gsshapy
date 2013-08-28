@@ -26,6 +26,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'prj_project_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     precipFileID = Column(Integer, ForeignKey('gag_precipitation_files.id')) #: FK
@@ -189,7 +191,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.name = filename.split('.')[0]
     
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Project File Read from File Method
         '''
@@ -243,7 +245,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         
                
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Project File Write to File Method
         '''
@@ -339,7 +341,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.SESSION.add(self)
         
         # First read self
-        self._readWithoutCommit()
+        self._read()
         
         # Read Input Files
         self._readXput(self.INPUT_FILES)
@@ -395,7 +397,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.SESSION.add(self)
         
         # Read Project File
-        self._readWithoutCommit()
+        self._read()
         
         # Read Input Files
         self._readXput(self.INPUT_FILES)
@@ -536,7 +538,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         instance = fileIO(directory=self.DIRECTORY, filename=filename, session=self.SESSION)
         instance.projectFile = self
-        instance._readWithoutCommit()
+        instance._read()
 #         print 'File Read:', filename
         
     def _invokeWrite(self, fileIO, session, directory, filename):
@@ -694,6 +696,8 @@ class ProjectCard(DeclarativeBase):
     '''
     '''
     __tablename__ = 'prj_project_cards'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK

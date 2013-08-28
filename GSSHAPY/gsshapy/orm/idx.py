@@ -25,6 +25,8 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'idx_index_maps'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id')) #: FK
@@ -59,7 +61,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
                 self.filename == other.filename and
                 self.raster == other.raster)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Index Map Read from File Method
         '''

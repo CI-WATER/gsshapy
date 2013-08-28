@@ -24,6 +24,8 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'pro_projection_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
@@ -45,7 +47,7 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
     def __repr__(self):
         return '<ProjectionFile: Projection=%s>' % (self.projection)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Projection File Read from File Method
         '''
@@ -54,7 +56,7 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(self.PATH, 'r') as f:
             self.projection = f.read()
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Projection File Write to File Method
         '''

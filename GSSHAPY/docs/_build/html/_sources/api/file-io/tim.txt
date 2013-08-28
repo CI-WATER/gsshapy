@@ -11,7 +11,6 @@ File Object
 	:members:
 	:inherited-members:
 	
-	.. autoattribute:: gsshapy.orm.TimeSeriesFile.__tablename__
 	
 Table Objects
 +++++++++++++
@@ -20,10 +19,8 @@ Table Objects
 	:members:
 	
 	
-	.. autoattribute:: gsshapy.orm.TimeSeries.__tablename__
 	
 .. autoclass:: gsshapy.orm.TimeSeriesValue
 	:members:
 	
 	
-	.. autoattribute:: gsshapy.orm.TimeSeriesValue.__tablename__

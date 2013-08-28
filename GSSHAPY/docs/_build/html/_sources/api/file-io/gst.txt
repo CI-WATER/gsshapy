@@ -11,7 +11,6 @@ File Object
 	:members:
 	:inherited-members:
 	
-	.. autoattribute:: gsshapy.orm.GridStreamFile.__tablename__
 	
 Table Objects
 +++++++++++++
@@ -20,10 +19,8 @@ Table Objects
 	:members:
 	
 	
-	.. autoattribute:: gsshapy.orm.GridStreamCell.__tablename__
 	
 .. autoclass:: gsshapy.orm.GridStreamNode
 	:members:
 	
 	
-	.. autoattribute:: gsshapy.orm.GridStreamNode.__tablename__

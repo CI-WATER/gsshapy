@@ -11,7 +11,6 @@ File Object
 	:inherited-members:
 	:members:
 	
-	.. autoattribute:: gsshapy.orm.ProjectFile.__tablename__
 	
 Table Objects
 +++++++++++++
@@ -19,4 +18,3 @@ Table Objects
 .. autoclass:: gsshapy.orm.ProjectCard
 	:members:
 	
-	.. autoattribute:: gsshapy.orm.ProjectCard.__tablename__

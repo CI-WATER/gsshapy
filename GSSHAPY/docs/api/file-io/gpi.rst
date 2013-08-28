@@ -11,8 +11,6 @@ File Object
 	:members:
 	:inherited-members:
 	
-	.. autoattribute:: gsshapy.orm.GridPipeFile.__tablename__
-	
 Table Objects
 +++++++++++++
 
@@ -20,10 +18,8 @@ Table Objects
 	:members:
 	
 	
-	.. autoattribute:: gsshapy.orm.GridPipeCell.__tablename__
 	
 .. autoclass:: gsshapy.orm.GridPipeNode
 	:members:
 	
 	
-	.. autoattribute:: gsshapy.orm.GridPipeNode.__tablename__

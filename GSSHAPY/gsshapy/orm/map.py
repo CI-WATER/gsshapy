@@ -24,6 +24,8 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'raster_maps'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     projectFileID = Column(Integer, ForeignKey('prj_project_files.id')) #: FK
@@ -44,7 +46,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
     def __repr__(self):
         return '<RasterMap: FileExtension=%s, Raster=%s>' % (self.fileExtension, self.raster)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Raster Map File Read from File Method
         '''
@@ -55,7 +57,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(self.PATH, 'r') as f:
             self.raster = f.read()
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Raster Map File Write to File Method
         '''

@@ -26,6 +26,8 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'hmet_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
@@ -43,7 +45,7 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
     def __repr__(self):
         return '<HmetFile: Name=%s, Description=%s>' % (self.name, self.description)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Read HMET WES from File Method
         '''
@@ -69,7 +71,7 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # Associate HmetRecord with HmetFile
                 hmetRecord.hmetFile = self
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Write HMET WES to File Method
         '''
@@ -97,6 +99,8 @@ class HmetRecord(DeclarativeBase):
     '''
     '''
     __tablename__ = 'hmet_records'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK

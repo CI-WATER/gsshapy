@@ -14,7 +14,6 @@ File extension: **idx**
 	:members:
 	:inherited-members:
 	
-	.. autoattribute:: gsshapy.orm.IndexMap.__tablename__
 	
 	
 Raster Map File Object
@@ -26,4 +25,3 @@ File extensions: **Variable** (e.g.: ele, msk, aqe)
 	:members:
 	:inherited-members:
 	
-	.. autoattribute:: gsshapy.orm.RasterMapFile.__tablename__

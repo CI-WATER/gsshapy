@@ -26,6 +26,8 @@ class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
     
     __tablename__ = 'loc_output_location_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     projectFileID = Column(Integer, ForeignKey('prj_project_files.id')) #: FK
@@ -44,7 +46,7 @@ class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Generic Output Location Read from File Method
         '''
@@ -67,7 +69,7 @@ class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
                     location.outputLocationFile = self
         
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Generic Output Location Write to File Method
         '''        
@@ -86,6 +88,8 @@ class OutputLocation(DeclarativeBase):
     '''
     
     __tablename__ = 'loc_output_locations'
+    
+    tableName = __tablename__ #: Database tablename
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK

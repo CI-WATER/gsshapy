@@ -32,6 +32,8 @@ class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'spn_storm_pipe_network_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
@@ -53,7 +55,7 @@ class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
     def __repr__(self):
         return '<PipeNetwork: ID=%s>' %(self.id)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Storm Pipe Network File Read from File Method
         '''
@@ -91,7 +93,7 @@ class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._createSlink(slinks)
         
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Storm Pipe Network File Write to File Method
         '''           
@@ -253,6 +255,8 @@ class SuperLink(DeclarativeBase):
     '''
     __tablename__ = 'spn_super_links'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id')) #: FK
@@ -285,6 +289,8 @@ class SuperNode(DeclarativeBase):
     '''
     '''
     __tablename__ = 'spn_super_nodes'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
@@ -336,6 +342,8 @@ class Pipe(DeclarativeBase):
     ''' 
     '''
     __tablename__ = 'spn_pipes'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
@@ -389,6 +397,8 @@ class SuperJunction(DeclarativeBase):
     '''
     __tablename__ = 'spn_super_junctions'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id')) #: FK
@@ -437,6 +447,8 @@ class Connection(DeclarativeBase):
     '''
     '''
     __tablename__ = 'spn_connections'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK

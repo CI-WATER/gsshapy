@@ -11,7 +11,6 @@ File Object
 	:members:
 	:inherited-members:
 	
-	.. autoattribute:: gsshapy.orm.OutputLocationFile.__tablename__
 	
 Table Objects
 +++++++++++++
@@ -20,4 +19,3 @@ Table Objects
 	:members:
 	
 	
-	.. autoattribute:: gsshapy.orm.OutputLocation.__tablename__

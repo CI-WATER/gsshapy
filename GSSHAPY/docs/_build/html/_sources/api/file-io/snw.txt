@@ -13,7 +13,6 @@ File extension: **None**
 	:members:
 	:inherited-members:
 	
-	.. autoattribute:: gsshapy.orm.NwsrfsFile.__tablename__
 	
 Table Objects
 +++++++++++++
@@ -22,7 +21,6 @@ Table Objects
 	:members:
 	
 	
-	.. autoattribute:: gsshapy.orm.NwsrfsRecord.__tablename__
 	
 	
 Orthographic Gage File
@@ -34,7 +32,6 @@ File extension: **None**
 	:members:
 	:inherited-members:
 	
-	.. autoattribute:: gsshapy.orm.OrthographicGageFile.__tablename__
 	
 	
 Table Objects
@@ -43,5 +40,3 @@ Table Objects
 .. autoclass:: gsshapy.orm.OrthoMeasurement
 	:members:
 	
-	
-	.. autoattribute:: gsshapy.orm.OrthoMeasurement.__tablename__

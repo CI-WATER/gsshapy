@@ -26,6 +26,8 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'gst_grid_stream_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
@@ -45,7 +47,7 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Grid Stream File Read from File Method
         '''
@@ -77,7 +79,7 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self._createGsshaPyObjects(result)
 
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Grid Stream File Write to File Method
         '''
@@ -165,6 +167,8 @@ class GridStreamCell(DeclarativeBase):
     '''
     __tablename__ = 'gst_grid_stream_cells'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     gridStreamFileID = Column(Integer, ForeignKey('gst_grid_stream_files.id')) #: FK
@@ -193,6 +197,8 @@ class GridStreamNode(DeclarativeBase):
     '''
     '''
     __tablename__ = 'gst_grid_stream_nodes'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK

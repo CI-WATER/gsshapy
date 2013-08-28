@@ -74,7 +74,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 self.links == other.links and
                 self.maxNodes == other.maxNodes)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Channel Input File Read from File Method
         '''
@@ -128,7 +128,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         self._createConnectivity(linkList=links, connectList=connectivity)                
                     
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Channel Input File Write to File Method
         '''

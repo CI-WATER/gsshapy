@@ -29,6 +29,8 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'lnd_link_node_dataset_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     projectFileID = Column(Integer, ForeignKey('prj_project_files.id')) #: FK
@@ -51,7 +53,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Link Node Dataset File Read from File Method
         '''
@@ -118,7 +120,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Link Node Dataset File Write to File Method
         '''
@@ -149,6 +151,8 @@ class TimeStep(DeclarativeBase):
     '''
     __tablename__ = 'lnd_time_steps'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     linkNodeDatasetFileID = Column(Integer, ForeignKey('lnd_link_node_dataset_files.id')) #: FK
@@ -168,9 +172,10 @@ class TimeStep(DeclarativeBase):
 
 class LinkNodeLine(DeclarativeBase):
     '''
-    
     '''
     __tablename__ = 'lnd_link_node_lines'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK

@@ -34,6 +34,8 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     __tablename__ = 'gag_precipitation_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
@@ -50,7 +52,7 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)        
         
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Precipitation Read from File Method
         '''
@@ -71,7 +73,7 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Add this PrecipFile to the database session
         self.SESSION.add(self)
                 
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Precipitation File Write to File Method
         '''
@@ -177,9 +179,10 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
                 
 class PrecipEvent(DeclarativeBase):
     '''
-    
     '''
     __tablename__ = 'gag_events'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
@@ -211,9 +214,10 @@ class PrecipEvent(DeclarativeBase):
     
 class PrecipValue(DeclarativeBase):
     '''
-    
     '''
     __tablename__ = 'gag_values'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
@@ -247,6 +251,8 @@ class PrecipGage(DeclarativeBase):
     '''
     '''
     __tablename__ = 'gag_coord'
+    
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
