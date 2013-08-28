@@ -17,25 +17,6 @@ gsshapy/lib/gsshaDateTime.py
 gsshapy/lib/parsetools.py
 gsshapy/lib/pivot.py
 gsshapy/lib/spn_chunk.py
-gsshapy/orm/__init__.py
-gsshapy/orm/cif.py
-gsshapy/orm/cmt.py
-gsshapy/orm/file_base.py
-gsshapy/orm/file_io.py
-gsshapy/orm/gag.py
-gsshapy/orm/gpi.py
-gsshapy/orm/gst.py
-gsshapy/orm/hmet.py
-gsshapy/orm/idx.py
-gsshapy/orm/lnd.py
-gsshapy/orm/loc.py
-gsshapy/orm/map.py
-gsshapy/orm/prj.py
-gsshapy/orm/pro.py
-gsshapy/orm/rep.py
-gsshapy/orm/snw.py
-gsshapy/orm/spn.py
-gsshapy/orm/tim.py
 gsshapy/tests/README.txt
 gsshapy/tests/__init__.py
 gsshapy/tests/__init__.pyc
@@ -44,7 +25,6 @@ gsshapy/tests/read_tests.pyc
 gsshapy/tests/write_tests.py
 gsshapy/tests/write_tests.pyc
 gsshapy/tests/db/.gitignore
-gsshapy/tests/out/.gitignore
 gsshapy/tests/standard/Combined.idx
 gsshapy/tests/standard/LU DAIRY.idx
 gsshapy/tests/standard/LandUse.idx
