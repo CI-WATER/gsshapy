@@ -72,114 +72,115 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     EXTENSION = 'prj'
     MAP_TYPES_SUPPORTED = (1,)
     
-    INPUT_FILES = {'#PROJECTION_FILE':          {'filename': None, 'fileio': ProjectionFile},       # WMS
-                   'MAPPING_TABLE':             {'filename': None, 'fileio': MapTableFile},         # Mapping Table
-                   'ST_MAPPING_TABLE':          {'filename': None, 'fileio': None},
-                   'PRECIP_FILE':               {'filename': None, 'fileio': PrecipFile},           # Precipitation
-                   'CHANNEL_INPUT':             {'filename': None, 'fileio': ChannelInputFile},     # Channel Routing
-                   'STREAM_CELL':               {'filename': None, 'fileio': GridStreamFile},
-                   'SECTION_TABLE':             {'filename': None, 'fileio': None},
-                   'SOIL_LAYER_INPUT_FILE':     {'filename': None, 'fileio': None},                 # Infiltration
-                   'IN_THETA_LOCATION':         {'filename': None, 'fileio': OutputLocationFile},
-                   'EXPLIC_HOTSTART':           {'filename': None, 'fileio': None},
-                   'READ_CHAN_HOTSTART':        {'filename': None, 'fileio': None},
-                   'CHAN_POINT_INPUT':          {'filename': None, 'fileio': None},
-                   'IN_HYD_LOCATION':           {'filename': None, 'fileio': OutputLocationFile},
-                   'IN_SED_LOC':                {'filename': None, 'fileio': OutputLocationFile},
-                   'IN_GWFLUX_LOCATION':        {'filename': None, 'fileio': OutputLocationFile},
-                   'HMET_SURFAWAYS':            {'filename': None, 'fileio': None},                 # Continuous Simulation
-                   'HMET_SAMSON':               {'filename': None, 'fileio': None},
-                   'HMET_WES':                  {'filename': None, 'fileio': HmetFile},
-                   'NWSRFS_ELEV_SNOW':          {'filename': None, 'fileio': NwsrfsFile},
-                   'HMET_OROG_GAGES':           {'filename': None, 'fileio': OrthographicGageFile},
-                   'HMET_ASCII':                {'filename': None, 'fileio': None},
-                   'GW_FLUXBOUNDTABLE':         {'filename': None, 'fileio': None},                 # Saturated Groundwater Flow
-                   'STORM_SEWER':               {'filename': None, 'fileio': StormPipeNetworkFile}, # Subsurface Drainage
-                   'GRID_PIPE':                 {'filename': None, 'fileio': GridPipeFile},
-                   'SUPER_LINK_JUNC_LOCATION':  {'filename': None, 'fileio': None},
-                   'SUPERLINK_NODE_LOCATION':   {'filename': None, 'fileio': None},
-                   'OVERLAND_DEPTH_LOCATION':   {'filename': None, 'fileio': OutputLocationFile},   # Overland Flow (Other Output)
-                   'OVERLAND_WSE_LOCATION':     {'filename': None, 'fileio': OutputLocationFile},
-                   'OUT_WELL_LOCATION':         {'filename': None, 'fileio': OutputLocationFile},
-                   'REPLACE_PARAMS':            {'filename': None, 'fileio': ReplaceParamFile},     # Replacement Cards
-                   'REPLACE_VALS':              {'filename': None, 'fileio': ReplaceValFile}}
+    INPUT_FILES = {'#PROJECTION_FILE':          ProjectionFile,       # WMS
+                   'MAPPING_TABLE':             MapTableFile,         # Mapping Table
+                   'ST_MAPPING_TABLE':          None,
+                   'PRECIP_FILE':               PrecipFile,           # Precipitation
+                   'CHANNEL_INPUT':             ChannelInputFile,     # Channel Routing
+                   'STREAM_CELL':               GridStreamFile,
+                   'SECTION_TABLE':             None,
+                   'SOIL_LAYER_INPUT_FILE':     None,                 # Infiltration
+                   'IN_THETA_LOCATION':         OutputLocationFile,
+                   'EXPLIC_HOTSTART':           None,
+                   'READ_CHAN_HOTSTART':        None,
+                   'CHAN_POINT_INPUT':          None,
+                   'IN_HYD_LOCATION':           OutputLocationFile,
+                   'IN_SED_LOC':                OutputLocationFile,
+                   'IN_GWFLUX_LOCATION':        OutputLocationFile,
+                   'HMET_SURFAWAYS':            None,                 # Continuous Simulation
+                   'HMET_SAMSON':               None,
+                   'HMET_WES':                  HmetFile,
+                   'NWSRFS_ELEV_SNOW':          NwsrfsFile,
+                   'HMET_OROG_GAGES':           OrthographicGageFile,
+                   'HMET_ASCII':                None,
+                   'GW_FLUXBOUNDTABLE':         None,                 # Saturated Groundwater Flow
+                   'STORM_SEWER':               StormPipeNetworkFile, # Subsurface Drainage
+                   'GRID_PIPE':                 GridPipeFile,
+                   'SUPER_LINK_JUNC_LOCATION':  None,
+                   'SUPERLINK_NODE_LOCATION':   None,
+                   'OVERLAND_DEPTH_LOCATION':   OutputLocationFile,   # Overland Flow (Other Output)
+                   'OVERLAND_WSE_LOCATION':     OutputLocationFile,
+                   'OUT_WELL_LOCATION':         OutputLocationFile,
+                   'REPLACE_PARAMS':            ReplaceParamFile,     # Replacement Cards
+                   'REPLACE_VALS':              ReplaceValFile}
     
-    INPUT_MAPS = {'ELEVATION':              {'filename': None}, # Required Inputs
-                  'WATERSHED_MASK':         {'filename': None}, 
-                  'ROUGHNESS':              {'filename': None}, # Overland Flow
-                  'RETEN_DEPTH':            {'filename': None},
-                  'READ_OV_HOTSTART':       {'filename': None},
-                  'STORAGE_CAPACITY':       {'filename': None}, # Interception
-                  'INTERCEPTION_COEFF':     {'filename': None},
-                  'CONDUCTIVITY':           {'filename': None}, # Infiltration
-                  'CAPILLARY':              {'filename': None},
-                  'POROSITY':               {'filename': None},
-                  'MOISTURE':               {'filename': None},
-                  'PORE_INDEX':             {'filename': None},
-                  'RESIDUAL_SAT':           {'filename': None},
-                  'FIELD_CAPACITY':         {'filename': None},
-                  'SOIL_TYPE_MAP':          {'filename': None},
-                  'WATER_TABLE':            {'filename': None},
-                  'READ_SM_HOTSTART':       {'filename': None},
-                  'ALBEDO':                 {'filename': None}, # Continuous Simulation
-                  'WILTING_POINT':          {'filename': None},
-                  'TCOEFF':                 {'filename': None},
-                  'VHEIGHT':                {'filename': None},
-                  'CANOPY':                 {'filename': None},
-                  'INIT_SWE_DEPTH':         {'filename': None},
-                  'WATER_TABLE':            {'filename': None}, # Saturated Groudwater Flow
-                  'AQUIFER_BOTTOM':         {'filename': None},
-                  'GW_BOUNDFILE':           {'filename': None},
-                  'GW_POROSITY_MAP':        {'filename': None},
-                  'GW_HYCOND_MAP':          {'filename': None},
-                  'EMBANKMENT':             {'filename': None}, # Embankment Structures
-                  'DIKE_MASK':              {'filename': None},
-                  'WETLAND':                {'filename': None}, # Wetlands
-                  'CONTAM_MAP':             {'filename': None}} # Constituent Transport
+    INPUT_MAPS = ('ELEVATION',            # Required Inputs
+                  'WATERSHED_MASK',       
+                  'ROUGHNESS',            # Overland Flow
+                  'RETEN_DEPTH',         
+                  'READ_OV_HOTSTART',    
+                  'STORAGE_CAPACITY',     # Interception
+                  'INTERCEPTION_COEFF',  
+                  'CONDUCTIVITY',         # Infiltration
+                  'CAPILLARY',           
+                  'POROSITY',            
+                  'MOISTURE',            
+                  'PORE_INDEX',          
+                  'RESIDUAL_SAT',        
+                  'FIELD_CAPACITY',      
+                  'SOIL_TYPE_MAP',       
+                  'WATER_TABLE',         
+                  'READ_SM_HOTSTART',    
+                  'ALBEDO',               # Continuous Simulation
+                  'WILTING_POINT',       
+                  'TCOEFF',              
+                  'VHEIGHT',             
+                  'CANOPY',              
+                  'INIT_SWE_DEPTH',      
+                  'WATER_TABLE',          # Saturated Groudwater Flow
+                  'AQUIFER_BOTTOM',      
+                  'GW_BOUNDFILE',        
+                  'GW_POROSITY_MAP',     
+                  'GW_HYCOND_MAP',       
+                  'EMBANKMENT',           # Embankment Structures
+                  'DIKE_MASK',           
+                  'WETLAND',              # Wetlands
+                  'CONTAM_MAP')           # Constituent Transport
     
-    OUTPUT_FILES = {'SUMMARY':              {'filename': None, 'fileio': None},                 # Required Output
-                    'OUTLET_HYDRO':         {'filename': None, 'fileio': TimeSeriesFile},
-                    'DEPTH':                {'filename': None, 'fileio': None},
-                    'OUT_THETA_LOCATION':   {'filename': None, 'fileio': TimeSeriesFile},       # Infiltration
-                    'EXPLIC_BACKWATER':     {'filename': None, 'fileio': None},                 # Channel Routing
-                    'WRITE_CHAN_HOTSTART':  {'filename': None, 'fileio': None},
-                    'OUT_HYD_LOCATION':     {'filename': None, 'fileio': TimeSeriesFile},
-                    'OUT_DEP_LOCATION':     {'filename': None, 'fileio': TimeSeriesFile},
-                    'OUT_SED_LOC':          {'filename': None, 'fileio': TimeSeriesFile},
-                    'CHAN_DEPTH':           {'filename': None, 'fileio': LinkNodeDatasetFile},
-                    'CHAN_STAGE':           {'filename': None, 'fileio': LinkNodeDatasetFile},
-                    'CHAN_DISCHARGE':       {'filename': None, 'fileio': LinkNodeDatasetFile},
-                    'CHAN_VELOCITY':        {'filename': None, 'fileio': LinkNodeDatasetFile},
-                    'LAKE_OUTPUT':          {'filename': None, 'fileio': None},  ## TODO: Special format? .lel
-                    'SNOW_SWE_FILE':        {'filename': None, 'fileio': None},                 # Continuous Simulation
-                    'GW_WELL_LEVEL':        {'filename': None, 'fileio': None},                 # Saturated Groundwater Flow
-                    'OUT_GWFULX_LOCATION':  {'filename': None, 'fileio': TimeSeriesFile},
-                    'OUTLET_SED_FLUX':      {'filename': None, 'fileio': TimeSeriesFile},       # Soil Erosion
-                    'ADJUST_ELEV':          {'filename': None, 'fileio': None},
-                    'OUTLET_SED_TSS':       {'filename': None, 'fileio': TimeSeriesFile},
-                    'OUT_TSS_LOC':          {'filename': None, 'fileio': TimeSeriesFile},
-                    'NET_SED_VOLUME':       {'filename': None, 'fileio': None},
-                    'VOL_SED_SUSP':         {'filename': None, 'fileio': None},
-                    'MAX_SED_FLUX':         {'filename': None, 'fileio': LinkNodeDatasetFile},
-                    'OUT_CON_LOCATION':     {'filename': None, 'fileio': TimeSeriesFile},       # Constituent Transport
-                    'OUT_MASS_LOCATION':    {'filename': None, 'fileio': TimeSeriesFile},
-                    'SUPERLINK_JUNC_FLOW':  {'filename': None, 'fileio': TimeSeriesFile},       # Subsurface Drainage
-                    'SUPERLINK_NODE_FLOW':  {'filename': None, 'fileio': TimeSeriesFile},
-                    'OVERLAND_DEPTHS':      {'filename': None, 'fileio': TimeSeriesFile},
-                    'OVERLAND_WSE':         {'filename': None, 'fileio': TimeSeriesFile},
-                    'OPTIMIZE':             {'filename': None, 'fileio': None}}
+    OUTPUT_FILES = {'SUMMARY':              None,                 # Required Output
+                    'OUTLET_HYDRO':         TimeSeriesFile,
+                    'DEPTH':                None,
+                    'OUT_THETA_LOCATION':   TimeSeriesFile,       # Infiltration
+                    'EXPLIC_BACKWATER':     None,                 # Channel Routing
+                    'WRITE_CHAN_HOTSTART':  None,
+                    'OUT_HYD_LOCATION':     TimeSeriesFile,
+                    'OUT_DEP_LOCATION':     TimeSeriesFile,
+                    'OUT_SED_LOC':          TimeSeriesFile,
+                    'CHAN_DEPTH':           LinkNodeDatasetFile,
+                    'CHAN_STAGE':           LinkNodeDatasetFile,
+                    'CHAN_DISCHARGE':       LinkNodeDatasetFile,
+                    'CHAN_VELOCITY':        LinkNodeDatasetFile,
+                    'LAKE_OUTPUT':          None,  ## TODO: Special format? .lel
+                    'SNOW_SWE_FILE':        None,                 # Continuous Simulation
+                    'GW_WELL_LEVEL':        None,                 # Saturated Groundwater Flow
+                    'OUT_GWFULX_LOCATION':  TimeSeriesFile,
+                    'OUTLET_SED_FLUX':      TimeSeriesFile,       # Soil Erosion
+                    'ADJUST_ELEV':          None,
+                    'OUTLET_SED_TSS':       TimeSeriesFile,
+                    'OUT_TSS_LOC':          TimeSeriesFile,
+                    'NET_SED_VOLUME':       None,
+                    'VOL_SED_SUSP':         None,
+                    'MAX_SED_FLUX':         LinkNodeDatasetFile,
+                    'OUT_CON_LOCATION':     TimeSeriesFile,       # Constituent Transport
+                    'OUT_MASS_LOCATION':    TimeSeriesFile,
+                    'SUPERLINK_JUNC_FLOW':  TimeSeriesFile,       # Subsurface Drainage
+                    'SUPERLINK_NODE_FLOW':  TimeSeriesFile,
+                    'OVERLAND_DEPTHS':      TimeSeriesFile,
+                    'OVERLAND_WSE':         TimeSeriesFile,
+                    'OPTIMIZE':             None}
+    
     ## TODO: Handle Different Output Map Formats
-    OUTPUT_MAPS = {'GW_OUTPUT':         {'filename': None}, # MAP_TYPE  # Output Files
-                   'DISCHARGE':         {'filename': None}, # MAP_TYPE
-                   'INF_DEPTH':         {'filename': None}, # MAP_TYPE
-                   'SURF_MOIS':         {'filename': None}, # MAP_TYPE
-                   'RATE_OF_INFIL':     {'filename': None}, # MAP_TYPE
-                   'DIS_RAIN':          {'filename': None}, # MAP_TYPE
-                   'GW_OUTPUT':         {'filename': None}, # MAP_TYPE
-                   'GW_RECHARGE_CUM':   {'filename': None}, # MAP_TYPE
-                   'GW_RECHARGE_INC':   {'filename': None}, # MAP_TYPE
-                   'WRITE_OV_HOTSTART': {'filename': None},             # Overland Flow
-                   'WRITE_SM_HOSTART':  {'filename': None}}             # Infiltration
+    OUTPUT_MAPS = ('GW_OUTPUT',       # MAP_TYPE  # Output Files
+                   'DISCHARGE',       # MAP_TYPE
+                   'INF_DEPTH',       # MAP_TYPE
+                   'SURF_MOIS',       # MAP_TYPE
+                   'RATE_OF_INFIL',   # MAP_TYPE
+                   'DIS_RAIN',        # MAP_TYPE
+                   'GW_OUTPUT',       # MAP_TYPE
+                   'GW_RECHARGE_CUM', # MAP_TYPE
+                   'GW_RECHARGE_INC', # MAP_TYPE
+                   'WRITE_OV_HOTSTART',           # Overland Flow
+                   'WRITE_SM_HOSTART')            # Infiltration
     
     # Error Messages
     COMMIT_ERROR_MESSAGE = ('Ensure the files listed in the project file '
@@ -220,28 +221,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     if card['name'] == 'MAP_TYPE':
                         self.mapType = int(card['value'])
                 
-                ## TODO: Consider refactoring how the lists of files to read and write are compiled
-                ##       i.e.: Don't want this to run when project file is read alone.  
-                # Assemble list of files for reading
-                if card['name'] in self.INPUT_FILES:
-                    if self._noneOrNumValue(card['value']):
-                        value = card['value'].strip('"')
-                        self.INPUT_FILES[card['name']]['filename'] = value
-                
-                elif card['name'] in self.INPUT_MAPS:
-                    if self._noneOrNumValue(card['value']):
-                        value = card['value'].strip('"')
-                        self.INPUT_MAPS[card['name']]['filename'] = value
-                    
-                elif card['name'] in self.OUTPUT_FILES:
-                    if self._noneOrNumValue(card['value']):
-                        value = card['value'].strip('"')
-                        self.OUTPUT_FILES[card['name']]['filename'] = value
-                
-                elif card['name'] in self.OUTPUT_MAPS:
-                    if self._noneOrNumValue(card['value']):
-                        value = card['value'].strip('"')
-                        self.OUTPUT_MAPS[card['name']]['filename'] = value
         
         
                
@@ -257,38 +236,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Initiate write on each ProjectCard that belongs to this ProjectFile
         for card in self.projectCards:
             openFile.write(card.write(originalPrefix=self.name, newPrefix=name))
-            
-            # Assemble list of files for writing
-            if card.name in self.INPUT_FILES:
-                value = card.value.strip('"')
-                
-                if self._noneOrNumValue(value):
-                    self.INPUT_FILES[card.name]['filename'] = value
-                
-            elif card.name in self.INPUT_MAPS:
-                try:
-                    value = card.value.strip('"')
-                    
-                    if self._noneOrNumValue(value):
-                        self.INPUT_MAPS[card.name]['filename'] = value
-                except:
-                    '''DO NOTHING'''
-                
-                
-                
-            elif card.name in self.OUTPUT_FILES:
-                value = card.value.strip('"')
-                
-                if self._noneOrNumValue(value):
-                    self.OUTPUT_FILES[card.name]['filename'] = value
-            
-            elif card.name in self.OUTPUT_MAPS:
-                value = card.value.strip('"')
-                
-                if self._noneOrNumValue(value):
-                    self.OUTPUT_MAPS[card.name]['filename'] = value
-        
-#         print 'File Written:', filename
 
     def appendDirectory(self, directory):
         '''
@@ -376,16 +323,16 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.write(session=session, directory=directory, name=name)
         
         # Write input files
-        self._writeXput(session=session, directory=directory, fileDict=self.INPUT_FILES, name=name)
+        self._writeXput(session=session, directory=directory, fileCards=self.INPUT_FILES, name=name)
         
         # Write output files
-        self._writeXput(session=session, directory=directory, fileDict=self.OUTPUT_FILES, name=name)
+        self._writeXput(session=session, directory=directory, fileCards=self.OUTPUT_FILES, name=name)
         
         # Write input map files
-        self._writeXputMaps(session=session, directory=directory, fileDict=self.INPUT_MAPS, name=name)
+        self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name)
         
         # Write output map files
-        self._writeXputMaps(session=session, directory=directory, fileDict=self.OUTPUT_MAPS, name=name)
+        self._writeXputMaps(session=session, directory=directory, mapCards=self.OUTPUT_MAPS, name=name)
         
 #         print 'SUCCESS: Project successfully written to file.'
         
@@ -421,10 +368,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.write(session=session, directory=directory, name=name)
         
         # Write input files
-        self._writeXput(session=session, directory=directory, fileDict=self.INPUT_FILES, name=name)
+        self._writeXput(session=session, directory=directory, fileCards=self.INPUT_FILES, name=name)
         
         # Write input map files
-        self._writeXputMaps(session=session, directory=directory, fileDict=self.INPUT_MAPS, name=name)
+        self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name)
         
     def readOutput(self):
         '''
@@ -458,71 +405,72 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.write(session=session, directory=directory, name=name)
         
         # Write output files
-        self._writeXput(session=session, directory=directory, fileDict=self.OUTPUT_FILES, name=name)
+        self._writeXput(session=session, directory=directory, fileCards=self.OUTPUT_FILES, name=name)
         
         # Write output map files
-        self._writeXputMaps(session=session, directory=directory, fileDict=self.OUTPUT_MAPS, name=name)
+        self._writeXputMaps(session=session, directory=directory, mapCards=self.OUTPUT_MAPS, name=name)
         
         
-    def _readXput(self, fileDict):
+    def _readXput(self, fileCards):
         '''
         GSSHAPY Project Read Files from File Method
         '''
         ## NOTE: This function is depenedent on the project file being read first
         # Read Input/Output Files
-        for card, afile in fileDict.iteritems():
-            filename = afile['filename']
-            fileio = afile['fileio']
-
-            if (filename != None) and (fileio != None):
-                # Initiate read method on each file
-                self._invokeRead(fileIO=fileio,
+        for card in self.projectCards:
+            if (card.name in fileCards) and self._noneOrNumValue(card.value) and fileCards[card.name]:
+                fileIO = fileCards[card.name]
+                filename = card.value.strip('"')
+                
+                # Invoke read method on each file
+                self._invokeRead(fileIO=fileIO,
                                  filename=filename)
                 
-    def _writeXput(self, session, directory, fileDict, name=None):
+    def _writeXput(self, session, directory, fileCards, name=None):
         '''
         GSSHA Project Write Files to File Method
         '''
-        # Write Input/Output Files
-        for card, afile in fileDict.iteritems():
-            filename = afile['filename']
-            fileIO = afile['fileio']
-            
-            if (filename != None) and (fileIO != None):
-                # Determine new filename
-                filename = self._replaceNewFilename(afile['filename'], name)
+        for card in self.projectCards:
+            if (card.name in fileCards) and self._noneOrNumValue(card.value) and fileCards[card.name]:
+                fileIO = fileCards[card.name]
+                filename = card.value.strip('"')
                 
-                # Initiate write method on each file
+                # Determine new filename
+                filename = self._replaceNewFilename(filename=filename,
+                                                    name=name)
+                
+                # Invoke write method on each file
                 self._invokeWrite(fileIO=fileIO,
-                                  session=session,
+                                  session=session, 
                                   directory=directory,
                                   filename=filename)
                     
-    def _readXputMaps(self, fileDict):
+    def _readXputMaps(self, mapCards):
         '''
         GSSHA Project Read Map Files from File Method
         '''
         if self.mapType in self.MAP_TYPES_SUPPORTED:
-            for card, afile in fileDict.iteritems():
-                filename = afile['filename']
-                
-                if filename != None:
-                    # Create GSSHAPY RasterMapFile object
+            for card in self.projectCards:
+                if (card.name in mapCards) and self._noneOrNumValue(card.value):
+                    filename = card.value.strip('"')
+                    
+                    # Invoke read method on each map
                     self._invokeRead(fileIO=RasterMapFile,
                                      filename=filename)
         else:
             print 'Error: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
                 
-    def _writeXputMaps(self, session, directory, fileDict, name=None):
+    def _writeXputMaps(self, session, directory, mapCards, name=None):
         '''
         GSSHAPY Project Write Map Files to File Method
         '''
         if self.mapType in self.MAP_TYPES_SUPPORTED:
-            for card, afile in fileDict.iteritems():
-                if afile['filename'] != None:
+            for card in self.projectCards:
+                if (card.name in mapCards) and self._noneOrNumValue(card.value):
+                    filename = card.value.strip('"')
                     
                     # Determine new filename
-                    filename = self._replaceNewFilename(afile['filename'], name)
+                    filename = self._replaceNewFilename(filename, name)
                     
                     # Write map file
                     self._invokeWrite(fileIO=RasterMapFile,
@@ -610,7 +558,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Check if the value of a card is none or a number.
         '''
-        if value != None:
+        if value:
             try:
                 float(value)
                 # If the value is a number, return false

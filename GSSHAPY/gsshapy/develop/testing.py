@@ -16,17 +16,20 @@ readDirectory='/Users/swainn/testing/test models/ParkCityBasic'
 projectFile='parkcity.prj'
 
 # Write Parameters
-writeDirectory='/Users/swainn/testing/ci_water_models/LittleDellNathanTest/write'
-newame='LittleDellNathanTest'
+writeDirectory='/Users/swainn/testing/test models/ParkCityBasic/write'
+newName='parkcity'
 
 # Directory to append to project file
 directory = '/home/swainn/post_read_LittleDellNathanTest'
 
+# DB
+db_directory = '/Users/swainn/testing/test models/ParkCityBasic/db/gsshapy_parkcity.db'
+
 
 
 # Reset Database
-dbt.del_sqlite_db('/Users/swainn/testing/test models/ParkCityBasic/db/gsshapy_parkcity.db')
-sqlalchemy_url = dbt.init_sqlite_db('/Users/swainn/testing/test models/ParkCityBasic/db/gsshapy_parkcity.db')
+dbt.del_sqlite_db(db_directory)
+sqlalchemy_url = dbt.init_sqlite_db(db_directory)
 
 # Initialize the Session
 readSession = dbt.create_session(sqlalchemy_url)
@@ -39,7 +42,7 @@ project = ProjectFile(directory=readDirectory, filename=projectFile, session=rea
 start = time.time()
 
 # Invoke read command on Project File Object
-project.read()
+project.readProject()
 
 # Report Read Time
 print 'READ TIME:', time.time()-start
@@ -52,10 +55,10 @@ project1 = writeSession.query(ProjectFile).filter(ProjectFile.id == 1).one()
 start = time.time()
                         
 # Invoke write command on Project File Query Object
-project1.writeInput(session=writeSession, directory=writeDirectory, newName=newName)
+project1.writeProject(session=writeSession, directory=writeDirectory, name=newName)
  
-# Test append directory method
-project1.appendDirectory(directory)
+# # Test append directory method
+# project1.appendDirectory(directory)
  
  
 # Report Write Time

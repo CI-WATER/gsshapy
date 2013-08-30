@@ -376,16 +376,16 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.write(session=session, directory=directory, name=name)
         
         # Write input files
-        self._writeXput(session=session, directory=directory, fileDict=self.INPUT_FILES, name=name)
+        self._writeXput(session=session, directory=directory, fileCards=self.INPUT_FILES, name=name)
         
         # Write output files
-        self._writeXput(session=session, directory=directory, fileDict=self.OUTPUT_FILES, name=name)
+        self._writeXput(session=session, directory=directory, fileCards=self.OUTPUT_FILES, name=name)
         
         # Write input map files
-        self._writeXputMaps(session=session, directory=directory, fileDict=self.INPUT_MAPS, name=name)
+        self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name)
         
         # Write output map files
-        self._writeXputMaps(session=session, directory=directory, fileDict=self.OUTPUT_MAPS, name=name)
+        self._writeXputMaps(session=session, directory=directory, mapCards=self.OUTPUT_MAPS, name=name)
         
 #         print 'SUCCESS: Project successfully written to file.'
         
@@ -421,10 +421,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.write(session=session, directory=directory, name=name)
         
         # Write input files
-        self._writeXput(session=session, directory=directory, fileDict=self.INPUT_FILES, name=name)
+        self._writeXput(session=session, directory=directory, fileCards=self.INPUT_FILES, name=name)
         
         # Write input map files
-        self._writeXputMaps(session=session, directory=directory, fileDict=self.INPUT_MAPS, name=name)
+        self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name)
         
     def readOutput(self):
         '''
@@ -458,19 +458,19 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.write(session=session, directory=directory, name=name)
         
         # Write output files
-        self._writeXput(session=session, directory=directory, fileDict=self.OUTPUT_FILES, name=name)
+        self._writeXput(session=session, directory=directory, fileCards=self.OUTPUT_FILES, name=name)
         
         # Write output map files
-        self._writeXputMaps(session=session, directory=directory, fileDict=self.OUTPUT_MAPS, name=name)
+        self._writeXputMaps(session=session, directory=directory, mapCards=self.OUTPUT_MAPS, name=name)
         
         
-    def _readXput(self, fileDict):
+    def _readXput(self, fileCards):
         '''
         GSSHAPY Project Read Files from File Method
         '''
         ## NOTE: This function is depenedent on the project file being read first
         # Read Input/Output Files
-        for card, afile in fileDict.iteritems():
+        for card, afile in fileCards.iteritems():
             filename = afile['filename']
             fileio = afile['fileio']
 
@@ -479,12 +479,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 self._invokeRead(fileIO=fileio,
                                  filename=filename)
                 
-    def _writeXput(self, session, directory, fileDict, name=None):
+    def _writeXput(self, session, directory, fileCards, name=None):
         '''
         GSSHA Project Write Files to File Method
         '''
         # Write Input/Output Files
-        for card, afile in fileDict.iteritems():
+        for card, afile in fileCards.iteritems():
             filename = afile['filename']
             fileIO = afile['fileio']
             
@@ -498,12 +498,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                   directory=directory,
                                   filename=filename)
                     
-    def _readXputMaps(self, fileDict):
+    def _readXputMaps(self, mapCards):
         '''
         GSSHA Project Read Map Files from File Method
         '''
         if self.mapType in self.MAP_TYPES_SUPPORTED:
-            for card, afile in fileDict.iteritems():
+            for card, afile in mapCards.iteritems():
                 filename = afile['filename']
                 
                 if filename != None:
@@ -513,12 +513,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         else:
             print 'Error: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
                 
-    def _writeXputMaps(self, session, directory, fileDict, name=None):
+    def _writeXputMaps(self, session, directory, mapCards, name=None):
         '''
         GSSHAPY Project Write Map Files to File Method
         '''
         if self.mapType in self.MAP_TYPES_SUPPORTED:
-            for card, afile in fileDict.iteritems():
+            for card, afile in mapCards.iteritems():
                 if afile['filename'] != None:
                     
                     # Determine new filename

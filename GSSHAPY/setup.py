@@ -3,11 +3,11 @@ import os
 from setuptools import setup, find_packages
 
 requires = [
-    'sqlalchemy>=0.8'
+    'sqlalchemy=0.7'
     ]
 
 setup(name='gsshapy',
-      version='1.0.0',
+      version='1.0.1',
       description='An SQLAlchemy ORM for GSSHA model files.',
       long_description='',
       author='Nathan Swain',
