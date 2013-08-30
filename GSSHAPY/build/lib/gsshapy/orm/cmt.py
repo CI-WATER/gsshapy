@@ -27,17 +27,16 @@ from gsshapy.lib import parsetools as pt, cmt_chunk as mtc
 
 class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     __tablename__ = 'cmt_map_table_files'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
     # Relationship Properties
-    indexMaps = relationship('IndexMap', back_populates='mapTableFile')
-    mapTables = relationship('MapTable', back_populates='mapTableFile')
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile')
+    indexMaps = relationship('IndexMap', back_populates='mapTableFile') #: RELATIONSHIP
+    mapTables = relationship('MapTable', back_populates='mapTableFile') #: RELATIONSHIP
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile') #: RELATIONSHIP
     
     # File Properties
     EXTENSION = 'cmt'
@@ -48,7 +47,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Mapping Table Read from File Method
         '''
@@ -104,7 +103,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     indexMap.mapTableFile = self
                     
                     # Initiate IndexMap read method
-                    indexMap._readWithoutCommit()
+                    indexMap._read()
                 
                 # Map Table handler
                 else:
@@ -116,7 +115,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         # returned from the parser functions
         self._createGsshaPyObjects(mapTables, indexMaps)
             
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Map Table Write to File Method
         '''
@@ -434,28 +433,28 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class MapTable(DeclarativeBase):
     '''
-    classdocs
-
     '''
     __tablename__ = 'cmt_map_tables'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'))
-    mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id')) #: FK
+    mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id')) #: FK
     
     # Value Columns
-    name = Column(String, nullable=False)
-    numIDs = Column(Integer)
-    maxNumCells = Column(Integer)
-    numSed = Column(Integer)
-    numContam = Column(Integer)
+    name = Column(String, nullable=False) #: STRING
+    numIDs = Column(Integer) #: INTEGER
+    maxNumCells = Column(Integer) #: INTEGER
+    numSed = Column(Integer) #: INTEGER
+    numContam = Column(Integer) #: INTEGER
     
     # Relationship Properties
-    mapTableFile = relationship('MapTableFile', back_populates='mapTables')
-    indexMap = relationship('IndexMap', back_populates='mapTables')
-    values = relationship('MTValue', back_populates='mapTable', cascade='all, delete, delete-orphan')
-    sediments = relationship('MTSediment', back_populates='mapTable', cascade='all, delete, delete-orphan')
+    mapTableFile = relationship('MapTableFile', back_populates='mapTables') #: RELATIONSHIP
+    indexMap = relationship('IndexMap', back_populates='mapTables') #: RELATIONSHIP
+    values = relationship('MTValue', back_populates='mapTable', cascade='all, delete, delete-orphan') #: RELATIONSHIP
+    sediments = relationship('MTSediment', back_populates='mapTable', cascade='all, delete, delete-orphan') #: RELATIONSHIP
     
     def __init__(self, name, numIDs=None, maxNumCells=None, numSed=None, numContam=None):
         '''
@@ -485,22 +484,23 @@ class MapTable(DeclarativeBase):
     
 class MTIndex(DeclarativeBase):
     '''
-    classdocs
     '''
     __tablename__ = 'cmt_indexes'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'), nullable=False)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'), nullable=False) #: FK
     
     # Value Columns
-    index = Column(Integer, nullable=False)
-    description1 = Column(String(40))
-    description2 = Column(String(40))
+    index = Column(Integer, nullable=False) #: INTEGER
+    description1 = Column(String(40)) #: STRING
+    description2 = Column(String(40)) #: STRING
     
     # Relationship Properties
-    values = relationship('MTValue', back_populates='index')
-    indexMap = relationship('IndexMap', back_populates='indices')
+    values = relationship('MTValue', back_populates='index') #: RELATIONSHIP
+    indexMap = relationship('IndexMap', back_populates='indices') #: RELATIONSHIP
     
     
     def __init__(self, index, description1='', description2=''):
@@ -521,26 +521,26 @@ class MTIndex(DeclarativeBase):
 
 class MTValue(DeclarativeBase):
     '''
-    classdocs
-
     '''
     __tablename__ = 'cmt_map_table_values'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    mapTableID = Column(Integer, ForeignKey('cmt_map_tables.id'), nullable=False)
-    mapTableIndexID = Column(Integer, ForeignKey('cmt_indexes.id'), nullable=False)
-    contaminantID = Column(Integer, ForeignKey('cmt_contaminants.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    mapTableID = Column(Integer, ForeignKey('cmt_map_tables.id'), nullable=False) #: FK
+    mapTableIndexID = Column(Integer, ForeignKey('cmt_indexes.id'), nullable=False) #: FK
+    contaminantID = Column(Integer, ForeignKey('cmt_contaminants.id')) #: FK
 
     
     # Value Columns
-    variable = Column(String, nullable=False)
-    value = Column(Float, nullable=False)
+    variable = Column(String, nullable=False) #: STRING
+    value = Column(Float, nullable=False) #: FLOAT
     
     # Relationship Properties
-    mapTable = relationship('MapTable', back_populates='values')
-    index = relationship('MTIndex', back_populates='values')
-    contaminant = relationship('MTContaminant', back_populates='values')
+    mapTable = relationship('MapTable', back_populates='values') #: RELATIONSHIP
+    index = relationship('MTIndex', back_populates='values') #: RELATIONSHIP
+    contaminant = relationship('MTContaminant', back_populates='values') #: RELATIONSHIP
     
     
     def __init__(self, variable, value=None):
@@ -561,25 +561,25 @@ class MTValue(DeclarativeBase):
 
 class MTContaminant(DeclarativeBase):
     '''
-    classdocs
-
     '''
     __tablename__ = 'cmt_contaminants'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'), nullable=False)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'), nullable=False) #: FK
     
     # Value Columns
-    name = Column(String, nullable=False)
-    outputFilename = Column(String, nullable = False)
-    precipConc = Column(Float, nullable=False)
-    partition = Column(Float, nullable=False)
-    numIDs = Column(Integer, nullable=False)
+    name = Column(String, nullable=False) #: STRING
+    outputFilename = Column(String, nullable = False) #: STRING
+    precipConc = Column(Float, nullable=False) #: FLOAT
+    partition = Column(Float, nullable=False) #: FLOAT
+    numIDs = Column(Integer, nullable=False) #: INTEGER
 
     # Relationship Properties
-    indexMap = relationship('IndexMap', back_populates='contaminants')
-    values = relationship('MTValue', back_populates='contaminant')
+    indexMap = relationship('IndexMap', back_populates='contaminants') #: RELATIONSHIP
+    values = relationship('MTValue', back_populates='contaminant') #: RELATIONSHIP
     
     def __init__(self, name, outputFilename, precipConc, partition, numIDs):
         '''
@@ -610,23 +610,23 @@ class MTContaminant(DeclarativeBase):
     
 class MTSediment(DeclarativeBase):
     '''
-    classdocs
-
     '''
     __tablename__ = 'cmt_sediments'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    mapTableID = Column(Integer, ForeignKey('cmt_map_tables.id'), nullable=False)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    mapTableID = Column(Integer, ForeignKey('cmt_map_tables.id'), nullable=False) #: FK
     
     # Value Columns
-    description = Column(String, nullable=False)
-    specificGravity = Column(Float, nullable=False)
-    particleDiameter = Column(Float,nullable=False)
-    outputFilename = Column(String, nullable=False)
+    description = Column(String, nullable=False) #: STRING
+    specificGravity = Column(Float, nullable=False) #: FLOAT
+    particleDiameter = Column(Float,nullable=False) #: FLOAT
+    outputFilename = Column(String, nullable=False) #: STRING
     
     # Relationship Properties
-    mapTable = relationship('MapTable', back_populates='sediments')
+    mapTable = relationship('MapTable', back_populates='sediments') #: RELATIONSHIP
     
     def __init__(self, description, specificGravity, particleDiameter, outputFilename):
         '''

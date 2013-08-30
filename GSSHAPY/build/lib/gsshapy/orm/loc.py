@@ -22,22 +22,23 @@ from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
 class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     
     __tablename__ = 'loc_output_location_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    projectFileID = Column(Integer, ForeignKey('prj_project_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    projectFileID = Column(Integer, ForeignKey('prj_project_files.id')) #: FK
     
     # Value Columns
-    fileExtension = Column(String, nullable=False)
-    numLocations = Column(Integer, nullable=False)
+    fileExtension = Column(String, nullable=False) #: STRING
+    numLocations = Column(Integer, nullable=False) #: INTEGER
     
     # Relationship Properties
-    projectFile = relationship('ProjectFile', back_populates='outputLocationFiles')
-    outputLocations = relationship('OutputLocation', back_populates='outputLocationFile')
+    projectFile = relationship('ProjectFile', back_populates='outputLocationFiles') #: RELATIONSHIP
+    outputLocations = relationship('OutputLocation', back_populates='outputLocationFile') #: RELATIONSHIP
     
     def __init__(self, directory, filename, session):
         '''
@@ -45,7 +46,7 @@ class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Generic Output Location Read from File Method
         '''
@@ -68,7 +69,7 @@ class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
                     location.outputLocationFile = self
         
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Generic Output Location Write to File Method
         '''        
@@ -84,21 +85,22 @@ class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
         
 class OutputLocation(DeclarativeBase):
     '''
-    classdocs
     '''
     
     __tablename__ = 'loc_output_locations'
+    
+    tableName = __tablename__ #: Database tablename
 
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    outputLocationFileID = Column(Integer, ForeignKey('loc_output_location_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    outputLocationFileID = Column(Integer, ForeignKey('loc_output_location_files.id')) #: FK
     
     # Value Columns
-    linkOrCellI = Column(Integer, nullable=False)
-    nodeOrCellJ = Column(Integer, nullable=False)
+    linkOrCellI = Column(Integer, nullable=False) #: INTEGER
+    nodeOrCellJ = Column(Integer, nullable=False) #: INTEGER
     
     # Relationship Properties
-    outputLocationFile = relationship('OutputLocationFile', back_populates='outputLocations')
+    outputLocationFile = relationship('OutputLocationFile', back_populates='outputLocations') #: RELATIONSHIP
     
     def __init__(self, linkOrCellI, nodeOrCellJ):
         self.linkOrCellI = linkOrCellI

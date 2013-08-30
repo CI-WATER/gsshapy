@@ -25,21 +25,22 @@ from gsshapy.lib.pivot import pivot
 
 class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    classdocs
     '''
     
     __tablename__ = 'tim_time_series_files'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    projectFileID = Column(Integer, ForeignKey('prj_project_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    projectFileID = Column(Integer, ForeignKey('prj_project_files.id')) #: FK
     
     # Value Columns
-    fileExtension = Column(String, nullable=False)
+    fileExtension = Column(String, nullable=False) #: STRING
     
     # Relationship Properties
-    projectFile = relationship('ProjectFile', back_populates='timeSeriesFiles')
-    timeSeries = relationship('TimeSeries', back_populates='timeSeriesFile')
+    projectFile = relationship('ProjectFile', back_populates='timeSeriesFiles') #: RELATIONSHIP
+    timeSeries = relationship('TimeSeries', back_populates='timeSeriesFile') #: RELATIONSHIP
     
     def __init__(self, directory, filename, session):
         '''
@@ -47,7 +48,7 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Generic Time Series Read from File Method
         '''
@@ -72,7 +73,7 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._createTimeSeriesObjects(timeSeries)
         
         
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Generic Time Series Write to File Method
         '''        
@@ -144,38 +145,40 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
         
 class TimeSeries(DeclarativeBase):
     '''
-    classdocs
     '''
     
     __tablename__ = 'tim_time_series'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    timeSeriesFileID = Column(Integer, ForeignKey('tim_time_series_files.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    timeSeriesFileID = Column(Integer, ForeignKey('tim_time_series_files.id')) #: FK
     
     # Relationship Properties
-    timeSeriesFile = relationship('TimeSeriesFile', back_populates='timeSeries')
-    values = relationship('TimeSeriesValue', back_populates='timeSeries') 
+    timeSeriesFile = relationship('TimeSeriesFile', back_populates='timeSeries') #: RELATIONSHIP
+    values = relationship('TimeSeriesValue', back_populates='timeSeries') #: RELATIONSHIP
 
 
 
 class TimeSeriesValue(DeclarativeBase):
     '''
-    classdocs
     '''
     
     __tablename__ = 'tim_time_series_values'
     
+    tableName = __tablename__ #: Database tablename
+    
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    timeSeriesID = Column(Integer, ForeignKey('tim_time_series.id'), nullable=False)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    timeSeriesID = Column(Integer, ForeignKey('tim_time_series.id'), nullable=False) #: FK
     
     # Value Columns
-    simTime = Column(Float, nullable=False)
-    value = Column(Float, nullable=False)
+    simTime = Column(Float, nullable=False) #: FLOAT
+    value = Column(Float, nullable=False) #: FLOAT
     
     # Relationship Properties
-    timeSeries = relationship('TimeSeries', back_populates='values')
+    timeSeries = relationship('TimeSeries', back_populates='values') #: RELATIONSHIP
     
     def __init__(self, simTime, value):
         '''

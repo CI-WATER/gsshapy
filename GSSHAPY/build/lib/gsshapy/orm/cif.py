@@ -36,23 +36,22 @@ from gsshapy.lib import parsetools as pt, cif_chunk as cic
 
 class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
-    Channel Input File
     '''
     __tablename__ = 'cif_channel_input_files'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     
     # Value Columns
-    alpha = Column(Float)
-    beta = Column(Float)
-    theta = Column(Float)
-    links = Column(Integer)
-    maxNodes = Column(Integer)
+    alpha = Column(Float) #: FLOAT
+    beta = Column(Float) #: FLOAT
+    theta = Column(Float) #: FLOAT
+    links = Column(Integer) #: INTEGER
+    maxNodes = Column(Integer) #: INTEGER
     
     # Relationship Properties
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='channelInputFile')
-    streamLinks = relationship('StreamLink', back_populates='channelInputFile')
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='channelInputFile') #: RELATIONSHIP
+    streamLinks = relationship('StreamLink', back_populates='channelInputFile') #: RELATIONSHIP
     
     # File Properties
     EXTENSION = 'cif'
@@ -75,7 +74,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 self.links == other.links and
                 self.maxNodes == other.maxNodes)
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         Channel Input File Read from File Method
         '''
@@ -129,7 +128,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         self._createConnectivity(linkList=links, connectList=connectivity)                
                     
-    def _writeToOpenFile(self, session, openFile):
+    def _write(self, session, openFile):
         '''
         Channel Input File Write to File Method
         '''
@@ -603,33 +602,33 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class StreamLink(DeclarativeBase):
     '''
-    classdocs
+    
     '''
     __tablename__ = 'cif_links'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    channelInputFileID = Column(Integer, ForeignKey('cif_channel_input_files.id'), nullable=False)
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    channelInputFileID = Column(Integer, ForeignKey('cif_channel_input_files.id'), nullable=False) #: FK
     
     # Value Columns
-    linkNumber = Column(Integer, nullable=False)
-    type = Column(String, nullable=False)
-    numElements = Column(Integer, nullable=False)
-    dx = Column(Float)
-    erode = Column(Boolean)
-    subsurface = Column(Boolean)
-    downstreamLinkID = Column(Integer)
-    numUpstreamLinks = Column(Integer)
+    linkNumber = Column(Integer, nullable=False) #: INTEGER
+    type = Column(String, nullable=False) #: STRING
+    numElements = Column(Integer, nullable=False) #: INTEGER
+    dx = Column(Float) #: FLOAT
+    erode = Column(Boolean) #: BOOLEAN
+    subsurface = Column(Boolean) #: BOOLEAN
+    downstreamLinkID = Column(Integer) #: INTEGER
+    numUpstreamLinks = Column(Integer) #: INTEGER
 
     # Relationship Properties
-    channelInputFile = relationship('ChannelInputFile', back_populates='streamLinks')
-    upstreamLinks = relationship('UpstreamLink', back_populates='streamLink')
-    nodes = relationship('StreamNode', back_populates='streamLink')
-    weirs = relationship('Weir', back_populates='streamLink')
-    culverts = relationship('Culvert', back_populates='streamLink')
-    reservoir = relationship('Reservoir', uselist=False, back_populates='streamLink')
-    breakpointCS = relationship('BreakpointCS', uselist=False, back_populates='streamLink')
-    trapezoidalCS = relationship('TrapezoidalCS', uselist=False, back_populates='streamLink')
+    channelInputFile = relationship('ChannelInputFile', back_populates='streamLinks') #: RELATIONSHIP
+    upstreamLinks = relationship('UpstreamLink', back_populates='streamLink') #: RELATIONSHIP
+    nodes = relationship('StreamNode', back_populates='streamLink') #: RELATIONSHIP
+    weirs = relationship('Weir', back_populates='streamLink') #: RELATIONSHIP
+    culverts = relationship('Culvert', back_populates='streamLink') #: RELATIONSHIP
+    reservoir = relationship('Reservoir', uselist=False, back_populates='streamLink') #: RELATIONSHIP
+    breakpointCS = relationship('BreakpointCS', uselist=False, back_populates='streamLink') #: RELATIONSHIP
+    trapezoidalCS = relationship('TrapezoidalCS', uselist=False, back_populates='streamLink') #: RELATIONSHIP
     
     def __init__(self, linkNumber, type, numElements, dx=None, erode=False, subsurface=False):
         '''
@@ -668,19 +667,19 @@ class StreamLink(DeclarativeBase):
     
 class UpstreamLink(DeclarativeBase):
     '''
-    classdocs
+    
     '''
     __tablename__ = 'cif_upstream_links'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    linkID = Column(Integer, ForeignKey('cif_links.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    linkID = Column(Integer, ForeignKey('cif_links.id')) #: INTEGER
     
     # Value Columns
-    upstreamLinkID = Column(Integer, nullable=False)
+    upstreamLinkID = Column(Integer, nullable=False) #: INTEGER
     
     # Relationship Properties
-    streamLink = relationship('StreamLink', back_populates='upstreamLinks')
+    streamLink = relationship('StreamLink', back_populates='upstreamLinks') #: RELATIONSHIP
     
     def __init__(self, upstreamLinkID):
         self.upstreamLinkID = upstreamLinkID
@@ -694,23 +693,23 @@ class UpstreamLink(DeclarativeBase):
     
 class StreamNode(DeclarativeBase):
     '''
-    classdocs
+    
     '''
     __tablename__ = 'cif_nodes'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    linkID = Column(Integer, ForeignKey('cif_links.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    linkID = Column(Integer, ForeignKey('cif_links.id')) #: FK
     
     # Value Columns
-    nodeNumber = Column(Integer, nullable=False)
-    x = Column(Float, nullable=False)
-    y = Column(Float, nullable=False)
-    elevation = Column(Float, nullable=False)
+    nodeNumber = Column(Integer, nullable=False) #: INTEGER
+    x = Column(Float, nullable=False) #: FLOAT
+    y = Column(Float, nullable=False) #: FLOAT
+    elevation = Column(Float, nullable=False) #: FLOAT
     
     
     # Relationship Properties
-    streamLink = relationship('StreamLink', back_populates='nodes')
+    streamLink = relationship('StreamLink', back_populates='nodes') #: RELATIONSHIP
 
     
     def __init__(self, nodeNumber, x, y, elevation):
@@ -740,26 +739,26 @@ class StreamNode(DeclarativeBase):
     
 class Weir(DeclarativeBase):
     '''
-    classdocs
+    
     '''
     __tablename__ = 'cif_weirs'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    linkID = Column(Integer, ForeignKey('cif_links.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    linkID = Column(Integer, ForeignKey('cif_links.id')) #: FK
     
     # Value Columns
-    type = Column(String)
-    crestLength = Column(Float)
-    crestLowElevation = Column(Float)
-    dischargeCoeffForward = Column(Float)
-    dischargeCoeffReverse = Column(Float)
-    crestLowLocation = Column(Float)
-    steepSlope = Column(Float)
-    shallowSlope = Column(Float)
+    type = Column(String) #: STRING
+    crestLength = Column(Float) #: FLOAT
+    crestLowElevation = Column(Float) #: FLOAT
+    dischargeCoeffForward = Column(Float) #: FLOAT
+    dischargeCoeffReverse = Column(Float) #: FLOAT
+    crestLowLocation = Column(Float) #: FLOAT
+    steepSlope = Column(Float) #: FLOAT
+    shallowSlope = Column(Float) #: FLOAT
     
     # Relationship Properties
-    streamLink = relationship('StreamLink', back_populates='weirs')
+    streamLink = relationship('StreamLink', back_populates='weirs') #: RELATIONSHIP
 
     
     def __init__(self, type, crestLength, crestLowElevation, dischargeCoeffForward, dischargeCoeffReverse, crestLowLocation, steepSlope, shallowSlope):
@@ -802,29 +801,29 @@ class Weir(DeclarativeBase):
 
 class Culvert(DeclarativeBase):
     '''
-    classdocs
+    
     '''
     __tablename__ = 'cif_culverts'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    linkID = Column(Integer, ForeignKey('cif_links.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    linkID = Column(Integer, ForeignKey('cif_links.id')) #: FK
 
     # Value Columns
-    type = Column(String)
-    upstreamInvert = Column(Float)
-    downstreamInvert = Column(Float)
-    inletDischargeCoeff = Column(Float)
-    reverseFlowDischargeCoeff = Column(Float)
-    slope = Column(Float)
-    length = Column(Float)
-    roughness = Column(Float)
-    diameter = Column(Float)
-    width = Column(Float)
-    height = Column(Float)
+    type = Column(String) #: STRING
+    upstreamInvert = Column(Float) #: FLOAT
+    downstreamInvert = Column(Float) #: FLOAT
+    inletDischargeCoeff = Column(Float) #: FLOAT
+    reverseFlowDischargeCoeff = Column(Float) #: FLOAT
+    slope = Column(Float) #: FLOAT
+    length = Column(Float) #: FLOAT
+    roughness = Column(Float) #: FLOAT
+    diameter = Column(Float) #: FLOAT
+    width = Column(Float) #: FLOAT
+    height = Column(Float) #: FLOAT
     
     # Relationship Properties
-    streamLink = relationship('StreamLink', back_populates='culverts')
+    streamLink = relationship('StreamLink', back_populates='culverts') #: RELATIONSHIP
     
     def __init__(self, type, upstreamInvert, downstreamInvert, inletDischargeCoeff, reverseFlowDischargeCoeff, slope, length, roughness, diameter, width, height):
         '''
@@ -873,22 +872,22 @@ class Culvert(DeclarativeBase):
 
 class Reservoir(DeclarativeBase):
     '''
-    classdocs
+    
     '''
     __tablename__ = 'cif_reservoirs'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    linkID = Column(Integer, ForeignKey('cif_links.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    linkID = Column(Integer, ForeignKey('cif_links.id')) #: FK
     
     # Value Columns
-    initWSE = Column(Float)
-    minWSE = Column(Float)
-    maxWSE = Column(Float)
+    initWSE = Column(Float) #: FLOAT
+    minWSE = Column(Float) #: FLOAT
+    maxWSE = Column(Float) #: FLOAT
     
     # Relationship Properties
-    streamLink = relationship('StreamLink', back_populates='reservoir')
-    reservoirPoints = relationship('ReservoirPoint', back_populates='reservoir')
+    streamLink = relationship('StreamLink', back_populates='reservoir') #: RELATIONSHIP
+    reservoirPoints = relationship('ReservoirPoint', back_populates='reservoir') #: RELATIONSHIP
     
     def __init__(self, initWSE, minWSE, maxWSE):
         '''
@@ -910,20 +909,20 @@ class Reservoir(DeclarativeBase):
 
 class ReservoirPoint(DeclarativeBase):
     '''
-    classdocs
+    
     '''
     __tablename__ = 'cif_reservoir_points'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    reservoirID = Column(Integer, ForeignKey('cif_reservoirs.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    reservoirID = Column(Integer, ForeignKey('cif_reservoirs.id')) #: FK
     
     # Value Columns
-    i = Column(Integer, nullable=False)
-    j = Column(Integer, nullable=False)
+    i = Column(Integer, nullable=False) #: INTEGER
+    j = Column(Integer, nullable=False) #:INTEGER
     
     # Relationship Properties
-    reservoir = relationship('Reservoir', back_populates='reservoirPoints')
+    reservoir = relationship('Reservoir', back_populates='reservoirPoints') #: RELATIONSHIP
     
     def __init__(self, i, j):
         '''
@@ -944,27 +943,27 @@ class ReservoirPoint(DeclarativeBase):
 
 class BreakpointCS(DeclarativeBase):
     '''
-    classdocs
+    
     '''
     __tablename__ = 'cif_breakpoint'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    linkID = Column(Integer, ForeignKey('cif_links.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    linkID = Column(Integer, ForeignKey('cif_links.id')) #: FK
     
     # Value Columns
-    mannings_n = Column(Float)
-    numPairs = Column(Integer)
-    numInterp = Column(Integer)
-    mRiver = Column(Float)
-    kRiver = Column(Float)
-    erode = Column(Boolean)
-    subsurface = Column(Boolean)
-    maxErosion = Column(Float)
+    mannings_n = Column(Float) #: FLOAT
+    numPairs = Column(Integer) #: INTEGER
+    numInterp = Column(Integer) #:INTEGER
+    mRiver = Column(Float) #: FLOAT
+    kRiver = Column(Float) #: FLOAT
+    erode = Column(Boolean) #: BOOLEAN
+    subsurface = Column(Boolean) #: BOOLEAN
+    maxErosion = Column(Float) #: FLOAT
     
     # Relationship Properties
-    streamLink = relationship('StreamLink', back_populates='breakpointCS')
-    breakpoints = relationship('Breakpoint', back_populates='crossSection')
+    streamLink = relationship('StreamLink', back_populates='breakpointCS') #: RELATIONSHIP
+    breakpoints = relationship('Breakpoint', back_populates='crossSection') #: RELATIONSHIP
     
     def __init__(self, mannings_n, numPairs, numInterp, mRiver, kRiver, erode, subsurface, maxErosion):
         '''
@@ -1002,20 +1001,20 @@ class BreakpointCS(DeclarativeBase):
     
 class Breakpoint(DeclarativeBase):
     '''
-    classdocs
+    
     '''
     __tablename__ = 'cif_bcs_points'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    crossSectionID = Column(Integer, ForeignKey('cif_breakpoint.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    crossSectionID = Column(Integer, ForeignKey('cif_breakpoint.id')) #: FK
     
     # Value Columns
-    x = Column(Float, nullable=False)
-    y = Column(Float, nullable=False)
+    x = Column(Float, nullable=False) #: FLOAT
+    y = Column(Float, nullable=False) #: FLOAT
     
     # Relationship Properties
-    crossSection = relationship('BreakpointCS', back_populates='breakpoints')
+    crossSection = relationship('BreakpointCS', back_populates='breakpoints') #: RELATIONSHIP
     
     def __init__(self, x, y):
         '''
@@ -1036,27 +1035,27 @@ class Breakpoint(DeclarativeBase):
     
 class TrapezoidalCS(DeclarativeBase):
     '''
-    classdocs
+    
     '''
     __tablename__ = 'cif_trapeziod'
     
     # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    linkID = Column(Integer, ForeignKey('cif_links.id'))
+    id = Column(Integer, autoincrement=True, primary_key=True) #: PK
+    linkID = Column(Integer, ForeignKey('cif_links.id')) #: FK
     
     # Value Columns
-    mannings_n = Column(Float)
-    bottomWidth = Column(Float)
-    bankfullDepth = Column(Float)
-    sideSlope = Column(Float)
-    mRiver = Column(Float)
-    kRiver = Column(Float)
-    erode = Column(Boolean)
-    subsurface = Column(Boolean)
-    maxErosion = Column(Float)
+    mannings_n = Column(Float) #: FLOAT
+    bottomWidth = Column(Float) #: FLOAT
+    bankfullDepth = Column(Float) #: FLOAT
+    sideSlope = Column(Float) #: FLOAT
+    mRiver = Column(Float) #: FLOAT
+    kRiver = Column(Float) #: FLOAT
+    erode = Column(Boolean) #: BOOLEAN
+    subsurface = Column(Boolean) #: BOOLEAN
+    maxErosion = Column(Float) #: BOOLEAN
     
     # Relationship Properties
-    streamLink = relationship('StreamLink', back_populates='trapezoidalCS')
+    streamLink = relationship('StreamLink', back_populates='trapezoidalCS') #: RELATIONSHIP
     
     def __init__(self, mannings_n, bottomWidth, bankfullDepth, sideSlope, mRiver, kRiver, erode, subsurface, maxErosion):
         '''

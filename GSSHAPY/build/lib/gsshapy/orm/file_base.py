@@ -41,20 +41,24 @@ class GsshaPyFileObjectBase:
         
     def read(self):
         '''
-        Front Facing Read from File Method
+        Read file into the database.
         '''
         # Add self to session
         self.SESSION.add(self)
         
         # Read
-        self._readWithoutCommit()
+        self._read()
         
         # Commit to database
         self._commit(self.COMMIT_ERROR_MESSAGE)
         
     def write(self, session, directory, name):
         '''
-        Front Facing Write to File Method
+        Write from database to file.
+        
+        *session* = SQLAlchemy session object\n
+        *directory* = to which directory will the files be written (e.g.: '/example/path')\n
+        *name* = project name (e.g.: 'my_project')\n
         '''
         # For future use
         self.SESSION = session
@@ -96,8 +100,8 @@ class GsshaPyFileObjectBase:
         
         with open(filePath, 'w') as openFile:
             # Write Lines
-            self._writeToOpenFile(session=session,
-                                  openFile=openFile)
+            self._write(session=session,
+                        openFile=openFile)
             
     def _commit(self, errorMessage):
         '''
@@ -112,7 +116,7 @@ class GsshaPyFileObjectBase:
             # Raise other errors as normal
             raise
     
-    def _readWithoutCommit(self):
+    def _read(self):
         '''
         This Private method must be defined in each file object for
         the read() method to work properly.The intent of the method 
@@ -129,7 +133,7 @@ class GsshaPyFileObjectBase:
         commit once at the end of reading files.
         '''
         
-    def _writeToOpenFile(self, directory, openFile):
+    def _write(self, directory, openFile):
         '''
         This private method must be defined in each file object for
         the write() method to work properly. The write() method handles
