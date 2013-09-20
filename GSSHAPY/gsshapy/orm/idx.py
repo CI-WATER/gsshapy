@@ -10,11 +10,13 @@
 
 __all__ = ['IndexMap']
 
-import os
+import os, subprocess
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
+
+from geoalchemy2 import Raster
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
@@ -34,7 +36,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     # Value Columns
     name = Column(String, nullable=False) #: STRING
     filename = Column(String, nullable=False) #: STRING
-    raster = Column(String) #: STRING
+    raster = Column(Raster) #: RASTER
     
     # Relationship Properties
     mapTableFile = relationship('MapTableFile', back_populates='indexMaps') #: RELATIONSHIP
@@ -65,9 +67,38 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Index Map Read from File Method
         '''
-        # Open file and parse into a data structure
-        with open(self.PATH, 'r') as f:
-            self.raster = f.read()
+        # Must read in using the raster2pgsql commandline tool.
+        process = subprocess.Popen(
+                                   [
+                                    '/Applications/Postgres.app/Contents/MacOS/bin/raster2pgsql',
+                                    '-a',
+                                    '-s',
+                                    '4236',
+                                    '-M',
+                                    self.PATH, self.__tablename__
+                                    ],
+                                    stdout=subprocess.PIPE
+                                   )
+        
+        # This commandline tool generates the SQL to load the raster into the database
+        # However, we want to use SQLAlchemy to load the values into the database. 
+        # We do this by extracting the value from the sql that is generated.
+        sql, error = process.communicate()        
+        
+        if sql:
+            # This esoteric line is used to extract only the value of the raster (which is stored as a Well Know Binary string)
+            
+            # Example of Output:
+            # BEGIN;
+            # INSERT INTO "idx_index_maps" ("rast") VALUES ('0100...56C096CE87'::raster);
+            # END;
+            
+            # The WKB is wrapped in single quotes. Splitting on single quotes isolates it as the 
+            # second item in the resulting list.
+            wellKnownBinary =  sql.split("'")[1]
+            print wellKnownBinary
+            
+        self.raster = wellKnownBinary
         
 #         print 'File Read:', self.filename
         

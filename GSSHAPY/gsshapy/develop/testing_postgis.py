@@ -7,7 +7,7 @@
 * License: BSD 2-Clause
 ********************************************************************************
 '''
-import time
+import time, subprocess
 from gsshapy.orm import ProjectFile
 from gsshapy.lib import db_tools as dbt
 from sqlalchemy import MetaData, create_engine
@@ -43,16 +43,16 @@ sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
 # Initialize the Session
 readSession = dbt.create_session(sqlalchemy_url)
 writeSession = dbt.create_session(sqlalchemy_url)
-  
+   
 # Create an empty Project File Object
 project = ProjectFile(directory=readDirectory, filename=projectFile, session=readSession)
-   
+    
 # Start timer
 start = time.time()
-   
+    
 # Invoke read command on Project File Object
 project.readProject()
-   
+    
 # Report Read Time
 print 'READ TIME:', time.time()-start
    
