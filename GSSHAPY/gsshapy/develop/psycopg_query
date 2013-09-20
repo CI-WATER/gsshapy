@@ -1,0 +1,68 @@
+#-------------------------------------------------------------------------------
+# Name:        module1
+# Purpose:
+#
+# Author:      mscott90
+#
+# Created:     13/06/2013
+# Copyright:   (c) mscott90 2013
+# Licence:     <your licence>
+#-------------------------------------------------------------------------------
+
+import sys, json, time, psycopg2
+
+def getDepths(lat,lon):
+    database = 'depth'
+    return getTimeSeries(database, lat, lon)
+
+
+def getElevations(lat,lon):
+    database = 'elevation'
+    return getTimeSeries(database, lat, lon)
+
+def getTimeSeries(database,lat, lon):
+    startTime = time.time()
+    sql = 'SELECT date, ST_Value(rast, ST_MakePoint(%s,%s)) FROM {0};'.format(database)
+    conn = _dbConnect()
+    cur = conn.cursor()
+    cur.execute(sql,(lon, lat))
+    rows = cur.fetchall()
+    timeSeries = []
+    for row in rows:
+        value = row[1]
+        date = row[0].strftime('%Y-%m-%d')
+        timeSeries.append({'date': date,'value' : value})
+
+    timeSeries.sort(key=lambda pair: pair['date'])
+    return json.JSONEncoder().encode(timeSeries)
+
+def _dbConnect():
+    dbname = 'Texas'
+    user = 'postgres'
+    host = 'localhost'
+    password = '(|w@ter'
+    try:
+        conn = psycopg2.connect("dbname=%s user=%s host=%s password=%s" % (dbname, user, host, password))
+        return conn
+    except:
+        print("Unable to Connect to DB")
+
+if __name__ == '__main__':
+    start = time.time()
+    if(len(sys.argv) != 4):
+        type = 'elevation'
+        lat = 33
+        lon = -102
+    else:
+        type = sys.argv[1]
+        lat = sys.argv[2]
+        lon = sys.argv[3]
+
+
+    if(type == 'elevation'):
+        print getElevations(lat,lon)
+    elif(type == 'depth'):
+        print getDepths(lat,lon)
+    else:
+        raise ValueError('%s not a valid type' % (sys.argv[1]))
+    #print ('total time: ' + str(time.time()-start))

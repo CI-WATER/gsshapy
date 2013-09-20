@@ -410,6 +410,29 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Write output map files
         self._writeXputMaps(session=session, directory=directory, mapCards=self.OUTPUT_MAPS, name=name)
         
+    def getFiles(self):
+        '''
+        Get a list of the files that are loaded
+        '''
+        fileList = {'Mapping Table File':       self.mapTableFile,
+                    'Channel Input File':       self.channelInputFile,
+                    'Precipitation File':       self.precipFile,
+                    'Storm Pipe Network File':  self.stormPipeNetworkFile,
+                    'HMET File':                self.hmetFile,
+                    'Snow Files':               {'NWSRFS File': self.nwsrfsFile,
+                                                 'Orthographic Gages File': self.orthoGageFile},
+                    'Grid Pipe File':           self.gridPipeFile,
+                    'Grid Stream File':         self.gridStreamFile,
+                    'Time Series Files':        self.timeSeriesFiles,
+                    'Projection File':          self.projectionFile,
+                    'Replacement Files':        {'Parameter File': self.replaceParamFile,
+                                                 'Value File': self.replaceValFile},
+                    'Output Location Files':    self.outputLocationFiles,
+                    'Maps':                     self.maps,
+                    'Link Node Datasets':       self.linkNodeDatasets}
+        
+        return fileList
+        
         
     def _readXput(self, fileCards):
         '''

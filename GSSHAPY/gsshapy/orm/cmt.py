@@ -29,6 +29,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     '''
     __tablename__ = 'cmt_map_table_files'
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK

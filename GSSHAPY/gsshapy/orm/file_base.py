@@ -19,6 +19,7 @@ class GsshaPyFileObjectBase:
     '''
     
     # File Properties
+    PROPER_NAME = None
     FILENAME = None
     PATH = None
     PROJECT_NAME = None
