@@ -289,7 +289,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.SESSION.add(self)
         
         # First read self
-        self._read()
+        self.read()
         
         # Read Input Files
         self._readXput(self.INPUT_FILES)
@@ -345,7 +345,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.SESSION.add(self)
         
         # Read Project File
-        self._read()
+        self.read()
         
         # Read Input Files
         self._readXput(self.INPUT_FILES)
@@ -510,7 +510,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         instance = fileIO(directory=self.DIRECTORY, filename=filename, session=self.SESSION)
         instance.projectFile = self
-        instance._read()
+        instance.read()
 #         print 'File Read:', filename
         
     def _invokeWrite(self, fileIO, session, directory, filename):
