@@ -28,7 +28,6 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     __tablename__ = 'idx_index_maps'
     
     tableName = __tablename__ #: Database tablename
-    raster2pgsqlPath = '/Applications/Postgres.app/Contents/MacOS/bin/raster2pgsql'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
@@ -38,6 +37,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     srid = Column(Integer) #: SRID
     name = Column(String, nullable=False) #: STRING
     filename = Column(String, nullable=False) #: STRING
+    raster_text = Column(String) #: STRING
     raster = Column(Raster) #: RASTER
     
     # Relationship Properties
@@ -69,19 +69,21 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Index Map Read from File Method
         '''
-        if self.SPATIAL:
-            # Must read in using the raster2pgsql commandline tool.
-            if self.srid:
-                srid = self.srid
-            else:
-                srid = 4236
+        # Open file and read plain raster_text into raster_text field
+        with open(self.PATH, 'r') as f:
+            self.raster_text = f.read()
                 
+        if self.SPATIAL:
+            # Assign file extension attribute to file object
+            self.fileExtension = self.EXTENSION
+            
+            # Must read in using the raster2pgsql commandline tool.                    
             process = subprocess.Popen(
                                        [
-                                        self.raster2pgsqlPath,
+                                        self.RASTER2PGSQL_PATH,
                                         '-a',
                                         '-s',
-                                        str(srid),
+                                        str(self.SRID),
                                         '-M',
                                         self.PATH, 
                                         self.tableName
@@ -105,12 +107,8 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
                 # The WKB is wrapped in single quotes. Splitting on single quotes isolates it as the 
                 # second item in the resulting list.
                 wellKnownBinary =  sql.split("'")[1]
-                print wellKnownBinary
                 
-            self.raster = wellKnownBinary
-        
-        else:
-            ''''''
+            self.raster = wellKnownBinary            
         
 #         print 'File Read:', self.filename
         
@@ -118,20 +116,80 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Index Map Write to File Method
         '''
-        if self.SPATIAL:
-            ''''''
+        
+        # Initiate file
+        if name !=None:
+            filename = '%s.%s' % (name, self.EXTENSION)
+            filePath = os.path.join(directory, filename)
+        else:
+            filePath = os.path.join(directory, self.filename)
+    
+        # If the raster field is not empty, write from this field
+        if type(self.raster) == type(Raster) and type(self.raster) != type(None):
+            '''
+            '''
+            # Use the ST_AsGDALRaster function of PostGIS to retrieve the 
+            # raster as an ascii grid. Function defined as per instructions
+            # to make a geoalchemy function from 
+            # see: http://www.postgis.org/documentation/manual-svn/RT_ST_AsGDALRaster.html
+            # Cast as a string because ST_AsGDALRaster returns as a buffer object
+            arcInfoGrid = str(session.scalar(self.raster.ST_AsGDALRaster('AAIGRID'))).splitlines()
+            
+            ## Convert arcInfoGrid to GRASS ASCII format ##
+            # Get values from heaser which look something this:
+            # ncols        67
+            # nrows        55
+            # xllcorner    425802.32143212341
+            # yllcorner    44091450.41551345213
+            # cellsize     90.0000000
+            # ...
+            nCols = int(arcInfoGrid[0].split()[1])
+            nRows = int(arcInfoGrid[1].split()[1])
+            xLLCorner = float(arcInfoGrid[2].split()[1])
+            yLLCorner = float(arcInfoGrid[3].split()[1])
+            cellSize = float(arcInfoGrid[4].split()[1])
+            
+            # Remove old headers
+            for i in range(0, 5):
+                arcInfoGrid.pop(0)
+            
+            ## Calculate values for GRASS ASCII headers ##
+            # These should look like this:
+            # north: 4501028.972140
+            # south: 4494548.972140
+            # east: 460348.288604
+            # west: 454318.288604
+            # rows: 72
+            # cols: 67
+            # ...
+            
+            # xLLCorner and yLLCorner represent the coordinates for the Lower Left corner of the raster
+            north = yLLCorner + (cellSize * nRows)
+            south = yLLCorner
+            east = xLLCorner + (cellSize * nCols)
+            west = xLLCorner
+            
+            # Create header Lines (the first shall be last and the last shall be first)
+            grassHeader = ['cols: %s' % nCols,
+                           'rows: %s' % nRows,
+                           'west: %s' % west,
+                           'east: %s' % east,
+                           'south: %s' % south,
+                           'north: %s' % north]
+            
+            # Insert grass headers into the grid
+            for header in grassHeader:
+                arcInfoGrid.insert(0, header)
+            
+            # Write to file
+            with open(filePath, 'w') as mapFile:
+                for line in arcInfoGrid:
+                    mapFile.write(line.strip() + '\n')
             
         else:
-            # Initiate file
-            if name !=None:
-                filename = '%s.%s' % (name, self.EXTENSION)
-                filePath = os.path.join(directory, filename)
-            else:
-                filePath = os.path.join(directory, self.filename)
-        
-            # Open file and write
+            # Open file and write, raster_text only
             with open(filePath, 'w') as mapFile:
-                mapFile.write(self.raster)
+                mapFile.write(self.raster_text)
             
 #         print 'File Written:', self.filename
         

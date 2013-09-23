@@ -45,7 +45,7 @@ class GsshaPyFileObjectBase:
         self.PATH = os.path.join(self.DIRECTORY, self.FILENAME)  # e.g.: /path/to/my/example/example.ext
         self.EXTENSION = filename.split('.')[1]                  # e.g.: ext
         
-    def read(self, spatial=False, srid=4236, raster2pgsqlPath='raster2pgsql'):
+    def read(self, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         '''
         Read file into the database.
         '''
@@ -53,9 +53,9 @@ class GsshaPyFileObjectBase:
         self.SESSION.add(self)
         
         # Set the SRID and RASTER2PGSQL_PATH for spatial reads
-        if spatial:
-            self.SRID = srid
-            self.RASTER2PGSQL_PATH = raster2pgsqlPath
+        self.SPATIAL = spatial
+        self.SRID = spatialReferenceID
+        self.RASTER2PGSQL_PATH = raster2pgsqlPath
         
         # Read
         self._read()

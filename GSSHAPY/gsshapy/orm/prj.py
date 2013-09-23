@@ -281,7 +281,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             
         
                      
-    def readProject(self, spatial=False, srid=4236, raster2pgsqlPath='raster2pgsql'):
+    def readProject(self, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         '''
         Read all files for a GSSHA project into the database.
         '''
@@ -289,25 +289,63 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.SESSION.add(self)
         
         # First read self
-        self.read()
+        self.read(spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
         
         # Read Input Files
-        self._readXput(self.INPUT_FILES)
+        self._readXput(self.INPUT_FILES, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
         
         # Read Output Files
-        self._readXput(self.OUTPUT_FILES)
+        self._readXput(self.OUTPUT_FILES, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
         
         # Read Input Map Files
-        self._readXputMaps(self.INPUT_MAPS)
+        self._readXputMaps(self.INPUT_MAPS, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
         
         # Read Output Map Files
-        self._readXputMaps(self.OUTPUT_MAPS)
+        self._readXputMaps(self.OUTPUT_MAPS, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
         
         # Commit to database
         self._commit(self.COMMIT_ERROR_MESSAGE)
         
         # Feedback
 #         print 'SUCCESS: Project successfully read to database.'
+
+    def readInput(self, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+        '''
+        Read only input files for a GSSHA project into the database.
+        '''
+        # Add project file to session
+        self.SESSION.add(self)
+        
+        # Read Project File
+        self.read(spatial, spatialReferenceID, raster2pgsqlPath)
+        
+        # Read Input Files
+        self._readXput(self.INPUT_FILES, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
+        
+        # Read Input Map Files
+        self._readXputMaps(self.INPUT_MAPS, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
+        
+        # Commit to database
+        self._commit(self.COMMIT_ERROR_MESSAGE)
+        
+    def readOutput(self, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+        '''
+        Read only output files for a GSSHA project to the database.
+        '''
+        # Add project file to session
+        self.SESSION.add(self)
+        
+        # Read Project File
+        self.read(spatial, spatialReferenceID, raster2pgsqlPath)
+        
+        # Read Output Files
+        self._readXput(self.OUTPUT_FILES, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
+        
+        # Read Output Map Files
+        self._readXputMaps(self.OUTPUT_MAPS, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
+        
+        # Commit to database
+        self._commit(self.COMMIT_ERROR_MESSAGE)
         
 
     def writeProject(self, session, directory, name):
@@ -337,25 +375,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
 #         print 'SUCCESS: Project successfully written to file.'
         
-    def readInput(self, spatial=False, srid=4236, raster2pgsqlPath='raster2pgsql'):
-        '''
-        Read only input files for a GSSHA project into the database.
-        '''
-        # Add project file to session
-        self.SESSION.add(self)
-        
-        # Read Project File
-        self.read()
-        
-        # Read Input Files
-        self._readXput(self.INPUT_FILES)
-        
-        # Read Input Map Files
-        self._readXputMaps(self.INPUT_MAPS)
-        
-        # Commit to database
-        self._commit(self.COMMIT_ERROR_MESSAGE)
-        
     def writeInput(self, session, directory, name):
         '''
         Write only input files for a GSSHA project from the database to file.
@@ -373,25 +392,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         # Write input map files
         self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name)
-        
-    def readOutput(self, spatial=False, srid=4236, raster2pgsqlPath='raster2pgsql'):
-        '''
-        Read only output files for a GSSHA project to the database.
-        '''
-        # Add project file to session
-        self.SESSION.add(self)
-        
-        # Read Project File
-        self.read()
-        
-        # Read Output Files
-        self._readXput(self.OUTPUT_FILES)
-        
-        # Read Output Map Files
-        self._readXputMaps(self.OUTPUT_MAPS)
-        
-        # Commit to database
-        self._commit(self.COMMIT_ERROR_MESSAGE)
     
     def writeOutput(self, session, directory, name):
         '''
@@ -435,7 +435,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         return fileList
         
         
-    def _readXput(self, fileCards):
+    def _readXput(self, fileCards, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         '''
         GSSHAPY Project Read Files from File Method
         '''
@@ -448,7 +448,37 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 
                 # Invoke read method on each file
                 self._invokeRead(fileIO=fileIO,
-                                 filename=filename)
+                                 filename=filename,
+                                 spatial=spatial,
+                                 spatialReferenceID=spatialReferenceID,
+                                 raster2pgsqlPath=raster2pgsqlPath)
+                
+    def _readXputMaps(self, mapCards, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+        '''
+        GSSHA Project Read Map Files from File Method
+        '''
+        if self.mapType in self.MAP_TYPES_SUPPORTED:
+            for card in self.projectCards:
+                if (card.name in mapCards) and self._noneOrNumValue(card.value):
+                    filename = card.value.strip('"')
+                    
+                    # Invoke read method on each map
+                    self._invokeRead(fileIO=RasterMapFile,
+                                     filename=filename,
+                                     spatial=spatial,
+                                     spatialReferenceID=spatialReferenceID,
+                                     raster2pgsqlPath=raster2pgsqlPath)
+        else:
+            print 'Error: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
+            
+    def _invokeRead(self, fileIO, filename, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+        '''
+        Invoke File Read Method on Other Files
+        '''
+        instance = fileIO(directory=self.DIRECTORY, filename=filename, session=self.SESSION)
+        instance.projectFile = self
+        instance.read(spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
+#         print 'File Read:', filename
                 
     def _writeXput(self, session, directory, fileCards, name=None):
         '''
@@ -469,21 +499,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                   directory=directory,
                                   filename=filename)
                     
-    def _readXputMaps(self, mapCards):
-        '''
-        GSSHA Project Read Map Files from File Method
-        '''
-        if self.mapType in self.MAP_TYPES_SUPPORTED:
-            for card in self.projectCards:
-                if (card.name in mapCards) and self._noneOrNumValue(card.value):
-                    filename = card.value.strip('"')
-                    
-                    # Invoke read method on each map
-                    self._invokeRead(fileIO=RasterMapFile,
-                                     filename=filename)
-        else:
-            print 'Error: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
-                
+
     def _writeXputMaps(self, session, directory, mapCards, name=None):
         '''
         GSSHAPY Project Write Map Files to File Method
@@ -503,15 +519,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                       filename=filename)
         else:
             print 'Error: Could not write map files. MAP_TYPE', self.mapType, 'not supported.'
-            
-    def _invokeRead(self, fileIO, filename):
-        '''
-        Invoke File Read Method on Other Files
-        '''
-        instance = fileIO(directory=self.DIRECTORY, filename=filename, session=self.SESSION)
-        instance.projectFile = self
-        instance.read()
-#         print 'File Read:', filename
         
     def _invokeWrite(self, fileIO, session, directory, filename):
         '''
