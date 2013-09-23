@@ -44,6 +44,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     replaceValFileID = Column(Integer, ForeignKey('rep_replace_val_files.id')) #: FK
     
     # Value Columns
+    srid = Column(Integer) #: SRID
     name = Column(String, nullable=False) #: STRING
     mapType = Column(Integer, nullable=False) #: INTEGER
     
@@ -280,7 +281,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             
         
                      
-    def readProject(self):
+    def readProject(self, spatial=False, srid=4236, raster2pgsqlPath='raster2pgsql'):
         '''
         Read all files for a GSSHA project into the database.
         '''
@@ -336,7 +337,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
 #         print 'SUCCESS: Project successfully written to file.'
         
-    def readInput(self):
+    def readInput(self, spatial=False, srid=4236, raster2pgsqlPath='raster2pgsql'):
         '''
         Read only input files for a GSSHA project into the database.
         '''
@@ -373,7 +374,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Write input map files
         self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name)
         
-    def readOutput(self):
+    def readOutput(self, spatial=False, srid=4236, raster2pgsqlPath='raster2pgsql'):
         '''
         Read only output files for a GSSHA project to the database.
         '''

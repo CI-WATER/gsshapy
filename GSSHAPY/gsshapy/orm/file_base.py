@@ -27,6 +27,11 @@ class GsshaPyFileObjectBase:
     SESSION = None
     EXTENSION = 'txt'
     
+    # Spatial properties
+    SRID = None;
+    SPATIAL = False;
+    RASTER2PGSQL_PATH = None;
+    
     # Error Messages
     COMMIT_ERROR_MESSAGE = 'Ensure the file is not empty and try again.'
     
@@ -40,12 +45,17 @@ class GsshaPyFileObjectBase:
         self.PATH = os.path.join(self.DIRECTORY, self.FILENAME)  # e.g.: /path/to/my/example/example.ext
         self.EXTENSION = filename.split('.')[1]                  # e.g.: ext
         
-    def read(self):
+    def read(self, spatial=False, srid=4236, raster2pgsqlPath='raster2pgsql'):
         '''
         Read file into the database.
         '''
         # Add self to session
         self.SESSION.add(self)
+        
+        # Set the SRID and RASTER2PGSQL_PATH for spatial reads
+        if spatial:
+            self.SRID = srid
+            self.RASTER2PGSQL_PATH = raster2pgsqlPath
         
         # Read
         self._read()

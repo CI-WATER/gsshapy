@@ -27,12 +27,14 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
     __tablename__ = 'raster_maps'
     
     tableName = __tablename__ #: Database tablename
+    raster2pgsqlPath = '/Applications/Postgres.app/Contents/MacOS/bin/raster2pgsql'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     projectFileID = Column(Integer, ForeignKey('prj_project_files.id')) #: FK
     
     # Value Columns
+    srid = Column(Integer) #: SRID
     fileExtension = Column(String, nullable=False) #: STRING
     raster = Column(Raster) #: RASTER
     
@@ -55,18 +57,24 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Assign file extension attribute to file object
         self.fileExtension = self.EXTENSION
         
-        # Must read in using the raster2pgsql commandline tool.
+        # Must read in using the raster2pgsql commandline tool.        
+        if self.srid:
+            srid = self.srid
+        else:
+            srid = 4236
+            
         process = subprocess.Popen(
                                    [
-                                    '/Applications/Postgres.app/Contents/MacOS/bin/raster2pgsql',
+                                    self.raster2pgsqlPath,
                                     '-a',
                                     '-s',
-                                    '4236',
+                                    str(srid),
                                     '-M',
-                                    self.PATH, self.__tablename__
-                                    ],
-                                    stdout=subprocess.PIPE
-                                   )
+                                    self.PATH, 
+                                    self.tableName
+                                   ],
+                                   stdout=subprocess.PIPE
+                                  )
         
         # This commandline tool generates the SQL to load the raster into the database
         # However, we want to use SQLAlchemy to load the values into the database. 

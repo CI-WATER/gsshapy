@@ -28,12 +28,14 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     __tablename__ = 'idx_index_maps'
     
     tableName = __tablename__ #: Database tablename
+    raster2pgsqlPath = '/Applications/Postgres.app/Contents/MacOS/bin/raster2pgsql'
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
     mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id')) #: FK
     
     # Value Columns
+    srid = Column(Integer) #: SRID
     name = Column(String, nullable=False) #: STRING
     filename = Column(String, nullable=False) #: STRING
     raster = Column(Raster) #: RASTER
@@ -67,38 +69,48 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Index Map Read from File Method
         '''
-        # Must read in using the raster2pgsql commandline tool.
-        process = subprocess.Popen(
-                                   [
-                                    '/Applications/Postgres.app/Contents/MacOS/bin/raster2pgsql',
-                                    '-a',
-                                    '-s',
-                                    '4236',
-                                    '-M',
-                                    self.PATH, self.__tablename__
-                                    ],
-                                    stdout=subprocess.PIPE
-                                   )
+        if self.SPATIAL:
+            # Must read in using the raster2pgsql commandline tool.
+            if self.srid:
+                srid = self.srid
+            else:
+                srid = 4236
+                
+            process = subprocess.Popen(
+                                       [
+                                        self.raster2pgsqlPath,
+                                        '-a',
+                                        '-s',
+                                        str(srid),
+                                        '-M',
+                                        self.PATH, 
+                                        self.tableName
+                                       ],
+                                       stdout=subprocess.PIPE
+                                      )
+            
+            # This commandline tool generates the SQL to load the raster into the database
+            # However, we want to use SQLAlchemy to load the values into the database. 
+            # We do this by extracting the value from the sql that is generated.
+            sql, error = process.communicate()        
+            
+            if sql:
+                # This esoteric line is used to extract only the value of the raster (which is stored as a Well Know Binary string)
+                
+                # Example of Output:
+                # BEGIN;
+                # INSERT INTO "idx_index_maps" ("rast") VALUES ('0100...56C096CE87'::raster);
+                # END;
+                
+                # The WKB is wrapped in single quotes. Splitting on single quotes isolates it as the 
+                # second item in the resulting list.
+                wellKnownBinary =  sql.split("'")[1]
+                print wellKnownBinary
+                
+            self.raster = wellKnownBinary
         
-        # This commandline tool generates the SQL to load the raster into the database
-        # However, we want to use SQLAlchemy to load the values into the database. 
-        # We do this by extracting the value from the sql that is generated.
-        sql, error = process.communicate()        
-        
-        if sql:
-            # This esoteric line is used to extract only the value of the raster (which is stored as a Well Know Binary string)
-            
-            # Example of Output:
-            # BEGIN;
-            # INSERT INTO "idx_index_maps" ("rast") VALUES ('0100...56C096CE87'::raster);
-            # END;
-            
-            # The WKB is wrapped in single quotes. Splitting on single quotes isolates it as the 
-            # second item in the resulting list.
-            wellKnownBinary =  sql.split("'")[1]
-            print wellKnownBinary
-            
-        self.raster = wellKnownBinary
+        else:
+            ''''''
         
 #         print 'File Read:', self.filename
         
@@ -106,16 +118,20 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Index Map Write to File Method
         '''
-        # Initiate file
-        if name !=None:
-            filename = '%s.%s' % (name, self.EXTENSION)
-            filePath = os.path.join(directory, filename)
+        if self.SPATIAL:
+            ''''''
+            
         else:
-            filePath = os.path.join(directory, self.filename)
-
-        # Open file and write
-        with open(filePath, 'w') as mapFile:
-            mapFile.write(self.raster)
+            # Initiate file
+            if name !=None:
+                filename = '%s.%s' % (name, self.EXTENSION)
+                filePath = os.path.join(directory, filename)
+            else:
+                filePath = os.path.join(directory, self.filename)
+        
+            # Open file and write
+            with open(filePath, 'w') as mapFile:
+                mapFile.write(self.raster)
             
 #         print 'File Written:', self.filename
         
