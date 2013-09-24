@@ -51,7 +51,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     # Relationship Properties
     projectCards = relationship('ProjectCard', back_populates='projectFile') #: RELATIONSHIP
     
-    # File Relationship Properties
+    # Unique File Relationship Properties
     mapTableFile = relationship('MapTableFile', back_populates='projectFile') #: RELATIONSHIP
     channelInputFile = relationship('ChannelInputFile', back_populates='projectFile') #: RELATIONSHIP
     precipFile = relationship('PrecipFile', back_populates='projectFile') #: RELATIONSHIP
@@ -61,13 +61,16 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     orthoGageFile = relationship('OrthographicGageFile', back_populates='projectFile') #: RELATIONSHIP
     gridPipeFile = relationship('GridPipeFile', back_populates='projectFile') #: RELATIONSHIP
     gridStreamFile = relationship('GridStreamFile', back_populates='projectFile') #: RELATIONSHIP
-    timeSeriesFiles = relationship('TimeSeriesFile', back_populates='projectFile') #: RELATIONSHIP
     projectionFile = relationship('ProjectionFile', back_populates='projectFile') #: RELATIONSHIP
     replaceParamFile = relationship('ReplaceParamFile', back_populates='projectFile') #: RELATIONSHIP
     replaceValFile = relationship('ReplaceValFile', back_populates='projectFile') #: RELATIONSHIP
+    
+    # Collection File Relationship Properties
+    timeSeriesFiles = relationship('TimeSeriesFile', back_populates='projectFile') #: RELATIONSHIP
     outputLocationFiles = relationship('OutputLocationFile', back_populates='projectFile') #: RELATIONSHIP
     maps = relationship('RasterMapFile', back_populates='projectFile') #: RELATIONSHIP
     linkNodeDatasets = relationship('LinkNodeDatasetFile', back_populates='projectFile') #: RELATIONSHIP
+    genericFiles = relationship('GenericFile', back_populates='projectFile') #: RELATIONSHIP
     
     # File Properties
     EXTENSION = 'prj'
@@ -75,30 +78,30 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     
     INPUT_FILES = {'#PROJECTION_FILE':          ProjectionFile,       # WMS
                    'MAPPING_TABLE':             MapTableFile,         # Mapping Table
-                   'ST_MAPPING_TABLE':          None,
+                   'ST_MAPPING_TABLE':          GenericFile,
                    'PRECIP_FILE':               PrecipFile,           # Precipitation
                    'CHANNEL_INPUT':             ChannelInputFile,     # Channel Routing
                    'STREAM_CELL':               GridStreamFile,
-                   'SECTION_TABLE':             None,
-                   'SOIL_LAYER_INPUT_FILE':     None,                 # Infiltration
+                   'SECTION_TABLE':             GenericFile,
+                   'SOIL_LAYER_INPUT_FILE':     GenericFile,          # Infiltration
                    'IN_THETA_LOCATION':         OutputLocationFile,
-                   'EXPLIC_HOTSTART':           None,
-                   'READ_CHAN_HOTSTART':        None,
-                   'CHAN_POINT_INPUT':          None,
+                   'EXPLIC_HOTSTART':           GenericFile,
+                   'READ_CHAN_HOTSTART':        GenericFile,
+                   'CHAN_POINT_INPUT':          GenericFile,
                    'IN_HYD_LOCATION':           OutputLocationFile,
                    'IN_SED_LOC':                OutputLocationFile,
                    'IN_GWFLUX_LOCATION':        OutputLocationFile,
-                   'HMET_SURFAWAYS':            None,                 # Continuous Simulation
-                   'HMET_SAMSON':               None,
+                   'HMET_SURFAWAYS':            GenericFile,          # Continuous Simulation
+                   'HMET_SAMSON':               GenericFile,          ## TODO: Create support in HmetFile for these formats
                    'HMET_WES':                  HmetFile,
                    'NWSRFS_ELEV_SNOW':          NwsrfsFile,
                    'HMET_OROG_GAGES':           OrthographicGageFile,
-                   'HMET_ASCII':                None,
-                   'GW_FLUXBOUNDTABLE':         None,                 # Saturated Groundwater Flow
+                   'HMET_ASCII':                GenericFile,
+                   'GW_FLUXBOUNDTABLE':         GenericFile,          # Saturated Groundwater Flow
                    'STORM_SEWER':               StormPipeNetworkFile, # Subsurface Drainage
                    'GRID_PIPE':                 GridPipeFile,
-                   'SUPER_LINK_JUNC_LOCATION':  None,
-                   'SUPERLINK_NODE_LOCATION':   None,
+                   'SUPER_LINK_JUNC_LOCATION':  GenericFile,
+                   'SUPERLINK_NODE_LOCATION':   GenericFile,
                    'OVERLAND_DEPTH_LOCATION':   OutputLocationFile,   # Overland Flow (Other Output)
                    'OVERLAND_WSE_LOCATION':     OutputLocationFile,
                    'OUT_WELL_LOCATION':         OutputLocationFile,
@@ -138,12 +141,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                   'WETLAND',              # Wetlands
                   'CONTAM_MAP')           # Constituent Transport
     
-    OUTPUT_FILES = {'SUMMARY':              None,                 # Required Output
+    OUTPUT_FILES = {'SUMMARY':              GenericFile,          # Required Output
                     'OUTLET_HYDRO':         TimeSeriesFile,
                     'DEPTH':                None,
                     'OUT_THETA_LOCATION':   TimeSeriesFile,       # Infiltration
-                    'EXPLIC_BACKWATER':     None,                 # Channel Routing
-                    'WRITE_CHAN_HOTSTART':  None,
+                    'EXPLIC_BACKWATER':     GenericFile,          # Channel Routing
+                    'WRITE_CHAN_HOTSTART':  GenericFile,
                     'OUT_HYD_LOCATION':     TimeSeriesFile,
                     'OUT_DEP_LOCATION':     TimeSeriesFile,
                     'OUT_SED_LOC':          TimeSeriesFile,
@@ -151,16 +154,16 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     'CHAN_STAGE':           LinkNodeDatasetFile,
                     'CHAN_DISCHARGE':       LinkNodeDatasetFile,
                     'CHAN_VELOCITY':        LinkNodeDatasetFile,
-                    'LAKE_OUTPUT':          None,  ## TODO: Special format? .lel
-                    'SNOW_SWE_FILE':        None,                 # Continuous Simulation
-                    'GW_WELL_LEVEL':        None,                 # Saturated Groundwater Flow
+                    'LAKE_OUTPUT':          GenericFile,          ## TODO: Special format? .lel
+                    'SNOW_SWE_FILE':        GenericFile,          # Continuous Simulation
+                    'GW_WELL_LEVEL':        GenericFile,          # Saturated Groundwater Flow
                     'OUT_GWFULX_LOCATION':  TimeSeriesFile,
                     'OUTLET_SED_FLUX':      TimeSeriesFile,       # Soil Erosion
-                    'ADJUST_ELEV':          None,
+                    'ADJUST_ELEV':          GenericFile,
                     'OUTLET_SED_TSS':       TimeSeriesFile,
                     'OUT_TSS_LOC':          TimeSeriesFile,
-                    'NET_SED_VOLUME':       None,
-                    'VOL_SED_SUSP':         None,
+                    'NET_SED_VOLUME':       GenericFile,
+                    'VOL_SED_SUSP':         GenericFile,
                     'MAX_SED_FLUX':         LinkNodeDatasetFile,
                     'OUT_CON_LOCATION':     TimeSeriesFile,       # Constituent Transport
                     'OUT_MASS_LOCATION':    TimeSeriesFile,
@@ -168,20 +171,20 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     'SUPERLINK_NODE_FLOW':  TimeSeriesFile,
                     'OVERLAND_DEPTHS':      TimeSeriesFile,
                     'OVERLAND_WSE':         TimeSeriesFile,
-                    'OPTIMIZE':             None}
+                    'OPTIMIZE':             GenericFile}
     
     ## TODO: Handle Different Output Map Formats
-    OUTPUT_MAPS = ('GW_OUTPUT',       # MAP_TYPE  # Output Files
-                   'DISCHARGE',       # MAP_TYPE
-                   'INF_DEPTH',       # MAP_TYPE
-                   'SURF_MOIS',       # MAP_TYPE
-                   'RATE_OF_INFIL',   # MAP_TYPE
-                   'DIS_RAIN',        # MAP_TYPE
-                   'GW_OUTPUT',       # MAP_TYPE
-                   'GW_RECHARGE_CUM', # MAP_TYPE
-                   'GW_RECHARGE_INC', # MAP_TYPE
-                   'WRITE_OV_HOTSTART',           # Overland Flow
-                   'WRITE_SM_HOSTART')            # Infiltration
+    OUTPUT_MAPS = ('GW_OUTPUT',             # MAP_TYPE  # Output Files
+                   'DISCHARGE',             # MAP_TYPE
+                   'INF_DEPTH',             # MAP_TYPE
+                   'SURF_MOIS',             # MAP_TYPE
+                   'RATE_OF_INFIL',         # MAP_TYPE
+                   'DIS_RAIN',              # MAP_TYPE
+                   'GW_OUTPUT',             # MAP_TYPE
+                   'GW_RECHARGE_CUM',       # MAP_TYPE
+                   'GW_RECHARGE_INC',       # MAP_TYPE
+                   'WRITE_OV_HOTSTART',                 # Overland Flow
+                   'WRITE_SM_HOSTART')                  # Infiltration
     
     # Error Messages
     COMMIT_ERROR_MESSAGE = ('Ensure the files listed in the project file '

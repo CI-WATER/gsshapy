@@ -25,6 +25,7 @@ class GsshaPyFileObjectBase:
     PROJECT_NAME = None
     DIRECTORY = None
     SESSION = None
+    NAME = None
     EXTENSION = 'txt'
     
     # Spatial properties
@@ -43,6 +44,7 @@ class GsshaPyFileObjectBase:
         self.DIRECTORY = directory                               # e.g.: /path/to/my/example
         self.SESSION = session                                   # SQL Alchemy Session object
         self.PATH = os.path.join(self.DIRECTORY, self.FILENAME)  # e.g.: /path/to/my/example/example.ext
+        self.NAME = filename.split('.')[0]                       # e.g.: example
         self.EXTENSION = filename.split('.')[1]                  # e.g.: ext
         
     def read(self, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
