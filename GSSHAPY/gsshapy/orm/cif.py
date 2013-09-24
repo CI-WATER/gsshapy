@@ -28,6 +28,8 @@ from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String, Float, Boolean
 from sqlalchemy.orm import  relationship
 
+from geoalchemy2 import Geometry
+
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt, cif_chunk as cic
@@ -602,7 +604,6 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class StreamLink(DeclarativeBase):
     '''
-    
     '''
     __tablename__ = 'cif_links'
     
@@ -667,7 +668,6 @@ class StreamLink(DeclarativeBase):
     
 class UpstreamLink(DeclarativeBase):
     '''
-    
     '''
     __tablename__ = 'cif_upstream_links'
     
@@ -693,7 +693,6 @@ class UpstreamLink(DeclarativeBase):
     
 class StreamNode(DeclarativeBase):
     '''
-    
     '''
     __tablename__ = 'cif_nodes'
     
@@ -706,6 +705,8 @@ class StreamNode(DeclarativeBase):
     x = Column(Float, nullable=False) #: FLOAT
     y = Column(Float, nullable=False) #: FLOAT
     elevation = Column(Float, nullable=False) #: FLOAT
+    geom = Column(Geometry('POINT')) #: POINT
+    
     
     
     # Relationship Properties
@@ -720,6 +721,7 @@ class StreamNode(DeclarativeBase):
         self.x = x
         self.y = y
         self.elevation = elevation
+        self.geom = 'POINT(%s %s)' % (x, y)
         
 
     def __repr__(self):
@@ -739,7 +741,6 @@ class StreamNode(DeclarativeBase):
     
 class Weir(DeclarativeBase):
     '''
-    
     '''
     __tablename__ = 'cif_weirs'
     
@@ -801,7 +802,6 @@ class Weir(DeclarativeBase):
 
 class Culvert(DeclarativeBase):
     '''
-    
     '''
     __tablename__ = 'cif_culverts'
     
@@ -872,7 +872,6 @@ class Culvert(DeclarativeBase):
 
 class Reservoir(DeclarativeBase):
     '''
-    
     '''
     __tablename__ = 'cif_reservoirs'
     
@@ -909,7 +908,6 @@ class Reservoir(DeclarativeBase):
 
 class ReservoirPoint(DeclarativeBase):
     '''
-    
     '''
     __tablename__ = 'cif_reservoir_points'
     
@@ -943,7 +941,6 @@ class ReservoirPoint(DeclarativeBase):
 
 class BreakpointCS(DeclarativeBase):
     '''
-    
     '''
     __tablename__ = 'cif_breakpoint'
     
@@ -1001,7 +998,6 @@ class BreakpointCS(DeclarativeBase):
     
 class Breakpoint(DeclarativeBase):
     '''
-    
     '''
     __tablename__ = 'cif_bcs_points'
     
@@ -1035,7 +1031,6 @@ class Breakpoint(DeclarativeBase):
     
 class TrapezoidalCS(DeclarativeBase):
     '''
-    
     '''
     __tablename__ = 'cif_trapeziod'
     
