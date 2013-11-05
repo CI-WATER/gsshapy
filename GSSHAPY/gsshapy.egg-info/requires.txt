@@ -1,1 +1,2 @@
-sqlalchemy>=0.8geoalchemy2
+sqlalchemy>=0.8
+geoalchemy2
