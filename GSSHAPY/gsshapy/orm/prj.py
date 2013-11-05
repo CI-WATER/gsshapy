@@ -418,24 +418,31 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Get a list of the files that are loaded
         '''
-        fileList = {'Mapping Table File':       self.mapTableFile,
-                    'Channel Input File':       self.channelInputFile,
-                    'Precipitation File':       self.precipFile,
-                    'Storm Pipe Network File':  self.stormPipeNetworkFile,
-                    'HMET File':                self.hmetFile,
-                    'Snow Files':               {'NWSRFS File': self.nwsrfsFile,
-                                                 'Orthographic Gages File': self.orthoGageFile},
-                    'Grid Pipe File':           self.gridPipeFile,
-                    'Grid Stream File':         self.gridStreamFile,
-                    'Time Series Files':        self.timeSeriesFiles,
-                    'Projection File':          self.projectionFile,
-                    'Replacement Files':        {'Parameter File': self.replaceParamFile,
-                                                 'Value File': self.replaceValFile},
-                    'Output Location Files':    self.outputLocationFiles,
-                    'Maps':                     self.maps,
-                    'Link Node Datasets':       self.linkNodeDatasets}
+        files = {'project-file':             self,
+                 'mapping-table-file':       self.mapTableFile,
+                 'channel-input-file':       self.channelInputFile,
+                 'precipitation-file':       self.precipFile,
+                 'storm-pipe-network-file':  self.stormPipeNetworkFile,
+                 'hmet-file':                self.hmetFile,
+                 'nwsrfs-file':              self.nwsrfsFile,
+                 'orthographic-gage-file':   self.orthoGageFile,
+                 'grid-pipe-file':           self.gridPipeFile,
+                 'grid-stream-file':         self.gridStreamFile,
+                 'time-series-file':         self.timeSeriesFiles,
+                 'projection-file':          self.projectionFile,
+                 'replace-parameters-file':  self.replaceParamFile,
+                 'replace-value-file':       self.replaceValFile,
+                 'output-location-file':     self.outputLocationFiles,
+                 'maps':                     self.maps,
+                 'link-node-datasets-file':  self.linkNodeDatasets}
+    
+        files_list = []
         
-        return fileList
+        for key, value in files.iteritems():
+            if value:
+                files_list.append(key)
+                
+        return files_list
         
         
     def _readXput(self, fileCards, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
