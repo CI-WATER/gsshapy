@@ -7,7 +7,7 @@
 * License: BSD 2-Clause
 ********************************************************************************
 '''
-import time, subprocess
+import time
 from gsshapy.orm import ProjectFile
 from gsshapy.lib import db_tools as dbt
 from sqlalchemy import MetaData, create_engine

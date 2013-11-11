@@ -10,7 +10,7 @@
 
 __all__ = ['RasterMapFile']
 
-import os, subprocess
+import os, subprocess, random
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
@@ -101,7 +101,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         # If the raster field is not empty, write from this field
 #         if self.raster != None:
-        if type(self.raster) == type(Raster) and type(self.raster) != type(None):
+        if type(self.raster) != type(None):
             '''
             '''
             # Use the ST_AsGDALRaster function of PostGIS to retrieve the 

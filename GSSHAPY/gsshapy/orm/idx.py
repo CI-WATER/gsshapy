@@ -125,7 +125,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
             filePath = os.path.join(directory, self.filename)
     
         # If the raster field is not empty, write from this field
-        if type(self.raster) == type(Raster) and type(self.raster) != type(None):
+        if type(self.raster) != type(None):
             '''
             '''
             # Use the ST_AsGDALRaster function of PostGIS to retrieve the 
@@ -192,6 +192,23 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
                 mapFile.write(self.raster_text)
             
 #         print 'File Written:', self.filename
+        
+        
+        
+#     def getAsKML(self, session):
+#         '''
+#         Get the raster as KML
+#         '''
+#         
+#         if type(self.raster) != type(None):
+#         
+#             # Get GDAL object
+#             
+#             
+#             # Write png file
+#             pngGrid = str(session.scalar(self.raster.ST_AsGDALRaster('GDAL')))
+#             with open('/Users/swainn/projects/post_gis/' + self.filename + '.png', 'wb') as afile:
+#                 afile.write(pngGrid)
         
     
 
