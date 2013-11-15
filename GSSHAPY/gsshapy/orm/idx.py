@@ -10,7 +10,9 @@
 
 __all__ = ['IndexMap']
 
-import os, subprocess
+import os, subprocess, random
+import xml.etree.ElementTree as ET
+import xml.dom.minidom
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
@@ -195,21 +197,75 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         
         
         
-#     def getAsKML(self, session):
-#         '''
-#         Get the raster as KML
-#         '''
-#         
-#         if type(self.raster) != type(None):
-#         
-#             # Get GDAL object
-#             
-#             
-#             # Write png file
-#             pngGrid = str(session.scalar(self.raster.ST_AsGDALRaster('GDAL')))
-#             with open('/Users/swainn/projects/post_gis/' + self.filename + '.png', 'wb') as afile:
-#                 afile.write(pngGrid)
+    def getAsKML(self, session, path):
+        '''
+        Get the raster in KML format
         
+        
+        '''
+          
+        if type(self.raster) != type(None):
+            # Get polygons for each cell in kml format
+            stmt = '''SELECT x, y, val, ST_AsKML(geom) AS geomkml
+                      FROM (
+                      SELECT (ST_PixelAsPolygons(raster)).*
+                      FROM %s WHERE id=%s
+                      ) AS foo
+                      ORDER BY val;''' % (self.tableName, self.id)
+            
+            result = session.execute(stmt)
+            
+            groups = dict()
+            
+            # Post process the query
+            for i, j, value, geomkml in result:                
+                cell = {'i': i, 'j': j, 'kml':geomkml}
+                
+                if (str(value) in groups):
+                    groups[str(value)].append(cell)
+                else:
+                    groups[str(value)] = [cell]
+            
+            # Create KML Document            
+            kml = ET.Element('kml', xmlns="http://www.opengis.net/kml/2.2")
+            document = ET.SubElement(kml, 'Document')
+            name = ET.SubElement(document, 'name')
+            name.text = self.filename
+                    
+            for value, contents in groups.iteritems():
+                if (float(value) > 0):
+                    placemark = ET.SubElement(document, 'Placemark', id=value)
+                    placemarkName = ET.SubElement(placemark, 'name')
+                    placemarkName.text = value
+                    styleURL = ET.SubElement(placemark, 'styleURL')
+                    styleURL.text = '#style' + value
+                    multiGeometry = ET.SubElement(placemark, 'MultiGeometry')
+                    style = ET.SubElement(placemark, 'Style', id=('style' + value))
+                    lineStyle = ET.SubElement(style, 'LineStyle')
+                    color = ET.SubElement(lineStyle, 'color')
+                    color.text = 'ff000000'
+                    width = ET.SubElement(lineStyle, 'width')
+                    width.text = '1'
+                    
+                    polyStyle = ET.SubElement(style, 'PolyStyle')
+                    polyColor = ET.SubElement(polyStyle, 'color')
+                    c = 'CC%02X%02X%02X' % (random.randint(0,255), random.randint(0,255), random.randint(0,255))
+                    polyColor.text = c
+                    
+                    for cell in contents:
+                        polygon = ET.fromstring(cell['kml'])
+                        multiGeometry.append(polygon)
+                        
+                    
+                
+        this = xml.dom.minidom.parseString(ET.tostring(kml)) 
+#         print this.toprettyxml()   
+            
+        with open(path, 'w') as f:
+            f.write(this.toprettyxml())
+                
+            
+
     
 
     
