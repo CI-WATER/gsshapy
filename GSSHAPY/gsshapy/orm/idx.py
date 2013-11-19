@@ -196,7 +196,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         
         
         
-    def getAsKML(self, session, path):
+    def getAsKmlGrid(self, session, path, ramp='rainbow', alpha=1.0):
         '''
         Get the raster in KML format
         '''
@@ -207,9 +207,10 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
                                         tableName=self.tableName,
                                         rasterId=self.id,
                                         outFilePath=path,
-                                        name=self.filename)
+                                        name=self.filename,
+                                        rasterType='discrete')
             
-            converter.getAsKML()
+            converter.getAsKmlGrid(ramp=ramp, alpha=alpha)
                 
             
 

@@ -10,7 +10,7 @@
 
 __all__ = ['RasterMapFile']
 
-import os, subprocess, random
+import subprocess
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
@@ -20,7 +20,7 @@ from geoalchemy2 import Raster
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
-from gsshapy.spatial_functions import ST_AsGDALRaster
+from gsshapy.mapit.RasterConverter import RasterConverter
 
 class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
@@ -163,4 +163,20 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
         else:
             # Write file
             openFile.write(self.raster_text)
+            
+    def getAsKmlGrid(self, session, path, ramp='rainbow', alpha=1.0):
+        '''
+        Get the raster in KML format
+        '''
+          
+        if type(self.raster) != type(None):
+            # Make sure the raster field is valid
+            converter = RasterConverter(session=session,
+                                        tableName=self.tableName,
+                                        rasterId=self.id,
+                                        outFilePath=path,
+                                        name=self.fileExtension,
+                                        rasterType='continuous')
+            
+            converter.getAsKmlGrid(ramp=ramp, alpha=alpha)
 

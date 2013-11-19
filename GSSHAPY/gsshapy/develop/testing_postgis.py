@@ -8,7 +8,7 @@
 ********************************************************************************
 '''
 import time
-from gsshapy.orm import ProjectFile, IndexMap
+from gsshapy.orm import ProjectFile, IndexMap, RasterMapFile
 from gsshapy.lib import db_tools as dbt
 from sqlalchemy import MetaData, create_engine
 
@@ -60,8 +60,17 @@ start = time.time()
 ## Test KML capabilities
 
 # Get an index map
-idx = writeSession.query(IndexMap).filter(IndexMap.id==3).one()
-idx.getAsKML(writeSession, '/Users/swainn/projects/post_gis/test.kml')
+idx = writeSession.query(IndexMap).filter(IndexMap.id==2).one()
+idx.getAsKmlGrid(session=writeSession,
+                 path='/Users/swainn/projects/post_gis/index.kml',
+                 ramp='rainbow',
+                 alpha=1.0)
+
+mapFile = writeSession.query(RasterMapFile).filter(RasterMapFile.id==2).one()
+mapFile.getAsKmlGrid(session=writeSession,
+                     path='/Users/swainn/projects/post_gis/ele.kml',
+                     ramp='terrain',
+                     alpha=1.0)
 
 # Report Read Time
 print 'KML CONVERSION TIME:', time.time()-start
