@@ -60,7 +60,7 @@ start = time.time()
 ## Test KML capabilities
 
 # Get an index map
-idx = writeSession.query(IndexMap).filter(IndexMap.id==2).one()
+idx = writeSession.query(IndexMap).filter(IndexMap.id==3).one()
 idx.getAsKML(writeSession, '/Users/swainn/projects/post_gis/test.kml')
 
 # Report Read Time
