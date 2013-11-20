@@ -12,6 +12,10 @@ __all__ = ['RasterMapFile']
 
 import subprocess
 
+
+import xml.etree.ElementTree as ET
+import xml.dom.minidom
+
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
@@ -171,12 +175,20 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
           
         if type(self.raster) != type(None):
             # Make sure the raster field is valid
-            converter = RasterConverter(session=session,
-                                        tableName=self.tableName,
-                                        rasterId=self.id,
-                                        outFilePath=path,
-                                        name=self.fileExtension,
-                                        rasterType='continuous')
+            converter = RasterConverter(session=session)
             
-            converter.getAsKmlGrid(ramp=ramp, alpha=alpha)
+            kmlString = converter.getAsKmlGrid(tableName=self.tableName,
+                                               rasterId=self.id,
+                                               rasterIdFieldName='id',
+                                               name=self.fileExtension,
+                                               rasterType='continuous',
+                                               ramp=ramp,
+                                               alpha=alpha)
+            
+            with open(path, 'w') as f:
+#                 pretty = xml.dom.minidom.parseString(kmlString)
+#                 f.write(pretty.toprettyxml())
+                f.write(kmlString)
+            
+            
 

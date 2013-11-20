@@ -68,9 +68,19 @@ idx.getAsKmlGrid(session=writeSession,
 
 mapFile = writeSession.query(RasterMapFile).filter(RasterMapFile.id==2).one()
 mapFile.getAsKmlGrid(session=writeSession,
-                     path='/Users/swainn/projects/post_gis/ele.kml',
+                     path='/Users/swainn/projects/post_gis/ele_terrain.kml',
                      ramp='terrain',
                      alpha=1.0)
+
+# mapFile.getAsKmlGrid(session=writeSession,
+#                      path='/Users/swainn/projects/post_gis/ele_aqua.kml',
+#                      ramp='aqua',
+#                      alpha=1.0)
+# 
+# mapFile.getAsKmlGrid(session=writeSession,
+#                      path='/Users/swainn/projects/post_gis/ele_rainbow.kml',
+#                      ramp='rainbow',
+#                      alpha=1.0)
 
 # Report Read Time
 print 'KML CONVERSION TIME:', time.time()-start

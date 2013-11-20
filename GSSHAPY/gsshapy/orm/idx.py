@@ -203,14 +203,18 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
           
         if type(self.raster) != type(None):
             # Make sure the raster field is valid
-            converter = RasterConverter(session=session,
-                                        tableName=self.tableName,
-                                        rasterId=self.id,
-                                        outFilePath=path,
-                                        name=self.filename,
-                                        rasterType='discrete')
+            converter = RasterConverter(session=session)
             
-            converter.getAsKmlGrid(ramp=ramp, alpha=alpha)
+            kmlString = converter.getAsKmlGrid(tableName=self.tableName,
+                                               rasterId=self.id,
+                                               rasterIdFieldName='id',
+                                               name=self.filename,
+                                               rasterType='discrete',
+                                               ramp=ramp,
+                                               alpha=alpha)
+            
+            with open(path, 'w') as f:
+                f.write(kmlString)
                 
             
 
