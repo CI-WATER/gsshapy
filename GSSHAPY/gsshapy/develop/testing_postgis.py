@@ -11,6 +11,7 @@ import time
 from gsshapy.orm import ProjectFile, IndexMap, RasterMapFile
 from gsshapy.lib import db_tools as dbt
 from sqlalchemy import MetaData, create_engine
+from mapkit.RasterConverter import RasterConverter
 
 # Read Parameters
 readDirectory='/Users/swainn/testing/test models/ParkCityBasic'
@@ -61,25 +62,43 @@ start = time.time()
 
 # Get an index map
 idx = writeSession.query(IndexMap).filter(IndexMap.id==2).one()
+
+# Generate Color Ramp
+colorRamp = RasterConverter.generateDefaultColorRamp(RasterConverter.COLOR_RAMP_HUE)
 idx.getAsKmlGrid(session=writeSession,
                  path='/Users/swainn/projects/post_gis/index.kml',
-                 ramp='rainbow',
+                 colorRamp=colorRamp,
                  alpha=1.0)
 
 mapFile = writeSession.query(RasterMapFile).filter(RasterMapFile.id==2).one()
+
+# Generate Color Ramp
+colorRamp = RasterConverter.generateDefaultColorRamp(RasterConverter.COLOR_RAMP_TERRAIN)
 mapFile.getAsKmlGrid(session=writeSession,
                      path='/Users/swainn/projects/post_gis/ele_terrain.kml',
-                     ramp='terrain',
+                     colorRamp=colorRamp,
                      alpha=1.0)
 
+# # Generate Color Ramp
+# colorRamp = RasterConverter.generateDefaultColorRamp(RasterConverter.COLOR_RAMP_AQUA)
 # mapFile.getAsKmlGrid(session=writeSession,
 #                      path='/Users/swainn/projects/post_gis/ele_aqua.kml',
-#                      ramp='aqua',
+#                      colorRamp=colorRamp,
+#                      alpha=1.0)
+#  
+# # Generate Color Ramp
+# colorRamp = RasterConverter.generateDefaultColorRamp(RasterConverter.COLOR_RAMP_HUE)
+# mapFile.getAsKmlGrid(session=writeSession,
+#                      path='/Users/swainn/projects/post_gis/ele_hue.kml',
+#                      colorRamp=colorRamp,
 #                      alpha=1.0)
 # 
+# # Generate Custom Color Ramp
+# colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
+# colorRamp = RasterConverter.generateCustomColorRamp(colors, 15)
 # mapFile.getAsKmlGrid(session=writeSession,
-#                      path='/Users/swainn/projects/post_gis/ele_rainbow.kml',
-#                      ramp='rainbow',
+#                      path='/Users/swainn/projects/post_gis/ele_custom.kml',
+#                      colorRamp=colorRamp,
 #                      alpha=1.0)
 
 # Report Read Time

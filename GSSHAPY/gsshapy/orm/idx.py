@@ -54,11 +54,11 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     # File Properties
     EXTENSION = 'idx'
     
-    def __init__(self, directory, filename, session, name=None):
+    def __init__(self, directory, filename, sqlAlchemySession, name=None):
         '''
         Constructor
         '''
-        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
+        GsshaPyFileObjectBase.__init__(self, directory, filename, sqlAlchemySession)
         self.name = name
         self.filename = filename
         
@@ -200,21 +200,23 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         
         
         
-    def getAsKmlGrid(self, session, path, ramp='rainbow', alpha=1.0):
+    def getAsKmlGrid(self, session, path, colorRamp=None, alpha=1.0):
         '''
         Get the raster in KML format
         '''
           
         if type(self.raster) != type(None):
             # Make sure the raster field is valid
-            converter = RasterConverter(session=session)
+            converter = RasterConverter(sqlAlchemySession=session)
+            
+            # Configure color ramp
+            converter.setColorRamp(colorRamp)
             
             kmlString = converter.getAsKmlGrid(tableName=self.tableName,
                                                rasterId=self.id,
                                                rasterIdFieldName='id',
                                                name=self.filename,
                                                rasterType='discrete',
-                                               ramp=ramp,
                                                alpha=alpha)
             
             with open(path, 'w') as f:

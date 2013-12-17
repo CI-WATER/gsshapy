@@ -46,11 +46,11 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
     # Relationship Properites
     projectFile = relationship('ProjectFile', back_populates='maps') #: RELATIONSHIP
     
-    def __init__(self, directory, filename, session):
+    def __init__(self, directory, filename, sqlAlchemySession):
         '''
         Constructor
         '''
-        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
+        GsshaPyFileObjectBase.__init__(self, directory, filename, sqlAlchemySession)
         
     def __repr__(self):
         return '<RasterMap: FileExtension=%s>' % (self.fileExtension)
@@ -169,21 +169,23 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Write file
             openFile.write(self.raster_text)
             
-    def getAsKmlGrid(self, session, path, ramp='rainbow', alpha=1.0):
+    def getAsKmlGrid(self, session, path, colorRamp=None, alpha=1.0):
         '''
         Get the raster in KML format
         '''
           
         if type(self.raster) != type(None):
             # Make sure the raster field is valid
-            converter = RasterConverter(session=session)
+            converter = RasterConverter(sqlAlchemySession=session)
+            
+            # Configure color ramp
+            converter.setColorRamp(colorRamp)
             
             kmlString = converter.getAsKmlGrid(tableName=self.tableName,
                                                rasterId=self.id,
                                                rasterIdFieldName='id',
                                                name=self.fileExtension,
                                                rasterType='continuous',
-                                               ramp=ramp,
                                                alpha=alpha)
             
             with open(path, 'w') as f:
