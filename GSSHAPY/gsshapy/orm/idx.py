@@ -12,6 +12,9 @@ __all__ = ['IndexMap']
 
 import os, subprocess
 
+import xml.etree.ElementTree as ET
+import xml.dom.minidom
+
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
@@ -20,7 +23,8 @@ from geoalchemy2 import Raster
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
-from gsshapy.mapit.RasterConverter import RasterConverter
+
+from mapkit.RasterConverter import RasterConverter
 
 
 class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
@@ -214,7 +218,9 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
                                                alpha=alpha)
             
             with open(path, 'w') as f:
-                f.write(kmlString)
+                pretty = xml.dom.minidom.parseString(kmlString)
+                f.write(pretty.toprettyxml())
+#                 f.write(kmlString)
                 
             
 

@@ -24,7 +24,8 @@ from geoalchemy2 import Raster
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
-from gsshapy.mapit.RasterConverter import RasterConverter
+
+from mapkit.RasterConverter import RasterConverter
 
 class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
@@ -186,9 +187,9 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
                                                alpha=alpha)
             
             with open(path, 'w') as f:
-#                 pretty = xml.dom.minidom.parseString(kmlString)
-#                 f.write(pretty.toprettyxml())
-                f.write(kmlString)
+                pretty = xml.dom.minidom.parseString(kmlString)
+                f.write(pretty.toprettyxml())
+#                 f.write(kmlString)
             
             
 
