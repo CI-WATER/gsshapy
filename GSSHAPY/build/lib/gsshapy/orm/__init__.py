@@ -35,5 +35,6 @@ from map import *
 from pro import *
 from rep import *
 from lnd import *
+from generic import *
 
 

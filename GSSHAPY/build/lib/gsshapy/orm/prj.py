@@ -44,13 +44,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     replaceValFileID = Column(Integer, ForeignKey('rep_replace_val_files.id')) #: FK
     
     # Value Columns
+    srid = Column(Integer) #: SRID
     name = Column(String, nullable=False) #: STRING
     mapType = Column(Integer, nullable=False) #: INTEGER
     
     # Relationship Properties
     projectCards = relationship('ProjectCard', back_populates='projectFile') #: RELATIONSHIP
     
-    # File Relationship Properties
+    # Unique File Relationship Properties
     mapTableFile = relationship('MapTableFile', back_populates='projectFile') #: RELATIONSHIP
     channelInputFile = relationship('ChannelInputFile', back_populates='projectFile') #: RELATIONSHIP
     precipFile = relationship('PrecipFile', back_populates='projectFile') #: RELATIONSHIP
@@ -60,13 +61,16 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     orthoGageFile = relationship('OrthographicGageFile', back_populates='projectFile') #: RELATIONSHIP
     gridPipeFile = relationship('GridPipeFile', back_populates='projectFile') #: RELATIONSHIP
     gridStreamFile = relationship('GridStreamFile', back_populates='projectFile') #: RELATIONSHIP
-    timeSeriesFiles = relationship('TimeSeriesFile', back_populates='projectFile') #: RELATIONSHIP
     projectionFile = relationship('ProjectionFile', back_populates='projectFile') #: RELATIONSHIP
     replaceParamFile = relationship('ReplaceParamFile', back_populates='projectFile') #: RELATIONSHIP
     replaceValFile = relationship('ReplaceValFile', back_populates='projectFile') #: RELATIONSHIP
+    
+    # Collection File Relationship Properties
+    timeSeriesFiles = relationship('TimeSeriesFile', back_populates='projectFile') #: RELATIONSHIP
     outputLocationFiles = relationship('OutputLocationFile', back_populates='projectFile') #: RELATIONSHIP
     maps = relationship('RasterMapFile', back_populates='projectFile') #: RELATIONSHIP
     linkNodeDatasets = relationship('LinkNodeDatasetFile', back_populates='projectFile') #: RELATIONSHIP
+    genericFiles = relationship('GenericFile', back_populates='projectFile') #: RELATIONSHIP
     
     # File Properties
     EXTENSION = 'prj'
@@ -74,30 +78,30 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     
     INPUT_FILES = {'#PROJECTION_FILE':          ProjectionFile,       # WMS
                    'MAPPING_TABLE':             MapTableFile,         # Mapping Table
-                   'ST_MAPPING_TABLE':          None,
+                   'ST_MAPPING_TABLE':          GenericFile,
                    'PRECIP_FILE':               PrecipFile,           # Precipitation
                    'CHANNEL_INPUT':             ChannelInputFile,     # Channel Routing
                    'STREAM_CELL':               GridStreamFile,
-                   'SECTION_TABLE':             None,
-                   'SOIL_LAYER_INPUT_FILE':     None,                 # Infiltration
+                   'SECTION_TABLE':             GenericFile,
+                   'SOIL_LAYER_INPUT_FILE':     GenericFile,          # Infiltration
                    'IN_THETA_LOCATION':         OutputLocationFile,
-                   'EXPLIC_HOTSTART':           None,
-                   'READ_CHAN_HOTSTART':        None,
-                   'CHAN_POINT_INPUT':          None,
+                   'EXPLIC_HOTSTART':           GenericFile,
+                   'READ_CHAN_HOTSTART':        GenericFile,
+                   'CHAN_POINT_INPUT':          GenericFile,
                    'IN_HYD_LOCATION':           OutputLocationFile,
                    'IN_SED_LOC':                OutputLocationFile,
                    'IN_GWFLUX_LOCATION':        OutputLocationFile,
-                   'HMET_SURFAWAYS':            None,                 # Continuous Simulation
-                   'HMET_SAMSON':               None,
+                   'HMET_SURFAWAYS':            GenericFile,          # Continuous Simulation
+                   'HMET_SAMSON':               GenericFile,          ## TODO: Create support in HmetFile for these formats
                    'HMET_WES':                  HmetFile,
                    'NWSRFS_ELEV_SNOW':          NwsrfsFile,
                    'HMET_OROG_GAGES':           OrthographicGageFile,
-                   'HMET_ASCII':                None,
-                   'GW_FLUXBOUNDTABLE':         None,                 # Saturated Groundwater Flow
+                   'HMET_ASCII':                GenericFile,
+                   'GW_FLUXBOUNDTABLE':         GenericFile,          # Saturated Groundwater Flow
                    'STORM_SEWER':               StormPipeNetworkFile, # Subsurface Drainage
                    'GRID_PIPE':                 GridPipeFile,
-                   'SUPER_LINK_JUNC_LOCATION':  None,
-                   'SUPERLINK_NODE_LOCATION':   None,
+                   'SUPER_LINK_JUNC_LOCATION':  GenericFile,
+                   'SUPERLINK_NODE_LOCATION':   GenericFile,
                    'OVERLAND_DEPTH_LOCATION':   OutputLocationFile,   # Overland Flow (Other Output)
                    'OVERLAND_WSE_LOCATION':     OutputLocationFile,
                    'OUT_WELL_LOCATION':         OutputLocationFile,
@@ -137,12 +141,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                   'WETLAND',              # Wetlands
                   'CONTAM_MAP')           # Constituent Transport
     
-    OUTPUT_FILES = {'SUMMARY':              None,                 # Required Output
+    OUTPUT_FILES = {'SUMMARY':              GenericFile,          # Required Output
                     'OUTLET_HYDRO':         TimeSeriesFile,
                     'DEPTH':                None,
                     'OUT_THETA_LOCATION':   TimeSeriesFile,       # Infiltration
-                    'EXPLIC_BACKWATER':     None,                 # Channel Routing
-                    'WRITE_CHAN_HOTSTART':  None,
+                    'EXPLIC_BACKWATER':     GenericFile,          # Channel Routing
+                    'WRITE_CHAN_HOTSTART':  GenericFile,
                     'OUT_HYD_LOCATION':     TimeSeriesFile,
                     'OUT_DEP_LOCATION':     TimeSeriesFile,
                     'OUT_SED_LOC':          TimeSeriesFile,
@@ -150,16 +154,16 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     'CHAN_STAGE':           LinkNodeDatasetFile,
                     'CHAN_DISCHARGE':       LinkNodeDatasetFile,
                     'CHAN_VELOCITY':        LinkNodeDatasetFile,
-                    'LAKE_OUTPUT':          None,  ## TODO: Special format? .lel
-                    'SNOW_SWE_FILE':        None,                 # Continuous Simulation
-                    'GW_WELL_LEVEL':        None,                 # Saturated Groundwater Flow
+                    'LAKE_OUTPUT':          GenericFile,          ## TODO: Special format? .lel
+                    'SNOW_SWE_FILE':        GenericFile,          # Continuous Simulation
+                    'GW_WELL_LEVEL':        GenericFile,          # Saturated Groundwater Flow
                     'OUT_GWFULX_LOCATION':  TimeSeriesFile,
                     'OUTLET_SED_FLUX':      TimeSeriesFile,       # Soil Erosion
-                    'ADJUST_ELEV':          None,
+                    'ADJUST_ELEV':          GenericFile,
                     'OUTLET_SED_TSS':       TimeSeriesFile,
                     'OUT_TSS_LOC':          TimeSeriesFile,
-                    'NET_SED_VOLUME':       None,
-                    'VOL_SED_SUSP':         None,
+                    'NET_SED_VOLUME':       GenericFile,
+                    'VOL_SED_SUSP':         GenericFile,
                     'MAX_SED_FLUX':         LinkNodeDatasetFile,
                     'OUT_CON_LOCATION':     TimeSeriesFile,       # Constituent Transport
                     'OUT_MASS_LOCATION':    TimeSeriesFile,
@@ -167,20 +171,20 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     'SUPERLINK_NODE_FLOW':  TimeSeriesFile,
                     'OVERLAND_DEPTHS':      TimeSeriesFile,
                     'OVERLAND_WSE':         TimeSeriesFile,
-                    'OPTIMIZE':             None}
+                    'OPTIMIZE':             GenericFile}
     
     ## TODO: Handle Different Output Map Formats
-    OUTPUT_MAPS = ('GW_OUTPUT',       # MAP_TYPE  # Output Files
-                   'DISCHARGE',       # MAP_TYPE
-                   'INF_DEPTH',       # MAP_TYPE
-                   'SURF_MOIS',       # MAP_TYPE
-                   'RATE_OF_INFIL',   # MAP_TYPE
-                   'DIS_RAIN',        # MAP_TYPE
-                   'GW_OUTPUT',       # MAP_TYPE
-                   'GW_RECHARGE_CUM', # MAP_TYPE
-                   'GW_RECHARGE_INC', # MAP_TYPE
-                   'WRITE_OV_HOTSTART',           # Overland Flow
-                   'WRITE_SM_HOSTART')            # Infiltration
+    OUTPUT_MAPS = ('GW_OUTPUT',             # MAP_TYPE  # Output Files
+                   'DISCHARGE',             # MAP_TYPE
+                   'INF_DEPTH',             # MAP_TYPE
+                   'SURF_MOIS',             # MAP_TYPE
+                   'RATE_OF_INFIL',         # MAP_TYPE
+                   'DIS_RAIN',              # MAP_TYPE
+                   'GW_OUTPUT',             # MAP_TYPE
+                   'GW_RECHARGE_CUM',       # MAP_TYPE
+                   'GW_RECHARGE_INC',       # MAP_TYPE
+                   'WRITE_OV_HOTSTART',                 # Overland Flow
+                   'WRITE_SM_HOSTART')                  # Infiltration
     
     # Error Messages
     COMMIT_ERROR_MESSAGE = ('Ensure the files listed in the project file '
@@ -280,7 +284,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             
         
                      
-    def readProject(self):
+    def readProject(self, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         '''
         Read all files for a GSSHA project into the database.
         '''
@@ -288,25 +292,63 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.SESSION.add(self)
         
         # First read self
-        self._read()
+        self.read(spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
         
         # Read Input Files
-        self._readXput(self.INPUT_FILES)
+        self._readXput(self.INPUT_FILES, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
         
         # Read Output Files
-        self._readXput(self.OUTPUT_FILES)
+        self._readXput(self.OUTPUT_FILES, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
         
         # Read Input Map Files
-        self._readXputMaps(self.INPUT_MAPS)
+        self._readXputMaps(self.INPUT_MAPS, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
         
         # Read Output Map Files
-        self._readXputMaps(self.OUTPUT_MAPS)
+        self._readXputMaps(self.OUTPUT_MAPS, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
         
         # Commit to database
         self._commit(self.COMMIT_ERROR_MESSAGE)
         
         # Feedback
 #         print 'SUCCESS: Project successfully read to database.'
+
+    def readInput(self, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+        '''
+        Read only input files for a GSSHA project into the database.
+        '''
+        # Add project file to session
+        self.SESSION.add(self)
+        
+        # Read Project File
+        self.read(spatial, spatialReferenceID, raster2pgsqlPath)
+        
+        # Read Input Files
+        self._readXput(self.INPUT_FILES, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
+        
+        # Read Input Map Files
+        self._readXputMaps(self.INPUT_MAPS, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
+        
+        # Commit to database
+        self._commit(self.COMMIT_ERROR_MESSAGE)
+        
+    def readOutput(self, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+        '''
+        Read only output files for a GSSHA project to the database.
+        '''
+        # Add project file to session
+        self.SESSION.add(self)
+        
+        # Read Project File
+        self.read(spatial, spatialReferenceID, raster2pgsqlPath)
+        
+        # Read Output Files
+        self._readXput(self.OUTPUT_FILES, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
+        
+        # Read Output Map Files
+        self._readXputMaps(self.OUTPUT_MAPS, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
+        
+        # Commit to database
+        self._commit(self.COMMIT_ERROR_MESSAGE)
         
 
     def writeProject(self, session, directory, name):
@@ -336,25 +378,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
 #         print 'SUCCESS: Project successfully written to file.'
         
-    def readInput(self):
-        '''
-        Read only input files for a GSSHA project into the database.
-        '''
-        # Add project file to session
-        self.SESSION.add(self)
-        
-        # Read Project File
-        self._read()
-        
-        # Read Input Files
-        self._readXput(self.INPUT_FILES)
-        
-        # Read Input Map Files
-        self._readXputMaps(self.INPUT_MAPS)
-        
-        # Commit to database
-        self._commit(self.COMMIT_ERROR_MESSAGE)
-        
     def writeInput(self, session, directory, name):
         '''
         Write only input files for a GSSHA project from the database to file.
@@ -372,25 +395,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         
         # Write input map files
         self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name)
-        
-    def readOutput(self):
-        '''
-        Read only output files for a GSSHA project to the database.
-        '''
-        # Add project file to session
-        self.SESSION.add(self)
-        
-        # Read Project File
-        self.read()
-        
-        # Read Output Files
-        self._readXput(self.OUTPUT_FILES)
-        
-        # Read Output Map Files
-        self._readXputMaps(self.OUTPUT_MAPS)
-        
-        # Commit to database
-        self._commit(self.COMMIT_ERROR_MESSAGE)
     
     def writeOutput(self, session, directory, name):
         '''
@@ -414,12 +418,34 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Get a list of the files that are loaded
         '''
-        fileList = []
+        files = {'project-file':             self,
+                 'mapping-table-file':       self.mapTableFile,
+                 'channel-input-file':       self.channelInputFile,
+                 'precipitation-file':       self.precipFile,
+                 'storm-pipe-network-file':  self.stormPipeNetworkFile,
+                 'hmet-file':                self.hmetFile,
+                 'nwsrfs-file':              self.nwsrfsFile,
+                 'orthographic-gage-file':   self.orthoGageFile,
+                 'grid-pipe-file':           self.gridPipeFile,
+                 'grid-stream-file':         self.gridStreamFile,
+                 'time-series-file':         self.timeSeriesFiles,
+                 'projection-file':          self.projectionFile,
+                 'replace-parameters-file':  self.replaceParamFile,
+                 'replace-value-file':       self.replaceValFile,
+                 'output-location-file':     self.outputLocationFiles,
+                 'maps':                     self.maps,
+                 'link-node-datasets-file':  self.linkNodeDatasets}
+    
+        files_list = []
         
-        return fileList
+        for key, value in files.iteritems():
+            if value:
+                files_list.append(key)
+                
+        return files_list
         
         
-    def _readXput(self, fileCards):
+    def _readXput(self, fileCards, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         '''
         GSSHAPY Project Read Files from File Method
         '''
@@ -432,7 +458,37 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 
                 # Invoke read method on each file
                 self._invokeRead(fileIO=fileIO,
-                                 filename=filename)
+                                 filename=filename,
+                                 spatial=spatial,
+                                 spatialReferenceID=spatialReferenceID,
+                                 raster2pgsqlPath=raster2pgsqlPath)
+                
+    def _readXputMaps(self, mapCards, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+        '''
+        GSSHA Project Read Map Files from File Method
+        '''
+        if self.mapType in self.MAP_TYPES_SUPPORTED:
+            for card in self.projectCards:
+                if (card.name in mapCards) and self._noneOrNumValue(card.value):
+                    filename = card.value.strip('"')
+                    
+                    # Invoke read method on each map
+                    self._invokeRead(fileIO=RasterMapFile,
+                                     filename=filename,
+                                     spatial=spatial,
+                                     spatialReferenceID=spatialReferenceID,
+                                     raster2pgsqlPath=raster2pgsqlPath)
+        else:
+            print 'Error: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
+            
+    def _invokeRead(self, fileIO, filename, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+        '''
+        Invoke File Read Method on Other Files
+        '''
+        instance = fileIO(directory=self.DIRECTORY, filename=filename, session=self.SESSION)
+        instance.projectFile = self
+        instance.read(spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
+#         print 'File Read:', filename
                 
     def _writeXput(self, session, directory, fileCards, name=None):
         '''
@@ -453,21 +509,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                   directory=directory,
                                   filename=filename)
                     
-    def _readXputMaps(self, mapCards):
-        '''
-        GSSHA Project Read Map Files from File Method
-        '''
-        if self.mapType in self.MAP_TYPES_SUPPORTED:
-            for card in self.projectCards:
-                if (card.name in mapCards) and self._noneOrNumValue(card.value):
-                    filename = card.value.strip('"')
-                    
-                    # Invoke read method on each map
-                    self._invokeRead(fileIO=RasterMapFile,
-                                     filename=filename)
-        else:
-            print 'Error: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
-                
+
     def _writeXputMaps(self, session, directory, mapCards, name=None):
         '''
         GSSHAPY Project Write Map Files to File Method
@@ -487,15 +529,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                       filename=filename)
         else:
             print 'Error: Could not write map files. MAP_TYPE', self.mapType, 'not supported.'
-            
-    def _invokeRead(self, fileIO, filename):
-        '''
-        Invoke File Read Method on Other Files
-        '''
-        instance = fileIO(directory=self.DIRECTORY, filename=filename, session=self.SESSION)
-        instance.projectFile = self
-        instance._read()
-#         print 'File Read:', filename
         
     def _invokeWrite(self, fileIO, session, directory, filename):
         '''

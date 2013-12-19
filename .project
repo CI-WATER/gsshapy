@@ -3,7 +3,6 @@
 	<name>gsshapy</name>
 	<comment></comment>
 	<projects>
-		<project>mapkit</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

@@ -29,6 +29,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
     '''
     __tablename__ = 'cmt_map_table_files'
+    tableName = __tablename__ #: Database tablename
     
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True) #: PK
@@ -102,8 +103,8 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Associate IndexMap with MapTableFile 
                     indexMap.mapTableFile = self
                     
-                    # Initiate IndexMap read method
-                    indexMap._read()
+                    # Invoke IndexMap read method
+                    indexMap.read(spatial=self.SPATIAL, spatialReferenceID=self.SRID, raster2pgsqlPath=self.RASTER2PGSQL_PATH)
                 
                 # Map Table handler
                 else:
@@ -143,7 +144,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             openFile.write('INDEX_MAP%s"%s" "%s"\n' % (' '*16, indexMap.filename, indexMap.name))
             
             # Initiate index map write
-            indexMap.write(directory)
+            indexMap.write(directory, session=session)
         
         for mapTable in self.mapTables:
             if mapTable.name == 'SEDIMENTS':

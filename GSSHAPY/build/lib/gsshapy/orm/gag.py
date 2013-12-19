@@ -20,6 +20,8 @@ from sqlalchemy import ForeignKey, Column, Table
 from sqlalchemy.types import Integer, DateTime, String, Float
 from sqlalchemy.orm import  relationship
 
+from geoalchemy2 import Geometry
+
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import pivot, parsetools as pt, gag_chunk as gak
@@ -261,6 +263,7 @@ class PrecipGage(DeclarativeBase):
     description = Column(String) #: STRING
     x = Column(Float, nullable=False) #: FLOAT
     y = Column(Float, nullable=False) #: FLOAT
+    geom = Column(Geometry('POINT')) #: POINT
     
     # Relationship Properties
     values = relationship('PrecipValue', back_populates='gage') #: RELATIONSHIP
@@ -273,6 +276,7 @@ class PrecipGage(DeclarativeBase):
         self.description = description
         self.x = x
         self.y = y
+        self.geom = 'POINT(%s %s)' % (x, y)
         
 
     def __repr__(self):

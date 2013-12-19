@@ -16,6 +16,7 @@ gsshapy/lib/gag_chunk.py
 gsshapy/lib/gsshaDateTime.py
 gsshapy/lib/parsetools.py
 gsshapy/lib/pivot.py
+gsshapy/lib/spatial_functions.py
 gsshapy/lib/spn_chunk.py
 gsshapy/orm/__init__.py
 gsshapy/orm/cif.py

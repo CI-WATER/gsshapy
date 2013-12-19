@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 requires = [
     'sqlalchemy>=0.8',
     'geoalchemy2',
-    'mapkit'
+    'mapkit==0.0.2'
     ]
 
 setup(name='gsshapy',
