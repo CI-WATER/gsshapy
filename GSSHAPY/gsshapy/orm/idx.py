@@ -219,9 +219,9 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
                                                alpha=alpha)
             
             with open(path, 'w') as f:
-                pretty = xml.dom.minidom.parseString(kmlString)
-                f.write(pretty.toprettyxml())
-#                 f.write(kmlString)
+#                 pretty = xml.dom.minidom.parseString(kmlString)
+#                 f.write(pretty.toprettyxml())
+                f.write(kmlString)
                 
             
 
