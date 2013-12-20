@@ -184,8 +184,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
             kmlString = converter.getAsKmlGrid(tableName=self.tableName,
                                                rasterId=self.id,
                                                rasterIdFieldName='id',
-                                               name=self.fileExtension,
-                                               rasterType='continuous',
+                                               documentName=self.fileExtension,
                                                alpha=alpha)
             
             with open(path, 'w') as f:

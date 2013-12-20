@@ -215,8 +215,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
             kmlString = converter.getAsKmlGrid(tableName=self.tableName,
                                                rasterId=self.id,
                                                rasterIdFieldName='id',
-                                               name=self.filename,
-                                               rasterType='discrete',
+                                               documentName=self.filename,
                                                alpha=alpha)
             
             with open(path, 'w') as f:
