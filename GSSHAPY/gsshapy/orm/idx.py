@@ -54,11 +54,11 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     # File Properties
     EXTENSION = 'idx'
     
-    def __init__(self, directory, filename, sqlAlchemySession, name=None):
+    def __init__(self, directory, filename, session, name=None):
         '''
         Constructor
         '''
-        GsshaPyFileObjectBase.__init__(self, directory, filename, sqlAlchemySession)
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         self.name = name
         self.filename = filename
         

@@ -46,11 +46,11 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
     # Relationship Properites
     projectFile = relationship('ProjectFile', back_populates='maps') #: RELATIONSHIP
     
-    def __init__(self, directory, filename, sqlAlchemySession):
+    def __init__(self, directory, filename, session):
         '''
         Constructor
         '''
-        GsshaPyFileObjectBase.__init__(self, directory, filename, sqlAlchemySession)
+        GsshaPyFileObjectBase.__init__(self, directory, filename, session)
         
     def __repr__(self):
         return '<RasterMap: FileExtension=%s>' % (self.fileExtension)

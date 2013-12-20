@@ -25,11 +25,11 @@ newName='parkcity'
 directory = '/home/swainn/post_read_LittleDellNathanTest'
 
 # Drop all tables except the spatial reference table that PostGIS uses
-db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis'
+# db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis'
 # engine = create_engine(db_url)
 # meta = MetaData()
 # meta.reflect(bind=engine)
-
+#  
 # for table in reversed(meta.sorted_tables):
 #     if table.name != 'spatial_ref_sys':
 #         table.drop(engine)
@@ -38,7 +38,7 @@ db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis'
 sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
                                         password='(|w@ter',
                                         host='localhost',
-                                        database='gsshapy',
+                                        database='gsshapy_postgis',
                                         initTime=True)
 
 # Initialize the Session
