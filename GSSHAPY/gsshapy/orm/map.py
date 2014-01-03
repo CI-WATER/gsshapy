@@ -77,66 +77,18 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
         Raster Map File Write to File Method
         '''
         # If the raster field is not empty, write from this field
-#         if self.raster != None:
         if type(self.raster) != type(None):
-            '''
-            '''
-            # Use the ST_AsGDALRaster function of PostGIS to retrieve the 
-            # raster as an ascii grid. Function defined as per instructions
-            # to make a geoalchemy function from 
-            # see: http://www.postgis.org/documentation/manual-svn/RT_ST_AsGDALRaster.html
-            # Cast as a string because ST_AsGDALRaster returns as a buffer object
-            arcInfoGrid = str(session.scalar(self.raster.ST_AsGDALRaster('AAIGRID'))).splitlines()
+            # Configure RasterConverter
+            converter = RasterConverter(session)
             
-            ## Convert arcInfoGrid to GRASS ASCII format ##
-            # Get values from heaser which look something this:
-            # ncols        67
-            # nrows        55
-            # xllcorner    425802.32143212341
-            # yllcorner    44091450.41551345213
-            # cellsize     90.0000000
-            # ...
-            nCols = int(arcInfoGrid[0].split()[1])
-            nRows = int(arcInfoGrid[1].split()[1])
-            xLLCorner = float(arcInfoGrid[2].split()[1])
-            yLLCorner = float(arcInfoGrid[3].split()[1])
-            cellSize = float(arcInfoGrid[4].split()[1])
+            # Use MapKit RasterConverter to retrieve the raster as a GRASS ASCII Grid
+            grassAsciiGrid = converter.getAsGrassAsciiRaster(rasterFieldName='raster', 
+                                                             tableName=self.__tablename__,
+                                                             rasterIdFieldName='id',
+                                                             rasterId=self.id)
+            # Write to file
+            openFile.write(grassAsciiGrid)
             
-            # Remove old headers
-            for i in range(0, 5):
-                arcInfoGrid.pop(0)
-            
-            ## Calculate values for GRASS ASCII headers ##
-            # These should look like this:
-            # north: 4501028.972140
-            # south: 4494548.972140
-            # east: 460348.288604
-            # west: 454318.288604
-            # rows: 72
-            # cols: 67
-            # ...
-            
-            # xLLCorner and yLLCorner represent the coordinates for the Lower Left corner of the raster
-            north = yLLCorner + (cellSize * nRows)
-            south = yLLCorner
-            east = xLLCorner + (cellSize * nCols)
-            west = xLLCorner
-            
-            # Create header Lines (the first shall be last and the last shall be first)
-            grassHeader = ['cols: %s' % nCols,
-                           'rows: %s' % nRows,
-                           'west: %s' % west,
-                           'east: %s' % east,
-                           'south: %s' % south,
-                           'north: %s' % north]
-            
-            # Insert grass headers into the grid
-            for header in grassHeader:
-                arcInfoGrid.insert(0, header)
-            
-            # Write to file  
-            for line in arcInfoGrid:
-                openFile.write(line.strip() + '\n')
         else:
             # Write file
             openFile.write(self.raster_text)

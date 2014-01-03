@@ -28,7 +28,7 @@ from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String, Float, Boolean
 from sqlalchemy.orm import  relationship
 
-from geoalchemy2 import Geometry
+# from geoalchemy2 import Geometry
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
@@ -705,7 +705,7 @@ class StreamNode(DeclarativeBase):
     x = Column(Float, nullable=False) #: FLOAT
     y = Column(Float, nullable=False) #: FLOAT
     elevation = Column(Float, nullable=False) #: FLOAT
-    geom = Column(Geometry('POINT')) #: POINT
+#     geom = Column(Geometry('POINT')) #: POINT
     
     
     

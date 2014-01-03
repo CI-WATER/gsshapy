@@ -1,3 +1,2 @@
-sqlalchemy>=0.8
-geoalchemy2
-mapkit==0.0.2
+sqlalchemy>=0.7
+mapkit==0.0.3

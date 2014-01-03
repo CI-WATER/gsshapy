@@ -24,15 +24,15 @@ newName='parkcity'
 # Directory to append to project file
 directory = ''
 
-# Drop all tables except the spatial reference table that PostGIS uses
-db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis_2'
-engine = create_engine(db_url)
-meta = MetaData()
-meta.reflect(bind=engine)
-  
-for table in reversed(meta.sorted_tables):
-    if table.name != 'spatial_ref_sys':
-        table.drop(engine)
+# # Drop all tables except the spatial reference table that PostGIS uses
+# db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis_2'
+# engine = create_engine(db_url)
+# meta = MetaData()
+# meta.reflect(bind=engine)
+#    
+# for table in reversed(meta.sorted_tables):
+#     if table.name != 'spatial_ref_sys':
+#         table.drop(engine)
 
 # Create new tables
 sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
@@ -45,18 +45,18 @@ sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
 readSession = dbt.create_session(sqlalchemy_url)
 writeSession = dbt.create_session(sqlalchemy_url)
    
-# Create an empty Project File Object
-project = ProjectFile(directory=readDirectory, filename=projectFile, session=readSession)
-
-# Start timer
-start = time.time()
-    
-# Invoke read command on Project File Object
-project.readProject(spatial=True, spatialReferenceID=26912, raster2pgsqlPath='/Applications/Postgres93.app/Contents/MacOS/bin/raster2pgsql')
-project.readProject()
-
-# Report Read Time
-print 'READ TIME:', time.time()-start
+# # Create an empty Project File Object
+# project = ProjectFile(directory=readDirectory, filename=projectFile, session=readSession)
+#  
+# # Start timer
+# start = time.time()
+#      
+# # Invoke read command on Project File Object
+# project.readProject(spatial=True, spatialReferenceID=26912, raster2pgsqlPath='/Applications/Postgres93.app/Contents/MacOS/bin/raster2pgsql')
+# # project.readProject()
+#  
+# # Report Read Time
+# print 'READ TIME:', time.time()-start
  
 # # Test KML capabilities
 # 
@@ -102,19 +102,19 @@ print 'READ TIME:', time.time()-start
 #                      alpha=1.0)
 
 # Report Read Time
-print 'KML CONVERSION TIME:', time.time()-start
+# print 'KML CONVERSION TIME:', time.time()-start
 
-# # Query Database to Retrieve Project File
-# project1 = writeSession.query(ProjectFile).filter(ProjectFile.id == 1).one()
-#      
-# # Reset Timer
-# start = time.time()
-#                             
-# # Invoke write command on Project File Query Object
-# project1.writeProject(session=writeSession, directory=writeDirectory, name=newName)
-#      
-# # # Test append directory method
-# # project1.appendDirectory(directory)
-#      
-# # Report Write Time
-# print 'WRITE TIME:', time.time() - start
+# Query Database to Retrieve Project File
+project1 = writeSession.query(ProjectFile).filter(ProjectFile.id == 1).one()
+      
+# Reset Timer
+start = time.time()
+                             
+# Invoke write command on Project File Query Object
+project1.writeProject(session=writeSession, directory=writeDirectory, name=newName)
+      
+# # Test append directory method
+# project1.appendDirectory(directory)
+      
+# Report Write Time
+print 'WRITE TIME:', time.time() - start
