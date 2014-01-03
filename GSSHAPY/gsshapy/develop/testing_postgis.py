@@ -66,39 +66,54 @@ idx = writeSession.query(IndexMap).filter(IndexMap.id==2).one()
 # Start timer
 start = time.time()
 
-# Generate Color Ramp
-idx.getAsKmlGrid(session=writeSession,
-                 path='/Users/swainn/testing/test models/ParkCityBasic/write/post_gis/index.kml',
-                 colorRamp=RasterConverter.COLOR_RAMP_HUE,
-                 alpha=1.0)
+# # Generate Hue Color Ramp
+# idx.getAsKmlGrid(session=writeSession,
+#                  path='/Users/swainn/testing/test models/ParkCityBasic/write/post_gis/index.kml',
+#                  colorRamp=RasterConverter.COLOR_RAMP_HUE,
+#                  alpha=1.0)
  
 mapFile = writeSession.query(RasterMapFile).filter(RasterMapFile.id==2).one()
  
+# # Generate Terrain Color Ramp
+# mapFile.getAsKmlGrid(session=writeSession,
+#                      path='/Users/swainn/testing/test models/ParkCityBasic/write/post_gis/ele_terrain.kml',
+#                      colorRamp=RasterConverter.COLOR_RAMP_TERRAIN,
+#                      alpha=1.0)
+#  
+# # Generate Aqua Color Ramp
+# mapFile.getAsKmlGrid(session=writeSession,
+#                      path='/Users/swainn/testing/test models/ParkCityBasic/write/post_gis/ele_aqua.kml',
+#                      colorRamp=RasterConverter.COLOR_RAMP_AQUA,
+#                      alpha=1.0)
+#   
+# # Generate Hue Color Ramp
+# mapFile.getAsKmlGrid(session=writeSession,
+#                      path='/Users/swainn/testing/test models/ParkCityBasic/write/post_gis/ele_hue.kml',
+#                      colorRamp=RasterConverter.COLOR_RAMP_HUE,
+#                      alpha=1.0)
+#  
+# # Generate Custom Color Ramp
+# customRamp = {'interpolatedPoints': 10,
+#               'colors': [(255, 0, 0), (0, 255, 0), (0, 0, 255)]}
+# mapFile.getAsKmlGrid(session=writeSession,
+#                      path='/Users/swainn/testing/test models/ParkCityBasic/write/post_gis/ele_custom.kml',
+#                      colorRamp=customRamp,
+#                      alpha=1.0)
+
 # Generate Color Ramp
-mapFile.getAsKmlGrid(session=writeSession,
-                     path='/Users/swainn/testing/test models/ParkCityBasic/write/post_gis/ele_terrain.kml',
-                     colorRamp=RasterConverter.COLOR_RAMP_TERRAIN,
-                     alpha=1.0)
- 
-# Generate Color Ramp
-mapFile.getAsKmlGrid(session=writeSession,
-                     path='/Users/swainn/testing/test models/ParkCityBasic/write/post_gis/ele_aqua.kml',
-                     colorRamp=RasterConverter.COLOR_RAMP_AQUA,
-                     alpha=1.0)
-  
-# Generate Color Ramp
-mapFile.getAsKmlGrid(session=writeSession,
-                     path='/Users/swainn/testing/test models/ParkCityBasic/write/post_gis/ele_hue.kml',
+idx.getAsKmlClusters(session=writeSession,
+                     path='/Users/swainn/testing/test models/ParkCityBasic/write/post_gis/index_cluster.kml',
                      colorRamp=RasterConverter.COLOR_RAMP_HUE,
                      alpha=1.0)
- 
-# Generate Custom Color Ramp
-customRamp = {'interpolatedPoints': 10,
-              'colors': [(255, 0, 0), (0, 255, 0), (0, 0, 255)]}
-mapFile.getAsKmlGrid(session=writeSession,
-                     path='/Users/swainn/testing/test models/ParkCityBasic/write/post_gis/ele_custom.kml',
-                     colorRamp=customRamp,
-                     alpha=1.0)
+
+mapFile.getAsKmlPng(session=writeSession,
+                    path='/Users/swainn/testing/test models/ParkCityBasic/write/post_gis/ele_png.kml',
+                    colorRamp=RasterConverter.COLOR_RAMP_TERRAIN,
+                    alpha=1.0)
+
+print idx.getAsGrassAsciiGrid(session=writeSession)
+
+print mapFile.getAsGrassAsciiGrid(session=writeSession)
 
 # Report Read Time
 print 'KML CONVERSION TIME:', time.time()-start

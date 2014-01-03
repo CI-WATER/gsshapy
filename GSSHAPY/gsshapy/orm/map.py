@@ -10,11 +10,8 @@
 
 __all__ = ['RasterMapFile']
 
-import subprocess
-
-
-import xml.etree.ElementTree as ET
-import xml.dom.minidom
+from zipfile import ZipFile
+import os
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
@@ -93,7 +90,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Write file
             openFile.write(self.raster_text)
             
-    def getAsKmlGrid(self, session, path, colorRamp=None, alpha=1.0):
+    def getAsKmlGrid(self, session, path=None, colorRamp=None, alpha=1.0):
         '''
         Get the raster in KML format
         '''
@@ -113,10 +110,79 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
                                                documentName=self.fileExtension,
                                                alpha=alpha)
             
-            with open(path, 'w') as f:
-#                 pretty = xml.dom.minidom.parseString(kmlString)
-#                 f.write(pretty.toprettyxml())
-                f.write(kmlString)
+            if path:
+                with open(path, 'w') as f:
+                    f.write(kmlString)
+                
+            return kmlString
             
+    def getAsKmlClusters(self, session, path=None, colorRamp=None, alpha=1.0):
+        '''
+        Get the raster in a clustered KML format
+        '''
+        if type(self.raster) != type(None):
+            # Make sure the raster field is valid
+            converter = RasterConverter(sqlAlchemyEngineOrSession=session)
+                
+            # Configure color ramp
+            if isinstance(colorRamp, dict):
+                converter.setCustomColorRamp(colorRamp['colors'], colorRamp['interpolatedPoints'])
+            else:
+                converter.setDefaultColorRamp(colorRamp)
+    
+            kmlString = converter.getAsKmlClusters(tableName=self.tableName,
+                                                   rasterId=self.id,
+                                                   rasterIdFieldName='id',
+                                                   documentName=self.fileExtension,
+                                                   alpha=alpha)
+    
+            if path:
+                with open(path, 'w') as f:
+                    f.write(kmlString)
+                
+            return kmlString
+        
+    def getAsKmlPng(self, session, path=None, colorRamp=None, alpha=1.0, drawOrder=0):
+        '''
+        Get the raster in a PNG / KML format
+        '''
+        if type(self.raster) != type(None):
+            # Make sure the raster field is valid
+            converter = RasterConverter(sqlAlchemyEngineOrSession=session)
+                
+            # Configure color ramp
+            if isinstance(colorRamp, dict):
+                converter.setCustomColorRamp(colorRamp['colors'], colorRamp['interpolatedPoints'])
+            else:
+                converter.setDefaultColorRamp(colorRamp)
             
+            kmlString, binaryPngString = converter.getAsKmlPng(tableName=self.tableName, 
+                                                               rasterId=self.id,
+                                                               rasterIdFieldName='id',
+                                                               documentName=self.fileExtension,
+                                                               alpha=alpha,
+                                                               drawOrder=drawOrder)
+            
+            if path:
+                directory = os.path.dirname(path)
+                archiveName = (os.path.split(path)[1]).split('.')[0]
+                kmzPath = os.path.join(directory, (archiveName + '.kmz'))
+                
+                with ZipFile(kmzPath, 'w') as kmz:
+                    kmz.writestr(archiveName + '.kml', kmlString)
+                    kmz.writestr('raster.png', binaryPngString)
+                    
+            return kmlString, binaryPngString
+        
+    def getAsGrassAsciiGrid(self, session):
+        '''
+        Get the raster in the Grass Ascii Grid format
+        '''
+        if type(self.raster) != type(None):
+            # Make sure the raster field is valid
+            converter = RasterConverter(sqlAlchemyEngineOrSession=session)
+            
+            return converter.getAsGrassAsciiRaster(tableName=self.tableName,
+                                                   rasterIdFieldName='id',
+                                                   rasterId=self.id)
 
