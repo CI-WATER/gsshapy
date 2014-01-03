@@ -8,10 +8,10 @@
 ********************************************************************************
 '''
 
-from geoalchemy2.functions import GenericFunction
-from geoalchemy2 import Raster
-
-class ST_AsGDALRaster(GenericFunction):
-    '''
-    '''
-    name = 'ST_AsGDALRaster'
+# from geoalchemy2.functions import GenericFunction
+# from geoalchemy2 import Raster
+# 
+# class ST_AsGDALRaster(GenericFunction):
+#     '''
+#     '''
+#     name = 'ST_AsGDALRaster'

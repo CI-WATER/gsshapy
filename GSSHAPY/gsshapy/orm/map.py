@@ -20,7 +20,8 @@ from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
-from geoalchemy2 import Raster
+from mapkit.sqlatypes import Raster
+from mapkit.RasterLoader import RasterLoader
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
@@ -67,38 +68,9 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
             self.raster_text = f.read()
             
         if self.SPATIAL:
-            # Must read in using the raster2pgsql commandline tool.                    
-            process = subprocess.Popen(
-                                       [
-                                        self.RASTER2PGSQL_PATH,
-                                        '-a',
-                                        '-s',
-                                        str(self.SRID),
-                                        '-M',
-                                        self.PATH, 
-                                        self.tableName
-                                       ],
-                                       stdout=subprocess.PIPE
-                                      )
-            
-            # This commandline tool generates the SQL to load the raster into the database
-            # However, we want to use SQLAlchemy to load the values into the database. 
-            # We do this by extracting the value from the sql that is generated.
-            sql, error = process.communicate()        
-            
-            if sql:
-                # This esoteric line is used to extract only the value of the raster (which is stored as a Well Know Binary string)
-                
-                # Example of Output:
-                # BEGIN;
-                # INSERT INTO "idx_index_maps" ("rast") VALUES ('0100...56C096CE87'::raster);
-                # END;
-                
-                # The WKB is wrapped in single quotes. Splitting on single quotes isolates it as the 
-                # second item in the resulting list.
-                wellKnownBinary =  sql.split("'")[1]
-                
-            self.raster = wellKnownBinary         
+            # Get well known binary from the raster file using the MapKit RasterLoader
+            wkbRaster = RasterLoader.rasterToWKB(self.PATH, str(self.SRID), '0', self.RASTER2PGSQL_PATH)
+            self.raster = wkbRaster         
         
     def _write(self, session, openFile):
         '''

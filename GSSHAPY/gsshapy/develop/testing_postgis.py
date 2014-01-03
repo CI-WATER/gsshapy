@@ -22,62 +22,62 @@ writeDirectory='/Users/swainn/testing/test models/ParkCityBasic/write'
 newName='parkcity'
 
 # Directory to append to project file
-directory = '/home/swainn/post_read_LittleDellNathanTest'
+directory = ''
 
 # Drop all tables except the spatial reference table that PostGIS uses
-# db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis'
-# engine = create_engine(db_url)
-# meta = MetaData()
-# meta.reflect(bind=engine)
-#  
-# for table in reversed(meta.sorted_tables):
-#     if table.name != 'spatial_ref_sys':
-#         table.drop(engine)
+db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis_2'
+engine = create_engine(db_url)
+meta = MetaData()
+meta.reflect(bind=engine)
+  
+for table in reversed(meta.sorted_tables):
+    if table.name != 'spatial_ref_sys':
+        table.drop(engine)
 
 # Create new tables
 sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
                                         password='(|w@ter',
                                         host='localhost',
-                                        database='gsshapy_postgis',
+                                        database='gsshapy_postgis_2',
                                         initTime=True)
 
 # Initialize the Session
 readSession = dbt.create_session(sqlalchemy_url)
 writeSession = dbt.create_session(sqlalchemy_url)
    
-# # Create an empty Project File Object
-# project = ProjectFile(directory=readDirectory, filename=projectFile, session=readSession)
-#     
+# Create an empty Project File Object
+project = ProjectFile(directory=readDirectory, filename=projectFile, session=readSession)
+
 # Start timer
 start = time.time()
-#     
-# # Invoke read command on Project File Object
-# project.readProject(spatial=True, spatialReferenceID=26912, raster2pgsqlPath='/Applications/Postgres.app/Contents/MacOS/bin/raster2pgsql')
-# # project.readProject()
+    
+# Invoke read command on Project File Object
+project.readProject(spatial=True, spatialReferenceID=26912, raster2pgsqlPath='/Applications/Postgres93.app/Contents/MacOS/bin/raster2pgsql')
+project.readProject()
+
+# Report Read Time
+print 'READ TIME:', time.time()-start
+ 
+# # Test KML capabilities
 # 
-# # Report Read Time
-# print 'READ TIME:', time.time()-start
-
-## Test KML capabilities
-
-# Get an index map
-idx = writeSession.query(IndexMap).filter(IndexMap.id==2).one()
-
-# Generate Color Ramp
-colorRamp = RasterConverter.generateDefaultColorRamp(RasterConverter.COLOR_RAMP_HUE)
-idx.getAsKmlGrid(session=writeSession,
-                 path='/Users/swainn/projects/post_gis/index.kml',
-                 colorRamp=colorRamp,
-                 alpha=1.0)
-
-mapFile = writeSession.query(RasterMapFile).filter(RasterMapFile.id==2).one()
-
-# Generate Color Ramp
-colorRamp = RasterConverter.generateDefaultColorRamp(RasterConverter.COLOR_RAMP_TERRAIN)
-mapFile.getAsKmlGrid(session=writeSession,
-                     path='/Users/swainn/projects/post_gis/ele_terrain.kml',
-                     colorRamp=colorRamp,
-                     alpha=1.0)
+# # Get an index map
+# idx = writeSession.query(IndexMap).filter(IndexMap.id==2).one()
+# 
+# # Generate Color Ramp
+# colorRamp = RasterConverter.generateDefaultColorRamp(RasterConverter.COLOR_RAMP_HUE)
+# idx.getAsKmlGrid(session=writeSession,
+#                  path='/Users/swainn/projects/post_gis/index.kml',
+#                  colorRamp=colorRamp,
+#                  alpha=1.0)
+# 
+# mapFile = writeSession.query(RasterMapFile).filter(RasterMapFile.id==2).one()
+# 
+# # Generate Color Ramp
+# colorRamp = RasterConverter.generateDefaultColorRamp(RasterConverter.COLOR_RAMP_TERRAIN)
+# mapFile.getAsKmlGrid(session=writeSession,
+#                      path='/Users/swainn/projects/post_gis/ele_terrain.kml',
+#                      colorRamp=colorRamp,
+#                      alpha=1.0)
 
 # # Generate Color Ramp
 # colorRamp = RasterConverter.generateDefaultColorRamp(RasterConverter.COLOR_RAMP_AQUA)

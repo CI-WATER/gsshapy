@@ -19,7 +19,8 @@ from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
-from geoalchemy2 import Raster
+from mapkit.sqlatypes import Raster
+from mapkit.RasterLoader import RasterLoader
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
@@ -82,40 +83,9 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
             # Assign file extension attribute to file object
             self.fileExtension = self.EXTENSION
             
-            # Must read in using the raster2pgsql commandline tool.                    
-            process = subprocess.Popen(
-                                       [
-                                        self.RASTER2PGSQL_PATH,
-                                        '-a',
-                                        '-s',
-                                        str(self.SRID),
-                                        '-M',
-                                        self.PATH, 
-                                        self.tableName
-                                       ],
-                                       stdout=subprocess.PIPE
-                                      )
-            
-            # This commandline tool generates the SQL to load the raster into the database
-            # However, we want to use SQLAlchemy to load the values into the database. 
-            # We do this by extracting the value from the sql that is generated.
-            sql, error = process.communicate()        
-            
-            if sql:
-                # This esoteric line is used to extract only the value of the raster (which is stored as a Well Know Binary string)
-                
-                # Example of Output:
-                # BEGIN;
-                # INSERT INTO "idx_index_maps" ("rast") VALUES ('0100...56C096CE87'::raster);
-                # END;
-                
-                # The WKB is wrapped in single quotes. Splitting on single quotes isolates it as the 
-                # second item in the resulting list.
-                wellKnownBinary =  sql.split("'")[1]
-                
-            self.raster = wellKnownBinary            
-        
-#         print 'File Read:', self.filename
+            # Get well known binary from the raster file using the MapKit RasterLoader
+            wkbRaster = RasterLoader.rasterToWKB(self.PATH, str(self.SRID), '-1', self.RASTER2PGSQL_PATH)
+            self.raster = wkbRaster
         
     def write(self, directory, name=None, session=None):
         '''
@@ -138,7 +108,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
             # to make a geoalchemy function from 
             # see: http://www.postgis.org/documentation/manual-svn/RT_ST_AsGDALRaster.html
             # Cast as a string because ST_AsGDALRaster returns as a buffer object
-            arcInfoGrid = str(session.scalar(self.raster.ST_AsGDALRaster('AAIGRID'))).splitlines()
+            arcInfoGrid = str(session.scalar(self.raster.func.ST_AsGDALRaster('AAIGRID'))).splitlines()
             
             ## Convert arcInfoGrid to GRASS ASCII format ##
             # Get values from heaser which look something this:
