@@ -1,2 +1,2 @@
 sqlalchemy>=0.7
-mapkit==0.0.3
+mapkit>=1.0.0
