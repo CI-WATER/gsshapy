@@ -122,13 +122,15 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Get the raster in KML format
         '''
-          
         if type(self.raster) != type(None):
             # Make sure the raster field is valid
-            converter = RasterConverter(sqlAlchemySession=session)
+            converter = RasterConverter(sqlAlchemyEngineOrSession=session)
             
             # Configure color ramp
-            converter.setColorRamp(colorRamp)
+            if isinstance(colorRamp, dict):
+                converter.setCustomColorRamp(colorRamp['colors'], colorRamp['interpolatedPoints'])
+            else:
+                converter.setDefaultColorRamp(colorRamp)
             
             kmlString = converter.getAsKmlGrid(tableName=self.tableName,
                                                rasterId=self.id,
