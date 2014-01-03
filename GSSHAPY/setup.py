@@ -4,11 +4,11 @@ from setuptools import setup, find_packages
 
 requires = [
     'sqlalchemy>=0.7',
-    'mapkit==0.0.3'
+    'mapkit>=1.0.0'
     ]
 
 setup(name='gsshapy',
-      version='1.1.0',
+      version='1.2.0',
       description='An SQLAlchemy ORM for GSSHA model files.',
       long_description='',
       author='Nathan Swain',
