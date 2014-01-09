@@ -43,7 +43,7 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
         
 
     def __repr__(self):
-        return '<HmetFile: Name=%s, Description=%s>' % (self.name, self.description)
+        return '<HmetFile: NumRecords=%s>' % (len(self.hmetRecords))
     
     def _read(self):
         '''
@@ -55,21 +55,26 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
             for line in hmetFile:
                 sline = line.strip().split()
                 
-                # Extract data time from record
-                dateTime = datetime(int(sline[0]), int(sline[1]), int(sline[2]), int(sline[3]))
+                try:
+                    # Extract data time from record
+                    dateTime = datetime(int(sline[0]), int(sline[1]), int(sline[2]), int(sline[3]))
+                    
+                    # Intitialize GSSHAPY HmetRecord object
+                    hmetRecord = HmetRecord(hmetDateTime=dateTime,
+                                            barometricPress=sline[4],
+                                            relHumidity=sline[5],
+                                            totalSkyCover=sline[6],
+                                            windSpeed=sline[7],
+                                            dryBulbTemp=sline[8],
+                                            directRad=sline[9],
+                                            globalRad=sline[10])
+                    
+                    # Associate HmetRecord with HmetFile
+                    hmetRecord.hmetFile = self
                 
-                # Intitialize GSSHAPY HmetRecord object
-                hmetRecord = HmetRecord(hmetDateTime=dateTime,
-                                        barometricPress=sline[4],
-                                        relHumidity=sline[5],
-                                        totalSkyCover=sline[6],
-                                        windSpeed=sline[7],
-                                        dryBulbTemp=sline[8],
-                                        directRad=sline[9],
-                                        globalRad=sline[10])
+                except:
+                    pass
                 
-                # Associate HmetRecord with HmetFile
-                hmetRecord.hmetFile = self
         
     def _write(self, session, openFile):
         '''

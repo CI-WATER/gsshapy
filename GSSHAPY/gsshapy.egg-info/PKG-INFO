@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: gsshapy
-Version: 1.2.0
+Version: 1.2.1
 Summary: An SQLAlchemy ORM for GSSHA model files.
 Home-page: https://bitbucket.org/swainn/gsshapy
 Author: Nathan Swain
