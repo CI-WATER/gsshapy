@@ -143,7 +143,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     
     OUTPUT_FILES = {'SUMMARY':              GenericFile,          # Required Output
                     'OUTLET_HYDRO':         TimeSeriesFile,
-                    'DEPTH':                None,
+                    'DEPTH':                None,                 ## TODO: Binary format? .lel
                     'OUT_THETA_LOCATION':   TimeSeriesFile,       # Infiltration
                     'EXPLIC_BACKWATER':     GenericFile,          # Channel Routing
                     'WRITE_CHAN_HOTSTART':  GenericFile,
@@ -155,7 +155,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     'CHAN_DISCHARGE':       LinkNodeDatasetFile,
                     'CHAN_VELOCITY':        LinkNodeDatasetFile,
                     'LAKE_OUTPUT':          GenericFile,          ## TODO: Special format? .lel
-                    'SNOW_SWE_FILE':        GenericFile,          # Continuous Simulation
+                    'SNOW_SWE_FILE':        None,          # Continuous Simulation ## TODO: Binary format?
                     'GW_WELL_LEVEL':        GenericFile,          # Saturated Groundwater Flow
                     'OUT_GWFULX_LOCATION':  TimeSeriesFile,
                     'OUTLET_SED_FLUX':      TimeSeriesFile,       # Soil Erosion

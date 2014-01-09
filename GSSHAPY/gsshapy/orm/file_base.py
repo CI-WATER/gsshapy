@@ -9,7 +9,7 @@
 '''
 import os
 
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, DataError
 
 __all__ = ['GsshaPyFileObjectBase']
 
@@ -60,7 +60,7 @@ class GsshaPyFileObjectBase:
         self.RASTER2PGSQL_PATH = raster2pgsqlPath
         
         # Read
-        self._read()
+        success = self._read()
         
         # Commit to database
         self._commit(self.COMMIT_ERROR_MESSAGE)
@@ -124,7 +124,7 @@ class GsshaPyFileObjectBase:
             self.SESSION.commit()
         except IntegrityError:
             # Raise special error if the commit fails due to empty files
-            print 'ERROR: Commit to database failed. %s' % errorMessage
+            print 'ERROR: Commit to database failed. %s' % errorMessage            
         except:
             # Raise other errors as normal
             raise
