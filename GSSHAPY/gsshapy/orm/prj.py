@@ -75,6 +75,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     # File Properties
     EXTENSION = 'prj'
     MAP_TYPES_SUPPORTED = (1,)
+    ALWAYS_READ_AND_WRITE_MAPS = ('ele', 'msk')
     
     INPUT_FILES = {'#PROJECTION_FILE':          ProjectionFile,       # WMS
                    'MAPPING_TABLE':             MapTableFile,         # Mapping Table
@@ -467,7 +468,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         GSSHA Project Read Map Files from File Method
         '''
-        if self.mapType in self.MAP_TYPES_SUPPORTED:
+        if (self.mapType in self.MAP_TYPES_SUPPORTED):
             for card in self.projectCards:
                 if (card.name in mapCards) and self._noneOrNumValue(card.value):
                     filename = card.value.strip('"')
@@ -479,7 +480,19 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                      spatialReferenceID=spatialReferenceID,
                                      raster2pgsqlPath=raster2pgsqlPath)
         else:
-            print 'Error: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
+            for card in self.projectCards:
+                if (card.name in mapCards) and self._noneOrNumValue(card.value):
+                    filename = card.value.strip('"')
+                    fileExtension = filename.split('.')[1]
+                    if fileExtension in self.ALWAYS_READ_AND_WRITE_MAPS:
+                        # Invoke read method on each map
+                        self._invokeRead(fileIO=RasterMapFile,
+                                         filename=filename,
+                                         spatial=spatial,
+                                         spatialReferenceID=spatialReferenceID,
+                                         raster2pgsqlPath=raster2pgsqlPath)
+            
+            print 'WARNING: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
             
     def _invokeRead(self, fileIO, filename, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         '''
@@ -528,6 +541,23 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                       directory=directory,
                                       filename=filename)
         else:
+            for card in self.projectCards:
+                if (card.name in mapCards) and self._noneOrNumValue(card.value):
+                    filename = card.value.strip('"')
+                    
+                    fileExtension = filename.split('.')[1]
+                    
+                    if fileExtension in self.ALWAYS_READ_AND_WRITE_MAPS:
+                    
+                        # Determine new filename
+                        filename = self._replaceNewFilename(filename, name)
+                        
+                        # Write map file
+                        self._invokeWrite(fileIO=RasterMapFile,
+                                          session=session,
+                                          directory=directory,
+                                          filename=filename)
+            
             print 'Error: Could not write map files. MAP_TYPE', self.mapType, 'not supported.'
         
     def _invokeWrite(self, fileIO, session, directory, filename):

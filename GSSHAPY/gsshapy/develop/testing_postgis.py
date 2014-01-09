@@ -118,17 +118,17 @@ print 'READ TIME:', time.time()-start
 # # Report Read Time
 # print 'KML CONVERSION TIME:', time.time()-start
 
-# # Query Database to Retrieve Project File
-# project1 = writeSession.query(ProjectFile).filter(ProjectFile.id == 1).one()
-#       
-# # Reset Timer
-# start = time.time()
-#                              
-# # Invoke write command on Project File Query Object
-# project1.writeProject(session=writeSession, directory=writeDirectory, name=newName)
-#       
-# # # Test append directory method
-# # project1.appendDirectory(directory)
-#       
-# # Report Write Time
-# print 'WRITE TIME:', time.time() - start
+# Query Database to Retrieve Project File
+project1 = writeSession.query(ProjectFile).filter(ProjectFile.id == 1).one()
+       
+# Reset Timer
+start = time.time()
+                              
+# Invoke write command on Project File Query Object
+project1.writeProject(session=writeSession, directory=writeDirectory, name=newName)
+       
+# # Test append directory method
+# project1.appendDirectory(directory)
+       
+# Report Write Time
+print 'WRITE TIME:', time.time() - start
