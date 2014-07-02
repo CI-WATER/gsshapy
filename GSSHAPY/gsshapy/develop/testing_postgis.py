@@ -46,13 +46,13 @@ readSession = dbt.create_session(sqlalchemy_url)
 writeSession = dbt.create_session(sqlalchemy_url)
    
 # Create an empty Project File Object
-project = ProjectFile(directory=readDirectory, filename=projectFile, session=readSession)
+project = ProjectFile()
    
 # Start timer
 start = time.time()
        
 # Invoke read command on Project File Object
-project.readProject(spatial=True, spatialReferenceID=26912, raster2pgsqlPath='/Applications/Postgres93.app/Contents/MacOS/bin/raster2pgsql')
+project.readProject(directory=readDirectory, projectFileName=projectFile, session=readSession, spatial=True, spatialReferenceID=26912, raster2pgsqlPath='/Applications/Postgres93.app/Contents/MacOS/bin/raster2pgsql')
 # project.readProject()
    
 # Report Read Time
