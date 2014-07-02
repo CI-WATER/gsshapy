@@ -507,7 +507,6 @@ class MTIndex(DeclarativeBase):
     values = relationship('MTValue', back_populates='index')  #: RELATIONSHIP
     indexMap = relationship('IndexMap', back_populates='indices')  #: RELATIONSHIP
 
-
     def __init__(self, index, description1='', description2=''):
         """
         Constructor
@@ -539,7 +538,6 @@ class MTValue(DeclarativeBase):
     mapTableIndexID = Column(Integer, ForeignKey('cmt_indexes.id'), nullable=False)  #: FK
     contaminantID = Column(Integer, ForeignKey('cmt_contaminants.id'))  #: FK
 
-
     # Value Columns
     variable = Column(String, nullable=False)  #: STRING
     value = Column(Float, nullable=False)  #: FLOAT
@@ -548,7 +546,6 @@ class MTValue(DeclarativeBase):
     mapTable = relationship('MapTable', back_populates='values')  #: RELATIONSHIP
     index = relationship('MTIndex', back_populates='values')  #: RELATIONSHIP
     contaminant = relationship('MTContaminant', back_populates='values')  #: RELATIONSHIP
-
 
     def __init__(self, variable, value=None):
         """
@@ -643,7 +640,7 @@ class MTSediment(DeclarativeBase):
         self.outputFilename = outputFilename
 
     def __repr__(self):
-        return '<MTSediment: Description=%s, SpecificGravity=%s, ParticleDiameter=%s, OuputFilename=%s>' % (
+        return '<MTSediment: Description=%s, SpecificGravity=%s, ParticleDiameter=%s, OutputFilename=%s>' % (
             self.description, self.specificGravity, self.particleDiameter, self.outputFilename)
 
     def __eq__(self, other):

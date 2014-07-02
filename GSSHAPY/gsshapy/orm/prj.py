@@ -317,7 +317,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                            raster2pgsqlPath=raster2pgsqlPath)
 
         # Commit to database
-        self._commit(self.COMMIT_ERROR_MESSAGE)
+        self._commit(session, self.COMMIT_ERROR_MESSAGE)
 
     def readInput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         """
@@ -338,7 +338,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                            raster2pgsqlPath=raster2pgsqlPath)
 
         # Commit to database
-        self._commit(self.COMMIT_ERROR_MESSAGE)
+        self._commit(session, self.COMMIT_ERROR_MESSAGE)
 
     def readOutput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         """
@@ -359,7 +359,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                            raster2pgsqlPath=raster2pgsqlPath)
 
         # Commit to database
-        self._commit(self.COMMIT_ERROR_MESSAGE)
+        self._commit(session, self.COMMIT_ERROR_MESSAGE)
 
     def writeProject(self, session, directory, name):
         """
