@@ -4,3 +4,5 @@
 *.project
 *.pydevproject
 */.git/*
+*.idea
+*.egg-info

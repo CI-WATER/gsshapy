@@ -36,18 +36,12 @@ class GsshaPyFileObjectBase:
     # Error Messages
     COMMIT_ERROR_MESSAGE = 'Ensure the file is not empty and try again.'
     
-    def __init__(self, directory, filename, session):
+    def __init__(self):
         '''
         Constructor
         '''
-        self.FILENAME = filename                                 # e.g.: example.ext
-        self.DIRECTORY = directory                               # e.g.: /path/to/my/example
-        self.SESSION = session                                   # SQL Alchemy Session object
-        self.PATH = os.path.join(self.DIRECTORY, self.FILENAME)  # e.g.: /path/to/my/example/example.ext
-        self.NAME = filename.split('.')[0]                       # e.g.: example
-        self.EXTENSION = filename.split('.')[1]                  # e.g.: ext
-        
-    def read(self, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+
+    def read(self, directory, filename, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         '''
         Read file into the database.
         '''
