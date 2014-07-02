@@ -201,6 +201,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         '''
         Project File Read from File Method
         '''
+        # Headers to ignore
         HEADERS = ('GSSHAPROJECT')
         
         with open(self.PATH, 'r') as f:
@@ -225,6 +226,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # with output maps
                     if card['name'] == 'MAP_TYPE':
                         self.mapType = int(card['value'])
+        
+        self.srid = self.SRID
                 
         
         

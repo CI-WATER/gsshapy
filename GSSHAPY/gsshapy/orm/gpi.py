@@ -12,15 +12,15 @@ __all__ = ['GridPipeCell',
            'GridPipeFile',
            'GridPipeNode']
 
-import os
-
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float
+
 from sqlalchemy.orm import  relationship
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt
+
 
 class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
     '''
