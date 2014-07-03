@@ -8,11 +8,15 @@
 ********************************************************************************
 '''
 
-import unittest, itertools, os, uuid
+import unittest
+import itertools
+import os
+import uuid
 
 from gsshapy.orm.file_io import *
 from gsshapy.orm import ProjectFile
 from gsshapy.lib import db_tools as dbt
+
 
 class TestReadMethods(unittest.TestCase):
     def setUp(self):
@@ -30,9 +34,8 @@ class TestReadMethods(unittest.TestCase):
         self.querySession = dbt.create_session(sqlalchemy_url)
         
         # Define directory of test files to read
-        self.directory = os.path.join(here,'standard')
-        
-    
+        self.directory = os.path.join(here, 'standard')
+
     def test_project_file_read(self):
         '''
         Test ProjectFile read method
@@ -326,13 +329,12 @@ class TestReadMethods(unittest.TestCase):
         Test IndexMap read method
         '''
         # Instantiate GSSHAPY object for reading to database
-        idxR = IndexMap(directory=self.directory,
-                        filename='Soil.idx',
-                        session=self.readSession,
-                        name='Soil')
+        idxR = IndexMap(name='Soil')
         
         # Call read method
-        idxR.read()
+        idxR.read(directory=self.directory,
+                  filename='Soil.idx',
+                  session=self.readSession,)
         
         # Query from database
         idxQ = self.querySession.query(IndexMap).one()
@@ -344,12 +346,12 @@ class TestReadMethods(unittest.TestCase):
         Test ProjectFile read all method
         '''
         # Instantiate GSSHAPY ProjectFile object
-        prjR = ProjectFile(directory=self.directory,
-                           filename='standard.prj',
-                           session=self.readSession)
+        prjR = ProjectFile()
         
         # Invoke read all method
-        prjR.readProject()
+        prjR.readProject(directory=self.directory,
+                         projectFileName='standard.prj',
+                         session=self.readSession)
         
         # Query Project File
         prjQ = self.querySession.query(ProjectFile).one()
@@ -358,15 +360,15 @@ class TestReadMethods(unittest.TestCase):
 
     def test_project_file_read_input(self):
         '''
-        Test ProjecFile read input method
+        Test ProjectFile read input method
         '''
         # Instantiate GSSHAPY ProjectFile object
-        prjR = ProjectFile(directory=self.directory,
-                           filename='standard.prj',
-                           session=self.readSession)
+        prjR = ProjectFile()
         
         # Invoke read input method
-        prjR.readInput()
+        prjR.readInput(directory=self.directory,
+                       projectFileName='standard.prj',
+                       session=self.readSession)
         
         # Query Project File
         prjQ = self.querySession.query(ProjectFile).one()
@@ -378,12 +380,12 @@ class TestReadMethods(unittest.TestCase):
         Test ProjectFile read output method
         '''
         # Instantiate GSSHAPY ProjectFile object
-        prjR = ProjectFile(directory=self.directory,
-                           filename='standard.prj',
-                           session=self.readSession)
+        prjR = ProjectFile()
         
         # Invoke read output method
-        prjR.readOutput()
+        prjR.readOutput(directory=self.directory,
+                        projectFileName='standard.prj',
+                        session=self.readSession)
         
         # Query Project File
         prjQ = self.querySession.query(ProjectFile).one()
@@ -395,12 +397,12 @@ class TestReadMethods(unittest.TestCase):
         Read to database and Query from database
         '''
         # Instantiate GSSHAPY object for reading to database
-        instanceR = fileIO(directory=directory,
-                           filename=filename,
-                           session=self.readSession)
+        instanceR = fileIO()
         
         # Call read method
-        instanceR.read()
+        instanceR.read(directory=directory,
+                       filename=filename,
+                       session=self.readSession)
         
         # Query from database
         instanceQ = self.querySession.query(fileIO).one()

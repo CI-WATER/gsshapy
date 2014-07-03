@@ -38,17 +38,17 @@ class GsshaPyFileObjectBase:
         """
         Read file into the database.
         """
-        # Add self to session
-        session.add(self)
-
         # Read parameter derivatives
         path = os.path.join(directory, filename)
         name = filename.split('.')[0]
         extension = filename.split('.')[1]
-        
+
+        # Add self to session
+        session.add(self)
+
         # Read
         success = self._read(directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath)
-        
+
         # Commit to database
         self._commit(session, self.COMMIT_ERROR_MESSAGE)
         

@@ -39,9 +39,13 @@ gsshapy/orm/spn.py
 gsshapy/orm/tim.py
 gsshapy/tests/README.txt
 gsshapy/tests/__init__.py
+gsshapy/tests/__init__.pyc
 gsshapy/tests/read_tests.py
+gsshapy/tests/read_tests.pyc
 gsshapy/tests/write_tests.py
+gsshapy/tests/write_tests.pyc
 gsshapy/tests/db/.gitignore
+gsshapy/tests/db/standard.db
 gsshapy/tests/standard/Combined.idx
 gsshapy/tests/standard/LU DAIRY.idx
 gsshapy/tests/standard/LandUse.idx

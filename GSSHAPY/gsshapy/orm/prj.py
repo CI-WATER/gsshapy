@@ -289,7 +289,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 new.write(rewriteLine)
 
-
     def readProject(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         """
         Read all files for a GSSHA project into the database.
@@ -476,7 +475,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         GSSHA Project Read Map Files from File Method
         """
-        if (self.mapType in self.MAP_TYPES_SUPPORTED):
+        if self.mapType in self.MAP_TYPES_SUPPORTED:
             for card in self.projectCards:
                 if (card.name in mapCards) and self._noneOrNumValue(card.value):
                     filename = card.value.strip('"')
@@ -510,8 +509,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Invoke File Read Method on Other Files
         """
-        print 'FileIO:', fileIO
-
         instance = fileIO()
         instance.projectFile = self
         instance.read(directory, filename, session, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
@@ -595,9 +592,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Initiate Write Method on File
         instance.write(session=session, directory=directory, name=filename)
-
-
-    #         print 'File Written:', filename
 
     def _replaceNewFilename(self, filename, name):
         # Variables
@@ -746,7 +740,6 @@ class ProjectCard(DeclarativeBase):
         """
         self.name = name
         self.value = value
-
 
     def __repr__(self):
         return '<ProjectCard: Name=%s, Value=%s>' % (self.name, self.value)
