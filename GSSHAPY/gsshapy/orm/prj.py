@@ -297,7 +297,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         session.add(self)
 
         # First read self
-        self.read(directory, projectFileName, session, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
+        self.read(directory, projectFileName, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
+                  raster2pgsqlPath=raster2pgsqlPath)
 
         # Read Input Files
         self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID,

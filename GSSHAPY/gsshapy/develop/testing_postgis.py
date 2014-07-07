@@ -13,6 +13,14 @@ from gsshapy.lib import db_tools as dbt
 from sqlalchemy import MetaData, create_engine
 from mapkit.RasterConverter import RasterConverter
 
+#''' Comment this line to toggle
+readDirectory='/Users/swainn/testing/test models/ParkCityBasic'
+projectFile='parkcity.prj'
+
+# Write Parameters
+writeDirectory='/Users/swainn/testing/test models/ParkCityBasic/write'
+newName='parkcitynew'
+'''
 # Read Parameters
 readDirectory='/Users/swainn/testing/ci_water_models/LittleDellNathanTest'
 projectFile='LittleDellNathanTest.prj'
@@ -20,6 +28,7 @@ projectFile='LittleDellNathanTest.prj'
 # Write Parameters
 writeDirectory='/Users/swainn/testing/ci_water_models/LittleDellNathanTest/write'
 newName='LittleDell'
+#'''
 
 # Directory to append to project file
 directory = ''
