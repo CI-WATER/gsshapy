@@ -41,11 +41,16 @@ class GsshaPyFileObjectBase:
 
         # Read parameter derivatives
         path = os.path.join(directory, filename)
-        name = filename.split('.')[0]
-        extension = filename.split('.')[1]
+        filename_split = filename.split('.')
+        name = filename_split[0]
 
-        # Ensure file exists prior to reading in
-        if os.path.exists(path):
+        # Default file extension
+        extension = ''
+
+        if len(filename_split) >= 2:
+            extension = filename_split[-1]
+
+        if os.path.isfile(path):
             # Add self to session
             session.add(self)
 
@@ -58,6 +63,9 @@ class GsshaPyFileObjectBase:
             # Rollback the session if the file doesn't exist
             session.rollback()
 
+            # Issue warning
+            print 'WARNING: {0} listed in project file, but no such file exists.'.format(filename)
+
     def write(self, session, directory, name):
         """
         Write from database to file.
@@ -66,9 +74,6 @@ class GsshaPyFileObjectBase:
         *directory* = to which directory will the files be written (e.g.: '/example/path')\n
         *name* = project name (e.g.: 'my_project')\n
         """
-        # For future use
-        self.SESSION = session
-        self.DIRECTORY = directory
 
         # Assemble Path to file
         try:
@@ -82,7 +87,7 @@ class GsshaPyFileObjectBase:
             
         # Run name preprocessor method if present
         try:
-            name=self._namePreprocessor(name)
+            name = self._namePreprocessor(name)
         except:
             '''DO NOTHING'''
         
@@ -101,8 +106,8 @@ class GsshaPyFileObjectBase:
             filename = '%s.%s' % (name, self.EXTENSION)
             filePath = os.path.join(directory, filename)
         
-        # For use after the file has been written
-        self.PATH = os.path.join(directory, filename)
+        # # For use after the file has been written
+        # self.PATH = os.path.join(directory, filename)
         
         with open(filePath, 'w') as openFile:
             # Write Lines
@@ -150,7 +155,7 @@ class GsshaPyFileObjectBase:
         :param raster2pgsqlPath: The path to the commandline tool that generates SQL for the raster read
         """
         
-    def _write(self, session, directory, openFile):
+    def _write(self, session, openFile):
         """
         This private method must be defined in each file object for
         the write() method to work properly. The write() method handles
@@ -165,6 +170,5 @@ class GsshaPyFileObjectBase:
         override the write() method and write a custom method.
 
         :param session: The SQLAlchemy session object that will be used to retrieve the data from the database
-        :param directory: The directory to which the file will be written
         :param openFile: The file object of the file that will be written
         """

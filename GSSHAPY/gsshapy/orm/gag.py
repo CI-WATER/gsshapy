@@ -36,12 +36,12 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
 
+    # Value Columns
+    fileExtension = Column(String, default='gag')  #: STRING
+
     # Relationship Properties
     precipEvents = relationship('PrecipEvent', back_populates='precipFile')  #: RELATIONSHIP
     projectFile = relationship('ProjectFile', uselist=False, back_populates='precipFile')  #: RELATIONSHIP
-
-    # File Properties
-    EXTENSION = 'gag'
 
     def __init__(self):
         """
@@ -53,6 +53,9 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Precipitation Read from File Method
         """
+        # Set file extension property
+        self.fileExtension = extension
+
         # Dictionary of keywords/cards and parse function names
         KEYWORDS = ('EVENT',)
 

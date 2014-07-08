@@ -34,7 +34,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
     projectFileID = Column(Integer, ForeignKey('prj_project_files.id'))  #: FK
 
     # Value Columns
-    fileExtension = Column(String, nullable=False)  #: STRING
+    fileExtension = Column(String, default='lnd')  #: STRING
     name = Column(String, nullable=False)  #: STRING
     numLinks = Column(Integer, nullable=False)  #: INTEGER
     timeStep = Column(Integer, nullable=False)  #: INTEGER
@@ -55,8 +55,8 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Link Node Dataset File Read from File Method
         """
-        # Assign file extension attribute to file object
-        self.fileExtension = self.EXTENSION
+        # Set file extension property
+        self.fileExtension = extension
 
         # Dictionary of keywords/cards and parse function names
         KEYWORDS = ('NUM_LINKS',

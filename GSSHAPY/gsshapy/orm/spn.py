@@ -16,7 +16,7 @@ __all__ = ['StormPipeNetworkFile',
            'Connection']
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, Float
+from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
@@ -34,14 +34,14 @@ class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
 
+    # Value Columns
+    fileExtension = Column(String, default='spn')  #: STRING
+
     # Relationship Properties
     connections = relationship('Connection', back_populates='stormPipeNetworkFile')  #: RELATIONSHIP
     superLinks = relationship('SuperLink', back_populates='stormPipeNetworkFile')  #: RELATIONSHIP
     superJunctions = relationship('SuperJunction', back_populates='stormPipeNetworkFile')  #: RELATIONSHIP
     projectFile = relationship('ProjectFile', uselist=False, back_populates='stormPipeNetworkFile')  #: RELATIONSHIP
-
-    # File Properties
-    EXTENSION = 'spn'
 
     def __init__(self):
         """
@@ -56,6 +56,9 @@ class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Storm Pipe Network File Read from File Method
         """
+        # Set file extension property
+        self.fileExtension = extension
+
         # Dictionary of keywords/cards and parse function names
         KEYWORDS = {'CONNECT': spc.connectChunk,
                     'SJUNC': spc.sjuncChunk,

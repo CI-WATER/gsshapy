@@ -36,12 +36,12 @@ class TestWriteMethods(unittest.TestCase):
         self.writeSession = dbt.create_session(sqlalchemy_url)
         
         # Instantiate GSSHAPY ProjectFile object
-        prjR = ProjectFile(directory=self.readDirectory,
-                           filename='standard.prj',
-                           session=readSession)
+        prjR = ProjectFile()
         
         # Invoke read project method
-        prjR.readProject()
+        prjR.readProject(directory=self.readDirectory,
+                         projectFileName='standard.prj',
+                         session=readSession)
         
     
     def test_project_file_write(self):
@@ -322,8 +322,9 @@ class TestWriteMethods(unittest.TestCase):
         
     def _query_n_write_multiple(self, fileIO, ext):
         '''
-        Query database and write file method
+        Query database and write file method for fileIO object that could have multiple extensions
         '''
+        print ext, fileIO
         # Retrieve file from database
         instance = self.writeSession.query(fileIO).\
                         filter(fileIO.fileExtension == ext).\

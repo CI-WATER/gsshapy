@@ -13,7 +13,7 @@ __all__ = ['HmetFile', 'HmetRecord']
 from datetime import datetime
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, Float, DateTime
+from sqlalchemy.types import Integer, Float, DateTime, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
@@ -29,6 +29,9 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
+
+    # Value Columns
+    fileExtension = Column(String, default='txt')  #: STRING
 
     # Relationship Properties
     hmetRecords = relationship('HmetRecord', back_populates='hmetFile')  #: RELATIONSHIP
@@ -47,6 +50,9 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Read HMET WES from File Method
         """
+        # Set file extension property
+        self.fileExtension = extension
+
         # Open file and parse into HmetRecords
         with open(path, 'r') as hmetFile:
 

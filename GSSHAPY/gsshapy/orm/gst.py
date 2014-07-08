@@ -15,7 +15,7 @@ __all__ = ['GridStreamFile',
            'GridStreamNode']
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, Float
+from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
@@ -34,13 +34,11 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     # Value Columns
     streamCells = Column(Integer, nullable=False)  #: INTEGER
+    fileExtension = Column(String, default='gst')  #: STRING
 
     # Relationship Properties
     gridStreamCells = relationship('GridStreamCell', back_populates='gridStreamFile')  #: RELATIONSHIP
     projectFile = relationship('ProjectFile', uselist=False, back_populates='gridStreamFile')  #: RELATIONSHIP
-
-    # File Properties
-    EXTENSION = 'gst'
 
     def __init__(self):
         """
@@ -52,6 +50,9 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Grid Stream File Read from File Method
         """
+        # Set file extension property
+        self.fileExtension = extension
+
         # Keywords
         KEYWORDS = ('STREAMCELLS',
                     'CELLIJ')

@@ -35,7 +35,7 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
     projectFileID = Column(Integer, ForeignKey('prj_project_files.id'))  #: FK
 
     # Value Columns
-    fileExtension = Column(String, nullable=False)  #: STRING
+    fileExtension = Column(String, default='txt')  #: STRING
 
     # Relationship Properties
     projectFile = relationship('ProjectFile', back_populates='timeSeriesFiles')  #: RELATIONSHIP

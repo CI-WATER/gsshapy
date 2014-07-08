@@ -35,13 +35,13 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
 
+    # Value Columns
+    fileExtension = Column(String, default='cmt')  #: STRING
+
     # Relationship Properties
     indexMaps = relationship('IndexMap', back_populates='mapTableFile')  #: RELATIONSHIP
     mapTables = relationship('MapTable', back_populates='mapTableFile')  #: RELATIONSHIP
     projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile')  #: RELATIONSHIP
-
-    # File Properties
-    EXTENSION = 'cmt'
 
     def __init__(self):
         """
@@ -53,6 +53,9 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Mapping Table Read from File Method
         """
+        # Set file extension property
+        self.fileExtension = extension
+
         # Dictionary of keywords/cards and parse function names
         KEYWORDS = {'INDEX_MAP': mtc.indexMapChunk,
                     'ROUGHNESS': mtc.mapTableChunk,

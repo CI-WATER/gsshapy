@@ -35,7 +35,7 @@ class GenericFile(DeclarativeBase, GsshaPyFileObjectBase):
     text = Column(String)  #: STRING
     binary = Column(Binary)  #: BINARY
     name = Column(String, nullable=False)  #: STRING
-    fileExtension = Column(String, nullable=False)  #: STRING
+    fileExtension = Column(String, default='txt')  #: STRING
 
     # Relationship Properties
     projectFile = relationship('ProjectFile', back_populates='genericFiles')  #: RELATIONSHIP

@@ -50,6 +50,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     srid = Column(Integer)  #: SRID
     name = Column(String, nullable=False)  #: STRING
     mapType = Column(Integer, nullable=False)  #: INTEGER
+    fileExtension = Column(String, default='prj')  #: STRING
 
     # Relationship Properties
     projectCards = relationship('ProjectCard', back_populates='projectFile')  #: RELATIONSHIP
@@ -230,8 +231,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Assign properties
         self.srid = spatialReferenceID
         self.name = name
+        self.fileExtension = extension
 
-    def _write(self, session, directory, openFile):
+    def _write(self, session, openFile):
         """
         Project File Write to File Method
         """

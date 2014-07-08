@@ -13,7 +13,7 @@ __all__ = ['GridPipeCell',
            'GridPipeNode']
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, Float
+from sqlalchemy.types import Integer, Float, String
 
 from sqlalchemy.orm import relationship
 
@@ -38,9 +38,7 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     # Value Columns
     pipeCells = Column(Integer, nullable=False)  #: INTEGER
-
-    # File Properties
-    EXTENSION = 'gpi'
+    fileExtension = Column(String, default='gpi')  #: STRING
 
     def __init__(self):
         """
@@ -52,6 +50,9 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Grid Pipe File Read from File Method
         """
+        # Set file extension property
+        self.fileExtension = extension
+
         # Keywords
         KEYWORDS = ('PIPECELLS',
                     'CELLIJ')

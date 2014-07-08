@@ -42,6 +42,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     filename = Column(String, nullable=False)  #: STRING
     raster_text = Column(String)  #: STRING
     raster = Column(Raster)  #: RASTER
+    fileExtension = Column(String, default='idx')  #: STRING
 
     # Relationship Properties
     mapTableFile = relationship('MapTableFile', back_populates='indexMaps')  #: RELATIONSHIP
@@ -71,14 +72,14 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Index Map Read from File Method
         """
+        # Set file extension property
+        self.fileExtension = extension
+
         # Open file and read plain raster_text into raster_text field
         with open(path, 'r') as f:
             self.raster_text = f.read()
 
         if spatial:
-            # Assign file extension attribute to file object
-            self.fileExtension = extension
-
             # Get well known binary from the raster file using the MapKit RasterLoader
             wkbRaster = RasterLoader.rasterToWKB(path, str(spatialReferenceID), '-1', raster2pgsqlPath)
             self.raster = wkbRaster

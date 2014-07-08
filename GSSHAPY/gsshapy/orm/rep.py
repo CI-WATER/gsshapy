@@ -32,6 +32,7 @@ class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     # Value Columns
     numParameters = Column(Integer, nullable=False)  #: INTEGER
+    fileExtension = Column(String, default='txt')  #: STRING
 
     # Relationship Properties
     projectFile = relationship('ProjectFile', uselist=False, back_populates='replaceParamFile')  #: RELATIONSHIP
@@ -47,6 +48,8 @@ class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Replace Param File Read from File Method
         """
+        # Set file extension property
+        self.fileExtension = extension
 
         # Open file and parse into a data structure
         with open(path, 'r') as f:
@@ -114,6 +117,7 @@ class ReplaceValFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     # Value Columns
     values = Column(String, nullable=False)  #: STRING
+    fileExtension = Column(String, default='txt')  #: STRING
 
     # Relationship Properties
     projectFile = relationship('ProjectFile', uselist=False, back_populates='replaceValFile')  #: RELATIONSHIP
@@ -128,6 +132,9 @@ class ReplaceValFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Replace Val File Read from File Method
         """
+        # Set file extension property
+        self.fileExtension = extension
+
         # Open file and parse into a data structure
         with open(path, 'r') as f:
             self.values = f.read()

@@ -45,13 +45,11 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
     theta = Column(Float)  #: FLOAT
     links = Column(Integer)  #: INTEGER
     maxNodes = Column(Integer)  #: INTEGER
+    fileExtension = Column(String, default='cif')  #: STRING
 
     # Relationship Properties
     projectFile = relationship('ProjectFile', uselist=False, back_populates='channelInputFile')  #: RELATIONSHIP
     streamLinks = relationship('StreamLink', back_populates='channelInputFile')  #: RELATIONSHIP
-
-    # File Properties
-    EXTENSION = 'cif'
 
     def __init__(self, alpha=None, beta=None, theta=None, links=None, maxNodes=None):
         """
@@ -75,6 +73,9 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Channel Input File Read from File Method
         """
+        # Set file extension property
+        self.fileExtension = extension
+
         # Dictionary of keywords/cards and parse function names
         KEYWORDS = {'ALPHA': cic.cardChunk,
                     'BETA': cic.cardChunk,

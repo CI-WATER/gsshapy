@@ -16,7 +16,7 @@ __all__ = ['NwsrfsFile',
 from datetime import datetime
 
 from sqlalchemy import ForeignKey, Column
-from sqlalchemy.types import Integer, Float, DateTime
+from sqlalchemy.types import Integer, Float, DateTime, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
@@ -35,6 +35,7 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     # Value Columns
     numBands = Column(Integer, nullable=False)  #: INTEGER
+    fileExtension = Column(String, default='txt')  #: STRING
 
     # Relationship Properties
     nwsrfsRecords = relationship('NwsrfsRecord', back_populates='nwsrfsFile')  #: RELATIONSHIP
@@ -50,6 +51,9 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         NWSRFS Read from File Method
         """
+        # Set file extension property
+        self.fileExtension = extension
+
         # Open file and parse
         with open(path, 'r') as nwsrfsFile:
             for line in nwsrfsFile:
@@ -180,6 +184,7 @@ class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
     numSites = Column(Integer, nullable=False)  #: INTEGER
     elevBase = Column(Float, nullable=False)  #: FLOAT
     elev2 = Column(Float, nullable=False)  #: FLOAT
+    fileExtension = Column(String, default='txt')  #: STRING
 
     # Relationship Properties
     orthoMeasurements = relationship('OrthoMeasurement', back_populates='orthoGageFile')  #: RELATIONSHIP
@@ -195,6 +200,9 @@ class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Orthographic Gage File Read from File Method
         """
+        # Set file extension property
+        self.fileExtension = extension
+
         # Open file and parse into HmetRecords
         with open(path, 'r') as orthoFile:
             for line in orthoFile:

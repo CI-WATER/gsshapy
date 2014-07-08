@@ -30,12 +30,10 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     # Value Columns
     projection = Column(String, nullable=False)  #: STRING
+    fileExtension = Column(String, default='pro')  #: STRING
 
     # Relationship Properties
     projectFile = relationship('ProjectFile', uselist=False, back_populates='projectionFile')  #: RELATIONSHIP
-
-    # File Properties
-    EXTENSION = 'pro'
 
     def __init__(self):
         """
@@ -50,6 +48,8 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Projection File Read from File Method
         """
+        # Set file extension property
+        self.fileExtension = extension
 
         # Open file and parse into a data structure
         with open(path, 'r') as f:
