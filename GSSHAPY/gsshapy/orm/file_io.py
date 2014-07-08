@@ -1,4 +1,4 @@
-'''
+"""
 ********************************************************************************
 * Name: File IO
 * Author: Nathan Swain
@@ -6,7 +6,7 @@
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
-'''
+"""
 
 # This file is purely for convenience
 from gsshapy.orm.cmt import MapTableFile
@@ -25,3 +25,5 @@ from gsshapy.orm.rep import ReplaceParamFile, ReplaceValFile
 from gsshapy.orm.lnd import LinkNodeDatasetFile
 from gsshapy.orm.idx import IndexMap
 from gsshapy.orm.generic import GenericFile
+from gsshapy.orm.timestamped_raster import TimestampedRaster
+from gsshapy.orm.wms_dataset import WMSDatasetFile

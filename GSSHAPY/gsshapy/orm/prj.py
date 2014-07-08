@@ -76,6 +76,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     maps = relationship('RasterMapFile', back_populates='projectFile')  #: RELATIONSHIP
     linkNodeDatasets = relationship('LinkNodeDatasetFile', back_populates='projectFile')  #: RELATIONSHIP
     genericFiles = relationship('GenericFile', back_populates='projectFile')  #: RELATIONSHIP
+    wmsDatasets = relationship('WMSDatasetFile', back_populates='projectFile')  #: RELATIONSHIP
 
     # File Properties
     MAP_TYPES_SUPPORTED = (1,)
