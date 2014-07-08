@@ -324,7 +324,6 @@ class TestWriteMethods(unittest.TestCase):
         '''
         Query database and write file method for fileIO object that could have multiple extensions
         '''
-        print ext, fileIO
         # Retrieve file from database
         instance = self.writeSession.query(fileIO).\
                         filter(fileIO.fileExtension == ext).\

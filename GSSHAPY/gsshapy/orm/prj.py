@@ -78,7 +78,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     genericFiles = relationship('GenericFile', back_populates='projectFile')  #: RELATIONSHIP
 
     # File Properties
-    EXTENSION = 'prj'
     MAP_TYPES_SUPPORTED = (1,)
     ALWAYS_READ_AND_WRITE_MAPS = ('ele', 'msk')
 
@@ -540,6 +539,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         GSSHAPY Project Write Map Files to File Method
         """
+        print self.mapType
+
         if self.mapType in self.MAP_TYPES_SUPPORTED:
             for card in self.projectCards:
                 if (card.name in mapCards) and self._noneOrNumValue(card.value):

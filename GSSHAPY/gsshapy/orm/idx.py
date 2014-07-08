@@ -50,9 +50,6 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     indices = relationship('MTIndex', back_populates='indexMap')  #: RELATIONSHIP
     contaminants = relationship('MTContaminant', back_populates='indexMap')  #: RELATIONSHIP
 
-    # File Properties
-    EXTENSION = 'idx'
-
     def __init__(self, name=None):
         """
         Constructor
@@ -94,7 +91,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Initiate file
         if name != None:
-            filename = '%s.%s' % (name, self.EXTENSION)
+            filename = '%s.%s' % (name, self.fileExtension)
             filePath = os.path.join(directory, filename)
         else:
             filePath = os.path.join(directory, self.filename)

@@ -32,6 +32,7 @@ class GsshaPyFileObjectBase:
         """
         Constructor
         """
+        self.fileExtension = ''
 
     def read(self, directory, filename, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         """
@@ -88,7 +89,7 @@ class GsshaPyFileObjectBase:
         try:
             name = self._namePreprocessor(name)
         except:
-            '''DO NOTHING'''
+            'DO NOTHING'
 
         if extension == '':
             filename = '{0}.{1}'.format(name, self.fileExtension)
@@ -160,3 +161,13 @@ class GsshaPyFileObjectBase:
         :param session: The SQLAlchemy session object that will be used to retrieve the data from the database
         :param openFile: The file object of the file that will be written
         """
+
+    def _namePreprocessor(self, name):
+        """
+        This method is used by file objects that need to do file name pre-processing prior to writing. This
+        method will return the name after it has been preprocessed
+
+        :param name: Name of project / file.
+        """
+
+        return name
