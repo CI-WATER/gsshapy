@@ -50,7 +50,7 @@ class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
         Generic Output Location Read from File Method
         """
         # Assign file extension attribute to file object
-        self.fileExtension = self.EXTENSION
+        self.fileExtension = extension
 
         # Open file and parse into a data structure
         with open(path, 'r') as f:

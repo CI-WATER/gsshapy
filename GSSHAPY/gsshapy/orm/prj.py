@@ -18,6 +18,7 @@ import os
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
@@ -575,6 +576,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Invoke File Write Method on Other Files
         """
+        # Default value for instance
+        instance = None
+
         try:
             # Handle case where fileIO interfaces with single file
             # Retrieve File using FileIO
@@ -587,14 +591,20 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Retrieve File using FileIO and file extension
             extension = filename.split('.')[1]
 
-            instance = session.query(fileIO). \
-                filter(fileIO.projectFile == self). \
-                filter(fileIO.fileExtension == extension). \
-                one()
+            try:
 
+                instance = session.query(fileIO). \
+                    filter(fileIO.projectFile == self). \
+                    filter(fileIO.fileExtension == extension). \
+                    one()
+
+            except NoResultFound:
+                # Handle case when there is no file in database but the card is listed in the project file
+                print 'WARNING: {0} listed as card in project file, but the file is not found in the database.'.format(filename)
 
         # Initiate Write Method on File
-        instance.write(session=session, directory=directory, name=filename)
+        if instance is not None:
+            instance.write(session=session, directory=directory, name=filename)
 
     def _replaceNewFilename(self, filename, name):
         # Variables

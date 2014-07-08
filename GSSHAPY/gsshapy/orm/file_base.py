@@ -24,7 +24,6 @@ class GsshaPyFileObjectBase:
     # File Properties
     PROPER_NAME = None
     PROJECT_NAME = None
-    EXTENSION = 'txt'
     
     # Error Messages
     COMMIT_ERROR_MESSAGE = 'Ensure the file is not empty and try again.'
@@ -72,42 +71,31 @@ class GsshaPyFileObjectBase:
 
         *session* = SQLAlchemy session object\n
         *directory* = to which directory will the files be written (e.g.: '/example/path')\n
-        *name* = project name (e.g.: 'my_project')\n
+        *name* = name of file that will be written (e.g.: 'my_project.ext')\n
         """
 
         # Assemble Path to file
-        try:
-            # Handle name with extension case (e.g.: name.ext)
-            name, extension = name.split('.')   # Will fail if '.' not present
-            
-            if extension != self.EXTENSION:
-                self.EXTENSION = extension
-        except:
-            '''DO NOTHING'''
+        name_split = name.split('.')
+        name = name_split[0]
+
+        # Default extension
+        extension = ''
+
+        if len(name_split) >= 2:
+            extension = name_split[-1]
             
         # Run name preprocessor method if present
         try:
             name = self._namePreprocessor(name)
         except:
             '''DO NOTHING'''
-        
-        # Handle name only case (e.g.: name). Append fileExtension.
-        try:
-            # Handles case where file object handles
-            # files with varying extentions 
-            # (e.g.: TimeSeriesFile).
-            filename = '%s.%s' % (name, self.fileExtension)
-            filePath = os.path.join(directory, filename)
-        
-        except:
-            # Handles the case where file object handles
-            # files with a set extension
-            # (e.g.: MapTableFile).
-            filename = '%s.%s' % (name, self.EXTENSION)
-            filePath = os.path.join(directory, filename)
-        
-        # # For use after the file has been written
-        # self.PATH = os.path.join(directory, filename)
+
+        if extension == '':
+            filename = '{0}.{1}'.format(name, self.fileExtension)
+        else:
+            filename = '{0}.{1}'.format(name, extension)
+
+        filePath = os.path.join(directory, filename)
         
         with open(filePath, 'w') as openFile:
             # Write Lines
