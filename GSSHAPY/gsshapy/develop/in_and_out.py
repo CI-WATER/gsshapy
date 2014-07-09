@@ -32,9 +32,9 @@ sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
                                         database='gsshapy_postgis_2')
 
 # Global Parameters ---------------------------------------------------------------------------------------------------#
-read_directory = '/Users/swainn/testing/timeseries_maps/ParkCityBasic'
-write_directory = '/Users/swainn/testing/timeseries_maps/ParkCityInput'
-new_name = 'parkcity'
+read_directory = '/Users/swainn/testing/timeseries_maps/ParkCity_MapType1/results'
+write_directory = '/Users/swainn/testing/timeseries_maps/ParkCity_MapType1/results/write'
+new_name = 'out'
 spatial = True
 srid = 26912
 raster2pgsql_path = '/Applications/Postgres93.app/Contents/MacOS/bin/raster2pgsql'
@@ -47,5 +47,5 @@ write_session = dbt.create_session(sqlalchemy_url)
 project_file = ProjectFile()
 project_file.readProject(read_directory, 'parkcity.prj', read_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
 
-project_file = write_session.query(ProjectFile).first()
-project_file.writeInput(write_session, write_directory, 'parkcity')
+# project_file = write_session.query(ProjectFile).first()
+# project_file.writeInput(write_session, write_directory, 'parkcity')

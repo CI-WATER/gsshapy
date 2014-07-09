@@ -10,20 +10,13 @@
 
 __all__ = ['WMSDatasetFile']
 
-from zipfile import ZipFile
-import os
-
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
-from mapkit.sqlatypes import Raster
-from mapkit.RasterLoader import RasterLoader
-
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
-
-from mapkit.RasterConverter import RasterConverter
+from gsshapy.lib import parsetools as pt, wms_dataset_chunk as wdc
 
 
 class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
@@ -96,37 +89,62 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
         """
-        Raster Map File Read from File Method
+        WMS Dataset File Read from File Method
         """
         # Assign file extension attribute to file object
         self.fileExtension = extension
 
+        # Dictionary of keywords/cards and parse function names
+        KEYWORDS = {'DATASET': wdc.datasetHeaderChunk,
+                    'TS': wdc.datasetTimeStepChunk}
+
         # Open file and read plain text into text field
         with open(path, 'r') as f:
-            self.raster_text = f.read()
+            chunks = pt.chunk(KEYWORDS, f)
 
-        if spatial:
-            # Get well known binary from the raster file using the MapKit RasterLoader
-            wkbRaster = RasterLoader.rasterToWKB(path, str(spatialReferenceID), '0', raster2pgsqlPath)
-            self.raster = wkbRaster
+        datasetChunk = {'header': [],
+                        'timesteps': []}
+
+        for key, chunkList in chunks.iteritems():
+            # Parse each chunk in the chunk list
+            for chunk in chunkList:
+                # Call chunk specific parsers for each chunk
+                result = KEYWORDS[key](key, chunk)
+
+                if key == 'DATASET':
+                    datasetChunk['header'] = result
+
+                elif key == 'TS':
+                    tempTimeSteps = datasetChunk['timesteps']
+                    tempTimeSteps.append(result)
+                    datasetChunk['timesteps'] = tempTimeSteps
+
+        self._createGsshaPyObjects(datasetChunk)
+
+        # Add current file object to the session
+        session.add(self)
+
 
     def _write(self, session, openFile):
         """
-        Raster Map File Write to File Method
+        WMS Dataset File Write to File Method
         """
-        # If the raster field is not empty, write from this field
-        if type(self.raster) != type(None):
-            # Configure RasterConverter
-            converter = RasterConverter(session)
 
-            # Use MapKit RasterConverter to retrieve the raster as a GRASS ASCII Grid
-            grassAsciiGrid = converter.getAsGrassAsciiRaster(rasterFieldName='raster',
-                                                             tableName=self.__tablename__,
-                                                             rasterIdFieldName='id',
-                                                             rasterId=self.id)
-            # Write to file
-            openFile.write(grassAsciiGrid)
+    def _createGsshaPyObjects(self, datasetChunk):
+        """
+        Assemble the GSSHAPY Objects
+        """
+        self.name = datasetChunk['header']['name']
+        self.numberCells = datasetChunk['header']['numberCells']
+        self.numberData = datasetChunk['header']['numberData']
+        self.objectID = datasetChunk['header']['objectID']
 
-        else:
-            # Write file
-            openFile.write(self.raster_text)
+        if datasetChunk['header']['type'] == 'BEGSCL':
+            self.objectType = datasetChunk['header']['objectType']
+            self.type = self.SCALAR_TYPE
+
+        elif datasetChunk['header']['type'] == 'BEGVEC':
+            self.vectorType = datasetChunk
+            self.type = self.VECTOR_TYPE
+
+

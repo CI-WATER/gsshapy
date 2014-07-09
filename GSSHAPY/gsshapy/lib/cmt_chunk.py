@@ -1,4 +1,4 @@
-'''
+"""
 ********************************************************************************
 * Name: Map Table Parse
 * Author: Nathan Swain
@@ -6,7 +6,8 @@
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
-'''
+"""
+
 import shlex
 from gsshapy.lib import parsetools as pt
 

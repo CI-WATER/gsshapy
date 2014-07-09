@@ -18,7 +18,7 @@ import os
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from sqlalchemy.orm.exc import NoResultFound
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
@@ -149,7 +149,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     OUTPUT_FILES = {'SUMMARY': GenericFile,  # Required Output
                     'OUTLET_HYDRO': TimeSeriesFile,
-                    'DEPTH': None,  ## TODO: Binary format? .lel
+                    'DEPTH': WMSDatasetFile,  ## TODO: Binary format? .lel
                     'OUT_THETA_LOCATION': TimeSeriesFile,  # Infiltration
                     'EXPLIC_BACKWATER': GenericFile,  # Channel Routing
                     'WRITE_CHAN_HOTSTART': GenericFile,

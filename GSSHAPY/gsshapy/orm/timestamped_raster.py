@@ -37,6 +37,7 @@ class TimestampedRaster(DeclarativeBase, GsshaPyFileObjectBase):
 
     # Value Columns
     timeStep = Column(Integer)  #: INTEGER
+    iStatus = Column(Integer)  #: INTEGER
     timestamp = Column(Float)  #: FLOAT
     rasterText = Column(String)  #: STRING
     raster = Column(Raster)  #: RASTER
