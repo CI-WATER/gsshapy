@@ -8,15 +8,18 @@
 ********************************************************************************
 """
 
-__all__ = ['WMSDatasetFile']
+__all__ = ['WMSDatasetFile', 'WMSDatasetRaster']
 
 from sqlalchemy import Column, ForeignKey
-from sqlalchemy.types import Integer, String
+from sqlalchemy.types import Integer, String, Float
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt, wms_dataset_chunk as wdc
+
+from mapkit.RasterLoader import RasterLoader
+from mapkit.sqlatypes import Raster
 
 
 class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
@@ -43,7 +46,7 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     # Relationship Properties
     projectFile = relationship('ProjectFile', back_populates='wmsDatasets')  #: RELATIONSHIP
-    rasters = relationship('TimestampedRaster', back_populates='wmsDataset')  #: RELATIONSHIP
+    rasters = relationship('WMSDatasetRaster', back_populates='wmsDataset')  #: RELATIONSHIP
 
     # File Properties
     SCALAR_TYPE = 1
@@ -94,57 +97,113 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Assign file extension attribute to file object
         self.fileExtension = extension
 
+        # Vars from project file
+        columns = 67
+        rows = 72
+        gridsize = 90.0000
+
+        # Vars from the mask map (a raster that will always be in a GSSHA project)
+        west = 454318.29
+        north = 4501028.97
+
         # Dictionary of keywords/cards and parse function names
         KEYWORDS = {'DATASET': wdc.datasetHeaderChunk,
-                    'TS': wdc.datasetTimeStepChunk}
+                    'TS': wdc.datasetScalarTimeStepChunk}
 
         # Open file and read plain text into text field
         with open(path, 'r') as f:
             chunks = pt.chunk(KEYWORDS, f)
 
-        datasetChunk = {'header': [],
-                        'timesteps': []}
+        # Parse header chunk first
+        header = wdc.datasetHeaderChunk('DATASET', chunks['DATASET'][0])
 
-        for key, chunkList in chunks.iteritems():
-            # Parse each chunk in the chunk list
-            for chunk in chunkList:
-                # Call chunk specific parsers for each chunk
-                result = KEYWORDS[key](key, chunk)
+        # Parse each time step chunk and aggregate
+        timeStepRasters = []
 
-                if key == 'DATASET':
-                    datasetChunk['header'] = result
+        for chunk in chunks['TS']:
+            timeStepRasters.append(wdc.datasetScalarTimeStepChunk(chunk, columns, header['numberData'], header['numberCells']))
 
-                elif key == 'TS':
-                    tempTimeSteps = datasetChunk['timesteps']
-                    tempTimeSteps.append(result)
-                    datasetChunk['timesteps'] = tempTimeSteps
+        # Set WMS dataset file properties
+        self.name = header['name']
+        self.numberCells = header['numberCells']
+        self.numberData = header['numberData']
+        self.objectID = header['objectID']
 
-        self._createGsshaPyObjects(datasetChunk)
+        if header['type'] == 'BEGSCL':
+            self.objectType = header['objectType']
+            self.type = self.SCALAR_TYPE
+
+        elif header['type'] == 'BEGVEC':
+            self.vectorType = header['objectType']
+            self.type = self.VECTOR_TYPE
+
+        # Create WMS raster dataset files for each raster
+        for timeStep, timeStepRaster in enumerate(timeStepRasters):
+            # Create new WMS raster dataset file object
+            wmsRasterDatasetFile = WMSDatasetRaster()
+
+            # Set the wms dataset for this WMS raster dataset file
+            wmsRasterDatasetFile.wmsDataset = self
+
+            # Set the time step and timestamp and other properties
+            wmsRasterDatasetFile.iStatus = timeStepRaster['iStatus']
+            wmsRasterDatasetFile.timestamp = timeStepRaster['timestamp']
+            wmsRasterDatasetFile.timeStep = timeStep + 1
+
+            # If spatial is enabled create PostGIS rasters
+            if spatial:
+                # Process the values/cell array
+                wmsRasterDatasetFile.valueRaster = RasterLoader.makeSingleBandWKBRaster(session, columns, rows, west, north, gridsize, gridsize, 0, 0, spatialReferenceID, timeStepRaster['cellArray'])
+
+                # Only process the status arrays if not empty
+                if timeStepRaster['dataArray'] is not None:
+                    wmsRasterDatasetFile.statusRaster = RasterLoader.makeSingleBandWKBRaster(session, columns, rows, west, north, gridsize, gridsize, 0, 0, spatialReferenceID, timeStepRaster['dataArray'])
+
+            # Otherwise, set the raster text properties
+            else:
+                wmsRasterDatasetFile.statusRasterText = ''
+                wmsRasterDatasetFile.valueRasterText = ''
+
 
         # Add current file object to the session
         session.add(self)
-
 
     def _write(self, session, openFile):
         """
         WMS Dataset File Write to File Method
         """
 
-    def _createGsshaPyObjects(self, datasetChunk):
+
+class WMSDatasetRaster(DeclarativeBase):
+    """
+    File object for interfacing with WMS Gridded and Vector Datasets
+    """
+    __tablename__ = 'wms_dataset_rasters'
+
+    tableName = __tablename__  #: Database tablename
+
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
+    datasetFileID = Column(Integer, ForeignKey('wms_dataset_files.id'))
+
+    # Value Columns
+    timeStep = Column(Integer)  #: INTEGER
+    timestamp = Column(Float)  #: FLOAT
+    iStatus = Column(Integer)  #: INTEGER
+    statusRasterText = Column(String)  #: STRING
+    valueRasterText = Column(String)  #: STRING
+    statusRaster = Column(Raster)  #: RASTER
+    valueRaster = Column(Raster)  #: RASTER
+
+    # Relationship Properties
+    wmsDataset = relationship('WMSDatasetFile', back_populates='rasters')
+
+    def __init__(self):
         """
-        Assemble the GSSHAPY Objects
+        Constructor
         """
-        self.name = datasetChunk['header']['name']
-        self.numberCells = datasetChunk['header']['numberCells']
-        self.numberData = datasetChunk['header']['numberData']
-        self.objectID = datasetChunk['header']['objectID']
 
-        if datasetChunk['header']['type'] == 'BEGSCL':
-            self.objectType = datasetChunk['header']['objectType']
-            self.type = self.SCALAR_TYPE
-
-        elif datasetChunk['header']['type'] == 'BEGVEC':
-            self.vectorType = datasetChunk
-            self.type = self.VECTOR_TYPE
-
-
+    def __repr__(self):
+        return '<TimestampedRaster: TimeStep=%s, Timestamp=%s>' % (
+            self.timeStep,
+            self.timestamp)

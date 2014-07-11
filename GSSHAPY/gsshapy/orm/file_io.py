@@ -25,5 +25,4 @@ from gsshapy.orm.rep import ReplaceParamFile, ReplaceValFile
 from gsshapy.orm.lnd import LinkNodeDatasetFile
 from gsshapy.orm.idx import IndexMap
 from gsshapy.orm.generic import GenericFile
-from gsshapy.orm.timestamped_raster import TimestampedRaster
 from gsshapy.orm.wms_dataset import WMSDatasetFile

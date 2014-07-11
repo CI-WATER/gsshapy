@@ -66,26 +66,78 @@ def datasetHeaderChunk(key, lines):
     return result
 
 
-def datasetTimeStepChunk(key, lines):
+def datasetScalarTimeStepChunk(lines, columns, numberData, numberCells):
     """
-    Process the time step chunks
+    Process the time step chunks for scalar datasets
     """
-
     # Define the result object
     result = {'iStatus': None,
               'timestamp': None,
-              'values': []}
+              'dataArray': None,
+              'cellArray': None}
 
     # Split the chunks
     timeStep = pt.splitLine(lines.pop(0))
     values = []
 
+    # Assemble lines
     for line in lines:
         values.append(pt.splitLine(line)[0])
 
+    # Spice list into data and cells parts
+    startDataIndex = 0
+    endDataIndex = numberData
+    startCellsIndex = numberData
+    endCellsIndex = numberData + numberCells
+
+    dataElementList = values[startDataIndex:endDataIndex]
+    cellsElementList = values[startCellsIndex:endCellsIndex]
+
+    # Get Status Array
+    iStatus = int(timeStep[1])
+    if iStatus == 1:
+        result['dataArray'] = wmsDatasetToTwoDimensionalArray(dataElementList, columns)
+
+    # Get Value Array
+    result['cellArray'] = wmsDatasetToTwoDimensionalArray(cellsElementList, columns)
+
     # Assign Result
-    result['iStatus'] = int(timeStep[1])
+    result['iStatus'] = iStatus
     result['timestamp'] = float(timeStep[2])
-    result['values'] = values
 
     return result
+
+
+def wmsDatasetToTwoDimensionalArray(elementsList, numberColumns):
+    """
+    Take an element list generated from a wms dataset an convert it to a string.
+    """
+    # Derived Variables
+    numberElements = len(elementsList)
+
+    # Define the Header
+    rasterArray = []
+
+    # Ensure that there is an integer number of rows
+    if numberElements % numberColumns == 0:
+        beginningIndex = 0
+        endingIndex = numberColumns
+        numberRows = numberElements / numberColumns
+
+        for i in range(numberRows):
+            # Extract Row
+            extractedRow = elementsList[beginningIndex:endingIndex]
+
+            # Convert value strings to numbers
+            tempRow = []
+            for value in extractedRow:
+                tempRow.append(float(value))
+
+            # Join all columns into a row string
+            rasterArray.append(tempRow)
+
+            # Increment indices by number of columns
+            beginningIndex += numberColumns
+            endingIndex += numberColumns
+
+    return rasterArray
