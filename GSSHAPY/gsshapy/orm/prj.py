@@ -149,7 +149,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     OUTPUT_FILES = {'SUMMARY': GenericFile,  # Required Output
                     'OUTLET_HYDRO': TimeSeriesFile,
-                    'DEPTH': WMSDatasetFile,  ## TODO: Binary format? .lel
+                    'DEPTH': None,  ## TODO: Binary format? .lel
                     'OUT_THETA_LOCATION': TimeSeriesFile,  # Infiltration
                     'EXPLIC_BACKWATER': GenericFile,  # Channel Routing
                     'WRITE_CHAN_HOTSTART': GenericFile,
@@ -191,6 +191,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                    'GW_RECHARGE_INC',  # MAP_TYPE
                    'WRITE_OV_HOTSTART',  # Overland Flow
                    'WRITE_SM_HOSTART')  # Infiltration
+
+    WMS_DATASETS = ('DEPTH', )
 
     # Error Messages
     COMMIT_ERROR_MESSAGE = ('Ensure the files listed in the project file '
@@ -318,6 +320,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Read Output Map Files
         self._readXputMaps(self.OUTPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
                            raster2pgsqlPath=raster2pgsqlPath)
+
+        # Read WMS Dataset Files
+        self._readWMSDatasets(self.WMS_DATASETS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Commit to database
         self._commit(session, self.COMMIT_ERROR_MESSAGE)
@@ -455,6 +460,18 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return files_list
 
+    def getCard(self, name):
+        """
+        Get the card object
+        """
+        cards = self.projectCards
+
+        for card in cards:
+            if card.name == name:
+                return card
+
+        return None
+
     def _readXput(self, fileCards, directory, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         """
         GSSHAPY Project Read Files from File Method
@@ -508,6 +525,33 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                          raster2pgsqlPath=raster2pgsqlPath)
 
             print 'WARNING: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
+
+    def _readWMSDatasets(self, datasetCards, directory, session, spatial=False, spatialReferenceID=4236):
+        """
+        Method to handle the special case of WMS Dataset Files. WMS Dataset Files
+        cannot be read in independently as other types of file can. They rely on
+        the Mask Map file for some parameters.
+        """
+        if self.mapType in self.MAP_TYPES_SUPPORTED:
+            # Get Mask Map dependency
+            maskMap = session.query(RasterMapFile).\
+                              filter(RasterMapFile.projectFile == self).\
+                              filter(RasterMapFile.fileExtension == 'msk').\
+                              one()
+
+            for card in self.projectCards:
+                if (card.name in datasetCards) and self._noneOrNumValue(card.value):
+                    # Get filename from project file
+                    filename = card.value.strip('"')
+
+                    wmsDatasetFile = WMSDatasetFile()
+                    wmsDatasetFile.projectFile = self
+                    wmsDatasetFile.read(directory=directory,
+                                        filename=filename,
+                                        session=session,
+                                        maskMap=maskMap,
+                                        spatial=spatial,
+                                        spatialReferenceID=spatialReferenceID)
 
     def _invokeRead(self, fileIO, directory, filename, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         """

@@ -14,7 +14,7 @@ from zipfile import ZipFile
 import os
 
 from sqlalchemy import Column, ForeignKey
-from sqlalchemy.types import Integer, String
+from sqlalchemy.types import Integer, String, Float
 from sqlalchemy.orm import relationship
 
 from mapkit.sqlatypes import Raster
@@ -38,8 +38,14 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
     projectFileID = Column(Integer, ForeignKey('prj_project_files.id'))  #: FK
 
     # Value Columns
+    north = Column(Float)  #: FLOAT
+    south = Column(Float)  #: FLOAT
+    east = Column(Float)  #: FLOAT
+    west = Column(Float)  #: FLOAT
+    rows = Column(Integer)  #: INTEGER
+    columns = Column(Integer)  #: INTEGER
     fileExtension = Column(String, default='txt')  #: STRING
-    raster_text = Column(String)  #: STRING
+    rasterText = Column(String)  #: STRING
     raster = Column(Raster)  #: RASTER
 
     # Relationship Properties
@@ -63,7 +69,25 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Open file and read plain text into text field
         with open(path, 'r') as f:
-            self.raster_text = f.read()
+            self.rasterText = f.read()
+
+        # Retrieve metadata from header
+        lines = self.rasterText.split('\n')
+        for line in lines[0:6]:
+            spline = line.split()
+
+            if 'north' in spline[0].lower():
+                self.north = float(spline[1])
+            elif 'south' in spline[0].lower():
+                self.south = float(spline[1])
+            elif 'east' in spline[0].lower():
+                self.east = float(spline[1])
+            elif 'west' in spline[0].lower():
+                self.west = float(spline[1])
+            elif 'rows' in spline[0].lower():
+                self.rows = int(spline[1])
+            elif 'cols' in spline[0].lower():
+                self.columns = int(spline[1])
 
         if spatial:
             # Get well known binary from the raster file using the MapKit RasterLoader
@@ -89,7 +113,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         else:
             # Write file
-            openFile.write(self.raster_text)
+            openFile.write(self.rasterText)
 
     def getAsKmlGrid(self, session, path=None, colorRamp=None, alpha=1.0):
         """
