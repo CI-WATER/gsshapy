@@ -47,5 +47,6 @@ write_session = dbt.create_session(sqlalchemy_url)
 project_file = ProjectFile()
 project_file.readProject(read_directory, 'parkcity.prj', read_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
 
-# project_file = write_session.query(ProjectFile).first()
+project_file = write_session.query(ProjectFile).first()
 # project_file.writeInput(write_session, write_directory, 'parkcity')
+project_file.writeProject(write_session, write_directory, 'parkcity')

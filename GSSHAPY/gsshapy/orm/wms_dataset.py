@@ -22,6 +22,7 @@ from gsshapy.lib import parsetools as pt, wms_dataset_chunk as wdc
 from gsshapy.orm.map import RasterMapFile
 
 from mapkit.RasterLoader import RasterLoader
+from mapkit.RasterConverter import RasterConverter
 from mapkit.sqlatypes import Raster
 
 
@@ -212,6 +213,79 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         WMS Dataset File Write to File Method
         """
+        # Write the header
+        openFile.write('DATASET\r\n')
+
+        if self.type == self.SCALAR_TYPE:
+            openFile.write('OBJTYPE {0}\r\n'.format(self.objectType))
+            openFile.write('BEGSCL\r\n')
+
+        elif self.type == self.VECTOR_TYPE:
+            openFile.write('VECTYPE {0}\r\n'.format(self.vectorType))
+            openFile.write('BEGVEC\r\n')
+
+        openFile.write('OBJID {0}\r\n'.format(self.objectID))
+        openFile.write('ND {0}\r\n'.format(self.numberData))
+        openFile.write('NC {0}\r\n'.format(self.numberCells))
+        openFile.write('NAME {0}\r\n'.format(self.name))
+
+        # Write time steps
+        for timeStepRaster in self.rasters:
+            # Write time step
+            openFile.write('TS {0} {1}\r\n'.format(timeStepRaster.iStatus, timeStepRaster.timestamp))
+
+            # Get rasters
+            if type(timeStepRaster.statusRaster) != type(None) or type(timeStepRaster.valueRaster) != type(None):
+                # Create converter object and bind to session
+                converter = RasterConverter(sqlAlchemyEngineOrSession=session)
+
+                # Initialize vars
+                statusDatasetString = ''
+                valuesDatasetString = ''
+
+                if type(timeStepRaster.statusRaster) != type(None) and timeStepRaster.iStatus == 1:
+                    # Convert to GRASS ASCII Raster
+                    statusGrassRasterString = converter.getAsGrassAsciiRaster(rasterFieldName='statusRaster',
+                                                                              tableName=timeStepRaster.tableName,
+                                                                              rasterIdFieldName='id',
+                                                                              rasterId=timeStepRaster.id)
+
+                    # Split by lines and strip off the first six lines that contain the header
+                    status = statusGrassRasterString.split()
+
+                    # Format and write to file
+                    firstValueIndex = 12
+                    for i in range(firstValueIndex, len(status)):
+                        openFile.write('{0}\r\n'.format(status[i]))
+
+                if type(timeStepRaster.valueRaster) != type(None):
+                    # Convert to GRASS ASCII Raster
+                    valueGrassRasterString = converter.getAsGrassAsciiRaster(rasterFieldName='valueRaster',
+                                                                             tableName=timeStepRaster.tableName,
+                                                                             rasterIdFieldName='id',
+                                                                             rasterId=timeStepRaster.id)
+
+                    # Split by lines and strip off the first six lines that contain the header
+                    values = valueGrassRasterString.split()
+
+                    # Format and write to file
+                    firstValueIndex = 12
+                    for i in range(firstValueIndex, len(values)):
+                        openFile.write('{0:.6f}\r\n'.format(float(values[i])))
+
+            else:
+                print 'Not Spatial'
+
+        # Write ending tag for the dataset
+        openFile.write('ENDDS\r\n')
+
+
+
+
+
+
+
+
 
 
 class WMSDatasetRaster(DeclarativeBase):

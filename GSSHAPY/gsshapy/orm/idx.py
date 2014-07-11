@@ -40,7 +40,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
     srid = Column(Integer)  #: SRID
     name = Column(String, nullable=False)  #: STRING
     filename = Column(String, nullable=False)  #: STRING
-    raster_text = Column(String)  #: STRING
+    rasterText = Column(String)  #: STRING
     raster = Column(Raster)  #: RASTER
     fileExtension = Column(String, default='idx')  #: STRING
 
@@ -74,7 +74,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Open file and read plain raster_text into raster_text field
         with open(path, 'r') as f:
-            self.raster_text = f.read()
+            self.rasterText = f.read()
 
         if spatial:
             # Get well known binary from the raster file using the MapKit RasterLoader
@@ -114,7 +114,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         else:
             # Open file and write, raster_text only
             with open(filePath, 'w') as mapFile:
-                mapFile.write(self.raster_text)
+                mapFile.write(self.rasterText)
 
     def getAsKmlGrid(self, session, path=None, colorRamp=None, alpha=1.0):
         """

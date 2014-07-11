@@ -240,14 +240,27 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Project File Write to File Method
         """
-        # Write lines
-        openFile.write('GSSHAPROJECT\n')
+        # Enforce cards that must be written in certain order
+        PRIORITY_CARDS = ('WMS', 'MASK_WATERSHED', 'REPLACE_LINE', 'REPLACE_PARAMS', 'REPLACE_VALS', 'REPLACE_FOLDER')
+
         filename = os.path.split(openFile.name)[1]
         name = filename.split('.')[0]
 
+        # Write lines
+        openFile.write('GSSHAPROJECT\n')
+
+        # Write priority lines
+        for card_key in PRIORITY_CARDS:
+            card = self.getCard(card_key)
+
+            # Write the card
+            if card is not None:
+                openFile.write(card.write(originalPrefix=self.name, newPrefix=name))
+
         # Initiate write on each ProjectCard that belongs to this ProjectFile
         for card in self.projectCards:
-            openFile.write(card.write(originalPrefix=self.name, newPrefix=name))
+            if card.name not in PRIORITY_CARDS:
+                openFile.write(card.write(originalPrefix=self.name, newPrefix=name))
 
     def appendDirectory(self, directory, projectFilePath):
         """
@@ -393,6 +406,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Write output map files
         self._writeXputMaps(session=session, directory=directory, mapCards=self.OUTPUT_MAPS, name=name)
+
+        # Write WMS Dataset Files
+        self._writeWMSDatasets(session=session, directory=directory, wmsDatasetCards=self.WMS_DATASETS, name=name)
 
     def writeInput(self, session, directory, name):
         """
@@ -584,8 +600,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         GSSHAPY Project Write Map Files to File Method
         """
-        print self.mapType
-
         if self.mapType in self.MAP_TYPES_SUPPORTED:
             for card in self.projectCards:
                 if (card.name in mapCards) and self._noneOrNumValue(card.value):
@@ -617,6 +631,27 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                           filename=filename)
 
             print 'Error: Could not write map files. MAP_TYPE', self.mapType, 'not supported.'
+
+    def _writeWMSDatasets(self, session, directory, wmsDatasetCards, name=None):
+        """
+        GSSHAPY Project Write WMS Datasets to File Method
+        """
+        if self.mapType in self.MAP_TYPES_SUPPORTED:
+            for card in self.projectCards:
+                if (card.name in wmsDatasetCards) and self._noneOrNumValue(card.value):
+                    filename = card.value.strip('"')
+
+                    # Determine new filename
+                    filename = self._replaceNewFilename(filename, name)
+
+                    # Write map file
+                    self._invokeWrite(fileIO=WMSDatasetFile,
+                                      session=session,
+                                      directory=directory,
+                                      filename=filename)
+        else:
+            print 'Error: Could not write WMS Dataset files. MAP_TYPE', self.mapType, 'not supported.'
+
 
     def _invokeWrite(self, fileIO, session, directory, filename):
         """
@@ -755,7 +790,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         return {'name': cardName, 'value': cardValue}
 
     def _extractDirectoryCard(self, projectLine):
-        PROJECT_PATH = ['PROJECT_PATH']
+        PROJECT_PATH = ('PROJECT_PATH')
+        PRESERVE_DIRECTORY = ('REPLACE_FOLDER')
 
         # Handle special case with directory cards in
         # windows. shlex.split fails because windows 
@@ -768,6 +804,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         if cardName in PROJECT_PATH:
             cardValue = '""'
+        elif cardName in PRESERVE_DIRECTORY:
+            cardValue = "{0}".format(currLine[1:])
         else:
             # TODO: Write code to handle nested directory cards
             cardValue = '""'
