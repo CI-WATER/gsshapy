@@ -66,78 +66,55 @@ def datasetHeaderChunk(key, lines):
     return result
 
 
-def datasetScalarTimeStepChunk(lines, columns, numberData, numberCells):
+def datasetScalarTimeStepChunk(lines, numberColumns, numberCells):
     """
     Process the time step chunks for scalar datasets
     """
+    END_DATASET_TAG = 'ENDDS'
+
     # Define the result object
     result = {'iStatus': None,
               'timestamp': None,
-              'dataArray': None,
               'cellArray': None}
 
     # Split the chunks
     timeStep = pt.splitLine(lines.pop(0))
-    values = []
 
-    # Assemble lines
-    for line in lines:
-        values.append(pt.splitLine(line)[0])
+    # Extract cells, ignoring the status indicators
+    startCellsIndex = numberCells
 
-    # Spice list into data and cells parts
-    startDataIndex = 0
-    endDataIndex = numberData
-    startCellsIndex = numberData
-    endCellsIndex = numberData + numberCells
-
-    dataElementList = values[startDataIndex:endDataIndex]
-    cellsElementList = values[startCellsIndex:endCellsIndex]
-
-    # Get Status Array
+    # Handle case when status cells are not included (istat = 0)
     iStatus = int(timeStep[1])
-    if iStatus == 1:
-        result['dataArray'] = wmsDatasetToTwoDimensionalArray(dataElementList, columns)
+
+    if iStatus == 0:
+        startCellsIndex = 0
+
+    # Strip off ending dataset tag
+    if END_DATASET_TAG in lines[-1]:
+        lines.pop(-1)
+
+    # Assemble the array string
+    arrayString = '[['
+    columnCounter = 1
+    lenLines = len(lines) - 1
+
+    for index in range(startCellsIndex, len(lines)):
+        # Check columns condition
+        if columnCounter % numberColumns != 0 and index != lenLines:
+            arrayString += lines[index].strip() + ', '
+        elif columnCounter % numberColumns == 0 and index != lenLines:
+            arrayString += lines[index].strip() + '], ['
+        elif index == lenLines:
+            arrayString += lines[index].strip() + ']]'
+
+        # Advance counter
+        columnCounter += 1
 
     # Get Value Array
-    result['cellArray'] = wmsDatasetToTwoDimensionalArray(cellsElementList, columns)
+    result['cellArray'] = arrayString
 
     # Assign Result
     result['iStatus'] = iStatus
     result['timestamp'] = float(timeStep[2])
 
     return result
-
-
-def wmsDatasetToTwoDimensionalArray(elementsList, numberColumns):
-    """
-    Take an element list generated from a wms dataset an convert it to a string.
-    """
-    # Derived Variables
-    numberElements = len(elementsList)
-
-    # Define the Header
-    rasterArray = []
-
-    # Ensure that there is an integer number of rows
-    if numberElements % numberColumns == 0:
-        beginningIndex = 0
-        endingIndex = numberColumns
-        numberRows = numberElements / numberColumns
-
-        for i in range(numberRows):
-            # Extract Row
-            extractedRow = elementsList[beginningIndex:endingIndex]
-
-            # Convert value strings to numbers
-            tempRow = []
-            for value in extractedRow:
-                tempRow.append(float(value))
-
-            # Join all columns into a row string
-            rasterArray.append(tempRow)
-
-            # Increment indices by number of columns
-            beginningIndex += numberColumns
-            endingIndex += numberColumns
-
-    return rasterArray

@@ -7,6 +7,7 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
+import time
 
 __all__ = ['WMSDatasetFile', 'WMSDatasetRaster']
 
@@ -159,7 +160,7 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             timeStepRasters = []
 
             for chunk in chunks['TS']:
-                timeStepRasters.append(wdc.datasetScalarTimeStepChunk(chunk, columns, header['numberData'], header['numberCells']))
+                timeStepRasters.append(wdc.datasetScalarTimeStepChunk(chunk, columns, header['numberCells']))
 
             # Set WMS dataset file properties
             self.name = header['name']
@@ -190,18 +191,13 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 # If spatial is enabled create PostGIS rasters
                 if spatial:
+
                     # Process the values/cell array
                     wmsRasterDatasetFile.valueRaster = RasterLoader.makeSingleBandWKBRaster(session, columns, rows, upperLeftX, upperLeftY, cellSize, cellSize, 0, 0, spatialReferenceID, timeStepRaster['cellArray'])
 
-                    # Only process the status arrays if not empty
-                    if timeStepRaster['dataArray'] is not None:
-                        wmsRasterDatasetFile.statusRaster = RasterLoader.makeSingleBandWKBRaster(session, columns, rows, upperLeftX, upperLeftY, cellSize, cellSize, 0, 0, spatialReferenceID, timeStepRaster['dataArray'])
-
                 # Otherwise, set the raster text properties
                 else:
-                    wmsRasterDatasetFile.statusRasterText = ''
                     wmsRasterDatasetFile.valueRasterText = ''
-
 
             # Add current file object to the session
             session.add(self)
@@ -239,10 +235,6 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # Create converter object and bind to session
                 converter = RasterConverter(sqlAlchemyEngineOrSession=session)
 
-                # Initialize vars
-                statusDatasetString = ''
-                valuesDatasetString = ''
-
                 if type(timeStepRaster.statusRaster) != type(None) and timeStepRaster.iStatus == 1:
                     # Convert to GRASS ASCII Raster
                     statusGrassRasterString = converter.getAsGrassAsciiRaster(rasterFieldName='statusRaster',
@@ -278,14 +270,6 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Write ending tag for the dataset
         openFile.write('ENDDS\r\n')
-
-
-
-
-
-
-
-
 
 
 class WMSDatasetRaster(DeclarativeBase):
