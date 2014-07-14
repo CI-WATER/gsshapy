@@ -644,14 +644,31 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Determine new filename
                     filename = self._replaceNewFilename(filename, name)
 
-                    # Write map file
-                    self._invokeWrite(fileIO=WMSDatasetFile,
-                                      session=session,
-                                      directory=directory,
-                                      filename=filename)
+                    # Handle case where fileIO interfaces with multiple files
+                    # Retrieve File using FileIO and file extension
+                    extension = filename.split('.')[1]
+
+                    try:
+                        wmsDataset = session.query(WMSDatasetFile). \
+                            filter(WMSDatasetFile.projectFile == self). \
+                            filter(WMSDatasetFile.fileExtension == extension). \
+                            one()
+
+                    except NoResultFound:
+                        # Handle case when there is no file in database but the card is listed in the project file
+                        print 'WARNING: {0} listed as card in project file, but the file is not found in the database.'.format(filename)
+
+                    # Get mask map file
+                    maskMap = session.query(RasterMapFile).\
+                        filter(RasterMapFile.projectFile == self).\
+                        filter(RasterMapFile.fileExtension == 'msk').\
+                        one()
+
+                    # Initiate Write Method on File
+                    if wmsDataset is not None and maskMap is not None:
+                        wmsDataset.write(session=session, directory=directory, name=filename, maskMap=maskMap)
         else:
             print 'Error: Could not write WMS Dataset files. MAP_TYPE', self.mapType, 'not supported.'
-
 
     def _invokeWrite(self, fileIO, session, directory, filename):
         """

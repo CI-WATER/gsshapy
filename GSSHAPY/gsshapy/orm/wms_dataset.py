@@ -193,11 +193,11 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 if spatial:
 
                     # Process the values/cell array
-                    wmsRasterDatasetFile.valueRaster = RasterLoader.makeSingleBandWKBRaster(session, columns, rows, upperLeftX, upperLeftY, cellSize, cellSize, 0, 0, spatialReferenceID, timeStepRaster['cellArray'])
+                    wmsRasterDatasetFile.raster = RasterLoader.makeSingleBandWKBRaster(session, columns, rows, upperLeftX, upperLeftY, cellSize, cellSize, 0, 0, spatialReferenceID, timeStepRaster['cellArray'])
 
                 # Otherwise, set the raster text properties
                 else:
-                    wmsRasterDatasetFile.valueRasterText = ''
+                    wmsRasterDatasetFile.rasterText = ''
 
             # Add current file object to the session
             session.add(self)
@@ -205,7 +205,45 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         else:
             print "WARNING: Could not read {0}. Mask Map must be supplied to read WMS Datasets.".format(filename)
 
-    def _write(self, session, openFile):
+    def write(self, session, directory, name, maskMap):
+        """
+        Write from database to file.
+
+        *session* = SQLAlchemy session object\n
+        *directory* = to which directory will the files be written (e.g.: '/example/path')\n
+        *name* = name of file that will be written (e.g.: 'my_project.ext')\n
+        """
+
+        # Assemble Path to file
+        name_split = name.split('.')
+        name = name_split[0]
+
+        # Default extension
+        extension = ''
+
+        if len(name_split) >= 2:
+            extension = name_split[-1]
+
+        # Run name preprocessor method if present
+        try:
+            name = self._namePreprocessor(name)
+        except:
+            'DO NOTHING'
+
+        if extension == '':
+            filename = '{0}.{1}'.format(name, self.fileExtension)
+        else:
+            filename = '{0}.{1}'.format(name, extension)
+
+        filePath = os.path.join(directory, filename)
+
+        with open(filePath, 'w') as openFile:
+            # Write Lines
+            self._write(session=session,
+                        openFile=openFile,
+                        maskMap=maskMap)
+
+    def _write(self, session, openFile, maskMap):
         """
         WMS Dataset File Write to File Method
         """
@@ -231,39 +269,22 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             openFile.write('TS {0} {1}\r\n'.format(timeStepRaster.iStatus, timeStepRaster.timestamp))
 
             # Get rasters
-            if type(timeStepRaster.statusRaster) != type(None) or type(timeStepRaster.valueRaster) != type(None):
+            if type(timeStepRaster.raster) != type(None):
                 # Create converter object and bind to session
                 converter = RasterConverter(sqlAlchemyEngineOrSession=session)
 
-                if type(timeStepRaster.statusRaster) != type(None) and timeStepRaster.iStatus == 1:
-                    # Convert to GRASS ASCII Raster
-                    statusGrassRasterString = converter.getAsGrassAsciiRaster(rasterFieldName='statusRaster',
-                                                                              tableName=timeStepRaster.tableName,
-                                                                              rasterIdFieldName='id',
-                                                                              rasterId=timeStepRaster.id)
+                # Convert to GRASS ASCII Raster
+                valueGrassRasterString = converter.getAsGrassAsciiRaster(tableName=timeStepRaster.tableName,
+                                                                         rasterIdFieldName='id',
+                                                                         rasterId=timeStepRaster.id)
 
-                    # Split by lines and strip off the first six lines that contain the header
-                    status = statusGrassRasterString.split()
+                # Split by lines and strip off the first six lines that contain the header
+                values = valueGrassRasterString.split()
 
-                    # Format and write to file
-                    firstValueIndex = 12
-                    for i in range(firstValueIndex, len(status)):
-                        openFile.write('{0}\r\n'.format(status[i]))
-
-                if type(timeStepRaster.valueRaster) != type(None):
-                    # Convert to GRASS ASCII Raster
-                    valueGrassRasterString = converter.getAsGrassAsciiRaster(rasterFieldName='valueRaster',
-                                                                             tableName=timeStepRaster.tableName,
-                                                                             rasterIdFieldName='id',
-                                                                             rasterId=timeStepRaster.id)
-
-                    # Split by lines and strip off the first six lines that contain the header
-                    values = valueGrassRasterString.split()
-
-                    # Format and write to file
-                    firstValueIndex = 12
-                    for i in range(firstValueIndex, len(values)):
-                        openFile.write('{0:.6f}\r\n'.format(float(values[i])))
+                # Format and write to file
+                firstValueIndex = 12
+                for i in range(firstValueIndex, len(values)):
+                    openFile.write('{0:.6f}\r\n'.format(float(values[i])))
 
             else:
                 print 'Not Spatial'
@@ -288,10 +309,8 @@ class WMSDatasetRaster(DeclarativeBase):
     timeStep = Column(Integer)  #: INTEGER
     timestamp = Column(Float)  #: FLOAT
     iStatus = Column(Integer)  #: INTEGER
-    statusRasterText = Column(String)  #: STRING
-    valueRasterText = Column(String)  #: STRING
-    statusRaster = Column(Raster)  #: RASTER
-    valueRaster = Column(Raster)  #: RASTER
+    rasterText = Column(String)  #: STRING
+    raster = Column(Raster)  #: RASTER
 
     # Relationship Properties
     wmsDataset = relationship('WMSDatasetFile', back_populates='rasters')
