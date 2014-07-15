@@ -7,7 +7,6 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
-import time
 
 __all__ = ['WMSDatasetFile', 'WMSDatasetRaster']
 
@@ -128,6 +127,51 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Issue warning
             print 'WARNING: {0} listed in project file, but no such file exists.'.format(filename)
 
+    def write(self, session, directory, name, maskMap):
+        """
+        Write from database to file.
+
+        *session* = SQLAlchemy session object\n
+        *directory* = to which directory will the files be written (e.g.: '/example/path')\n
+        *name* = name of file that will be written (e.g.: 'my_project.ext')\n
+        """
+
+        # Assemble Path to file
+        name_split = name.split('.')
+        name = name_split[0]
+
+        # Default extension
+        extension = ''
+
+        if len(name_split) >= 2:
+            extension = name_split[-1]
+
+        # Run name preprocessor method if present
+        try:
+            name = self._namePreprocessor(name)
+        except:
+            'DO NOTHING'
+
+        if extension == '':
+            filename = '{0}.{1}'.format(name, self.fileExtension)
+        else:
+            filename = '{0}.{1}'.format(name, extension)
+
+        filePath = os.path.join(directory, filename)
+
+        with open(filePath, 'w') as openFile:
+            # Write Lines
+            self._write(session=session,
+                        openFile=openFile,
+                        maskMap=maskMap)
+
+    def getAsTimeStampedKml(self, session):
+        """
+        Retrieve the WMS dataset as a time stamped KML string
+        """
+
+        return ''
+
     def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, maskMap):
         """
         WMS Dataset File Read from File Method
@@ -205,48 +249,13 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         else:
             print "WARNING: Could not read {0}. Mask Map must be supplied to read WMS Datasets.".format(filename)
 
-    def write(self, session, directory, name, maskMap):
-        """
-        Write from database to file.
-
-        *session* = SQLAlchemy session object\n
-        *directory* = to which directory will the files be written (e.g.: '/example/path')\n
-        *name* = name of file that will be written (e.g.: 'my_project.ext')\n
-        """
-
-        # Assemble Path to file
-        name_split = name.split('.')
-        name = name_split[0]
-
-        # Default extension
-        extension = ''
-
-        if len(name_split) >= 2:
-            extension = name_split[-1]
-
-        # Run name preprocessor method if present
-        try:
-            name = self._namePreprocessor(name)
-        except:
-            'DO NOTHING'
-
-        if extension == '':
-            filename = '{0}.{1}'.format(name, self.fileExtension)
-        else:
-            filename = '{0}.{1}'.format(name, extension)
-
-        filePath = os.path.join(directory, filename)
-
-        with open(filePath, 'w') as openFile:
-            # Write Lines
-            self._write(session=session,
-                        openFile=openFile,
-                        maskMap=maskMap)
-
     def _write(self, session, openFile, maskMap):
         """
         WMS Dataset File Write to File Method
         """
+        # Magic numbers
+        FIRST_VALUE_INDEX = 12
+
         # Write the header
         openFile.write('DATASET\r\n')
 
@@ -263,28 +272,33 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         openFile.write('NC {0}\r\n'.format(self.numberCells))
         openFile.write('NAME {0}\r\n'.format(self.name))
 
+        # Retrieve the mask map to use as the status rasters
+        statusString = ''
+        if isinstance(maskMap, RasterMapFile):
+            # Convert Mask Map to GRASS ASCII Raster
+            statusGrassRasterString = maskMap.getAsGrassAsciiGrid(session)
+
+            # Split by lines
+            statusValues = statusGrassRasterString.split()
+
+            # Assemble into a string in the WMS Dataset format
+            for i in range(FIRST_VALUE_INDEX, len(statusValues)):
+                statusString += statusValues[i] + '\r\n'
+
         # Write time steps
         for timeStepRaster in self.rasters:
-            # Write time step
+            # Write time step header
             openFile.write('TS {0} {1}\r\n'.format(timeStepRaster.iStatus, timeStepRaster.timestamp))
 
-            # Get rasters
-            if type(timeStepRaster.raster) != type(None):
-                # Create converter object and bind to session
-                converter = RasterConverter(sqlAlchemyEngineOrSession=session)
+            # Write status raster (mask map) if applicable
+            if timeStepRaster.iStatus == 1:
+                openFile.write(statusString)
 
-                # Convert to GRASS ASCII Raster
-                valueGrassRasterString = converter.getAsGrassAsciiRaster(tableName=timeStepRaster.tableName,
-                                                                         rasterIdFieldName='id',
-                                                                         rasterId=timeStepRaster.id)
+            # Write value raster
+            valueString = timeStepRaster.getAsWmsDatasetString(session)
 
-                # Split by lines and strip off the first six lines that contain the header
-                values = valueGrassRasterString.split()
-
-                # Format and write to file
-                firstValueIndex = 12
-                for i in range(firstValueIndex, len(values)):
-                    openFile.write('{0:.6f}\r\n'.format(float(values[i])))
+            if valueString is not None:
+                openFile.write(valueString)
 
             else:
                 print 'Not Spatial'
@@ -324,3 +338,38 @@ class WMSDatasetRaster(DeclarativeBase):
         return '<TimestampedRaster: TimeStep=%s, Timestamp=%s>' % (
             self.timeStep,
             self.timestamp)
+
+    def getAsWmsDatasetString(self, session):
+        """
+        Retrieve the WMS Raster as a string in the WMS Dataset format
+        """
+        # Magic numbers
+        FIRST_VALUE_INDEX = 12
+
+        # Write value raster
+        if type(self.raster) != type(None):
+            # Convert to GRASS ASCII Raster
+            valueGrassRasterString = self.getAsGrassAsciiGrid(session)
+
+            # Split by lines
+            values = valueGrassRasterString.split()
+
+            # Assemble into string
+            wmsDatasetString = ''
+            for i in range(FIRST_VALUE_INDEX, len(values)):
+                wmsDatasetString += '{0:.6f}\r\n'.format(float(values[i]))
+
+            return wmsDatasetString
+
+    def getAsGrassAsciiGrid(self, session):
+        """
+        Retrieve the WMS Raster as a string in the GRASS ASCII raster format
+        """
+        # Create converter object and bind to session
+        converter = RasterConverter(sqlAlchemyEngineOrSession=session)
+
+        # Convert to GRASS ASCII Raster
+        if type(self.raster) != type(None):
+            return converter.getAsGrassAsciiRaster(tableName=self.tableName,
+                                                   rasterIdFieldName='id',
+                                                   rasterId=self.id)
