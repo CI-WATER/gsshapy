@@ -11,6 +11,7 @@
 __all__ = ['WMSDatasetFile', 'WMSDatasetRaster']
 
 import os
+from datetime import datetime, timedelta
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Float
@@ -165,12 +166,69 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                         openFile=openFile,
                         maskMap=maskMap)
 
-    def getAsTimeStampedKml(self, session):
+    def getAsTimeStampedKml(self, session, projectFile=None, path=None, colorRamp=None, alpha=1.0, drawOrder=0):
         """
         Retrieve the WMS dataset as a time stamped KML string
         """
+        # Retrieve raster datasets
+        rasters = self.rasters
 
-        return ''
+        # Assemble input for converter method
+        timeStampedRasters = []
+        startDateTime = datetime(1970, 1, 1)
+
+        if projectFile is not None:
+            # Get base time from project file if it is there
+            startDate = projectFile.getCard('START_DATE')
+            startTime = projectFile.getCard('START_TIME')
+
+            if (startDate is not None) and (startTime is not None):
+                startDateParts = startDate.value.split()
+                startTimeParts = startTime.value.split()
+
+                if len(startDateParts) >= 3 and len(startTimeParts) >= 2:
+                    year = int(startDateParts[0])
+                    month = int(startDateParts[1])
+                    day = int(startDateParts[2])
+                    hour = int(startTimeParts[0])
+                    minute = int(startTimeParts[1])
+                    startDateTime = datetime(year, month, day, hour, minute)
+
+        # Calculate delta time
+        firstRaster = rasters[0]
+        secondRaster = rasters[1]
+        deltaTime = firstRaster.timestamp - secondRaster.timestamp
+
+        for raster in rasters:
+            # Create dictionary and populate
+            timeStampedRaster = dict()
+            timeStampedRaster['rasterId'] = raster.id
+
+            # Calculate the delta times
+            timestamp = raster.timestamp
+            timestampDelta = timedelta(minutes=timestamp)
+            previousTimestampDelta = timedelta(minutes=timestamp - deltaTime)
+
+            # Create datetime objects
+            timeStampedRaster['beginDateTime'] = startDateTime + timestampDelta
+            timeStampedRaster['endDateTime'] = startDateTime + previousTimestampDelta
+
+            # Add to the list
+            timeStampedRasters.append(timeStampedRaster)
+
+
+
+        # Create a raster converter
+        converter = RasterConverter(sqlAlchemyEngineOrSession=session)
+
+        # Configure color ramp
+        if isinstance(colorRamp, dict):
+            converter.setCustomColorRamp(colorRamp['colors'], colorRamp['interpolatedPoints'])
+        else:
+            converter.setDefaultColorRamp(colorRamp)
+
+        return converter.getAsKmlGridAnimation(tableName=WMSDatasetRaster.tableName,
+                                               timeStampedRasters=timeStampedRasters)
 
     def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, maskMap):
         """

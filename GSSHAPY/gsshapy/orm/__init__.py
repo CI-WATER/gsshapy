@@ -36,5 +36,6 @@ from pro import *
 from rep import *
 from lnd import *
 from generic import *
+from wms_dataset import *
 
 

@@ -9,9 +9,10 @@
 '''
 
 import time
-from gsshapy.orm import RasterMapFile, MapTableFile, PrecipFile, ProjectFile
+from gsshapy.orm import WMSDatasetFile, ProjectFile
 from gsshapy.lib import db_tools as dbt
 from sqlalchemy import MetaData, create_engine
+from mapkit.RasterConverter import RasterConverter
 
 # Database Setup ------------------------------------------------------------------------------------------------------#
 
@@ -50,8 +51,17 @@ START = time.time()
 project_file.readProject(read_directory, 'parkcity.prj', read_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
 print 'READ: ', time.time() - START
 
+# project_file = write_session.query(ProjectFile).first()
+# START = time.time()
+# project_file.writeProject(write_session, write_directory, 'parkcity')
+# print 'WRITE: ', time.time() - START
+
+# Test Time Series KML ------------------------------------------------------------------------------------------------#
 project_file = write_session.query(ProjectFile).first()
-# project_file.writeInput(write_session, write_directory, 'parkcity')
+wms_dataset = write_session.query(WMSDatasetFile).first()
 START = time.time()
-project_file.writeProject(write_session, write_directory, 'parkcity')
-print 'WRITE: ', time.time() - START
+kml_animation_string = wms_dataset.getAsTimeStampedKml(write_session, project_file, colorRamp=RasterConverter.COLOR_RAMP_AQUA)
+print 'KML OUT: ', time.time() - START
+
+with open('/Users/swainn/testing/timeseries_maps/ParkCity_MapType1/results/write/out.kml', 'w') as f:
+    f.write(kml_animation_string)
