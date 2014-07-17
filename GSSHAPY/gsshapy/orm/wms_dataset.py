@@ -7,6 +7,7 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
+from zipfile import ZipFile
 
 __all__ = ['WMSDatasetFile', 'WMSDatasetRaster']
 
@@ -166,57 +167,14 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                         openFile=openFile,
                         maskMap=maskMap)
 
-    def getAsTimeStampedKml(self, session, projectFile=None, path=None, colorRamp=None, alpha=1.0, drawOrder=0):
+
+
+    def getAsKmlGridAnimation(self, session, projectFile=None, path=None, colorRamp=None, documentName=None, alpha=1.0, noDataValue=0):
         """
-        Retrieve the WMS dataset as a time stamped KML string
+        Retrieve the WMS dataset as a gridded time stamped KML string
         """
-        # Retrieve raster datasets
-        rasters = self.rasters
-
-        # Assemble input for converter method
-        timeStampedRasters = []
-        startDateTime = datetime(1970, 1, 1)
-
-        if projectFile is not None:
-            # Get base time from project file if it is there
-            startDate = projectFile.getCard('START_DATE')
-            startTime = projectFile.getCard('START_TIME')
-
-            if (startDate is not None) and (startTime is not None):
-                startDateParts = startDate.value.split()
-                startTimeParts = startTime.value.split()
-
-                if len(startDateParts) >= 3 and len(startTimeParts) >= 2:
-                    year = int(startDateParts[0])
-                    month = int(startDateParts[1])
-                    day = int(startDateParts[2])
-                    hour = int(startTimeParts[0])
-                    minute = int(startTimeParts[1])
-                    startDateTime = datetime(year, month, day, hour, minute)
-
-        # Calculate delta time
-        firstRaster = rasters[0]
-        secondRaster = rasters[1]
-        deltaTime = firstRaster.timestamp - secondRaster.timestamp
-
-        for raster in rasters:
-            # Create dictionary and populate
-            timeStampedRaster = dict()
-            timeStampedRaster['rasterId'] = raster.id
-
-            # Calculate the delta times
-            timestamp = raster.timestamp
-            timestampDelta = timedelta(minutes=timestamp)
-            previousTimestampDelta = timedelta(minutes=timestamp - deltaTime)
-
-            # Create datetime objects
-            timeStampedRaster['beginDateTime'] = startDateTime + timestampDelta
-            timeStampedRaster['endDateTime'] = startDateTime + previousTimestampDelta
-
-            # Add to the list
-            timeStampedRasters.append(timeStampedRaster)
-
-
+        # Prepare rasters
+        timeStampedRasters = self._assembleRasterParams(projectFile, self.rasters)
 
         # Create a raster converter
         converter = RasterConverter(sqlAlchemyEngineOrSession=session)
@@ -227,8 +185,66 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         else:
             converter.setDefaultColorRamp(colorRamp)
 
-        return converter.getAsKmlGridAnimation(tableName=WMSDatasetRaster.tableName,
-                                               timeStampedRasters=timeStampedRasters)
+        if documentName is None:
+            documentName = self.fileExtension
+
+        kmlString = converter.getAsKmlGridAnimation(tableName=WMSDatasetRaster.tableName,
+                                                    timeStampedRasters=timeStampedRasters,
+                                                    rasterIdFieldName='id',
+                                                    rasterFieldName='raster',
+                                                    documentName=documentName,
+                                                    alpha=alpha,
+                                                    noDataValue=noDataValue)
+
+        if path:
+            with open(path, 'w') as f:
+                f.write(kmlString)
+
+        return kmlString
+
+    def getAsKmlPngAnimation(self, session, projectFile=None, path=None, colorRamp=None, documentName=None, alpha=1.0,
+                             drawOrder=0, noDataValue=0, cellSize=None, resampleMethod='NearestNeighbour'):
+        """
+        Retrieve the WMS dataset as a PNG time stamped KMZ
+        """
+        # Prepare rasters
+        timeStampedRasters = self._assembleRasterParams(projectFile, self.rasters)
+
+        # Make sure the raster field is valid
+        converter = RasterConverter(sqlAlchemyEngineOrSession=session)
+
+        # Configure color ramp
+        if isinstance(colorRamp, dict):
+            converter.setCustomColorRamp(colorRamp['colors'], colorRamp['interpolatedPoints'])
+        else:
+            converter.setDefaultColorRamp(colorRamp)
+
+        if documentName is None:
+            documentName = self.fileExtension
+
+        kmlString, binaryPngStrings = converter.getAsKmlPngAnimation(tableName=WMSDatasetRaster.tableName,
+                                                                     timeStampedRasters=timeStampedRasters,
+                                                                     rasterIdFieldName='id',
+                                                                     rasterFieldName='raster',
+                                                                     documentName=documentName,
+                                                                     alpha=alpha,
+                                                                     drawOrder=drawOrder,
+                                                                     cellSize=cellSize,
+                                                                     noDataValue=noDataValue,
+                                                                     resampleMethod=resampleMethod)
+
+        if path:
+            directory = os.path.dirname(path)
+            archiveName = (os.path.split(path)[1]).split('.')[0]
+            kmzPath = os.path.join(directory, (archiveName + '.kmz'))
+
+            with ZipFile(kmzPath, 'w') as kmz:
+                kmz.writestr(archiveName + '.kml', kmlString)
+
+                for index, binaryPngString in enumerate(binaryPngStrings):
+                    kmz.writestr('raster{0}.png'.format(index), binaryPngString)
+
+        return kmlString, binaryPngStrings
 
     def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, maskMap):
         """
@@ -245,7 +261,8 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             upperLeftY = maskMap.north
 
             # Derive the cell size (GSSHA cells are square, so it is the same in both directions)
-            cellSize = int(abs(maskMap.west - maskMap.east) / columns)
+            cellSizeX = int(abs(maskMap.west - maskMap.east) / columns)
+            cellSizeY = -1 * cellSizeX
 
             # Dictionary of keywords/cards and parse function names
             KEYWORDS = {'DATASET': wdc.datasetHeaderChunk,
@@ -293,9 +310,14 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 # If spatial is enabled create PostGIS rasters
                 if spatial:
-
                     # Process the values/cell array
-                    wmsRasterDatasetFile.raster = RasterLoader.makeSingleBandWKBRaster(session, columns, rows, upperLeftX, upperLeftY, cellSize, cellSize, 0, 0, spatialReferenceID, timeStepRaster['cellArray'])
+                    wmsRasterDatasetFile.raster = RasterLoader.makeSingleBandWKBRaster(session,
+                                                                                       columns, rows,
+                                                                                       upperLeftX, upperLeftY,
+                                                                                       cellSizeX, cellSizeY,
+                                                                                       0, 0,
+                                                                                       spatialReferenceID,
+                                                                                       timeStepRaster['cellArray'])
 
                 # Otherwise, set the raster text properties
                 else:
@@ -363,6 +385,45 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Write ending tag for the dataset
         openFile.write('ENDDS\r\n')
+
+    def _assembleRasterParams(self, projectFile, rasters):
+        # Assemble input for converter method
+        timeStampedRasters = []
+        startDateTime = datetime(1970, 1, 1)
+
+        if projectFile is not None:
+            # Get base time from project file if it is there
+            startDate = projectFile.getCard('START_DATE')
+            startTime = projectFile.getCard('START_TIME')
+
+            if (startDate is not None) and (startTime is not None):
+                startDateParts = startDate.value.split()
+                startTimeParts = startTime.value.split()
+
+                if len(startDateParts) >= 3 and len(startTimeParts) >= 2:
+                    year = int(startDateParts[0])
+                    month = int(startDateParts[1])
+                    day = int(startDateParts[2])
+                    hour = int(startTimeParts[0])
+                    minute = int(startTimeParts[1])
+                    startDateTime = datetime(year, month, day, hour, minute)
+
+        for raster in rasters:
+            # Create dictionary and populate
+            timeStampedRaster = dict()
+            timeStampedRaster['rasterId'] = raster.id
+
+            # Calculate the delta times
+            timestamp = raster.timestamp
+            timestampDelta = timedelta(minutes=timestamp)
+
+            # Create datetime objects
+            timeStampedRaster['dateTime'] = startDateTime + timestampDelta
+
+            # Add to the list
+            timeStampedRasters.append(timeStampedRaster)
+
+        return timeStampedRasters
 
 
 class WMSDatasetRaster(DeclarativeBase):

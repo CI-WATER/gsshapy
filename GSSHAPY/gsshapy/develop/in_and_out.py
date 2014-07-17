@@ -1,4 +1,4 @@
-'''
+"""
 ********************************************************************************
 * Name: Read a file in and write it back out
 * Author: Nathan Swain
@@ -6,7 +6,9 @@
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
-'''
+"""
+
+import os
 
 import time
 from gsshapy.orm import WMSDatasetFile, ProjectFile
@@ -33,8 +35,13 @@ sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
                                         database='gsshapy_postgis_2')
 
 # Global Parameters ---------------------------------------------------------------------------------------------------#
-read_directory = '/Users/swainn/testing/timeseries_maps/ParkCity_MapType1/results'
-write_directory = '/Users/swainn/testing/timeseries_maps/ParkCity_MapType1/results/write'
+'''
+read_directory = '/Users/swainn/testing/timeseries_maps/Park_City_Big_Storm'
+write_directory = '/Users/swainn/testing/timeseries_maps/Park_City_Big_Storm/write'
+'''
+read_directory = '/Users/swainn/testing/timeseries_maps/Park_City_5_Min_Frequency'
+write_directory = '/Users/swainn/testing/timeseries_maps/Park_City_5_Min_Frequency/write'
+#'''
 new_name = 'out'
 spatial = True
 srid = 26912
@@ -59,9 +66,13 @@ print 'READ: ', time.time() - START
 # Test Time Series KML ------------------------------------------------------------------------------------------------#
 project_file = write_session.query(ProjectFile).first()
 wms_dataset = write_session.query(WMSDatasetFile).first()
-START = time.time()
-kml_animation_string = wms_dataset.getAsTimeStampedKml(write_session, project_file, colorRamp=RasterConverter.COLOR_RAMP_AQUA)
-print 'KML OUT: ', time.time() - START
 
-with open('/Users/swainn/testing/timeseries_maps/ParkCity_MapType1/results/write/out.kml', 'w') as f:
-    f.write(kml_animation_string)
+START = time.time()
+#'''
+out_path = os.path.join(write_directory, 'out.kml')
+kml_animation_string = wms_dataset.getAsKmlGridAnimation(write_session, project_file, path=out_path, colorRamp=RasterConverter.COLOR_RAMP_AQUA)
+'''
+out_path = os.path.join(write_directory, 'out.kmz')
+kml_animation_string = wms_dataset.getAsKmlPngAnimation(write_session, project_file, path=out_path, colorRamp=RasterConverter.COLOR_RAMP_AQUA, alpha=0.8, cellSize=30)
+#'''
+print 'KML OUT: ', time.time() - START
