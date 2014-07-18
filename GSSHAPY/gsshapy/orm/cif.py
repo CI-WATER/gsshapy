@@ -22,11 +22,17 @@ __all__ = ['ChannelInputFile',
            'Breakpoint',
            'TrapezoidalCS']
 
+import xml.etree.ElementTree as ET
+import json
+
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String, Float, Boolean
 from sqlalchemy.orm import relationship
 
+from mapkit.sqlatypes import Geometry
+
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.geom import GeometricObject
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt, cif_chunk as cic
 
@@ -68,6 +74,227 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 self.theta == other.theta and
                 self.links == other.links and
                 self.maxNodes == other.maxNodes)
+
+    def getStreamNetworkAsKml(self, session, path=None, withNodes=False, styles={}, documentName='GSSHA Stream Network'):
+        """
+        Retrieve the stream network in KML format
+        :param session: SQLAlchemy session object bound to PostGIS enabled database
+        :param path: Path to which to write KML file
+        :param withNodes: Include nodes
+        :param styles: Dictionary of styles to apply
+                valid styles:
+                   lineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
+                   lineWidth: float line width in pixels
+                   nodeIconHref: link to icon image (PNG format) to represent nodes (see: http://kml4earth.appspot.com/icons.html)
+                   nodeIconScale: scale of the icon image
+
+        :param documentName: Name of the KML document that will show up in the legend
+        :rtype : string
+        """
+        # Retrieve Stream Links
+        links = self.streamLinks
+
+        # Set Default Styles
+        lineColorValue = (255, 255, 0, 0)  # Blue
+        lineWidthValue = 2
+        nodeIconHrefValue = 'http://maps.google.com/mapfiles/kml/paddle/red-circle.png'
+        nodeIconScaleValue = 1.0
+
+        if 'lineColor' in styles:
+            if len(styles['lineColor']) < 4:
+                print 'WARNING: lineColor style must be a list or a tuple of four elements representing integer RGBA values.'
+            else:
+                userLineColor = styles['lineColor']
+                lineColorValue = (userLineColor[3], userLineColor[2], userLineColor[1], userLineColor[0])
+
+        if 'lineWidth' in styles:
+            try:
+                float(styles['lineWidth'])
+                lineWidthValue = styles['lineWidth']
+
+            except ValueError:
+                print 'WARNING: lineWidth must be a valid number representing the width of the line in pixels.'
+
+        if 'nodeIconHref' in styles:
+            nodeIconHrefValue = styles['nodeIconHref']
+
+        if 'nodeIconScale' in styles:
+            try:
+                float(styles['nodeIconScale'])
+                nodeIconScaleValue = styles['nodeIconScale']
+
+            except ValueError:
+                print 'WARNING: nodeIconScaleValue must be a valid number representing the width of the line in pixels.'
+
+
+        # Initialize KML Document
+        kml = ET.Element('kml', xmlns='http://www.opengis.net/kml/2.2')
+        document = ET.SubElement(kml, 'Document')
+        docName = ET.SubElement(document, 'name')
+        docName.text = documentName
+
+        for link in links:
+            placemark = ET.SubElement(document, 'Placemark')
+            placemarkName = ET.SubElement(placemark, 'name')
+            placemarkName.text = str(link.linkNumber)
+
+            # Create style tag and setup styles
+            styles = ET.SubElement(placemark, 'Style')
+
+            # Set line style
+            lineStyle = ET.SubElement(styles, 'LineStyle')
+            lineColor = ET.SubElement(lineStyle, 'color')
+            lineColor.text = '%02X%02X%02X%02X' % lineColorValue
+            lineWidth = ET.SubElement(lineStyle, 'width')
+            lineWidth.text = str(lineWidthValue)
+
+            # Add the geometry to placemark
+            lineString = ET.fromstring(link.getAsKml(session))
+            placemark.append(lineString)
+
+            if withNodes:
+                # Create the node styles
+                nodeStyles = ET.SubElement(document, 'Style', id='node_styles')
+
+                # Hide labels
+                nodeLabelStyle = ET.SubElement(nodeStyles, 'LabelStyle')
+                nodeLabelScale = ET.SubElement(nodeLabelStyle, 'scale')
+                nodeLabelScale.text = str(0)
+
+                # Style icon
+                nodeIconStyle = ET.SubElement(nodeStyles, 'IconStyle')
+
+                # Set icon
+                nodeIcon = ET.SubElement(nodeIconStyle, 'Icon')
+                iconHref = ET.SubElement(nodeIcon, 'href')
+                iconHref.text = nodeIconHrefValue
+
+                # Set icon scale
+                iconScale = ET.SubElement(nodeIconStyle, 'scale')
+                iconScale.text = str(nodeIconScaleValue)
+
+                for node in link.nodes:
+                    # New placemark for each node
+                    nodePlacemark = ET.SubElement(document, 'Placemark')
+                    nodePlacemarkName = ET.SubElement(nodePlacemark, 'name')
+                    nodePlacemarkName.text = str(node.nodeNumber)
+
+                    # Styles for the node
+                    nodeStyleUrl = ET.SubElement(nodePlacemark, 'styleUrl')
+                    nodeStyleUrl.text = '#node_styles'
+
+                    nodeString = ET.fromstring(node.getAsKml(session))
+                    nodePlacemark.append(nodeString)
+
+                    # Embed node data
+                    nodeExtendedData = ET.SubElement(nodePlacemark, 'ExtendedData')
+
+                    nodeNumberData = ET.SubElement(nodeExtendedData, 'Data', name='node_number')
+                    nodeNumberValue = ET.SubElement(nodeNumberData, 'value')
+                    nodeNumberValue.text = str(node.nodeNumber)
+
+                    nodeLinkNumberData = ET.SubElement(nodeExtendedData, 'Data', name='link_number')
+                    nodeLinkNumberValue = ET.SubElement(nodeLinkNumberData, 'value')
+                    nodeLinkNumberValue.text = str(link.linkNumber)
+
+                    nodeElevationData = ET.SubElement(nodeExtendedData, 'Data', name='elevation')
+                    nodeElevationValue = ET.SubElement(nodeElevationData, 'value')
+                    nodeElevationValue.text = str(node.elevation)
+
+            # Create the data tag
+            extendedData = ET.SubElement(placemark, 'ExtendedData')
+
+            # Add value to data
+            linkNumberData = ET.SubElement(extendedData, 'Data', name='link_number')
+            linkNumberValue = ET.SubElement(linkNumberData, 'value')
+            linkNumberValue.text = str(link.linkNumber)
+
+            linkTypeData = ET.SubElement(extendedData, 'Data', name='link_type')
+            linkTypeValue = ET.SubElement(linkTypeData, 'value')
+            linkTypeValue.text = str(link.type)
+
+            numElementsData = ET.SubElement(extendedData, 'Data', name='number_elements')
+            numElementsValue = ET.SubElement(numElementsData, 'value')
+            numElementsValue.text = str(link.numElements)
+
+            dxData = ET.SubElement(extendedData, 'Data', name='dx')
+            dxValue = ET.SubElement(dxData, 'value')
+            dxValue.text = str(link.dx)
+
+            erodeData = ET.SubElement(extendedData, 'Data', name='erode')
+            erodeValue = ET.SubElement(erodeData, 'value')
+            erodeValue.text = str(link.type)
+
+            subsurfaceData = ET.SubElement(extendedData, 'Data', name='subsurface')
+            subsurfaceValue = ET.SubElement(subsurfaceData, 'value')
+            subsurfaceValue.text = str(link.type)
+
+        kmlString = ET.tostring(kml)
+
+        if path:
+            with open(path, 'w') as f:
+                f.write(kmlString)
+
+        return kmlString
+
+
+    def getStreamNetworkAsWkt(self, session, nodes=True):
+        """
+        Retrieve the stream network in Well Known Text format
+        """
+        wkt_list = []
+
+        for link in self.streamLinks:
+            wkt_list.append(link.getAsWkt(session))
+
+            for node in link.nodes:
+                wkt_list.append(node.getAsWkt(session))
+
+        return 'GEOMCOLLECTION ({0})'.format(', '.join(wkt_list))
+
+    def getStreamNetworkAsGeoJSON(self, session, nodes=True):
+        """
+        Retrieve the stream network in GeoJSON format
+        """
+        features_list = []
+
+         # Assemble link features
+        for link in self.streamLinks:
+            link_geometry = json.loads(link.getAsGeoJson(session))
+
+            link_properties = {"link_number": link.linkNumber,
+                               "type": link.type,
+                               "num_elements": link.numElements,
+                               "dx": link.dx,
+                               "erode": link.erode,
+                               "subsurface": link.subsurface}
+
+            link_feature = {"type": "Feature",
+                            "geometry": link_geometry,
+                            "properties": link_properties,
+                            "id": link.id}
+
+            features_list.append(link_feature)
+
+            # Assemble node features
+            for node in link.nodes:
+                node_geometry = json.loads(node.getAsGeoJson(session))
+
+                node_properties = {"link_number": link.linkNumber,
+                                   "node_number": node.nodeNumber,
+                                   "elevation": node.elevation}
+
+                node_feature = {"type": "Feature",
+                                "geometry": node_geometry,
+                                "properties": node_properties,
+                                "id": node.id}
+
+                features_list.append(node_feature)
+
+        feature_collection = {"type": "FeatureCollection",
+                              "features": features_list}
+
+        return json.dumps(feature_collection)
 
     def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
         """
@@ -125,6 +352,9 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                         self.theta = float(value)
 
         self._createConnectivity(linkList=links, connectList=connectivity)
+
+        if spatial:
+            self._createGeometry(session, spatialReferenceID)
 
     def _write(self, session, openFile):
         """
@@ -376,6 +606,55 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return link
 
+    def _createGeometry(self, session, spatialReferenceID):
+        """
+        Create PostGIS geometric objects
+        """
+
+        # Flush the current session
+        session.flush()
+
+        # Retrieve the links
+        links = self.streamLinks
+
+        # Create geometry for each link
+        for link in links:
+
+            # Retrieve the nodes for each link
+            nodes = link.nodes
+            nodeCoordinates = []
+
+            # Create geometry for each node
+            for node in nodes:
+                # Assemble coordinates in well known text format
+                coordinates = '{0} {1} {2}'.format(node.x, node.y, node.elevation)
+                nodeCoordinates.append(coordinates)
+
+                # Create well known text string for point with z coordinate
+                wktPoint = 'POINT Z ({0})'.format(coordinates)
+
+                # Write SQL statement
+                statement = self._getUpdateGeometrySqlString(geometryID=node.id,
+                                                             tableName=node.tableName,
+                                                             spatialReferenceID=spatialReferenceID,
+                                                             wktString=wktPoint)
+
+                session.execute(statement)
+
+            # Assemble line string in well known text format
+            wktLineString = 'LINESTRING Z ({0})'.format(', '.join(nodeCoordinates))
+
+            # Write SQL statement
+            statement = self._getUpdateGeometrySqlString(geometryID=link.id,
+                                                         tableName=link.tableName,
+                                                         spatialReferenceID=spatialReferenceID,
+                                                         wktString=wktLineString)
+
+            session.execute(statement)
+
+
+
+
     def _writeConnectivity(self, links, fileObject):
         """
         Write Connectivity Lines to File Method
@@ -594,11 +873,25 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         if xSec.kRiver != None:
             fileObject.write('K_RIVER        %.6f\n' % xSec.kRiver)
 
+    def _getUpdateGeometrySqlString(self, geometryID, tableName, spatialReferenceID, wktString):
+        statement = '''
+                            UPDATE {0} SET geometry=ST_GeomFromText('{1}', {2})
+                            WHERE id={3};
+                            '''.format(tableName,
+                                       wktString,
+                                       spatialReferenceID,
+                                       geometryID)
+        return statement
 
-class StreamLink(DeclarativeBase):
+
+class StreamLink(DeclarativeBase, GeometricObject):
     """
     """
     __tablename__ = 'cif_links'
+
+    # Public Table Metadata
+    tableName = __tablename__
+    geometryColumnName = 'geometry'
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
@@ -613,6 +906,8 @@ class StreamLink(DeclarativeBase):
     subsurface = Column(Boolean)  #: BOOLEAN
     downstreamLinkID = Column(Integer)  #: INTEGER
     numUpstreamLinks = Column(Integer)  #: INTEGER
+    geometry = Column(Geometry)  #: GEOMETRY
+
 
     # Relationship Properties
     channelInputFile = relationship('ChannelInputFile', back_populates='streamLinks')  #: RELATIONSHIP
@@ -680,13 +975,17 @@ class UpstreamLink(DeclarativeBase):
         return '<UpstreamLink: LinkID=%s, UpstreamLinkID=%s>' % (self.linkID, self.upstreamLinkID)
 
     def __eq__(self, other):
-        return (self.upstreamLinkID == other.upstreamLinkID)
+        return self.upstreamLinkID == other.upstreamLinkID
 
 
-class StreamNode(DeclarativeBase):
+class StreamNode(DeclarativeBase, GeometricObject):
     """
     """
     __tablename__ = 'cif_nodes'
+
+    # Public Table Metadata
+    tableName = __tablename__
+    geometryColumnName = 'geometry'
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
@@ -697,9 +996,7 @@ class StreamNode(DeclarativeBase):
     x = Column(Float, nullable=False)  #: FLOAT
     y = Column(Float, nullable=False)  #: FLOAT
     elevation = Column(Float, nullable=False)  #: FLOAT
-    #     geom = Column(Geometry('POINT')) #: POINT
-
-
+    geometry = Column(Geometry)  #: GEOMETRY
 
     # Relationship Properties
     streamLink = relationship('StreamLink', back_populates='nodes')  #: RELATIONSHIP
@@ -713,8 +1010,6 @@ class StreamNode(DeclarativeBase):
         self.x = x
         self.y = y
         self.elevation = elevation
-
-    #         self.geom = 'POINT(%s %s)' % (x, y)
 
 
     def __repr__(self):
@@ -907,7 +1202,7 @@ class ReservoirPoint(DeclarativeBase):
 
     # Value Columns
     i = Column(Integer, nullable=False)  #: INTEGER
-    j = Column(Integer, nullable=False)  #:INTEGER
+    j = Column(Integer, nullable=False)  #: INTEGER
 
     # Relationship Properties
     reservoir = relationship('Reservoir', back_populates='reservoirPoints')  #: RELATIONSHIP

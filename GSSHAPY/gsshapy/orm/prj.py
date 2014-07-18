@@ -379,6 +379,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._readXputMaps(self.OUTPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
                            raster2pgsqlPath=raster2pgsqlPath)
 
+        # Read WMS Dataset Files
+        self._readWMSDatasets(self.WMS_DATASETS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+
         # Commit to database
         self._commit(session, self.COMMIT_ERROR_MESSAGE)
 
@@ -446,6 +449,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Write output map files
         self._writeXputMaps(session=session, directory=directory, mapCards=self.OUTPUT_MAPS, name=name)
 
+        # Write WMS Dataset Files
+        self._writeWMSDatasets(session=session, directory=directory, wmsDatasetCards=self.WMS_DATASETS, name=name)
+
     def getFiles(self):
         """
         Get a list of the files that are loaded
@@ -487,6 +493,11 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 return card
 
         return None
+
+    def getKmlRepresentationOfModel(self, sesssion):
+        """
+        Retrieve a KML representation of the model. Includes vectorized mask map and stream network.
+        """
 
     def _readXput(self, fileCards, directory, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         """
