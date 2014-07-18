@@ -14,6 +14,7 @@ __all__ = ['ProjectFile',
 import re
 import shlex
 import os
+import xml.etree.ElementTree as ET
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String
@@ -494,10 +495,202 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return None
 
-    def getKmlRepresentationOfModel(self, sesssion):
+    def getKmlRepresentationOfModel(self, session, path=None, withStreamNetwork=True, withNodes=False, styles={}, documentName=None):
         """
         Retrieve a KML representation of the model. Includes vectorized mask map and stream network.
+        :param session: SQLAlchemy session object bound to PostGIS enabled database
+        :param path: Path to which to write KML
+        :param styles: Dictionary of styling options
+                valid styles:
+                   streamLineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
+                   streamLineWidth: float line width in pixels
+                   nodeIconHref: link to icon image (PNG format) to represent nodes (see: http://kml4earth.appspot.com/icons.html)
+                   nodeIconScale: scale of the icon image
+                   maskLineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
+                   maskLineWidth: float line width in pixels
+                   maskFillColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
+
+        :rtype : string
         """
+        # Get mask map
+        watershedMaskCard = self.getCard('WATERSHED_MASK')
+        maskFilename = watershedMaskCard.value
+        maskExtension = maskFilename.strip('"').split('.')[1]
+
+        maskMap = session.query(RasterMapFile).\
+                          filter(RasterMapFile.projectFile == self).\
+                          filter(RasterMapFile.fileExtension == maskExtension).\
+                          one()
+
+        # Get mask map as a KML polygon
+        statement = '''
+                    SELECT val, ST_AsKML(geom) As polygon
+                    FROM (
+                    SELECT (ST_DumpAsPolygons({0})).*
+                    FROM {1} WHERE id={2}
+                    ) As foo
+                    ORDER BY val;
+                    '''.format('raster', maskMap.tableName, maskMap.id)
+
+        result = session.execute(statement)
+
+        maskMapKmlPolygon = ''
+        for row in result:
+            maskMapKmlPolygon = row.polygon
+
+        # Set Default Styles
+        streamLineColorValue = (255, 255, 0, 0)  # Blue
+        streamLineWidthValue = 2
+        nodeIconHrefValue = 'http://maps.google.com/mapfiles/kml/paddle/red-circle.png'
+        nodeIconScaleValue = 1
+        maskLineColorValue = (255, 0, 0, 255)
+        maskFillColorValue = (128, 64, 64, 64)
+        maskLineWidthValue = 2
+
+        # Validate
+        if 'streamLineColor' in styles:
+            if len(styles['streamLineColor']) < 4:
+                print 'WARNING: streamLineColor style must be a list or a tuple of four elements representing integer RGBA values.'
+            else:
+                userLineColor = styles['streamLineColor']
+                streamLineColorValue = (userLineColor[3], userLineColor[2], userLineColor[1], userLineColor[0])
+
+        if 'streamLineWidth' in styles:
+            try:
+                float(styles['streamLineWidth'])
+                streamLineWidthValue = styles['streamLineWidth']
+
+            except ValueError:
+                print 'WARNING: streamLineWidth must be a valid number representing the width of the line in pixels.'
+
+        if 'nodeIconHref' in styles:
+            nodeIconHrefValue = styles['nodeIconHref']
+
+        if 'nodeIconScale' in styles:
+            try:
+                float(styles['nodeIconScale'])
+                nodeIconScaleValue = styles['nodeIconScale']
+
+            except ValueError:
+                print 'WARNING: nodeIconScaleValue must be a valid number representing the width of the line in pixels.'
+                
+        if 'maskLineColor' in styles:
+            if len(styles['maskLineColor']) < 4:
+                print 'WARNING: maskLineColor style must be a list or a tuple of four elements representing integer RGBA values.'
+            else:
+                userLineColor = styles['maskLineColor']
+                maskLineColorValue = (userLineColor[3], userLineColor[2], userLineColor[1], userLineColor[0])
+                
+        if 'maskFillColor' in styles:
+            if len(styles['maskFillColor']) < 4:
+                print 'WARNING: maskFillColor style must be a list or a tuple of four elements representing integer RGBA values.'
+            else:
+                userLineColor = styles['maskFillColor']
+                maskFillColorValue = (userLineColor[3], userLineColor[2], userLineColor[1], userLineColor[0])
+
+        if not documentName:
+            documentName = self.name
+
+        # Initialize KML Document
+        kml = ET.Element('kml', xmlns='http://www.opengis.net/kml/2.2')
+        document = ET.SubElement(kml, 'Document')
+        docName = ET.SubElement(document, 'name')
+        docName.text = documentName
+
+        # Mask Map
+        maskPlacemark = ET.SubElement(document, 'Placemark')
+        maskPlacemarkName = ET.SubElement(maskPlacemark, 'name')
+        maskPlacemarkName.text = 'Mask Map'
+
+        # Mask Styles
+        maskStyles = ET.SubElement(maskPlacemark, 'Style')
+
+        # Set polygon line style
+        maskLineStyle = ET.SubElement(maskStyles, 'LineStyle')
+
+        # Set polygon line color and width
+        maskLineColor = ET.SubElement(maskLineStyle, 'color')
+        maskLineColor.text = '%02X%02X%02X%02X' % maskLineColorValue
+        maskLineWidth = ET.SubElement(maskLineStyle, 'width')
+        maskLineWidth.text = str(maskLineWidthValue)
+
+        # Set polygon fill color
+        maskPolyStyle = ET.SubElement(maskStyles, 'PolyStyle')
+        maskPolyColor = ET.SubElement(maskPolyStyle, 'color')
+        maskPolyColor.text = '%02X%02X%02X%02X' % maskFillColorValue
+
+        # Mask Geometry
+        maskPolygon = ET.fromstring(maskMapKmlPolygon)
+        maskPlacemark.append(maskPolygon)
+
+        if withStreamNetwork:
+            # Get the channel input file for the stream network
+            channelInputFile = self.channelInputFile
+
+            # Retrieve Stream Links
+            links = channelInputFile.streamLinks
+
+            # Stream Network
+            for link in links:
+                placemark = ET.SubElement(document, 'Placemark')
+                placemarkName = ET.SubElement(placemark, 'name')
+                placemarkName.text = str(link.linkNumber)
+
+                # Create style tag and setup styles
+                styles = ET.SubElement(placemark, 'Style')
+
+                # Set line style
+                lineStyle = ET.SubElement(styles, 'LineStyle')
+                lineColor = ET.SubElement(lineStyle, 'color')
+                lineColor.text = '%02X%02X%02X%02X' % streamLineColorValue
+                lineWidth = ET.SubElement(lineStyle, 'width')
+                lineWidth.text = str(streamLineWidthValue)
+
+                # Add the geometry to placemark
+                lineString = ET.fromstring(link.getAsKml(session))
+                placemark.append(lineString)
+
+                if withNodes:
+                    # Create the node styles
+                    nodeStyles = ET.SubElement(document, 'Style', id='node_styles')
+
+                    # Hide labels
+                    nodeLabelStyle = ET.SubElement(nodeStyles, 'LabelStyle')
+                    nodeLabelScale = ET.SubElement(nodeLabelStyle, 'scale')
+                    nodeLabelScale.text = str(0)
+
+                    # Style icon
+                    nodeIconStyle = ET.SubElement(nodeStyles, 'IconStyle')
+
+                    # Set icon
+                    nodeIcon = ET.SubElement(nodeIconStyle, 'Icon')
+                    iconHref = ET.SubElement(nodeIcon, 'href')
+                    iconHref.text = nodeIconHrefValue
+
+                    # Set icon scale
+                    iconScale = ET.SubElement(nodeIconStyle, 'scale')
+                    iconScale.text = str(nodeIconScaleValue)
+
+                    for node in link.nodes:
+                        # New placemark for each node
+                        nodePlacemark = ET.SubElement(document, 'Placemark')
+                        nodePlacemarkName = ET.SubElement(nodePlacemark, 'name')
+                        nodePlacemarkName.text = str(node.nodeNumber)
+
+                        # Styles for the node
+                        nodeStyleUrl = ET.SubElement(nodePlacemark, 'styleUrl')
+                        nodeStyleUrl.text = '#node_styles'
+
+                        nodeString = ET.fromstring(node.getAsKml(session))
+                        nodePlacemark.append(nodeString)
+
+        kmlString = ET.tostring(kml)
+
+        if path:
+            with open(path, 'w') as f:
+                f.write(kmlString)
+
+        return kmlString
 
     def _readXput(self, fileCards, directory, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         """

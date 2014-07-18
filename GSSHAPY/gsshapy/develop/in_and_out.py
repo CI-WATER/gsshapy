@@ -72,20 +72,23 @@ START = time.time()
 out_path = os.path.join(write_directory, 'out.kml')
 kml_animation_string = wms_dataset.getAsKmlGridAnimation(write_session, project_file, path=out_path, colorRamp=RasterConverter.COLOR_RAMP_AQUA)
 '''
+
 '''
 out_path = os.path.join(write_directory, 'out.kmz')
 kml_animation_string = wms_dataset.getAsKmlPngAnimation(write_session, project_file, path=out_path, colorRamp=RasterConverter.COLOR_RAMP_AQUA, alpha=0.8, cellSize=30)
 #'''
 
+'''
 channel_input_file = write_session.query(ChannelInputFile).first()
 stream_links = channel_input_file.streamLinks
 
 out_path = os.path.join(write_directory, 'channel.kml')
 styles = {'lineColor': (0, 255, 128, 255)}
 
-channel_input_file.getStreamNetworkAsKml(write_session, out_path, True, styles=styles)
+channel_input_file.getStreamNetworkAsKml(write_session, out_path)
+'''
 
-print channel_input_file.getStreamNetworkAsWkt(write_session)
-print channel_input_file.getStreamNetworkAsGeoJSON(write_session)
+out_path = os.path.join(write_directory, 'model.kml')
+print project_file.getKmlRepresentationOfModel(write_session, out_path, withStreamNetwork=True)
 
 print 'KML OUT: ', time.time() - START
