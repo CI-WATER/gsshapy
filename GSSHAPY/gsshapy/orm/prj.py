@@ -692,6 +692,18 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return kmlString
 
+## TODO: Implement these methods
+
+    def getWktRepresentationOfModel(self):
+        """
+        Retrieve a Well Known Text representation of the model. Includes vectorized mask map and stream network.
+        """
+
+    def getGeoJSONRepresentationOfModel(self):
+        """
+        Retrieve a GeoJSON representation of the model. Includes vectorized mask map and stream network.
+        """
+
     def _readXput(self, fileCards, directory, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         """
         GSSHAPY Project Read Files from File Method

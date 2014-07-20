@@ -58,10 +58,10 @@ write_session = dbt.create_session(sqlalchemy_url)
 # project_file.readProject(read_directory, 'parkcity.prj', read_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
 # print 'READ: ', time.time() - START
 
-# project_file = write_session.query(ProjectFile).first()
-# START = time.time()
-# project_file.writeProject(write_session, write_directory, 'parkcity')
-# print 'WRITE: ', time.time() - START
+project_file = write_session.query(ProjectFile).first()
+START = time.time()
+project_file.writeProject(write_session, write_directory, 'parkcity')
+print 'WRITE: ', time.time() - START
 
 # Test Time Series KML ------------------------------------------------------------------------------------------------#
 project_file = write_session.query(ProjectFile).first()
@@ -89,6 +89,6 @@ channel_input_file.getStreamNetworkAsKml(write_session, out_path)
 '''
 
 out_path = os.path.join(write_directory, 'model.kml')
-print project_file.getKmlRepresentationOfModel(write_session, out_path, withStreamNetwork=True)
+project_file.getKmlRepresentationOfModel(write_session, out_path, withStreamNetwork=True)
 
 print 'KML OUT: ', time.time() - START

@@ -918,6 +918,7 @@ class StreamLink(DeclarativeBase, GeometricObject):
     reservoir = relationship('Reservoir', uselist=False, back_populates='streamLink')  #: RELATIONSHIP
     breakpointCS = relationship('BreakpointCS', uselist=False, back_populates='streamLink')  #: RELATIONSHIP
     trapezoidalCS = relationship('TrapezoidalCS', uselist=False, back_populates='streamLink')  #: RELATIONSHIP
+    datasets = relationship('LinkDataset', back_populates='link')  #: RELATIONSHIP
 
     def __init__(self, linkNumber, type, numElements, dx=None, erode=False, subsurface=False):
         """
@@ -1000,6 +1001,7 @@ class StreamNode(DeclarativeBase, GeometricObject):
 
     # Relationship Properties
     streamLink = relationship('StreamLink', back_populates='nodes')  #: RELATIONSHIP
+    datasets = relationship('NodeDataset', back_populates='node')  #: RELATIONSHIP
 
 
     def __init__(self, nodeNumber, x, y, elevation):
