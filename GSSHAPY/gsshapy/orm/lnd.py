@@ -64,9 +64,9 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Hint: Upstream and downstream links overlap one node. The first node in the downstream link is the same as the last node in the upstream link.
         # More Details Here: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing
 
-    def getAsKmlAnimation(self):
+    def getAsKmlAnimation(self, channelInputFile):
         """
-        Generate a KML visualization of the the datset file.
+        Generate a KML visualization of the the dataset file.
         """
 
     def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
