@@ -18,15 +18,15 @@ from mapkit.RasterConverter import RasterConverter
 
 # Database Setup ------------------------------------------------------------------------------------------------------#
 
-# # Drop all tables except the spatial reference table that PostGIS uses
-# db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis_2'
-# engine = create_engine(db_url)
-# meta = MetaData()
-# meta.reflect(bind=engine)
-#
-# for table in reversed(meta.sorted_tables):
-#     if table.name != 'spatial_ref_sys':
-#         table.drop(engine)
+# Drop all tables except the spatial reference table that PostGIS uses
+db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis_2'
+engine = create_engine(db_url)
+meta = MetaData()
+meta.reflect(bind=engine)
+
+for table in reversed(meta.sorted_tables):
+    if table.name != 'spatial_ref_sys':
+        table.drop(engine)
 
 # Create new tables
 sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
@@ -52,11 +52,11 @@ write_session = dbt.create_session(sqlalchemy_url)
 
 # Read Project --------------------------------------------------------------------------------------------------------#
 
-# project_file = ProjectFile()
-#
-# START = time.time()
-# project_file.readProject(read_directory, 'parkcity.prj', read_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
-# print 'READ: ', time.time() - START
+project_file = ProjectFile()
+
+START = time.time()
+project_file.readProject(read_directory, 'parkcity.prj', read_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
+print 'READ: ', time.time() - START
 
 project_file = write_session.query(ProjectFile).first()
 START = time.time()

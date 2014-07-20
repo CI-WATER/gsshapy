@@ -10,7 +10,6 @@
 
 __all__ = ['LinkNodeDatasetFile',
            'TimeStep',
-           'LinkNodeLine',
            'LinkDataset',
            'NodeDataset']
 
@@ -219,7 +218,6 @@ class TimeStep(DeclarativeBase):
 
     # Relationship Properties
     linkNodeDataset = relationship('LinkNodeDatasetFile', back_populates='timeSteps')  #: RELATIONSHIP
-    linkNodeLines = relationship('LinkNodeLine', back_populates='timeStep')  #: RELATIONSHIP
     linkDatasets = relationship('LinkDataset', back_populates='timeStep')  #: RELATIONSHIP
 
     def __init__(self, timeStep):
@@ -248,6 +246,9 @@ class LinkDataset(DeclarativeBase):
     nodeDatasets = relationship('NodeDataset', back_populates='linkDataset')  #: RELATIONSHIP
     link = relationship('StreamLink', back_populates='datasets')  #: RELATIONSHIP
 
+    def __repr__(self):
+        return '<LinkDataset: NumberNodeDatasets=%s>' % self.numNodeDatasets
+
 
 class NodeDataset(DeclarativeBase):
     """
@@ -267,3 +268,6 @@ class NodeDataset(DeclarativeBase):
     # Relationship Properties
     linkDataset = relationship('LinkDataset', back_populates='nodeDatasets')  #: RELATIONSHIP
     node = relationship('StreamNode', back_populates='datasets')  #: RELATIONSHIP
+
+    def __repr__(self):
+        return '<NodeDataset: Status=%s, Value=%s>' % (self.status, self.value)
