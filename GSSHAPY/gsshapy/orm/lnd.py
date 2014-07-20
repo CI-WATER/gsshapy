@@ -200,33 +200,6 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             statusIndex += NODE_VALUE_INCREMENT
             valueIndex += NODE_VALUE_INCREMENT
 
-        ## Different interpretation: status integer is actually a count of the number of values for that node
-        # # Parse line into NodeDatasets
-        # numNodeValuesIndex = 1
-        #
-        # for i in range(0, linkDataset.numNodeDatasets):
-        #     # Extract the number of values in this node dataset
-        #     numNodeValues = int(spLinkLine[numNodeValuesIndex])
-        #     valuesStartIndex = numNodeValuesIndex + 1
-        #     valuesEndIndex = valuesStartIndex + numNodeValues
-        #
-        #     # Create NodeDataset GSSHAPY object
-        #     nodeDataset = NodeDataset()
-        #     nodeDataset.numValues = numNodeValues
-        #     nodeDataset.linkDataset = linkDataset
-        #
-        #     for j in range(valuesStartIndex, valuesEndIndex):
-        #         # Extract value
-        #         value = float(spLinkLine[j])
-        #
-        #         # Create NodeDatasetValue GSSHAPY object
-        #         nodeValue = NodeDatasetValue()
-        #         nodeValue.dataset = nodeDataset
-        #         nodeValue.value = value
-        #
-        #     # Increment the index of the number of node values
-        #     numNodeValuesIndex = valuesEndIndex
-
         return linkDataset
 
 
@@ -288,52 +261,9 @@ class NodeDataset(DeclarativeBase):
     streamNodeID = Column(Integer, ForeignKey('cif_nodes.id'))  #: FK
 
     # Value Columns
-    # numValues = Column(Integer)  #: INTEGER
     status = Column(Integer)  #: INTEGER
     value = Column(Float)  #: FLOAT
 
     # Relationship Properties
     linkDataset = relationship('LinkDataset', back_populates='nodeDatasets')  #: RELATIONSHIP
     node = relationship('StreamNode', back_populates='datasets')  #: RELATIONSHIP
-    # values = relationship('NodeDatasetValue', back_populates='dataset')  #: RELATIONSHIP
-
-## Different interpretation: status integer is actually a count of the number of values for that node
-# class NodeDatasetValue(DeclarativeBase):
-#     """
-#     """
-#     __tablename__ = 'lnd_node_dataset_values'
-#     tableName = __tablename__
-#
-#     # Primary and Foreign Keys
-#     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
-#     nodeDatasetID = Column(Integer, ForeignKey('lnd_node_datasets.id'))  #: FK
-#
-#     # Value Columns
-#     value = Column(Float)  #: FLOAT
-#
-#     # Relationship Properties
-#     dataset = relationship('NodeDataset', back_populates='values')  #: RELATIONSHIP
-
-
-class LinkNodeLine(DeclarativeBase):
-    """
-    """
-    __tablename__ = 'lnd_link_node_lines'
-
-    tableName = __tablename__  #: Database tablename
-
-    # Primary and Foreign Keys
-    id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
-    timeStepID = Column(Integer, ForeignKey('lnd_time_steps.id'))  #: FK
-
-    # Value Columns
-    value = Column(String, nullable=False)  #: STRING
-
-    # Relationship Properties
-    timeStep = relationship('TimeStep', back_populates='linkNodeLines')  #: RELATIONSHIP
-
-    def __init__(self, value):
-        self.value = value
-
-    def __repr__(self):
-        return '<LinkNodeLine: %s>' % self.value
