@@ -11,22 +11,22 @@
 import os
 
 import time
-from gsshapy.orm import WMSDatasetFile, ProjectFile, ChannelInputFile
+from gsshapy.orm import WMSDatasetFile, ProjectFile, ChannelInputFile, LinkNodeDatasetFile
 from gsshapy.lib import db_tools as dbt
 from sqlalchemy import MetaData, create_engine
 from mapkit.RasterConverter import RasterConverter
 
 # Database Setup ------------------------------------------------------------------------------------------------------#
 
-# Drop all tables except the spatial reference table that PostGIS uses
-db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis_2'
-engine = create_engine(db_url)
-meta = MetaData()
-meta.reflect(bind=engine)
-
-for table in reversed(meta.sorted_tables):
-    if table.name != 'spatial_ref_sys':
-        table.drop(engine)
+# # Drop all tables except the spatial reference table that PostGIS uses
+# db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis_2'
+# engine = create_engine(db_url)
+# meta = MetaData()
+# meta.reflect(bind=engine)
+#
+# for table in reversed(meta.sorted_tables):
+#     if table.name != 'spatial_ref_sys':
+#         table.drop(engine)
 
 # Create new tables
 sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
@@ -52,16 +52,16 @@ write_session = dbt.create_session(sqlalchemy_url)
 
 # Read Project --------------------------------------------------------------------------------------------------------#
 
-project_file = ProjectFile()
+# project_file = ProjectFile()
+#
+# START = time.time()
+# project_file.readProject(read_directory, 'parkcity.prj', read_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
+# print 'READ: ', time.time() - START
 
-START = time.time()
-project_file.readProject(read_directory, 'parkcity.prj', read_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
-print 'READ: ', time.time() - START
-
-project_file = write_session.query(ProjectFile).first()
-START = time.time()
-project_file.writeProject(write_session, write_directory, 'parkcity')
-print 'WRITE: ', time.time() - START
+# project_file = write_session.query(ProjectFile).first()
+# START = time.time()
+# project_file.writeProject(write_session, write_directory, 'parkcity')
+# print 'WRITE: ', time.time() - START
 
 # Test Time Series KML ------------------------------------------------------------------------------------------------#
 project_file = write_session.query(ProjectFile).first()
@@ -88,7 +88,16 @@ styles = {'lineColor': (0, 255, 128, 255)}
 channel_input_file.getStreamNetworkAsKml(write_session, out_path)
 '''
 
+'''
 out_path = os.path.join(write_directory, 'model.kml')
 project_file.getKmlRepresentationOfModel(write_session, out_path, withStreamNetwork=True)
+'''
+
+channel_input_file = write_session.query(ChannelInputFile).first()
+link_node_dataset_file = write_session.query(LinkNodeDatasetFile).first()
+
+# link_node_dataset_file.linkToChannelInputFile(write_session, channel_input_file)
+out_path = os.path.join(write_directory, 'channel_depth.kml')
+link_node_dataset_file.getAsKmlAnimation(write_session, channel_input_file, path=out_path, zScale=100)
 
 print 'KML OUT: ', time.time() - START

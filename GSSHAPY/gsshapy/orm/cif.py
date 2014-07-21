@@ -56,6 +56,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
     # Relationship Properties
     projectFile = relationship('ProjectFile', uselist=False, back_populates='channelInputFile')  #: RELATIONSHIP
     streamLinks = relationship('StreamLink', back_populates='channelInputFile')  #: RELATIONSHIP
+    linkNodeDatasets = relationship('LinkNodeDatasetFile', back_populates='channelInputFile')  #: RELATIONSHIP
 
     def __init__(self, alpha=None, beta=None, theta=None, links=None, maxNodes=None):
         """
@@ -74,6 +75,23 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 self.theta == other.theta and
                 self.links == other.links and
                 self.maxNodes == other.maxNodes)
+
+    def getFluvialLinks(self):
+        """
+        Retrieve only the links that represent fluvial portions of the stream.
+        """
+        # Define fluvial types
+        fluvialTypeKeywords = ('TRAPEZOID', 'TRAP', 'BREAKPOINT', 'ERODE', 'SUBSURFACE')
+
+        fluvialLinks = []
+
+        for link in self.streamLinks:
+            for fluvialTypeKeyword in fluvialTypeKeywords:
+                if fluvialTypeKeyword in link.type:
+                    fluvialLinks.append(link)
+                    break
+
+        return fluvialLinks
 
     def getStreamNetworkAsKml(self, session, path=None, withNodes=False, styles={}, documentName='GSSHA Stream Network'):
         """

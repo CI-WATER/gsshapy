@@ -9,13 +9,18 @@
 """
 
 __all__ = ['LinkNodeDatasetFile',
-           'TimeStep',
+           'LinkNodeTimeStep',
            'LinkDataset',
            'NodeDataset']
+
+import xml.etree.ElementTree as ET
+from datetime import timedelta, datetime
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Float
 from sqlalchemy.orm import relationship
+
+from mapkit.GeometryConverter import GeometryConverter
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
@@ -33,18 +38,20 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
     projectFileID = Column(Integer, ForeignKey('prj_project_files.id'))  #: FK
+    channelInputFileID = Column(Integer, ForeignKey('cif_channel_input_files.id'))  #: FK
 
     # Value Columns
     fileExtension = Column(String, default='lnd')  #: STRING
     name = Column(String, nullable=False)  #: STRING
     numLinks = Column(Integer, nullable=False)  #: INTEGER
-    timeStep = Column(Integer, nullable=False)  #: INTEGER
+    timeStepInterval = Column(Integer, nullable=False)  #: INTEGER
     numTimeSteps = Column(Integer, nullable=False)  #: INTEGER
     startTime = Column(String, nullable=False)  #: STRING
 
     # Relationship Properties
     projectFile = relationship('ProjectFile', back_populates='linkNodeDatasets')  #: RELATIONSHIP
-    timeSteps = relationship('TimeStep', back_populates='linkNodeDataset')  #: RELATIONSHIP
+    timeSteps = relationship('LinkNodeTimeStep', back_populates='linkNodeDataset')  #: RELATIONSHIP
+    channelInputFile = relationship('ChannelInputFile', back_populates='linkNodeDatasets')  #: RELATIONSHIP
 
     def __init__(self):
         """
@@ -52,22 +59,147 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         GsshaPyFileObjectBase.__init__(self)
 
-    ## TODO: Implement these methods
-
-    def linkToChannelInputFile(self, channelInputFile):
+    def linkToChannelInputFile(self, session, channelInputFile, force=False):
         """
         Create database relationships between the dataset and the channel input file. This is
         done so that the geometry associated with links and nodes can be associated with the
         link and node datasets.
+        :param session: SQLAlchemy session bound to a PostGIS enabled database
+        :param channelInputFile: The GSSHAPY ChannelInputFile object to associate with this LinkNodeDatasetFile
+        :param force: For ChannelInputFile reassignment. Default behaviour is to skip assignment if already done.
         """
+        # Only perform operation if the channel input file has not been assigned or the force parameter is true
+        if self.channelInputFile is not None and not force:
+            return
 
-        # Hint: Upstream and downstream links overlap one node. The first node in the downstream link is the same as the last node in the upstream link.
-        # More Details Here: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing
+        # Set the channel input file relationship
+        self.channelInputFile = channelInputFile
 
-    def getAsKmlAnimation(self, channelInputFile):
+        # Retrieve the fluvial stream links
+        fluvialLinks = channelInputFile.getFluvialLinks()
+
+        # Retrieve the LinkNodeTimeStep objects
+        timeSteps = self.timeSteps
+
+        # Link each link dataset in each time step
+        for timeStep in timeSteps:
+            # Retrieve link datasets
+            linkDatasets = timeStep.linkDatasets
+
+            # Link each node dataset
+            for l, linkDataset in enumerate(linkDatasets):
+                # Get the fluvial link
+                fluvialLink = fluvialLinks[l]
+                fluvialNodes = fluvialLink.nodes
+
+                # Link link datasets to fluvial links
+                linkDataset.link = fluvialLink
+
+                # Retrieve node datasets
+                nodeDatasets = linkDataset.nodeDatasets
+
+                for n, nodeDataset in enumerate(nodeDatasets):
+                    nodeDataset.node = fluvialNodes[n]
+
+        session.add(self)
+        session.commit()
+
+    ## TODO: Implement these methods
+
+    def getAsKmlAnimation(self, session, channelInputFile, path=None, documentName=None, zScale=1.0):
         """
         Generate a KML visualization of the the dataset file.
         """
+        # Validate
+        if not documentName:
+            documentName = self.fileExtension
+
+        # Link to channel input file
+        self.linkToChannelInputFile(session, channelInputFile)
+
+        # Create instance of GeometryConverter
+        converter = GeometryConverter(session)
+
+        # Get LinkNodeTimeSteps
+        linkNodeTimeSteps = self.timeSteps
+
+        # Get date time parameters
+        timeStepDelta = timedelta(minutes=self.timeStepInterval)
+        startDateTime = datetime(1970, 1, 1)
+        startTimeParts = self.startTime.split()
+
+        if len(startTimeParts) > 5:
+            # Default start date time to epoch
+            startDateTime = datetime(year=int(startTimeParts[0]) or 1970,
+                                     month=int(startTimeParts[1]) or 1,
+                                     day=int(startTimeParts[2]) or 1,
+                                     hour=int(startTimeParts[3]) or 0,
+                                     minute=int(startTimeParts[4]) or 0)
+
+        # Start the Kml Document
+        kml = ET.Element('kml', xmlns='http://www.opengis.net/kml/2.2')
+        document = ET.SubElement(kml, 'Document')
+        docName = ET.SubElement(document, 'name')
+        docName.text = documentName
+
+        # Apply special style to hide legend items
+        style = ET.SubElement(document, 'Style', id='check-hide-children')
+        listStyle = ET.SubElement(style, 'ListStyle')
+        listItemType = ET.SubElement(listStyle, 'listItemType')
+        listItemType.text = 'checkHideChildren'
+        styleUrl = ET.SubElement(document, 'styleUrl')
+        styleUrl.text = '#check-hide-children'
+
+        for linkNodeTimeStep in linkNodeTimeSteps:
+            print linkNodeTimeStep.timeStep
+
+            # Create current datetime objects
+            timeSpanBegin = startDateTime + (linkNodeTimeStep.timeStep * timeStepDelta)
+            timeSpanEnd = timeSpanBegin + timeStepDelta
+
+            # Get Link Datasets
+            linkDatasets = linkNodeTimeStep.linkDatasets
+
+            for linkDataset in linkDatasets:
+                # Get Node Datasets
+                nodeDatasets = linkDataset.nodeDatasets
+
+                for nodeDataset in nodeDatasets:
+                    # Get node
+                    node = nodeDataset.node
+
+                    circleString = converter.getPointAsKmlCircle(tableName=node.tableName,
+                                                                 radius=0.0001,
+                                                                 extrude=nodeDataset.value,
+                                                                 zScaleFactor=zScale,
+                                                                 geometryId=node.id)
+
+                    # Create placemark
+                    placemark = ET.SubElement(document, 'Placemark')
+
+                    # Create TimeSpan tag
+                    timeSpan = ET.SubElement(placemark, 'TimeSpan')
+
+                    # Create begin and end tags
+                    begin = ET.SubElement(timeSpan, 'begin')
+                    begin.text = timeSpanBegin.strftime('%Y-%m-%dT%H:%M:%S')
+                    end = ET.SubElement(timeSpan, 'end')
+                    end.text = timeSpanEnd.strftime('%Y-%m-%dT%H:%M:%S')
+
+                    # Append geometry
+                    polygonCircle = ET.fromstring(circleString)
+                    placemark.append(polygonCircle)
+
+
+        kmlString = ET.tostring(kml)
+
+        if path:
+            with open(path, 'w') as f:
+                f.write(kmlString)
+
+        return kmlString
+
+
 
     def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
         """
@@ -101,7 +233,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 elif card == 'TIME_STEP':
                     # TIME_STEP handler
-                    self.timeStep = schunk[1]
+                    self.timeStepInterval = schunk[1]
 
                 elif card == 'NUM_TS':
                     # NUM_TS handler
@@ -126,7 +258,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                         # Cases
                         if token == 'TS':
                             # Time Step line handler
-                            timeStep = TimeStep(timeStep=sline[1])
+                            timeStep = LinkNodeTimeStep(timeStep=sline[1])
                             timeStep.linkNodeDataset = self
 
                         else:
@@ -144,7 +276,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Write Lines
         openFile.write('%s\n' % self.name)
         openFile.write('NUM_LINKS     %s\n' % self.numLinks)
-        openFile.write('TIME_STEP     %s\n' % self.timeStep)
+        openFile.write('TIME_STEP     %s\n' % self.timeStepInterval)
         openFile.write('NUM_TS        %s\n' % self.numTimeSteps)
         openFile.write('START_TIME    %s\n' % self.startTime)
 
@@ -202,7 +334,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         return linkDataset
 
 
-class TimeStep(DeclarativeBase):
+class LinkNodeTimeStep(DeclarativeBase):
     """
     """
     __tablename__ = 'lnd_time_steps'
@@ -242,7 +374,7 @@ class LinkDataset(DeclarativeBase):
     numNodeDatasets = Column(Integer)  #: INTEGER
 
     # Relationship Properties
-    timeStep = relationship('TimeStep', back_populates='linkDatasets')  #: RELATIONSHIP
+    timeStep = relationship('LinkNodeTimeStep', back_populates='linkDatasets')  #: RELATIONSHIP
     nodeDatasets = relationship('NodeDataset', back_populates='linkDataset')  #: RELATIONSHIP
     link = relationship('StreamLink', back_populates='datasets')  #: RELATIONSHIP
 
