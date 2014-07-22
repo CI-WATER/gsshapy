@@ -11,10 +11,11 @@
 import os
 
 import time
-from gsshapy.orm import WMSDatasetFile, ProjectFile, ChannelInputFile, LinkNodeDatasetFile
+from gsshapy.orm import WMSDatasetFile, ProjectFile, ChannelInputFile, LinkNodeDatasetFile, IndexMap, RasterMapFile
 from gsshapy.lib import db_tools as dbt
 from sqlalchemy import MetaData, create_engine
 from mapkit.RasterConverter import RasterConverter
+from mapkit.ColorRampGenerator import ColorRampGenerator, ColorRampEnum
 
 # Database Setup ------------------------------------------------------------------------------------------------------#
 
@@ -69,13 +70,25 @@ wms_dataset = write_session.query(WMSDatasetFile).first()
 
 START = time.time()
 '''
-out_path = os.path.join(write_directory, 'out.kml')
-kml_animation_string = wms_dataset.getAsKmlGridAnimation(write_session, project_file, path=out_path, colorRamp=RasterConverter.COLOR_RAMP_AQUA)
+out_path = os.path.join(write_directory, 'depth.kml')
+wms_dataset.getAsKmlGridAnimation(write_session, project_file, path=out_path, colorRamp=ColorRampEnum.COLOR_RAMP_AQUA)
 '''
 
 '''
-out_path = os.path.join(write_directory, 'out.kmz')
-kml_animation_string = wms_dataset.getAsKmlPngAnimation(write_session, project_file, path=out_path, colorRamp=RasterConverter.COLOR_RAMP_AQUA, alpha=0.8, cellSize=30)
+out_path = os.path.join(write_directory, 'depth.kmz')
+wms_dataset.getAsKmlPngAnimation(write_session, project_file, path=out_path, colorRamp=ColorRampEnum.COLOR_RAMP_AQUA, alpha=0.8, cellSize=30)
+#'''
+
+#'''
+out_path = os.path.join(write_directory, 'index.kmz')
+index_map = write_session.query(IndexMap).first()
+index_map.getAsKmlPng(write_session, path=out_path)
+'''
+
+'''
+out_path = os.path.join(write_directory, 'elevation.kml')
+elevation = write_session.query(RasterMapFile).filter(RasterMapFile.projectFile == project_file).filter(RasterMapFile.fileExtension == 'ele').one()
+elevation.getAsKmlGrid(write_session, path=out_path)
 #'''
 
 '''
@@ -93,11 +106,12 @@ out_path = os.path.join(write_directory, 'model.kml')
 project_file.getKmlRepresentationOfModel(write_session, out_path, withStreamNetwork=True)
 '''
 
+'''
 channel_input_file = write_session.query(ChannelInputFile).first()
 link_node_dataset_file = write_session.query(LinkNodeDatasetFile).first()
 
 # link_node_dataset_file.linkToChannelInputFile(write_session, channel_input_file)
 out_path = os.path.join(write_directory, 'channel_depth.kml')
 link_node_dataset_file.getAsKmlAnimation(write_session, channel_input_file, path=out_path, zScale=100)
-
+'''
 print 'KML OUT: ', time.time() - START

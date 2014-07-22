@@ -19,6 +19,7 @@ from sqlalchemy.orm import relationship
 
 from mapkit.sqlatypes import Raster
 from mapkit.RasterLoader import RasterLoader
+from mapkit.ColorRampGenerator import ColorRampEnum
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
@@ -115,7 +116,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Write file
             openFile.write(self.rasterText)
 
-    def getAsKmlGrid(self, session, path=None, colorRamp=None, alpha=1.0):
+    def getAsKmlGrid(self, session, path=None, colorRamp=ColorRampEnum.COLOR_RAMP_HUE, alpha=1.0):
         """
         Get the raster in KML format
         """
@@ -141,7 +142,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
 
             return kmlString
 
-    def getAsKmlClusters(self, session, path=None, colorRamp=None, alpha=1.0):
+    def getAsKmlClusters(self, session, path=None, colorRamp=ColorRampEnum.COLOR_RAMP_HUE, alpha=1.0):
         """
         Get the raster in a clustered KML format
         """
@@ -167,7 +168,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase):
 
             return kmlString
 
-    def getAsKmlPng(self, session, path=None, colorRamp=None, alpha=1.0, drawOrder=0):
+    def getAsKmlPng(self, session, path=None, colorRamp=ColorRampEnum.COLOR_RAMP_HUE, alpha=1.0, drawOrder=0):
         """
         Get the raster in a PNG / KML format
         """
