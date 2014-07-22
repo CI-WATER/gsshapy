@@ -588,6 +588,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 userLineColor = styles['maskFillColor']
                 maskFillColorValue = (userLineColor[3], userLineColor[2], userLineColor[1], userLineColor[0])
 
+        if 'maskLineWidth' in styles:
+            try:
+                float(styles['maskLineWidth'])
+                maskLineWidthValue = styles['maskLineWidth']
+
+            except ValueError:
+                print 'WARNING: maskLineWidth must be a valid number representing the width of the line in pixels.'
+
         if not documentName:
             documentName = self.name
 
@@ -634,7 +642,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             for link in links:
                 placemark = ET.SubElement(document, 'Placemark')
                 placemarkName = ET.SubElement(placemark, 'name')
-                placemarkName.text = str(link.linkNumber)
+                placemarkName.text = 'Stream Link {0}'.format(str(link.linkNumber))
 
                 # Create style tag and setup styles
                 styles = ET.SubElement(placemark, 'Style')

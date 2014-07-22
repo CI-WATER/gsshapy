@@ -7,12 +7,13 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
-from zipfile import ZipFile
+
 
 __all__ = ['WMSDatasetFile', 'WMSDatasetRaster']
 
 import os
 from datetime import datetime, timedelta
+from zipfile import ZipFile
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Float
@@ -22,6 +23,7 @@ from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt, wms_dataset_chunk as wdc
 from gsshapy.orm.map import RasterMapFile
+from gsshapy.orm.rast import RasterObject
 
 from mapkit.RasterLoader import RasterLoader
 from mapkit.RasterConverter import RasterConverter
@@ -426,13 +428,16 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         return timeStampedRasters
 
 
-class WMSDatasetRaster(DeclarativeBase):
+class WMSDatasetRaster(DeclarativeBase, RasterObject):
     """
     File object for interfacing with WMS Gridded and Vector Datasets
     """
     __tablename__ = 'wms_dataset_rasters'
 
+    # Public Table Metadata
     tableName = __tablename__  #: Database tablename
+    rasterColumnName = 'raster'
+    defaultNoDataValue = 0
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
@@ -479,16 +484,3 @@ class WMSDatasetRaster(DeclarativeBase):
                 wmsDatasetString += '{0:.6f}\r\n'.format(float(values[i]))
 
             return wmsDatasetString
-
-    def getAsGrassAsciiGrid(self, session):
-        """
-        Retrieve the WMS Raster as a string in the GRASS ASCII raster format
-        """
-        # Create converter object and bind to session
-        converter = RasterConverter(sqlAlchemyEngineOrSession=session)
-
-        # Convert to GRASS ASCII Raster
-        if type(self.raster) != type(None):
-            return converter.getAsGrassAsciiRaster(tableName=self.tableName,
-                                                   rasterIdFieldName='id',
-                                                   rasterId=self.id)

@@ -11,33 +11,41 @@
 __all__ = ['IndexMap']
 
 import os
-from zipfile import ZipFile
 
 from sqlalchemy import Column, ForeignKey
-from sqlalchemy.types import Integer, String
+from sqlalchemy.types import Integer, String, Float
 from sqlalchemy.orm import relationship
 
 from mapkit.sqlatypes import Raster
 from mapkit.RasterLoader import RasterLoader
 from mapkit.RasterConverter import RasterConverter
-from mapkit.ColorRampGenerator import ColorRampEnum
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
+from gsshapy.orm.rast import RasterObject
 
 
-class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
+class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObject):
     """
     """
     __tablename__ = 'idx_index_maps'
 
+    # Public Table Metadata
     tableName = __tablename__  #: Database tablename
+    rasterColumnName = 'raster'
+    defaultNoDataValue = -1
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
     mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))  #: FK
 
     # Value Columns
+    north = Column(Float)  #: FLOAT
+    south = Column(Float)  #: FLOAT
+    east = Column(Float)  #: FLOAT
+    west = Column(Float)  #: FLOAT
+    rows = Column(Integer)  #: INTEGER
+    columns = Column(Integer)  #: INTEGER
     srid = Column(Integer)  #: SRID
     name = Column(String, nullable=False)  #: STRING
     filename = Column(String, nullable=False)  #: STRING
@@ -73,14 +81,33 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
         # Set file extension property
         self.fileExtension = extension
 
-        # Open file and read plain raster_text into raster_text field
+        # Open file and read plain text into text field
         with open(path, 'r') as f:
             self.rasterText = f.read()
+
+        # Retrieve metadata from header
+        lines = self.rasterText.split('\n')
+        for line in lines[0:6]:
+            spline = line.split()
+
+            if 'north' in spline[0].lower():
+                self.north = float(spline[1])
+            elif 'south' in spline[0].lower():
+                self.south = float(spline[1])
+            elif 'east' in spline[0].lower():
+                self.east = float(spline[1])
+            elif 'west' in spline[0].lower():
+                self.west = float(spline[1])
+            elif 'rows' in spline[0].lower():
+                self.rows = int(spline[1])
+            elif 'cols' in spline[0].lower():
+                self.columns = int(spline[1])
 
         if spatial:
             # Get well known binary from the raster file using the MapKit RasterLoader
             wkbRaster = RasterLoader.rasterToWKB(path, str(spatialReferenceID), '-1', raster2pgsqlPath)
             self.raster = wkbRaster
+            self.srid = spatialReferenceID
 
         # Assign other properties
         self.filename = filename
@@ -116,99 +143,3 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase):
             # Open file and write, raster_text only
             with open(filePath, 'w') as mapFile:
                 mapFile.write(self.rasterText)
-
-    def getAsKmlGrid(self, session, path=None, colorRamp=ColorRampEnum.COLOR_RAMP_HUE, alpha=1.0):
-        """
-        Get the raster in a gridded KML format
-        """
-        if type(self.raster) != type(None):
-            # Make sure the raster field is valid
-            converter = RasterConverter(sqlAlchemyEngineOrSession=session)
-
-            # Configure color ramp
-            if isinstance(colorRamp, dict):
-                converter.setCustomColorRamp(colorRamp['colors'], colorRamp['interpolatedPoints'])
-            else:
-                converter.setDefaultColorRamp(colorRamp)
-
-            kmlString = converter.getAsKmlGrid(tableName=self.tableName,
-                                               rasterId=self.id,
-                                               rasterIdFieldName='id',
-                                               documentName=self.filename,
-                                               alpha=alpha)
-
-            if path:
-                with open(path, 'w') as f:
-                    f.write(kmlString)
-
-            return kmlString
-
-    def getAsKmlClusters(self, session, path=None, colorRamp=ColorRampEnum.COLOR_RAMP_HUE, alpha=1.0):
-        """
-        Get the raster in a clustered KML format
-        """
-        if type(self.raster) != type(None):
-            # Make sure the raster field is valid
-            converter = RasterConverter(sqlAlchemyEngineOrSession=session)
-
-            # Configure color ramp
-            if isinstance(colorRamp, dict):
-                converter.setCustomColorRamp(colorRamp['colors'], colorRamp['interpolatedPoints'])
-            else:
-                converter.setDefaultColorRamp(colorRamp)
-
-            kmlString = converter.getAsKmlClusters(tableName=self.tableName,
-                                                   rasterId=self.id,
-                                                   rasterIdFieldName='id',
-                                                   documentName=self.filename,
-                                                   alpha=alpha)
-
-            if path:
-                with open(path, 'w') as f:
-                    f.write(kmlString)
-
-            return kmlString
-
-    def getAsKmlPng(self, session, path=None, colorRamp=ColorRampEnum.COLOR_RAMP_HUE, alpha=1.0, drawOrder=0):
-        """
-        Get the raster in a PNG / KML format
-        """
-        if type(self.raster) != type(None):
-            # Make sure the raster field is valid
-            converter = RasterConverter(sqlAlchemyEngineOrSession=session)
-
-            # Configure color ramp
-            if isinstance(colorRamp, dict):
-                converter.setCustomColorRamp(colorRamp['colors'], colorRamp['interpolatedPoints'])
-            else:
-                converter.setDefaultColorRamp(colorRamp)
-
-            kmlString, binaryPngString = converter.getAsKmlPng(tableName=self.tableName,
-                                                               rasterId=self.id,
-                                                               rasterIdFieldName='id',
-                                                               documentName=self.filename,
-                                                               alpha=alpha,
-                                                               drawOrder=drawOrder)
-
-            if path:
-                directory = os.path.dirname(path)
-                archiveName = (os.path.split(path)[1]).split('.')[0]
-                kmzPath = os.path.join(directory, (archiveName + '.kmz'))
-
-                with ZipFile(kmzPath, 'w') as kmz:
-                    kmz.writestr(archiveName + '.kml', kmlString)
-                    kmz.writestr('raster.png', binaryPngString)
-
-            return kmlString, binaryPngString
-
-    def getAsGrassAsciiGrid(self, session):
-        """
-        Get the raster in the Grass Ascii Grid format
-        """
-        if type(self.raster) != type(None):
-            # Make sure the raster field is valid
-            converter = RasterConverter(sqlAlchemyEngineOrSession=session)
-
-            return converter.getAsGrassAsciiRaster(tableName=self.tableName,
-                                                   rasterIdFieldName='id',
-                                                   rasterId=self.id)
