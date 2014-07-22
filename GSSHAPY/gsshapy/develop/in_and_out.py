@@ -115,7 +115,7 @@ stream_links = channel_input_file.streamLinks
 out_path = os.path.join(write_directory, 'channel.kml')
 styles = {'lineColor': (0, 255, 128, 255)}
 
-channel_input_file.getStreamNetworkAsKml(write_session, out_path, withNodes=True)
+channel_input_file.getStreamNetworkAsKml(write_session, out_path)
 #'''
 
 # MODEL REPRESENTATION ------------------------------------------------------------------------------------------------#
@@ -127,14 +127,14 @@ project_file.getKmlRepresentationOfModel(write_session, out_path, withStreamNetw
 #'''
 
 # LINK NODE DATASET ANIMATION -----------------------------------------------------------------------------------------#
-#'''
+'''
 channel_input_file = write_session.query(ChannelInputFile).first()
 link_node_dataset_file = write_session.query(LinkNodeDatasetFile).first()
 
 
 # link_node_dataset_file.linkToChannelInputFile(write_session, channel_input_file)
 out_path = os.path.join(write_directory, 'channel_depth.kml')
-link_node_dataset_file.getAsKmlAnimation(write_session, channel_input_file, path=out_path, zScale=100)
+link_node_dataset_file.getAsKmlAnimation(write_session, channel_input_file, path=out_path, zScale=150)
 #'''
 
 print 'KML OUT: ', time.time() - START

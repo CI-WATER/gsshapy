@@ -16,11 +16,12 @@ __all__ = ['LinkNodeDatasetFile',
 import xml.etree.ElementTree as ET
 from datetime import timedelta, datetime
 
-from sqlalchemy import Column, ForeignKey
+from sqlalchemy import Column, ForeignKey, func
 from sqlalchemy.types import Integer, String, Float
 from sqlalchemy.orm import relationship
 
 from mapkit.GeometryConverter import GeometryConverter
+from mapkit.ColorRampGenerator import ColorRampEnum, ColorRampGenerator
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
@@ -52,6 +53,8 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
     projectFile = relationship('ProjectFile', back_populates='linkNodeDatasets')  #: RELATIONSHIP
     timeSteps = relationship('LinkNodeTimeStep', back_populates='linkNodeDataset')  #: RELATIONSHIP
     channelInputFile = relationship('ChannelInputFile', back_populates='linkNodeDatasets')  #: RELATIONSHIP
+    linkDatasets = relationship('LinkDataset', back_populates='linkNodeDatasetFile')  #: RELATIONSHIP
+    nodeDatasets = relationship('NodeDataset', back_populates='linkNodeDatasetFile')  #: RELATIONSHIP
 
     def __init__(self):
         """
@@ -104,15 +107,33 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         session.add(self)
         session.commit()
 
-    ## TODO: Implement these methods
-
-    def getAsKmlAnimation(self, session, channelInputFile, path=None, documentName=None, zScale=1.0):
+    def getAsKmlAnimation(self, session, channelInputFile, path=None, documentName=None, zScale=1.0, radius=1, colorRampEnum=None):
         """
         Generate a KML visualization of the the dataset file.
         """
+        # Constants
+        DECMIAL_DEGREE_METER = 0.00001
+
+        # Defaults
+        radiusMeters = 1
+
         # Validate
         if not documentName:
             documentName = self.fileExtension
+
+        try:
+            radius = float(radius)
+            radiusMeters = radius * DECMIAL_DEGREE_METER
+        except ValueError:
+            print 'WARNING: radius must be a number representing the radius of the value cylinders in meters.'
+
+        # Configure color ramp
+            if colorRampEnum is None:
+                colorRamp = ColorRampGenerator.generateDefaultColorRamp(ColorRampEnum.COLOR_RAMP_HUE)
+            elif isinstance(colorRampEnum, dict):
+                colorRamp = ColorRampGenerator.generateCustomColorRamp(colorRampEnum['colors'], colorRampEnum['interpolatedPoints'])
+            elif isinstance(colorRampEnum, int):
+                colorRamp = ColorRampGenerator.generateDefaultColorRamp(colorRampEnum)
 
         # Link to channel input file
         self.linkToChannelInputFile(session, channelInputFile)
@@ -127,6 +148,13 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         timeStepDelta = timedelta(minutes=self.timeStepInterval)
         startDateTime = datetime(1970, 1, 1)
         startTimeParts = self.startTime.split()
+
+        # Calculate min and max values for the color ramp
+        minValue = session.query(func.min(NodeDataset.value)).filter(NodeDataset.linkNodeDatasetFile==self).scalar()
+        maxValue = session.query(func.max(NodeDataset.value)).filter(NodeDataset.linkNodeDatasetFile==self).scalar()
+
+        # Map color ramp to values
+        mappedColorRamp = ColorRampGenerator.mapColorRampToValues(colorRamp, minValue, maxValue)
 
         if len(startTimeParts) > 5:
             # Default start date time to epoch
@@ -151,8 +179,6 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         styleUrl.text = '#check-hide-children'
 
         for linkNodeTimeStep in linkNodeTimeSteps:
-            print linkNodeTimeStep.timeStep
-
             # Create current datetime objects
             timeSpanBegin = startDateTime + (linkNodeTimeStep.timeStep * timeStepDelta)
             timeSpanEnd = timeSpanBegin + timeStepDelta
@@ -167,15 +193,44 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 for nodeDataset in nodeDatasets:
                     # Get node
                     node = nodeDataset.node
+                    link = node.streamLink
 
+                    # Convert to circle
                     circleString = converter.getPointAsKmlCircle(tableName=node.tableName,
-                                                                 radius=0.0001,
+                                                                 radius=radiusMeters,
                                                                  extrude=nodeDataset.value,
                                                                  zScaleFactor=zScale,
                                                                  geometryId=node.id)
 
+                    # Convert alpha from 0.0-1.0 decimal to 00-FF string
+                    integerAlpha = mappedColorRamp.getAlphaAsInteger()
+
+                    # Get RGB color from color ramp and convert to KML hex ABGR string with alpha
+                    integerRGB = mappedColorRamp.getColorForValue(nodeDataset.value)
+
+                    # Make color ABGR string
+                    colorString = '%02X%02X%02X%02X' % (integerAlpha,
+                                                        integerRGB[mappedColorRamp.B],
+                                                        integerRGB[mappedColorRamp.G],
+                                                        integerRGB[mappedColorRamp.R])
+
                     # Create placemark
                     placemark = ET.SubElement(document, 'Placemark')
+
+                    # Create style tag and setup styles
+                    style = ET.SubElement(placemark, 'Style')
+
+                    # Set polygon line style
+                    lineStyle = ET.SubElement(style, 'LineStyle')
+
+                    # Disable lines by setting line width to 0
+                    lineWidth = ET.SubElement(lineStyle, 'width')
+                    lineWidth.text = str(0)
+
+                    # Set polygon fill color
+                    polyStyle = ET.SubElement(style, 'PolyStyle')
+                    polyColor = ET.SubElement(polyStyle, 'color')
+                    polyColor.text = colorString
 
                     # Create TimeSpan tag
                     timeSpan = ET.SubElement(placemark, 'TimeSpan')
@@ -189,6 +244,21 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Append geometry
                     polygonCircle = ET.fromstring(circleString)
                     placemark.append(polygonCircle)
+
+                    # Embed node data
+                    nodeExtendedData = ET.SubElement(placemark, 'ExtendedData')
+
+                    nodeNumberData = ET.SubElement(nodeExtendedData, 'Data', name='node_number')
+                    nodeNumberValue = ET.SubElement(nodeNumberData, 'value')
+                    nodeNumberValue.text = str(node.nodeNumber)
+
+                    nodeLinkNumberData = ET.SubElement(nodeExtendedData, 'Data', name='link_number')
+                    nodeLinkNumberValue = ET.SubElement(nodeLinkNumberData, 'value')
+                    nodeLinkNumberValue.text = str(link.linkNumber)
+
+                    nodeElevationData = ET.SubElement(nodeExtendedData, 'Data', name='value')
+                    nodeElevationValue = ET.SubElement(nodeElevationData, 'value')
+                    nodeElevationValue.text = str(nodeDataset.value)
 
 
         kmlString = ET.tostring(kml)
@@ -262,9 +332,33 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                             timeStep.linkNodeDataset = self
 
                         else:
-                            # LinkNodeLine handler
-                            linkDataset = self._createLinkDataset(line.strip())
+                            # Split the line
+                            spLinkLine = line.strip().split()
+
+                            # Create LinkDataset GSSHAPY object
+                            linkDataset = LinkDataset()
+                            linkDataset.numNodeDatasets = int(spLinkLine[0])
                             linkDataset.timeStep = timeStep
+                            linkDataset.linkNodeDatasetFile = self
+
+                            # Parse line into NodeDatasets
+                            NODE_VALUE_INCREMENT = 2
+                            statusIndex = 1
+                            valueIndex = statusIndex + 1
+
+                            # Parse line into node datasets
+                            for i in range(0, linkDataset.numNodeDatasets):
+                                # Create NodeDataset GSSHAPY object
+                                nodeDataset = NodeDataset()
+                                nodeDataset.status = int(spLinkLine[statusIndex])
+                                nodeDataset.value = float(spLinkLine[valueIndex])
+                                nodeDataset.linkDataset = linkDataset
+                                nodeDataset.linkNodeDatasetFile = self
+
+                                # Increment to next status/value pair
+                                statusIndex += NODE_VALUE_INCREMENT
+                                valueIndex += NODE_VALUE_INCREMENT
+
 
     def _write(self, session, openFile):
         """
@@ -303,36 +397,6 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Insert empty line between time steps 
             openFile.write('\n')
 
-    def _createLinkDataset(self, linkLine):
-        """
-        Create LinkDataset object
-        """
-        # Split the line
-        spLinkLine = linkLine.split()
-
-        # Create LinkDataset GSSHAPY object
-        linkDataset = LinkDataset()
-        linkDataset.numNodeDatasets = int(spLinkLine[0])
-
-        # Parse line into NodeDatasets
-        NODE_VALUE_INCREMENT = 2
-        statusIndex = 1
-        valueIndex = statusIndex + 1
-
-        # Parse line into node datasets
-        for i in range(0, linkDataset.numNodeDatasets):
-            # Create NodeDataset GSSHAPY object
-            nodeDataset = NodeDataset()
-            nodeDataset.status = int(spLinkLine[statusIndex])
-            nodeDataset.value = float(spLinkLine[valueIndex])
-            nodeDataset.linkDataset = linkDataset
-
-            # Increment to next status/value pair
-            statusIndex += NODE_VALUE_INCREMENT
-            valueIndex += NODE_VALUE_INCREMENT
-
-        return linkDataset
-
 
 class LinkNodeTimeStep(DeclarativeBase):
     """
@@ -369,11 +433,14 @@ class LinkDataset(DeclarativeBase):
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
     timeStepID = Column(Integer, ForeignKey('lnd_time_steps.id'))  #: FK
     streamLinkID = Column(Integer, ForeignKey('cif_links.id'))  #: FK
+    linkNodeDatasetFileID = Column(Integer, ForeignKey('lnd_link_node_dataset_files.id'))  #: FK
+
 
     # Value Columns
     numNodeDatasets = Column(Integer)  #: INTEGER
 
     # Relationship Properties
+    linkNodeDatasetFile = relationship('LinkNodeDatasetFile', back_populates='linkDatasets')  #: RELATIONSHIP
     timeStep = relationship('LinkNodeTimeStep', back_populates='linkDatasets')  #: RELATIONSHIP
     nodeDatasets = relationship('NodeDataset', back_populates='linkDataset')  #: RELATIONSHIP
     link = relationship('StreamLink', back_populates='datasets')  #: RELATIONSHIP
@@ -392,12 +459,14 @@ class NodeDataset(DeclarativeBase):
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
     linkDatasetID = Column(Integer, ForeignKey('lnd_link_datasets.id'))  #: FK
     streamNodeID = Column(Integer, ForeignKey('cif_nodes.id'))  #: FK
+    linkNodeDatasetFileID = Column(Integer, ForeignKey('lnd_link_node_dataset_files.id'))  #: FK
 
     # Value Columns
     status = Column(Integer)  #: INTEGER
     value = Column(Float)  #: FLOAT
 
     # Relationship Properties
+    linkNodeDatasetFile = relationship('LinkNodeDatasetFile', back_populates='nodeDatasets')  #: RELATIONSHIP
     linkDataset = relationship('LinkDataset', back_populates='nodeDatasets')  #: RELATIONSHIP
     node = relationship('StreamNode', back_populates='datasets')  #: RELATIONSHIP
 
