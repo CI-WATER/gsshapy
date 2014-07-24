@@ -123,13 +123,13 @@ channel_input_file.getStreamNetworkAsKml(write_session, out_path)
 #'''
 
 # MODEL REPRESENTATION ------------------------------------------------------------------------------------------------#
-#'''
+'''
 out_path = os.path.join(write_directory, 'model.kml')
 styles = {'maskFillColor': (255, 128, 0, 255),
           'maskLineWidth': 0.0}
 # project_file.getModelSummaryAsKml(write_session, out_path, withStreamNetwork=True, styles=styles)
 # print project_file.getModelSummaryAsWkt(write_session, withStreamNetwork=True, withNodes=True)
-print project_file.getModelSummaryAsGeoJson(write_session, withStreamNetwork=True)
+#print project_file.getModelSummaryAsGeoJson(write_session, withStreamNetwork=True)
 #'''
 
 # LINK NODE DATASET ANIMATION -----------------------------------------------------------------------------------------#

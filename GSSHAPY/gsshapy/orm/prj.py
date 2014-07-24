@@ -476,8 +476,11 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     def getModelSummaryAsKml(self, session, path=None, withStreamNetwork=True, withNodes=False, styles={}, documentName=None):
         """
         Retrieve a KML representation of the model. Includes vectorized mask map and stream network.
+
         :param session: SQLAlchemy session object bound to PostGIS enabled database
         :param path: Path to which to write KML
+        :param withStreamNetwork: Include stream network in summary
+        :param withNodes: Include stream nodes in summary
         :param styles: Dictionary of styling options
                 valid styles:
                    streamLineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
@@ -488,6 +491,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                    maskLineWidth: float line width in pixels
                    maskFillColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
 
+        :param documentName: Name to give to KML document
         :rtype : string
         """
         # Get mask map
@@ -681,6 +685,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     def getModelSummaryAsWkt(self, session, withStreamNetwork=True, withNodes=False):
         """
         Retrieve a Well Known Text representation of the model. Includes vectorized mask map and stream network.
+
+        :param session: SQLAlchemy session object bound to PostGIS enabled database
+        :param withStreamNetwork: Include stream network in summary
+        :param withNodes: Include stream nodes in summary
+
+        :rtype: string
         """
         # Get mask map
         watershedMaskCard = self.getCard('WATERSHED_MASK')
@@ -732,6 +742,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     def getModelSummaryAsGeoJson(self, session, withStreamNetwork=True, withNodes=False):
         """
         Retrieve a GeoJSON representation of the model. Includes vectorized mask map and stream network.
+
+        :param session: SQLAlchemy session object bound to PostGIS enabled database
+        :param withStreamNetwork: Include stream network in summary
+        :param withNodes: Include stream nodes in summary
+
+        :rtype: string
         """
         # Get mask map
         watershedMaskCard = self.getCard('WATERSHED_MASK')
