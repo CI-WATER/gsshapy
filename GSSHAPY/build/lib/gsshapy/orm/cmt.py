@@ -226,7 +226,6 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self._createValueObjects(mt['valueList'], mt['varList'], mapTable, indexMap, None)
             
             except:
-                ## TODO: Formalize warning messages as Error objects
                 print ('WARNING: Index Map "%s" for Mapping Table "%s" not found in list of index maps in the mapping '
                        'table file. The Mapping Table was not read into the database.') % (mt['indexMapName'], mt['name'])
                 

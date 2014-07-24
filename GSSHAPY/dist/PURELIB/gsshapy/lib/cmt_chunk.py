@@ -91,7 +91,6 @@ def contamChunk(key, chunk):
     # Check if there are any contaminants. No need
     # to process further if there are 0.
     if numVars['NUM_CONTAM'] == 0:
-        ## TODO: ERROR
         print ('WARNING: No contaminants found in the CONTAMINANT_TRANSPORT TABLE (NUM_CONTAM = 0).' 
                'This table will not be read into the database.')
         return None
@@ -169,7 +168,6 @@ def sedimentChunk(key, chunk):
             if int(sline[1]) == 0:
                 # If there are no sediments
                 # return nothing
-                ## TODO: ERROR
                 print ('WARNING: No sediments found in the SEDIMENTS table (NUM_SED = 0).'
                        'This table will not be read into the database.')
                 return None

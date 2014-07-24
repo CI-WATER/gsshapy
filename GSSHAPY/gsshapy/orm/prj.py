@@ -7,6 +7,7 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
+import json
 
 __all__ = ['ProjectFile',
            'ProjectCard']
@@ -150,7 +151,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     OUTPUT_FILES = {'SUMMARY': GenericFile,  # Required Output
                     'OUTLET_HYDRO': TimeSeriesFile,
-                    'DEPTH': None,  ## TODO: Binary format? .lel
                     'OUT_THETA_LOCATION': TimeSeriesFile,  # Infiltration
                     'EXPLIC_BACKWATER': GenericFile,  # Channel Routing
                     'WRITE_CHAN_HOTSTART': GenericFile,
@@ -161,8 +161,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     'CHAN_STAGE': LinkNodeDatasetFile,
                     'CHAN_DISCHARGE': LinkNodeDatasetFile,
                     'CHAN_VELOCITY': LinkNodeDatasetFile,
-                    'LAKE_OUTPUT': GenericFile,  ## TODO: Special format? .lel
-                    'SNOW_SWE_FILE': None,  # Continuous Simulation ## TODO: Binary format?
+                    'LAKE_OUTPUT': None,  ## TODO: Special format? .lel
                     'GW_WELL_LEVEL': GenericFile,  # Saturated Groundwater Flow
                     'OUT_GWFULX_LOCATION': TimeSeriesFile,
                     'OUTLET_SED_FLUX': TimeSeriesFile,  # Soil Erosion
@@ -180,20 +179,16 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     'OVERLAND_WSE': TimeSeriesFile,
                     'OPTIMIZE': GenericFile}
 
-    ## TODO: Handle Different Output Map Formats
-    OUTPUT_MAPS = ('GW_OUTPUT',  # MAP_TYPE  # Output Files
-                   'DISCHARGE',  # MAP_TYPE
-                   'INF_DEPTH',  # MAP_TYPE
-                   'SURF_MOIS',  # MAP_TYPE
-                   'RATE_OF_INFIL',  # MAP_TYPE
-                   'DIS_RAIN',  # MAP_TYPE
-                   'GW_OUTPUT',  # MAP_TYPE
-                   'GW_RECHARGE_CUM',  # MAP_TYPE
-                   'GW_RECHARGE_INC',  # MAP_TYPE
-                   'WRITE_OV_HOTSTART',  # Overland Flow
-                   'WRITE_SM_HOSTART')  # Infiltration
-
-    WMS_DATASETS = ('DEPTH', )
+    WMS_DATASETS = ('DEPTH',
+                    'SNOW_SWE_FILE',
+                    'DISCHARGE',
+                    'INF_DEPTH',
+                    'SURF_MOIS',
+                    'RATE_OF_INFIL',
+                    'DIS_RAIN',
+                    'GW_OUTPUT',
+                    'GW_RECHARGE_CUM',
+                    'GW_RECHARGE_INC')
 
     # Error Messages
     COMMIT_ERROR_MESSAGE = ('Ensure the files listed in the project file '
@@ -268,9 +263,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         Append directory to relative paths in project file.
         By default, the project files are written with relative paths.
         """
-
-        ## TODO: Test whether this works or not (changed from self.PATH global to projectFilePath parameter)
-
         lines = []
         with open(projectFilePath, 'r') as original:
             for l in original:
@@ -331,10 +323,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
                            raster2pgsqlPath=raster2pgsqlPath)
 
-        # Read Output Map Files
-        self._readXputMaps(self.OUTPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
-                           raster2pgsqlPath=raster2pgsqlPath)
-
         # Read WMS Dataset Files
         self._readWMSDatasets(self.WMS_DATASETS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
@@ -376,10 +364,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._readXput(self.OUTPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
                        raster2pgsqlPath=raster2pgsqlPath)
 
-        # Read Output Map Files
-        self._readXputMaps(self.OUTPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
-                           raster2pgsqlPath=raster2pgsqlPath)
-
         # Read WMS Dataset Files
         self._readWMSDatasets(self.WMS_DATASETS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
@@ -407,9 +391,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Write input map files
         self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name)
-
-        # Write output map files
-        self._writeXputMaps(session=session, directory=directory, mapCards=self.OUTPUT_MAPS, name=name)
 
         # Write WMS Dataset Files
         self._writeWMSDatasets(session=session, directory=directory, wmsDatasetCards=self.WMS_DATASETS, name=name)
@@ -446,9 +427,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Write output files
         self._writeXput(session=session, directory=directory, fileCards=self.OUTPUT_FILES, name=name)
-
-        # Write output map files
-        self._writeXputMaps(session=session, directory=directory, mapCards=self.OUTPUT_MAPS, name=name)
 
         # Write WMS Dataset Files
         self._writeWMSDatasets(session=session, directory=directory, wmsDatasetCards=self.WMS_DATASETS, name=name)
@@ -495,7 +473,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return None
 
-    def getKmlRepresentationOfModel(self, session, path=None, withStreamNetwork=True, withNodes=False, styles={}, documentName=None):
+    def getModelSummaryAsKml(self, session, path=None, withStreamNetwork=True, withNodes=False, styles={}, documentName=None):
         """
         Retrieve a KML representation of the model. Includes vectorized mask map and stream network.
         :param session: SQLAlchemy session object bound to PostGIS enabled database
@@ -700,17 +678,116 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return kmlString
 
-## TODO: Implement these methods
-
-    def getWktRepresentationOfModel(self):
+    def getModelSummaryAsWkt(self, session, withStreamNetwork=True, withNodes=False):
         """
         Retrieve a Well Known Text representation of the model. Includes vectorized mask map and stream network.
         """
+        # Get mask map
+        watershedMaskCard = self.getCard('WATERSHED_MASK')
+        maskFilename = watershedMaskCard.value
+        maskExtension = maskFilename.strip('"').split('.')[1]
 
-    def getGeoJSONRepresentationOfModel(self):
+        maskMap = session.query(RasterMapFile).\
+                          filter(RasterMapFile.projectFile == self).\
+                          filter(RasterMapFile.fileExtension == maskExtension).\
+                          one()
+
+        # Get mask map as a KML polygon
+        statement = '''
+                    SELECT val, ST_AsText(geom) As polygon
+                    FROM (
+                    SELECT (ST_DumpAsPolygons({0})).*
+                    FROM {1} WHERE id={2}
+                    ) As foo
+                    ORDER BY val;
+                    '''.format('raster', maskMap.tableName, maskMap.id)
+
+        result = session.execute(statement)
+
+        maskMapTextPolygon = ''
+        for row in result:
+            maskMapTextPolygon = row.polygon
+
+        # Default WKT model representation string is a geometry collection with the mask map polygon
+        wktString = 'GEOMCOLLECTION ({0})'.format(maskMapTextPolygon)
+
+        if withStreamNetwork:
+            # Get the channel input file for the stream network
+            channelInputFile = self.channelInputFile
+
+            # Some models may not have streams enabled
+            if channelInputFile is not None:
+                # Use the existing method on the channel input file to generate the stream network WKT
+                wktStreamNetwork = channelInputFile.getStreamNetworkAsWkt(session=session, withNodes=withNodes)
+
+                # Strip off the "GEOMCOLLECTION" identifier
+                wktStreamNetwork = wktStreamNetwork.replace('GEOMCOLLECTION (', '')
+
+                # Replace the WKT model representation string with a geometry collection with mask map
+                # and all stream network components
+                wktString = 'GEOMCOLLECTION ({0}, {1}'.format(maskMapTextPolygon, wktStreamNetwork)
+
+        return wktString
+
+    def getModelSummaryAsGeoJson(self, session, withStreamNetwork=True, withNodes=False):
         """
         Retrieve a GeoJSON representation of the model. Includes vectorized mask map and stream network.
         """
+        # Get mask map
+        watershedMaskCard = self.getCard('WATERSHED_MASK')
+        maskFilename = watershedMaskCard.value
+        maskExtension = maskFilename.strip('"').split('.')[1]
+
+        maskMap = session.query(RasterMapFile).\
+                          filter(RasterMapFile.projectFile == self).\
+                          filter(RasterMapFile.fileExtension == maskExtension).\
+                          one()
+
+        # Get mask map as a KML polygon
+        statement = '''
+                    SELECT val, ST_AsGeoJSON(geom) As polygon
+                    FROM (
+                    SELECT (ST_DumpAsPolygons({0})).*
+                    FROM {1} WHERE id={2}
+                    ) As foo
+                    ORDER BY val;
+                    '''.format('raster', maskMap.tableName, maskMap.id)
+
+        result = session.execute(statement)
+
+        maskMapJsonPolygon = ''
+        for row in result:
+            maskMapJsonPolygon = row.polygon
+
+        jsonString = maskMapJsonPolygon
+
+        if withStreamNetwork:
+            # Get the channel input file for the stream network
+            channelInputFile = self.channelInputFile
+
+            if channelInputFile is not None:
+                # Use the existing method on the channel input file to generate the stream network GeoJson
+                jsonStreamNetwork = channelInputFile.getStreamNetworkAsGeoJson(session=session, withNodes=withNodes)
+
+                # Convert to json Python objects
+                featureCollection = json.loads(jsonStreamNetwork)
+                jsonMaskMapObjects = json.loads(maskMapJsonPolygon)
+
+                # Create a mask feature
+                maskFeature = {"type": "Feature",
+                               "geometry": jsonMaskMapObjects,
+                               "properties": {},
+                               "id": maskMap.id}
+
+                # Add mask map to feature collection
+                tempFeatures = featureCollection['features']
+                tempFeatures.append(maskFeature)
+                featureCollection['features'] = tempFeatures
+
+                # Dump to string
+                jsonString = json.dumps(featureCollection)
+
+        return jsonString
 
     def _readXput(self, fileCards, directory, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         """

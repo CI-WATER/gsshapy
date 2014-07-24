@@ -256,7 +256,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         return kmlString
 
 
-    def getStreamNetworkAsWkt(self, session, nodes=True):
+    def getStreamNetworkAsWkt(self, session, withNodes=True):
         """
         Retrieve the stream network in Well Known Text format
         """
@@ -265,12 +265,13 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         for link in self.streamLinks:
             wkt_list.append(link.getAsWkt(session))
 
-            for node in link.nodes:
-                wkt_list.append(node.getAsWkt(session))
+            if withNodes:
+                for node in link.nodes:
+                    wkt_list.append(node.getAsWkt(session))
 
         return 'GEOMCOLLECTION ({0})'.format(', '.join(wkt_list))
 
-    def getStreamNetworkAsGeoJSON(self, session, nodes=True):
+    def getStreamNetworkAsGeoJson(self, session, withNodes=True):
         """
         Retrieve the stream network in GeoJSON format
         """

@@ -37,17 +37,15 @@ sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
                                         database='gsshapy_postgis_2')
 
 # GLOBAL PARAMETERS ---------------------------------------------------------------------------------------------------#
-#'''
+'''
 read_directory = '/Users/swainn/testing/timeseries_maps/Park_City_Chan_Depth'
 write_directory = '/Users/swainn/testing/timeseries_maps/Park_City_Chan_Depth/write'
-project_file_name = 'parkcity.prj'
 '''
 read_directory = '/Users/swainn/testing/test_models/SNOW_DATA'
 write_directory = '/Users/swainn/testing/test_models/SNOW_DATA/write'
-project_file_name = 'longterm_snow.prj'
 #'''
 
-
+project_file_name = 'longterm_snow.prj'
 out_file_name = 'out'
 new_name = 'out'
 spatial = True
@@ -76,7 +74,7 @@ print 'WRITE: ', time.time() - START
 
 # KML TESTING ---------------------------------------------------------------------------------------------------------#
 project_file = write_session.query(ProjectFile).first()
-wms_dataset = write_session.query(WMSDatasetFile).first()
+wms_dataset = write_session.query(WMSDatasetFile).get(2)
 
 START = time.time()
 
@@ -84,11 +82,11 @@ START = time.time()
 '''
 out_path = os.path.join(write_directory, 'depth.kml')
 wms_dataset.getAsKmlGridAnimation(write_session, project_file, path=out_path, colorRamp=ColorRampEnum.COLOR_RAMP_AQUA)
-'''
+#'''
 
 '''
-out_path = os.path.join(write_directory, 'depth.kmz')
-wms_dataset.getAsKmlPngAnimation(write_session, project_file, path=out_path, colorRamp=ColorRampEnum.COLOR_RAMP_AQUA, alpha=0.8, cellSize=10)
+out_path = os.path.join(write_directory, 'swe.kmz')
+wms_dataset.getAsKmlPngAnimation(write_session, project_file, path=out_path, colorRamp=ColorRampEnum.COLOR_RAMP_AQUA, alpha=0.8)
 #'''
 
 # SINGLE WMS DATASET RASTER -------------------------------------------------------------------------------------------#
@@ -123,13 +121,11 @@ channel_input_file.getStreamNetworkAsKml(write_session, out_path)
 #'''
 
 # MODEL REPRESENTATION ------------------------------------------------------------------------------------------------#
-#'''
+'''
 out_path = os.path.join(write_directory, 'model.kml')
 styles = {'maskFillColor': (255, 128, 0, 255),
           'maskLineWidth': 0.0}
-# project_file.getModelSummaryAsKml(write_session, out_path, withStreamNetwork=True, styles=styles)
-# print project_file.getModelSummaryAsWkt(write_session, withStreamNetwork=True, withNodes=True)
-print project_file.getModelSummaryAsGeoJson(write_session, withStreamNetwork=True)
+project_file.getKmlRepresentationOfModel(write_session, out_path, withStreamNetwork=True, styles=styles)
 #'''
 
 # LINK NODE DATASET ANIMATION -----------------------------------------------------------------------------------------#

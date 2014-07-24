@@ -102,8 +102,8 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # Pivot using the function found at:
                 # code.activestate.com/recipes/334695
                 pivotedValues = pivot.pivot(valList, ('DateTime', 'ValueType'), ('Gage',), 'Value')
-                
-                ## TODO: Create custom pivot function that can work with sqlalchemy 
+
+                ## TODO: Create custom pivot function that can work with sqlalchemy
                 ## objects explicitly without the costly conversion.
                 
                 # Create an empty set for obtaining a list of unique gages
@@ -204,7 +204,6 @@ class PrecipEvent(DeclarativeBase):
         '''
         Constructor
         '''
-        #TODO - add validation
         self.description = description
         self.nrGag = nrGag
         self.nrPds = nrPds
