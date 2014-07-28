@@ -36,15 +36,15 @@ from gsshapy.orm.geom import GeometricObject
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt, cif_chunk as cic
 
+
 class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
-    File object interface for the Channel Input File. The contents of this file is abstracted to several member objects
-    including: StreamLink, UpstreamLink, StreamNode, Weir, Culvert, Reservoir, ReservoirPoint, BreakpointCS, Breakpoint,
-    and TrapezoidalCS. See docs for each object for more detailed explanations.
+    Object interface for the Channel Input File. The contents of this file is abstracted into several objects including:
+    StreamLink, UpstreamLink, StreamNode, Weir, Culvert, Reservoir, ReservoirPoint, BreakpointCS, Breakpoint, and
+    TrapezoidalCS. See the documentation provided for each object for a more details.
 
-    The GSSHA documentation used to design this object can be found by folloing these links:
-
-
+    The GSSHA documentation used to design this object can be found by following these links:
+    http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing
     """
     __tablename__ = 'cif_channel_input_files'
 
@@ -84,7 +84,8 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def getFluvialLinks(self):
         """
-        Retrieve only the links that represent fluvial portions of the stream.
+        Retrieve only the links that represent fluvial portions of the stream. Returns a list of StreamLink instances.
+        :rtype: list
         """
         # Define fluvial types
         fluvialTypeKeywords = ('TRAPEZOID', 'TRAP', 'BREAKPOINT', 'ERODE', 'SUBSURFACE')
@@ -101,19 +102,18 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def getStreamNetworkAsKml(self, session, path=None, withNodes=False, styles={}, documentName='GSSHA Stream Network'):
         """
-        Retrieve the stream network in KML format
+        Retrieve the stream network visualization in KML format.
         :param session: SQLAlchemy session object bound to PostGIS enabled database
         :param path: Path to which to write KML file
-        :param withNodes: Include nodes
+        :param withNodes: Include node geometry
         :param styles: Dictionary of styles to apply
                 valid styles:
                    lineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
                    lineWidth: float line width in pixels
                    nodeIconHref: link to icon image (PNG format) to represent nodes (see: http://kml4earth.appspot.com/icons.html)
                    nodeIconScale: scale of the icon image
-
         :param documentName: Name of the KML document that will show up in the legend
-        :rtype : string
+        :rtype: str
         """
         # Retrieve Stream Links
         links = self.streamLinks
@@ -261,10 +261,12 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return kmlString
 
-
     def getStreamNetworkAsWkt(self, session, withNodes=True):
         """
-        Retrieve the stream network in Well Known Text format
+        Retrieve the stream network geometry in Well Known Text format.
+        :param session: SQLAlchemy session object bound to PostGIS enabled database
+        :param withNodes: Include node geometry
+        :rtype: str
         """
         wkt_list = []
 
@@ -279,7 +281,10 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def getStreamNetworkAsGeoJson(self, session, withNodes=True):
         """
-        Retrieve the stream network in GeoJSON format
+        Retrieve the stream network geometry in GeoJSON format.
+        :param session: SQLAlchemy session object bound to PostGIS enabled database
+        :param withNodes: Include node geometry
+        :rtype: str
         """
         features_list = []
 
@@ -302,19 +307,20 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             features_list.append(link_feature)
 
             # Assemble node features
-            for node in link.nodes:
-                node_geometry = json.loads(node.getAsGeoJson(session))
+            if withNodes:
+                for node in link.nodes:
+                    node_geometry = json.loads(node.getAsGeoJson(session))
 
-                node_properties = {"link_number": link.linkNumber,
-                                   "node_number": node.nodeNumber,
-                                   "elevation": node.elevation}
+                    node_properties = {"link_number": link.linkNumber,
+                                       "node_number": node.nodeNumber,
+                                       "elevation": node.elevation}
 
-                node_feature = {"type": "Feature",
-                                "geometry": node_geometry,
-                                "properties": node_properties,
-                                "id": node.id}
+                    node_feature = {"type": "Feature",
+                                    "geometry": node_geometry,
+                                    "properties": node_properties,
+                                    "id": node.id}
 
-                features_list.append(node_feature)
+                    features_list.append(node_feature)
 
         feature_collection = {"type": "FeatureCollection",
                               "features": features_list}
@@ -677,9 +683,6 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
             session.execute(statement)
 
-
-
-
     def _writeConnectivity(self, links, fileObject):
         """
         Write Connectivity Lines to File Method
@@ -825,7 +828,6 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             if culvert.height != None:
                 fileObject.write('HEIGHT                   %.6f\n' % culvert.height)
 
-
     def _writeCrossSectionLink(self, link, fileObject):
         """
         Write Cross Section Link to File Method
@@ -911,6 +913,8 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class StreamLink(DeclarativeBase, GeometricObject):
     """
+    Object representing the stream links or reaches in the channel network.
+    See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4_-_Link_.28Reach.29_information
     """
     __tablename__ = 'cif_links'
 
