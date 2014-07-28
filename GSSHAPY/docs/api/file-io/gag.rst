@@ -8,25 +8,28 @@ File Object
 ===========
 
 .. autoclass:: gsshapy.orm.PrecipFile
-	:members:
-	:inherited-members:
-	
-	
+    :members:
+    :show-inheritance:
+
+
 Table Objects
 +++++++++++++
 
 .. autoclass:: gsshapy.orm.PrecipEvent
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+
 .. autoclass:: gsshapy.orm.PrecipValue
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+
 .. autoclass:: gsshapy.orm.PrecipGage
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+

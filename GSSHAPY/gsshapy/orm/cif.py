@@ -51,6 +51,8 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
     __tablename__ = 'cif_channel_input_files'
 
+    tableName = __tablename__  #: Database tablename
+
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
 
@@ -943,6 +945,8 @@ class StreamLink(DeclarativeBase, GeometricObject):
     """
     __tablename__ = 'cif_links'
 
+    tableName = __tablename__  #: Database tablename
+
     # Public Table Metadata
     tableName = __tablename__
     geometryColumnName = 'geometry'
@@ -1015,6 +1019,8 @@ class UpstreamLink(DeclarativeBase):
     """
     __tablename__ = 'cif_upstream_links'
 
+    tableName = __tablename__  #: Database tablename
+
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
     linkID = Column(Integer, ForeignKey('cif_links.id'))  #: INTEGER
@@ -1045,6 +1051,8 @@ class StreamNode(DeclarativeBase, GeometricObject):
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.4_Node_information
     """
     __tablename__ = 'cif_nodes'
+
+    tableName = __tablename__  #: Database tablename
 
     # Public Table Metadata
     tableName = __tablename__
@@ -1097,6 +1105,8 @@ class Weir(DeclarativeBase):
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2_-_Structure_channel_links
     """
     __tablename__ = 'cif_weirs'
+
+    tableName = __tablename__  #: Database tablename
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
@@ -1160,6 +1170,8 @@ class Culvert(DeclarativeBase):
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2_-_Structure_channel_links
     """
     __tablename__ = 'cif_culverts'
+
+    tableName = __tablename__  #: Database tablename
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
@@ -1234,6 +1246,8 @@ class Reservoir(DeclarativeBase):
     """
     __tablename__ = 'cif_reservoirs'
 
+    tableName = __tablename__  #: Database tablename
+
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
     linkID = Column(Integer, ForeignKey('cif_links.id'))  #: FK
@@ -1272,6 +1286,8 @@ class ReservoirPoint(DeclarativeBase):
     """
     __tablename__ = 'cif_reservoir_points'
 
+    tableName = __tablename__  #: Database tablename
+
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
     reservoirID = Column(Integer, ForeignKey('cif_reservoirs.id'))  #: FK
@@ -1305,6 +1321,8 @@ class BreakpointCS(DeclarativeBase):
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.2_Natural_cross-section
     """
     __tablename__ = 'cif_breakpoint'
+
+    tableName = __tablename__  #: Database tablename
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
@@ -1367,6 +1385,8 @@ class Breakpoint(DeclarativeBase):
     """
     __tablename__ = 'cif_bcs_points'
 
+    tableName = __tablename__  #: Database tablename
+
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
     crossSectionID = Column(Integer, ForeignKey('cif_breakpoint.id'))  #: FK
@@ -1400,6 +1420,8 @@ class TrapezoidalCS(DeclarativeBase):
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.1_Trapezoidal_cross-section
     """
     __tablename__ = 'cif_trapezoid'
+
+    tableName = __tablename__  #: Database tablename
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK

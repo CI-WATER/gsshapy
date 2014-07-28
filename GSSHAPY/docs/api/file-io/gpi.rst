@@ -8,18 +8,19 @@ File Object
 ===========
 
 .. autoclass:: gsshapy.orm.GridPipeFile
-	:members:
-	:inherited-members:
-	
+    :members:
+    :show-inheritance:
+
 Table Objects
 +++++++++++++
 
 .. autoclass:: gsshapy.orm.GridPipeCell
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+
 .. autoclass:: gsshapy.orm.GridPipeNode
-	:members:
-	
-	
+    :members:
+    :show-inheritance:
+

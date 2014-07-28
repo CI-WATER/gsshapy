@@ -28,6 +28,13 @@ gag_assoc_event_gage = Table('gag_assoc_event_gage', DeclarativeBase.metadata,
 
 class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    Object interface for the Precipitation Input File.
+
+    The contents of the precipitation file are abstracted into three types of objects including: :class:`.PrecipEvent`,
+    :class:`.PrecipValue`, and :class:`.PrecipGage`. One precipitation file can consist of multiple events and each event
+    can have several gages and a time series of values for each gage.
+
+    See: http://www.gsshawiki.com/Precipitation:Spatially_and_Temporally_Varied_Precipitation
     """
     __tablename__ = 'gag_precipitation_files'
 
@@ -141,7 +148,6 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Create GSSHAPY PrecipEvent, PrecipValue, and PrecipGage Objects Method
         """
-        ## NOTE: RADAR file format not supported currently. 
         ## TODO: Add Support for RADAR file format type values
 
         # Create GSSHAPY PrecipEvent
@@ -179,6 +185,7 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class PrecipEvent(DeclarativeBase):
     """
+    Object containing data for a single precipitation event.
     """
     __tablename__ = 'gag_events'
 
@@ -214,6 +221,7 @@ class PrecipEvent(DeclarativeBase):
 
 class PrecipValue(DeclarativeBase):
     """
+    Object containing data for a single time stamped precipitation value.
     """
     __tablename__ = 'gag_values'
 
@@ -247,6 +255,7 @@ class PrecipValue(DeclarativeBase):
 
 class PrecipGage(DeclarativeBase):
     """
+    Object containing data for a single precipitation gage or location.
     """
     __tablename__ = 'gag_coord'
 
