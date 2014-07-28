@@ -8,60 +8,57 @@ File Object
 ===========
 
 .. autoclass:: gsshapy.orm.ChannelInputFile
-	:members:
-	:inherited-members:
+    :members:
+    :inherited-members:
 
-    .. automethod:: getStreamNetworkAsKml
-	
-	
-	
+
 Table Objects
 +++++++++++++
 
 .. autoclass:: gsshapy.orm.StreamLink
-	:members:
-	
-	
-	
+    :members:
+
+
+
 .. autoclass:: gsshapy.orm.StreamNode
-	:members:
-	
-	
-	
+    :members:
+
+
+
 .. autoclass:: gsshapy.orm.UpstreamLink
-	:members:
-	
-	
+    :members:
+
+
 .. autoclass:: gsshapy.orm.Weir
-	:members:
-	
-	
-	
+    :members:
+
+
+
 .. autoclass:: gsshapy.orm.Culvert
-	:members:
-	
-	
+    :members:
+
+
 .. autoclass:: gsshapy.orm.Reservoir
-	:members:
-	
-	
-	
+    :members:
+
+
+
 .. autoclass:: gsshapy.orm.ReservoirPoint
-	:members:
-	
-	
-	
+    :members:
+
+
+
 .. autoclass:: gsshapy.orm.BreakpointCS
-	:members:
-	
-	
-	
+    :members:
+
+
+
 .. autoclass:: gsshapy.orm.Breakpoint
-	:members:
-	
-	
-	
+    :members:
+
+
+
 .. autoclass:: gsshapy.orm.TrapezoidalCS
-	:members:
-	
-	
+    :members:
+
+
