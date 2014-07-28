@@ -8,35 +8,39 @@ File Object
 ===========
 
 .. autoclass:: gsshapy.orm.MapTableFile
-	:members:
-	:inherited-members:
-	
-	
+    :members:
+    :show-inheritance:
+
+
 Table Objects
 +++++++++++++
 
 .. autoclass:: gsshapy.orm.MapTable
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+
 .. autoclass:: gsshapy.orm.MTIndex
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+
 .. autoclass:: gsshapy.orm.MTValue
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+
 .. autoclass:: gsshapy.orm.MTContaminant
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+
 .. autoclass:: gsshapy.orm.MTSediment
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+

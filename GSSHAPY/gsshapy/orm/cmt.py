@@ -28,6 +28,21 @@ from gsshapy.lib import parsetools as pt, cmt_chunk as mtc
 
 class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    Object interface for the Mapping Table File.
+
+    Hydrological parameters are distributed spatially in GSSHA through mapping tables and index maps. Index maps are
+    raster maps of integers. The mapping tables define the hydrological values for each unique index on a map. Most of the
+    mapping tables are abstracted into three objects representing three different parts of the table. :class:`.MapTable`
+    contains the data for the mapping table header, :class:`.MTIndex` contains the data for the indexes defined by the
+    mapping table, and :class:`.MTValue` contains the actual value of the hydrological parameters defined by the mapping
+    table.
+
+    In addition, there are two special mapping tables that break the common format: Contaminant/Constituent Transport
+    and Sediment Transport. The data for these mapping tables is contained in the :class:`.MTContaminant` and
+    :class:`.Sediment` objects, respectively.
+
+    The GSSHA documentation used to design this object can be found by following these links:
+    http://www.gsshawiki.com/Mapping_Table:Mapping_Table_File
     """
     __tablename__ = 'cmt_map_table_files'
     tableName = __tablename__  #: Database tablename
@@ -439,6 +454,10 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class MapTable(DeclarativeBase):
     """
+    Object containing header data for a mapping table.
+
+    See: http://www.gsshawiki.com/Mapping_Table:Mapping_Tables
+         http://www.gsshawiki.com/Mapping_Table:Index_Maps
     """
     __tablename__ = 'cmt_map_tables'
 
@@ -492,6 +511,9 @@ class MapTable(DeclarativeBase):
 
 class MTIndex(DeclarativeBase):
     """
+    Object containing mapping table index data. Mapping table index objects link the mapping table values to index maps.
+
+    See: http://www.gsshawiki.com/Mapping_Table:Mapping_Tables
     """
     __tablename__ = 'cmt_indexes'
 
@@ -530,6 +552,9 @@ class MTIndex(DeclarativeBase):
 
 class MTValue(DeclarativeBase):
     """
+    Object containing the hydrological variable and value data for mapping tables.
+
+    See: http://www.gsshawiki.com/Mapping_Table:Mapping_Tables
     """
     __tablename__ = 'cmt_map_table_values'
 
@@ -567,6 +592,9 @@ class MTValue(DeclarativeBase):
 
 class MTContaminant(DeclarativeBase):
     """
+    Object containing data in contaminant transport type mapping tables.
+
+    See: http://www.gsshawiki.com/Mapping_Table:Constituent_Mapping_Tables
     """
     __tablename__ = 'cmt_contaminants'
 
@@ -615,6 +643,9 @@ class MTContaminant(DeclarativeBase):
 
 class MTSediment(DeclarativeBase):
     """
+    Object containing data in sediment transport type mapping tables.
+
+    See: http://www.gsshawiki.com/Mapping_Table:Sediment_Erosion_Mapping_Tables
     """
     __tablename__ = 'cmt_sediments'
 

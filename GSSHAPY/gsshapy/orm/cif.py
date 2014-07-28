@@ -38,13 +38,16 @@ from gsshapy.lib import parsetools as pt, cif_chunk as cic
 
 
 class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
-    """Object interface for the Channel Input File. The contents of this file is abstracted into several objects including:
-    StreamLink, UpstreamLink, StreamNode, Weir, Culvert, Reservoir, ReservoirPoint, BreakpointCS, Breakpoint, and
-    TrapezoidalCS. See the documentation provided for each object for a more details.
+    """
+    Object interface for the Channel Input File.
+
+    The contents of the channel input file is abstracted into several objects including:
+    :class:`.StreamLink`, :class:`.UpstreamLink`, :class:`.StreamNode`, :class:`.Weir`, :class:`.Culvert`,
+    :class:`.Reservoir`, :class:`.ReservoirPoint`, :class:`.BreakpointCS`, :class:`.Breakpoint`, and
+    :class:`.TrapezoidalCS`. See the documentation provided for each object for a more details.
 
     The GSSHA documentation used to design this object can be found by following these links:
     http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing
-
     """
     __tablename__ = 'cif_channel_input_files'
 
@@ -85,7 +88,9 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
     def getFluvialLinks(self):
         """
         Retrieve only the links that represent fluvial portions of the stream. Returns a list of StreamLink instances.
-        :rtype: list
+
+        Returns:
+            list: A list of fluvial :class:`.StreamLink` objects.
         """
         # Define fluvial types
         fluvialTypeKeywords = ('TRAPEZOID', 'TRAP', 'BREAKPOINT', 'ERODE', 'SUBSURFACE')
@@ -101,20 +106,26 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         return fluvialLinks
 
     def getStreamNetworkAsKml(self, session, path=None, withNodes=False, styles={},
-                              documentName='GSSHA Stream Network'):
+                              documentName='Stream Network'):
         """
         Retrieve the stream network visualization in KML format.
-        :param session: SQLAlchemy session object bound to PostGIS enabled database
-        :param path: Path to which to write KML file
-        :param withNodes: Include node geometry
-        :param styles: Dictionary of styles to apply
-                valid styles:
-                   lineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
-                   lineWidth: float line width in pixels
-                   nodeIconHref: link to icon image (PNG format) to represent nodes (see: http://kml4earth.appspot.com/icons.html)
-                   nodeIconScale: scale of the icon image
-        :param documentName: Name of the KML document that will show up in the legend
-        :rtype: str
+
+        Args:
+            session (sqlalchemy.orm.session.Session): SQLAlchemy session object bound to PostGIS enabled database
+            path (str, optional): Path to file where KML will be written. Defaults to None.
+            withNodes (bool, optional): Include nodes. Defaults to False.
+            styles (dict, optional): Custom styles to apply to KML geometry. Defaults to empty dictionary.
+                Valid keys (styles) include:
+                   * lineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
+                   * lineWidth: float line width in pixels
+                   * nodeIconHref: link to icon image (PNG format) to represent nodes (see: http://kml4earth.appspot.com/icons.html)
+                   * nodeIconScale: scale of the icon image
+            documentName (str, optional): Name of the KML document. This will be the name that appears in the legend.
+                Defaults to 'Stream Network'.
+
+
+        Returns:
+            str: KML string
         """
         # Retrieve Stream Links
         links = self.streamLinks
@@ -265,9 +276,13 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
     def getStreamNetworkAsWkt(self, session, withNodes=True):
         """
         Retrieve the stream network geometry in Well Known Text format.
-        :param session: SQLAlchemy session object bound to PostGIS enabled database
-        :param withNodes: Include node geometry
-        :rtype: str
+
+        Args:
+            session (sqlalchemy.orm.session.Session): SQLAlchemy session object bound to PostGIS enabled database
+            withNodes (bool, optional): Include nodes. Defaults to False.
+
+        Returns:
+            str: Well Known Text string.
         """
         wkt_list = []
 
@@ -283,9 +298,13 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
     def getStreamNetworkAsGeoJson(self, session, withNodes=True):
         """
         Retrieve the stream network geometry in GeoJSON format.
-        :param session: SQLAlchemy session object bound to PostGIS enabled database
-        :param withNodes: Include node geometry
-        :rtype: str
+
+        Args:
+            session (sqlalchemy.orm.session.Session): SQLAlchemy session object bound to PostGIS enabled database
+            withNodes (bool, optional): Include nodes. Defaults to False.
+
+        Returns:
+            str: GeoJSON string.
         """
         features_list = []
 
@@ -914,8 +933,12 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class StreamLink(DeclarativeBase, GeometricObject):
     """
-    Object containing generic stream link or reach data. The stream network is composed of several stream links. Stream
-    links represent fluvial streams, structures on the stream, or reservoirs.
+    Object containing generic stream link or reach data.
+
+    GSSHA stream networks are composed of a series of stream links and nodes. A stream link is composed of two or more
+    nodes. A basic fluvial stream link contains the cross section. Stream links can also be used to describe structures
+    on a stream such as culverts, weirs, or reservoirs.
+
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4_-_Link_.28Reach.29_information
     """
     __tablename__ = 'cif_links'
@@ -987,6 +1010,7 @@ class StreamLink(DeclarativeBase, GeometricObject):
 class UpstreamLink(DeclarativeBase):
     """
     Object used to map stream links with their upstream link counterparts.
+
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.3_.E2.80.93_Channel_network_connectivity
     """
     __tablename__ = 'cif_upstream_links'
@@ -1014,6 +1038,10 @@ class UpstreamLink(DeclarativeBase):
 class StreamNode(DeclarativeBase, GeometricObject):
     """
     Object containing the stream node data in the channel network.
+
+    Stream nodes represent the computational unit of GSSHA stream networks. Each stream link must consist of two or more
+    stream nodes.
+
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.4_Node_information
     """
     __tablename__ = 'cif_nodes'
@@ -1064,7 +1092,8 @@ class StreamNode(DeclarativeBase, GeometricObject):
 
 class Weir(DeclarativeBase):
     """
-    Object containing a weir structure data for a stream link.
+    Object containing data that defines a weir structure for a stream link.
+
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2_-_Structure_channel_links
     """
     __tablename__ = 'cif_weirs'
@@ -1127,6 +1156,7 @@ class Weir(DeclarativeBase):
 class Culvert(DeclarativeBase):
     """
     Object containing a culvert structure data for a stream link.
+
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2_-_Structure_channel_links
     """
     __tablename__ = 'cif_culverts'
@@ -1198,7 +1228,8 @@ class Culvert(DeclarativeBase):
 
 class Reservoir(DeclarativeBase):
     """
-    Object containing a reservoir data for a stream link.
+    Object containing a data that defines a reservoir for a stream link.
+
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.3_-_Reservoir_channel_links
     """
     __tablename__ = 'cif_reservoirs'
@@ -1236,6 +1267,7 @@ class Reservoir(DeclarativeBase):
 class ReservoirPoint(DeclarativeBase):
     """
     Object containing the cells/points that define the maximum inundation area of a reservoir.
+
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#
     """
     __tablename__ = 'cif_reservoir_points'
@@ -1268,7 +1300,8 @@ class ReservoirPoint(DeclarativeBase):
 
 class BreakpointCS(DeclarativeBase):
     """
-    Object containing breakpoint type cross section data for stream links.
+    Object containing breakpoint type cross section data for fluvial stream links.
+
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.2_Natural_cross-section
     """
     __tablename__ = 'cif_breakpoint'
@@ -1328,6 +1361,7 @@ class BreakpointCS(DeclarativeBase):
 
 class Breakpoint(DeclarativeBase):
     """
+    Object used to define points in a :class:`.BreakpointCS` object.
 
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.2_Natural_cross-section
     """
@@ -1361,7 +1395,8 @@ class Breakpoint(DeclarativeBase):
 
 class TrapezoidalCS(DeclarativeBase):
     """
-    Object containing trapezoidal type cross section data for stream links.
+    Object containing trapezoidal type cross section data for fluvial stream links.
+
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.1_Trapezoidal_cross-section
     """
     __tablename__ = 'cif_trapezoid'
