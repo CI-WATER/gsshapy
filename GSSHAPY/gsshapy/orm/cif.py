@@ -36,9 +36,15 @@ from gsshapy.orm.geom import GeometricObject
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt, cif_chunk as cic
 
-
 class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    File object interface for the Channel Input File. The contents of this file is abstracted to several member objects
+    including: StreamLink, UpstreamLink, StreamNode, Weir, Culvert, Reservoir, ReservoirPoint, BreakpointCS, Breakpoint,
+    and TrapezoidalCS. See docs for each object for more detailed explanations.
+
+    The GSSHA documentation used to design this object can be found by folloing these links:
+
+
     """
     __tablename__ = 'cif_channel_input_files'
 
