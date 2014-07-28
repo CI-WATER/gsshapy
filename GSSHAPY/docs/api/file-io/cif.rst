@@ -8,7 +8,10 @@ File Object
 ===========
 
 .. autoclass:: gsshapy.orm.ChannelInputFile
+	:members:
+	:inherited-members:
 
+    .. automethod:: getStreamNetworkAsKml
 	
 	
 	
