@@ -9,8 +9,7 @@ File Object
 
 .. autoclass:: gsshapy.orm.ChannelInputFile
     :members:
-    :undoc-members:
-    :show-inheritance:
+    :inherited-members:
 
 Table Objects
 +++++++++++++

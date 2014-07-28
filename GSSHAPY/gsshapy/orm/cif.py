@@ -38,8 +38,7 @@ from gsshapy.lib import parsetools as pt, cif_chunk as cic
 
 
 class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
-    """
-    Object interface for the Channel Input File. The contents of this file is abstracted into several objects including:
+    """Object interface for the Channel Input File. The contents of this file is abstracted into several objects including:
     StreamLink, UpstreamLink, StreamNode, Weir, Culvert, Reservoir, ReservoirPoint, BreakpointCS, Breakpoint, and
     TrapezoidalCS. See the documentation provided for each object for a more details.
 
