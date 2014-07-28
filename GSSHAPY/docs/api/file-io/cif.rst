@@ -4,6 +4,9 @@ Channel Input File
 
 File extension: **cif**
 
+.. automodule:: gsshapy.orm.cif
+    :members:
+
 File Object
 ===========
 
