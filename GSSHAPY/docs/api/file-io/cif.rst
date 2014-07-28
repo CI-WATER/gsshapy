@@ -11,6 +11,8 @@ File Object
     :members:
     :inherited-members:
 
+    .. automethod:: gsshapy.orm.ChannelInputFile.getStreamNetworkAsKml
+
 
 Table Objects
 +++++++++++++
