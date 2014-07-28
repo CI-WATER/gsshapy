@@ -126,7 +126,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         if 'lineColor' in styles:
             if len(styles['lineColor']) < 4:
-                print 'WARNING: lineColor style must be a list or a tuple of four elements representing integer RGBA values.'
+                print 'WARNING: lineColor style must be a list or a tuple of four elements containing integer RGBA values.'
             else:
                 userLineColor = styles['lineColor']
                 lineColorValue = (userLineColor[3], userLineColor[2], userLineColor[1], userLineColor[0])
@@ -137,7 +137,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 lineWidthValue = styles['lineWidth']
 
             except ValueError:
-                print 'WARNING: lineWidth must be a valid number representing the width of the line in pixels.'
+                print 'WARNING: lineWidth must be a valid number containing the width of the line in pixels.'
 
         if 'nodeIconHref' in styles:
             nodeIconHrefValue = styles['nodeIconHref']
@@ -148,7 +148,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 nodeIconScaleValue = styles['nodeIconScale']
 
             except ValueError:
-                print 'WARNING: nodeIconScaleValue must be a valid number representing the width of the line in pixels.'
+                print 'WARNING: nodeIconScaleValue must be a valid number containing the width of the line in pixels.'
 
 
         # Initialize KML Document
@@ -913,7 +913,8 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class StreamLink(DeclarativeBase, GeometricObject):
     """
-    Object representing the stream links or reaches in the channel network.
+    Object containing generic stream link or reach data. The stream network is composed of several stream links. Stream
+    links represent fluvial streams, structures on the stream, or reservoirs.
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4_-_Link_.28Reach.29_information
     """
     __tablename__ = 'cif_links'
@@ -936,7 +937,6 @@ class StreamLink(DeclarativeBase, GeometricObject):
     downstreamLinkID = Column(Integer)  #: INTEGER
     numUpstreamLinks = Column(Integer)  #: INTEGER
     geometry = Column(Geometry)  #: GEOMETRY
-
 
     # Relationship Properties
     channelInputFile = relationship('ChannelInputFile', back_populates='streamLinks')  #: RELATIONSHIP
@@ -985,6 +985,8 @@ class StreamLink(DeclarativeBase, GeometricObject):
 
 class UpstreamLink(DeclarativeBase):
     """
+    Object used to map stream links with their upstream link counterparts.
+    See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.3_.E2.80.93_Channel_network_connectivity
     """
     __tablename__ = 'cif_upstream_links'
 
@@ -1010,6 +1012,8 @@ class UpstreamLink(DeclarativeBase):
 
 class StreamNode(DeclarativeBase, GeometricObject):
     """
+    Object containing the stream node data in the channel network.
+    See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.4_Node_information
     """
     __tablename__ = 'cif_nodes'
 
@@ -1059,6 +1063,8 @@ class StreamNode(DeclarativeBase, GeometricObject):
 
 class Weir(DeclarativeBase):
     """
+    Object containing a weir structure data for a stream link.
+    See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2_-_Structure_channel_links
     """
     __tablename__ = 'cif_weirs'
 
@@ -1119,6 +1125,8 @@ class Weir(DeclarativeBase):
 
 class Culvert(DeclarativeBase):
     """
+    Object containing a culvert structure data for a stream link.
+    See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2_-_Structure_channel_links
     """
     __tablename__ = 'cif_culverts'
 
@@ -1189,6 +1197,8 @@ class Culvert(DeclarativeBase):
 
 class Reservoir(DeclarativeBase):
     """
+    Object containing a reservoir data for a stream link.
+    See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.3_-_Reservoir_channel_links
     """
     __tablename__ = 'cif_reservoirs'
 
@@ -1224,6 +1234,8 @@ class Reservoir(DeclarativeBase):
 
 class ReservoirPoint(DeclarativeBase):
     """
+    Object containing the cells/points that define the maximum inundation area of a reservoir.
+    See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#
     """
     __tablename__ = 'cif_reservoir_points'
 
@@ -1255,6 +1267,8 @@ class ReservoirPoint(DeclarativeBase):
 
 class BreakpointCS(DeclarativeBase):
     """
+    Object containing breakpoint type cross section data for stream links.
+    See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.2_Natural_cross-section
     """
     __tablename__ = 'cif_breakpoint'
 
@@ -1313,6 +1327,8 @@ class BreakpointCS(DeclarativeBase):
 
 class Breakpoint(DeclarativeBase):
     """
+
+    See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.2_Natural_cross-section
     """
     __tablename__ = 'cif_bcs_points'
 
@@ -1344,8 +1360,10 @@ class Breakpoint(DeclarativeBase):
 
 class TrapezoidalCS(DeclarativeBase):
     """
+    Object containing trapezoidal type cross section data for stream links.
+    See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.1_Trapezoidal_cross-section
     """
-    __tablename__ = 'cif_trapeziod'
+    __tablename__ = 'cif_trapezoid'
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
