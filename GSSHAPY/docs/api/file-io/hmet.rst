@@ -8,15 +8,16 @@ File Object
 ===========
 
 .. autoclass:: gsshapy.orm.HmetFile
-	:members:
-	:inherited-members:
-	
+    :members:
+    :show-inheritance:
 
-	
+
+
 Table Objects
 +++++++++++++
 
 .. autoclass:: gsshapy.orm.HmetRecord
-	:members:
-	
-	
+    :members:
+    :show-inheritance:
+
+

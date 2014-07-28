@@ -1,6 +1,6 @@
 """
 ********************************************************************************
-* Name: Hydro-MeteorologicalModel
+* Name: HydrometeorologicalModel
 * Author: Nathan Swain
 * Created On: May 14, 2013
 * Copyright: (c) Brigham Young University 2013
@@ -22,6 +22,12 @@ from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
 class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    Object interface for the Hydrometeorological Input Files (HMET Files).
+
+    An HMET file contains time series hydrometeorological parameters that are required to perform long term simulations.
+    GSSHAPY currently only supports the HMET WES file format.
+
+    See: http://www.gsshawiki.com/Continuous:Hydrometeorological_Data
     """
     __tablename__ = 'hmet_files'
 
@@ -103,6 +109,7 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class HmetRecord(DeclarativeBase):
     """
+    Object containing data for a single record in an HMET file.
     """
     __tablename__ = 'hmet_records'
 

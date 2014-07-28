@@ -24,6 +24,15 @@ from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
 class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    Object interface for the Grid Stream File.
+
+    The grid stream file is used to map the stream network to the model grid. The contents of
+    the grid stream file is abstracted into two types of objects including: :class:`.GridStreamCell` and
+    :class:`.GridStreamNode`. Each cell lists the stream nodes that are contained in it and each stream node defines
+    the percentage of that stream that is contained inside a cell. See the documentation provided for each object for a
+    more details.
+
+    See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.2.1_-_STREAM_CELL_file_identifier
     """
     __tablename__ = 'gst_grid_stream_files'
 
@@ -164,6 +173,7 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class GridStreamCell(DeclarativeBase):
     """
+    Object containing the stream data for a single grid cell. A cell can contain several stream nodes.
     """
     __tablename__ = 'gst_grid_stream_cells'
 
@@ -196,6 +206,7 @@ class GridStreamCell(DeclarativeBase):
 
 class GridStreamNode(DeclarativeBase):
     """
+    Object containing data for a single stream.
     """
     __tablename__ = 'gst_grid_stream_nodes'
 

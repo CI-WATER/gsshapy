@@ -8,19 +8,21 @@ File Object
 ===========
 
 .. autoclass:: gsshapy.orm.GridStreamFile
-	:members:
-	:inherited-members:
-	
-	
+    :members:
+    :show-inheritance:
+
+
 Table Objects
 +++++++++++++
 
 .. autoclass:: gsshapy.orm.GridStreamCell
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+
 .. autoclass:: gsshapy.orm.GridStreamNode
-	:members:
-	
-	
+    :members:
+    :show-inheritance:
+
+

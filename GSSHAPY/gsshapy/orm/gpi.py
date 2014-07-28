@@ -26,9 +26,11 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
     Object interface for the Grid Pipe File.
 
-    The Grid Pipe File is used to map the grid pipe network for subsurface drainage to the model grid. The contents of
+    The grid pipe file is used to map the grid pipe network for subsurface drainage to the model grid. The contents of
     the grid pipe file is abstracted into two types of objects including: :class:`.GridPipeCell` and
-    :class:`.GridPipeNode`. See the documentation provided for each object for a more details.
+    :class:`.GridPipeNode`. Each cell lists the pipe nodes that are contained in the cell and each pipe node defines
+    the percentage of a pipe that is contained inside a cell. See the documentation provided for each object for a more
+    details.
 
     See: http://www.gsshawiki.com/Subsurface_Drainage:Subsurface_Drainage
          http://www.gsshawiki.com/images/d/d6/SUPERLINK_TN.pdf

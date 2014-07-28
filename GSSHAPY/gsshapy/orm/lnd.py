@@ -31,6 +31,12 @@ from gsshapy.lib import parsetools as pt
 
 class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    Object interface for Link Node Dataset files.
+
+    The link node dataset file is a WMS output format supported by GSSHA. The file contents are abstracted into three
+    different types of objects: :class:`.LinkNodeTimeStep`, :class:`.LinkDataset`, :class:`.NodeDataset`.
+
+    See: http://www.xmswiki.com/xms/WMS:ASCII_Dataset_Files
     """
     __tablename__ = 'lnd_link_node_dataset_files'
 
