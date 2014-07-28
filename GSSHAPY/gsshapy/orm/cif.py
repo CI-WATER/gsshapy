@@ -44,6 +44,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     The GSSHA documentation used to design this object can be found by following these links:
     http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing
+
     """
     __tablename__ = 'cif_channel_input_files'
 
@@ -99,7 +100,8 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return fluvialLinks
 
-    def getStreamNetworkAsKml(self, session, path=None, withNodes=False, styles={}, documentName='GSSHA Stream Network'):
+    def getStreamNetworkAsKml(self, session, path=None, withNodes=False, styles={},
+                              documentName='GSSHA Stream Network'):
         """
         Retrieve the stream network visualization in KML format.
         :param session: SQLAlchemy session object bound to PostGIS enabled database
@@ -287,7 +289,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         features_list = []
 
-         # Assemble link features
+        # Assemble link features
         for link in self.streamLinks:
             link_geometry = json.loads(link.getAsGeoJson(session))
 
