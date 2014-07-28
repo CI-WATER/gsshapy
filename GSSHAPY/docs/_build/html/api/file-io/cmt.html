@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Mapping Table File &mdash; GSSHAPY 1.0.0 documentation</title>
+    <title>Mapping Table File &mdash; GSSHAPY 2.0.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.0',
+        VERSION:     '2.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../../index.html" />
+    <link rel="top" title="GSSHAPY 2.0.0 documentation" href="../../index.html" />
     <link rel="up" title="API Documentation" href="../../api.html" />
     <link rel="next" title="Precipitation File" href="gag.html" />
     <link rel="prev" title="Channel Input File" href="cif.html" /> 
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="cif.html" title="Channel Input File"
              accesskey="P">previous</a> |</li>
-        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">GSSHAPY 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../../api.html" accesskey="U">API Documentation</a> &raquo;</li> 
       </ul>
     </div>  
@@ -59,11 +59,23 @@
 <h2>File Object<a class="headerlink" href="#file-object" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="gsshapy.orm.MapTableFile">
-<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">MapTableFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.MapTableFile" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">MapTableFile</tt><a class="headerlink" href="#gsshapy.orm.MapTableFile" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="attribute">
+<dt id="gsshapy.orm.MapTableFile.tableName">
+<tt class="descname">tableName</tt><em class="property"> = 'cmt_map_table_files'</em><a class="headerlink" href="#gsshapy.orm.MapTableFile.tableName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Database tablename</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="gsshapy.orm.MapTableFile.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.MapTableFile.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.MapTableFile.fileExtension">
+<tt class="descname">fileExtension</tt><a class="headerlink" href="#gsshapy.orm.MapTableFile.fileExtension" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -86,7 +98,7 @@
 
 <dl class="method">
 <dt id="gsshapy.orm.MapTableFile.read">
-<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.MapTableFile.read" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">read</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em>, <em>spatial=False</em>, <em>spatialReferenceID=4236</em>, <em>raster2pgsqlPath='raster2pgsql'</em><big>)</big><a class="headerlink" href="#gsshapy.orm.MapTableFile.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read file into the database.</p>
 </dd></dl>
 
@@ -96,7 +108,7 @@
 <dd><p>Write from database to file.</p>
 <p><em>session</em> = SQLAlchemy session object</p>
 <p><em>directory</em> = to which directory will the files be written (e.g.: &#8216;/example/path&#8217;)</p>
-<p><em>name</em> = project name (e.g.: &#8216;my_project&#8217;)</p>
+<p><em>name</em> = name of file that will be written (e.g.: &#8216;my_project.ext&#8217;)</p>
 </dd></dl>
 
 </dd></dl>
@@ -483,13 +495,13 @@
         <li class="right" >
           <a href="cif.html" title="Channel Input File"
              >previous</a> |</li>
-        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">GSSHAPY 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../../api.html" >API Documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013, Brigham Young University.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

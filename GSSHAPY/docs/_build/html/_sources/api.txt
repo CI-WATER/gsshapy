@@ -2,7 +2,7 @@
 API Documentation
 *****************
 
-API documentaion is provided in this section.
+API documentation is provided in this section.
 
 File and Table Object API
 =========================

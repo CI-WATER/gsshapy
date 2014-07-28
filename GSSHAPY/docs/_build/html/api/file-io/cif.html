@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Channel Input File &mdash; GSSHAPY 1.0.0 documentation</title>
+    <title>Channel Input File &mdash; GSSHAPY 2.0.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.0',
+        VERSION:     '2.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../../index.html" />
+    <link rel="top" title="GSSHAPY 2.0.0 documentation" href="../../index.html" />
     <link rel="up" title="API Documentation" href="../../api.html" />
     <link rel="next" title="Mapping Table File" href="cmt.html" />
     <link rel="prev" title="Project File" href="prj.html" /> 
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="prj.html" title="Project File"
              accesskey="P">previous</a> |</li>
-        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">GSSHAPY 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../../api.html" accesskey="U">API Documentation</a> &raquo;</li> 
       </ul>
     </div>  
@@ -59,11 +59,22 @@
 <h2>File Object<a class="headerlink" href="#file-object" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="gsshapy.orm.ChannelInputFile">
-<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">ChannelInputFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em>, <em>alpha=None</em>, <em>beta=None</em>, <em>theta=None</em>, <em>links=None</em>, <em>maxNodes=None</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ChannelInputFile" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">ChannelInputFile</tt><big>(</big><em>alpha=None</em>, <em>beta=None</em>, <em>theta=None</em>, <em>links=None</em>, <em>maxNodes=None</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ChannelInputFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object interface for the Channel Input File. The contents of this file is abstracted into several objects including:
+StreamLink, UpstreamLink, StreamNode, Weir, Culvert, Reservoir, ReservoirPoint, BreakpointCS, Breakpoint, and
+TrapezoidalCS. See the documentation provided for each object for a more details.</p>
+<p>The GSSHA documentation used to design this object can be found by following these links:
+<a class="reference external" href="http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing">http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing</a></p>
+<dl class="attribute">
 <dt id="gsshapy.orm.ChannelInputFile.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.ChannelInputFile.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ChannelInputFile.fileExtension">
+<tt class="descname">fileExtension</tt><a class="headerlink" href="#gsshapy.orm.ChannelInputFile.fileExtension" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -75,6 +86,12 @@
 <dl class="attribute">
 <dt id="gsshapy.orm.ChannelInputFile.streamLinks">
 <tt class="descname">streamLinks</tt><a class="headerlink" href="#gsshapy.orm.ChannelInputFile.streamLinks" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ChannelInputFile.linkNodeDatasets">
+<tt class="descname">linkNodeDatasets</tt><a class="headerlink" href="#gsshapy.orm.ChannelInputFile.linkNodeDatasets" title="Permalink to this definition">¶</a></dt>
 <dd><p>RELATIONSHIP</p>
 </dd></dl>
 
@@ -109,8 +126,62 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="gsshapy.orm.ChannelInputFile.getFluvialLinks">
+<tt class="descname">getFluvialLinks</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.ChannelInputFile.getFluvialLinks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve only the links that represent fluvial portions of the stream. Returns a list of StreamLink instances.
+:rtype: list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.ChannelInputFile.getStreamNetworkAsKml">
+<tt class="descname">getStreamNetworkAsKml</tt><big>(</big><em>session</em>, <em>path=None</em>, <em>withNodes=False</em>, <em>styles={}</em>, <em>documentName='GSSHA Stream Network'</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ChannelInputFile.getStreamNetworkAsKml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the stream network visualization in KML format.
+:param session: SQLAlchemy session object bound to PostGIS enabled database
+:param path: Path to which to write KML file
+:param withNodes: Include node geometry
+:param styles: Dictionary of styles to apply</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>valid styles:</dt>
+<dd>lineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
+lineWidth: float line width in pixels
+nodeIconHref: link to icon image (PNG format) to represent nodes (see: <a class="reference external" href="http://kml4earth.appspot.com/icons.html">http://kml4earth.appspot.com/icons.html</a>)
+nodeIconScale: scale of the icon image</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>documentName</strong> &#8211; Name of the KML document that will show up in the legend</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.ChannelInputFile.getStreamNetworkAsWkt">
+<tt class="descname">getStreamNetworkAsWkt</tt><big>(</big><em>session</em>, <em>withNodes=True</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ChannelInputFile.getStreamNetworkAsWkt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the stream network geometry in Well Known Text format.
+:param session: SQLAlchemy session object bound to PostGIS enabled database
+:param withNodes: Include node geometry
+:rtype: str</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.ChannelInputFile.getStreamNetworkAsGeoJson">
+<tt class="descname">getStreamNetworkAsGeoJson</tt><big>(</big><em>session</em>, <em>withNodes=True</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ChannelInputFile.getStreamNetworkAsGeoJson" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the stream network geometry in GeoJSON format.
+:param session: SQLAlchemy session object bound to PostGIS enabled database
+:param withNodes: Include node geometry
+:rtype: str</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gsshapy.orm.ChannelInputFile.read">
-<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.ChannelInputFile.read" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">read</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em>, <em>spatial=False</em>, <em>spatialReferenceID=4236</em>, <em>raster2pgsqlPath='raster2pgsql'</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ChannelInputFile.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read file into the database.</p>
 </dd></dl>
 
@@ -120,7 +191,7 @@
 <dd><p>Write from database to file.</p>
 <p><em>session</em> = SQLAlchemy session object</p>
 <p><em>directory</em> = to which directory will the files be written (e.g.: &#8216;/example/path&#8217;)</p>
-<p><em>name</em> = project name (e.g.: &#8216;my_project&#8217;)</p>
+<p><em>name</em> = name of file that will be written (e.g.: &#8216;my_project.ext&#8217;)</p>
 </dd></dl>
 
 </dd></dl>
@@ -130,7 +201,10 @@
 <dl class="class">
 <dt id="gsshapy.orm.StreamLink">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">StreamLink</tt><big>(</big><em>linkNumber</em>, <em>type</em>, <em>numElements</em>, <em>dx=None</em>, <em>erode=False</em>, <em>subsurface=False</em><big>)</big><a class="headerlink" href="#gsshapy.orm.StreamLink" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
+<dd><p>Object containing generic stream link or reach data. The stream network is composed of several stream links. Stream
+links represent fluvial streams, structures on the stream, or reservoirs.
+See: <a class="reference external" href="http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4_-_Link_.28Reach.29_information">http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4_-_Link_.28Reach.29_information</a></p>
+<dl class="attribute">
 <dt id="gsshapy.orm.StreamLink.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>PK</p>
@@ -152,6 +226,12 @@
 <dt id="gsshapy.orm.StreamLink.numUpstreamLinks">
 <tt class="descname">numUpstreamLinks</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.numUpstreamLinks" title="Permalink to this definition">¶</a></dt>
 <dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.geometry">
+<tt class="descname">geometry</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.geometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>GEOMETRY</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -203,6 +283,12 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="gsshapy.orm.StreamLink.datasets">
+<tt class="descname">datasets</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.datasets" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="gsshapy.orm.StreamLink.linkNumber">
 <tt class="descname">linkNumber</tt><a class="headerlink" href="#gsshapy.orm.StreamLink.linkNumber" title="Permalink to this definition">¶</a></dt>
 <dd><p>INTEGER</p>
@@ -243,7 +329,9 @@
 <dl class="class">
 <dt id="gsshapy.orm.StreamNode">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">StreamNode</tt><big>(</big><em>nodeNumber</em>, <em>x</em>, <em>y</em>, <em>elevation</em><big>)</big><a class="headerlink" href="#gsshapy.orm.StreamNode" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
+<dd><p>Object containing the stream node data in the channel network.
+See: <a class="reference external" href="http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.4_Node_information">http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.4_Node_information</a></p>
+<dl class="attribute">
 <dt id="gsshapy.orm.StreamNode.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.StreamNode.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>PK</p>
@@ -256,8 +344,20 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="gsshapy.orm.StreamNode.geometry">
+<tt class="descname">geometry</tt><a class="headerlink" href="#gsshapy.orm.StreamNode.geometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>GEOMETRY</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="gsshapy.orm.StreamNode.streamLink">
 <tt class="descname">streamLink</tt><a class="headerlink" href="#gsshapy.orm.StreamNode.streamLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StreamNode.datasets">
+<tt class="descname">datasets</tt><a class="headerlink" href="#gsshapy.orm.StreamNode.datasets" title="Permalink to this definition">¶</a></dt>
 <dd><p>RELATIONSHIP</p>
 </dd></dl>
 
@@ -290,7 +390,9 @@
 <dl class="class">
 <dt id="gsshapy.orm.UpstreamLink">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">UpstreamLink</tt><big>(</big><em>upstreamLinkID</em><big>)</big><a class="headerlink" href="#gsshapy.orm.UpstreamLink" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
+<dd><p>Object used to map stream links with their upstream link counterparts.
+See: <a class="reference external" href="http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.3_.E2.80.93_Channel_network_connectivity">http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.3_.E2.80.93_Channel_network_connectivity</a></p>
+<dl class="attribute">
 <dt id="gsshapy.orm.UpstreamLink.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.UpstreamLink.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>PK</p>
@@ -319,7 +421,9 @@
 <dl class="class">
 <dt id="gsshapy.orm.Weir">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">Weir</tt><big>(</big><em>type</em>, <em>crestLength</em>, <em>crestLowElevation</em>, <em>dischargeCoeffForward</em>, <em>dischargeCoeffReverse</em>, <em>crestLowLocation</em>, <em>steepSlope</em>, <em>shallowSlope</em><big>)</big><a class="headerlink" href="#gsshapy.orm.Weir" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
+<dd><p>Object containing a weir structure data for a stream link.
+See: <a class="reference external" href="http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2_-_Structure_channel_links">http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2_-_Structure_channel_links</a></p>
+<dl class="attribute">
 <dt id="gsshapy.orm.Weir.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.Weir.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>PK</p>
@@ -390,7 +494,9 @@
 <dl class="class">
 <dt id="gsshapy.orm.Culvert">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">Culvert</tt><big>(</big><em>type</em>, <em>upstreamInvert</em>, <em>downstreamInvert</em>, <em>inletDischargeCoeff</em>, <em>reverseFlowDischargeCoeff</em>, <em>slope</em>, <em>length</em>, <em>roughness</em>, <em>diameter</em>, <em>width</em>, <em>height</em><big>)</big><a class="headerlink" href="#gsshapy.orm.Culvert" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
+<dd><p>Object containing a culvert structure data for a stream link.
+See: <a class="reference external" href="http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2_-_Structure_channel_links">http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2_-_Structure_channel_links</a></p>
+<dl class="attribute">
 <dt id="gsshapy.orm.Culvert.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.Culvert.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>PK</p>
@@ -479,7 +585,9 @@
 <dl class="class">
 <dt id="gsshapy.orm.Reservoir">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">Reservoir</tt><big>(</big><em>initWSE</em>, <em>minWSE</em>, <em>maxWSE</em><big>)</big><a class="headerlink" href="#gsshapy.orm.Reservoir" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
+<dd><p>Object containing a reservoir data for a stream link.
+See: <a class="reference external" href="http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.3_-_Reservoir_channel_links">http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.3_-_Reservoir_channel_links</a></p>
+<dl class="attribute">
 <dt id="gsshapy.orm.Reservoir.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.Reservoir.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>PK</p>
@@ -526,7 +634,9 @@
 <dl class="class">
 <dt id="gsshapy.orm.ReservoirPoint">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">ReservoirPoint</tt><big>(</big><em>i</em>, <em>j</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ReservoirPoint" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
+<dd><p>Object containing the cells/points that define the maximum inundation area of a reservoir.
+See: <a class="reference external" href="http://www.gsshawiki.com/Surface_Water_Routing">http://www.gsshawiki.com/Surface_Water_Routing</a>:Channel_Routing#</p>
+<dl class="attribute">
 <dt id="gsshapy.orm.ReservoirPoint.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.ReservoirPoint.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>PK</p>
@@ -561,7 +671,9 @@
 <dl class="class">
 <dt id="gsshapy.orm.BreakpointCS">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">BreakpointCS</tt><big>(</big><em>mannings_n</em>, <em>numPairs</em>, <em>numInterp</em>, <em>mRiver</em>, <em>kRiver</em>, <em>erode</em>, <em>subsurface</em>, <em>maxErosion</em><big>)</big><a class="headerlink" href="#gsshapy.orm.BreakpointCS" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
+<dd><p>Object containing breakpoint type cross section data for stream links.
+See: <a class="reference external" href="http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.2_Natural_cross-section">http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.2_Natural_cross-section</a></p>
+<dl class="attribute">
 <dt id="gsshapy.orm.BreakpointCS.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.BreakpointCS.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>PK</p>
@@ -638,7 +750,8 @@
 <dl class="class">
 <dt id="gsshapy.orm.Breakpoint">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">Breakpoint</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#gsshapy.orm.Breakpoint" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
+<dd><p>See: <a class="reference external" href="http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.2_Natural_cross-section">http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.2_Natural_cross-section</a></p>
+<dl class="attribute">
 <dt id="gsshapy.orm.Breakpoint.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.Breakpoint.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>PK</p>
@@ -673,7 +786,9 @@
 <dl class="class">
 <dt id="gsshapy.orm.TrapezoidalCS">
 <em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">TrapezoidalCS</tt><big>(</big><em>mannings_n</em>, <em>bottomWidth</em>, <em>bankfullDepth</em>, <em>sideSlope</em>, <em>mRiver</em>, <em>kRiver</em>, <em>erode</em>, <em>subsurface</em>, <em>maxErosion</em><big>)</big><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
+<dd><p>Object containing trapezoidal type cross section data for stream links.
+See: <a class="reference external" href="http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.1_Trapezoidal_cross-section">http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.1_Trapezoidal_cross-section</a></p>
+<dl class="attribute">
 <dt id="gsshapy.orm.TrapezoidalCS.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.TrapezoidalCS.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>PK</p>
@@ -808,13 +923,13 @@
         <li class="right" >
           <a href="prj.html" title="Project File"
              >previous</a> |</li>
-        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">GSSHAPY 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../../api.html" >API Documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013, Brigham Young University.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

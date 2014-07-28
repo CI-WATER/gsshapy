@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Map Files &mdash; GSSHAPY 1.0.0 documentation</title>
+    <title>Map Files &mdash; GSSHAPY 2.0.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.0',
+        VERSION:     '2.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../../index.html" />
+    <link rel="top" title="GSSHAPY 2.0.0 documentation" href="../../index.html" />
     <link rel="up" title="API Documentation" href="../../api.html" />
     <link rel="next" title="Link Node Dataset Files" href="lnd.html" />
     <link rel="prev" title="Hydrometeorological Files" href="hmet.html" /> 
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="hmet.html" title="Hydrometeorological Files"
              accesskey="P">previous</a> |</li>
-        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">GSSHAPY 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../../api.html" accesskey="U">API Documentation</a> &raquo;</li> 
       </ul>
     </div>  
@@ -61,7 +61,7 @@ table was created for index maps for easier implementation.</p>
 <p>File extension: <strong>idx</strong></p>
 <dl class="class">
 <dt id="gsshapy.orm.IndexMap">
-<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">IndexMap</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#gsshapy.orm.IndexMap" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">IndexMap</tt><big>(</big><em>name=None</em><big>)</big><a class="headerlink" href="#gsshapy.orm.IndexMap" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="attribute">
 <dt id="gsshapy.orm.IndexMap.tableName">
 <tt class="descname">tableName</tt><em class="property"> = 'idx_index_maps'</em><a class="headerlink" href="#gsshapy.orm.IndexMap.tableName" title="Permalink to this definition">¶</a></dt>
@@ -81,8 +81,68 @@ table was created for index maps for easier implementation.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.north">
+<tt class="descname">north</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.north" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.south">
+<tt class="descname">south</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.south" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.east">
+<tt class="descname">east</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.east" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.west">
+<tt class="descname">west</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.west" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.rows">
+<tt class="descname">rows</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.rows" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.columns">
+<tt class="descname">columns</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.srid">
+<tt class="descname">srid</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.srid" title="Permalink to this definition">¶</a></dt>
+<dd><p>SRID</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.filename">
+<tt class="descname">filename</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.rasterText">
+<tt class="descname">rasterText</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.rasterText" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="gsshapy.orm.IndexMap.raster">
 <tt class="descname">raster</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.raster" title="Permalink to this definition">¶</a></dt>
+<dd><p>RASTER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.IndexMap.fileExtension">
+<tt class="descname">fileExtension</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.fileExtension" title="Permalink to this definition">¶</a></dt>
 <dd><p>STRING</p>
 </dd></dl>
 
@@ -116,15 +176,33 @@ table was created for index maps for easier implementation.</p>
 <dd><p>STRING</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="gsshapy.orm.IndexMap.filename">
-<tt class="descname">filename</tt><a class="headerlink" href="#gsshapy.orm.IndexMap.filename" title="Permalink to this definition">¶</a></dt>
-<dd><p>STRING</p>
+<dl class="method">
+<dt id="gsshapy.orm.IndexMap.getAsGrassAsciiGrid">
+<tt class="descname">getAsGrassAsciiGrid</tt><big>(</big><em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.IndexMap.getAsGrassAsciiGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the raster in the Grass Ascii Grid format</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.IndexMap.getAsKmlClusters">
+<tt class="descname">getAsKmlClusters</tt><big>(</big><em>session</em>, <em>path=None</em>, <em>colorRamp=0</em>, <em>documentName=None</em>, <em>alpha=1.0</em>, <em>noDataValue=None</em><big>)</big><a class="headerlink" href="#gsshapy.orm.IndexMap.getAsKmlClusters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the raster in a clustered KML format</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.IndexMap.getAsKmlGrid">
+<tt class="descname">getAsKmlGrid</tt><big>(</big><em>session</em>, <em>path=None</em>, <em>colorRamp=0</em>, <em>documentName=None</em>, <em>alpha=1.0</em>, <em>noDataValue=None</em><big>)</big><a class="headerlink" href="#gsshapy.orm.IndexMap.getAsKmlGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the raster in KML format</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.IndexMap.getAsKmlPng">
+<tt class="descname">getAsKmlPng</tt><big>(</big><em>session</em>, <em>path=None</em>, <em>colorRamp=0</em>, <em>documentName=None</em>, <em>alpha=1.0</em>, <em>drawOrder=0</em>, <em>noDataValue=None</em>, <em>cellSize=None</em>, <em>resampleMethod='NearestNeighbour'</em><big>)</big><a class="headerlink" href="#gsshapy.orm.IndexMap.getAsKmlPng" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the raster in a PNG / KML format</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gsshapy.orm.IndexMap.read">
-<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.IndexMap.read" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">read</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em>, <em>spatial=False</em>, <em>spatialReferenceID=4236</em>, <em>raster2pgsqlPath='raster2pgsql'</em><big>)</big><a class="headerlink" href="#gsshapy.orm.IndexMap.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read file into the database.</p>
 </dd></dl>
 
@@ -142,7 +220,7 @@ table was created for index maps for easier implementation.</p>
 <p>File extensions: <strong>Variable</strong> (e.g.: ele, msk, aqe)</p>
 <dl class="class">
 <dt id="gsshapy.orm.RasterMapFile">
-<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">RasterMapFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.RasterMapFile" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">RasterMapFile</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="attribute">
 <dt id="gsshapy.orm.RasterMapFile.tableName">
 <tt class="descname">tableName</tt><em class="property"> = 'raster_maps'</em><a class="headerlink" href="#gsshapy.orm.RasterMapFile.tableName" title="Permalink to this definition">¶</a></dt>
@@ -162,14 +240,62 @@ table was created for index maps for easier implementation.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="gsshapy.orm.RasterMapFile.north">
+<tt class="descname">north</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.north" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.RasterMapFile.south">
+<tt class="descname">south</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.south" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.RasterMapFile.east">
+<tt class="descname">east</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.east" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.RasterMapFile.west">
+<tt class="descname">west</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.west" title="Permalink to this definition">¶</a></dt>
+<dd><p>FLOAT</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.RasterMapFile.rows">
+<tt class="descname">rows</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.rows" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.RasterMapFile.columns">
+<tt class="descname">columns</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="gsshapy.orm.RasterMapFile.fileExtension">
 <tt class="descname">fileExtension</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.fileExtension" title="Permalink to this definition">¶</a></dt>
 <dd><p>STRING</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="gsshapy.orm.RasterMapFile.rasterText">
+<tt class="descname">rasterText</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.rasterText" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="gsshapy.orm.RasterMapFile.raster">
 <tt class="descname">raster</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.raster" title="Permalink to this definition">¶</a></dt>
+<dd><p>RASTER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.RasterMapFile.filename">
+<tt class="descname">filename</tt><a class="headerlink" href="#gsshapy.orm.RasterMapFile.filename" title="Permalink to this definition">¶</a></dt>
 <dd><p>STRING</p>
 </dd></dl>
 
@@ -180,8 +306,32 @@ table was created for index maps for easier implementation.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gsshapy.orm.RasterMapFile.getAsGrassAsciiGrid">
+<tt class="descname">getAsGrassAsciiGrid</tt><big>(</big><em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.RasterMapFile.getAsGrassAsciiGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the raster in the Grass Ascii Grid format</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.RasterMapFile.getAsKmlClusters">
+<tt class="descname">getAsKmlClusters</tt><big>(</big><em>session</em>, <em>path=None</em>, <em>colorRamp=0</em>, <em>documentName=None</em>, <em>alpha=1.0</em>, <em>noDataValue=None</em><big>)</big><a class="headerlink" href="#gsshapy.orm.RasterMapFile.getAsKmlClusters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the raster in a clustered KML format</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.RasterMapFile.getAsKmlGrid">
+<tt class="descname">getAsKmlGrid</tt><big>(</big><em>session</em>, <em>path=None</em>, <em>colorRamp=0</em>, <em>documentName=None</em>, <em>alpha=1.0</em>, <em>noDataValue=None</em><big>)</big><a class="headerlink" href="#gsshapy.orm.RasterMapFile.getAsKmlGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the raster in KML format</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.RasterMapFile.getAsKmlPng">
+<tt class="descname">getAsKmlPng</tt><big>(</big><em>session</em>, <em>path=None</em>, <em>colorRamp=0</em>, <em>documentName=None</em>, <em>alpha=1.0</em>, <em>drawOrder=0</em>, <em>noDataValue=None</em>, <em>cellSize=None</em>, <em>resampleMethod='NearestNeighbour'</em><big>)</big><a class="headerlink" href="#gsshapy.orm.RasterMapFile.getAsKmlPng" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the raster in a PNG / KML format</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gsshapy.orm.RasterMapFile.read">
-<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.RasterMapFile.read" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">read</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em>, <em>spatial=False</em>, <em>spatialReferenceID=4236</em>, <em>raster2pgsqlPath='raster2pgsql'</em><big>)</big><a class="headerlink" href="#gsshapy.orm.RasterMapFile.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read file into the database.</p>
 </dd></dl>
 
@@ -191,7 +341,7 @@ table was created for index maps for easier implementation.</p>
 <dd><p>Write from database to file.</p>
 <p><em>session</em> = SQLAlchemy session object</p>
 <p><em>directory</em> = to which directory will the files be written (e.g.: &#8216;/example/path&#8217;)</p>
-<p><em>name</em> = project name (e.g.: &#8216;my_project&#8217;)</p>
+<p><em>name</em> = name of file that will be written (e.g.: &#8216;my_project.ext&#8217;)</p>
 </dd></dl>
 
 </dd></dl>
@@ -254,13 +404,13 @@ table was created for index maps for easier implementation.</p>
         <li class="right" >
           <a href="hmet.html" title="Hydrometeorological Files"
              >previous</a> |</li>
-        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">GSSHAPY 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../../api.html" >API Documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013, Brigham Young University.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Query using GsshaPy Objects &mdash; GSSHAPY 1.0.0 documentation</title>
+    <title>Query using GsshaPy Objects &mdash; GSSHAPY 2.0.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0.0',
+        VERSION:     '2.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../index.html" />
+    <link rel="top" title="GSSHAPY 2.0.0 documentation" href="../index.html" />
     <link rel="up" title="Getting Started" href="../tutorial.html" />
     <link rel="next" title="Write Files from a Database" href="write.html" />
     <link rel="prev" title="Read Files to a Database" href="read.html" /> 
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="read.html" title="Read Files to a Database"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">GSSHAPY 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../tutorial.html" accesskey="U">Getting Started</a> &raquo;</li> 
       </ul>
     </div>  
@@ -60,15 +60,17 @@
 <p>To prove that the excercise has actually done something, let&#8217;s explore database.
 Before we do this using the GsshaPy objects, lets explore a little using the <tt class="docutils literal"><span class="pre">sqlite</span></tt> commandline
 utility. Open a terminal or command prompt and issue the following commands:</p>
-<div class="highlight-python"><pre>$ cd /path/to/tutorial-data/db
+<div class="highlight-python"><div class="highlight"><pre>$ cd /path/to/tutorial-data/db
 $ sqlite3 gsshapy_parkcity.db
-sqlite&gt; .tables</pre>
+sqlite&gt; .tables
+</pre></div>
 </div>
 <p>If the database was initialized correctly, you should see a list of about 50 or so tables. The three
 letter prefix on the filename is associted with the file extension or in some cases the type of file.
 For example, there are two tables used to store project files: <tt class="docutils literal"><span class="pre">prj_project_files</span></tt> and <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt>.
 Most of the data is stored in the <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt> table. Inspect the data in this table by issuing the following query:</p>
-<div class="highlight-python"><pre>sqlite&gt; SELECT * FROM prj_project_cards;</pre>
+<div class="highlight-python"><div class="highlight"><pre>sqlite&gt; SELECT * FROM prj_project_cards;
+</pre></div>
 </div>
 <p>Each record in the <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt> table stores the name and value of one card in the project file.
 The <tt class="docutils literal"><span class="pre">prj_project_cards</span></tt> table is related to the <tt class="docutils literal"><span class="pre">prj_project_files</span></tt> table through a foreign
@@ -178,13 +180,13 @@ has two value column attributes: <em>name</em> and <em>value</em>. Access their 
         <li class="right" >
           <a href="read.html" title="Read Files to a Database"
              >previous</a> |</li>
-        <li><a href="../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">GSSHAPY 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../tutorial.html" >Getting Started</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013, Brigham Young University.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

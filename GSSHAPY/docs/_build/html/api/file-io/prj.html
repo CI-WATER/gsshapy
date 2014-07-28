@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Project File &mdash; GSSHAPY 1.0.0 documentation</title>
+    <title>Project File &mdash; GSSHAPY 2.0.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.0',
+        VERSION:     '2.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../../index.html" />
+    <link rel="top" title="GSSHAPY 2.0.0 documentation" href="../../index.html" />
     <link rel="up" title="API Documentation" href="../../api.html" />
     <link rel="next" title="Channel Input File" href="cif.html" />
     <link rel="prev" title="Gssha File Object Base" href="file-base.html" /> 
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="file-base.html" title="Gssha File Object Base"
              accesskey="P">previous</a> |</li>
-        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">GSSHAPY 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../../api.html" accesskey="U">API Documentation</a> &raquo;</li> 
       </ul>
     </div>  
@@ -59,7 +59,7 @@
 <h2>File Object<a class="headerlink" href="#file-object" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="gsshapy.orm.ProjectFile">
-<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">ProjectFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">ProjectFile</tt><a class="headerlink" href="#gsshapy.orm.ProjectFile" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="attribute">
 <dt id="gsshapy.orm.ProjectFile.tableName">
 <tt class="descname">tableName</tt><em class="property"> = 'prj_project_files'</em><a class="headerlink" href="#gsshapy.orm.ProjectFile.tableName" title="Permalink to this definition">¶</a></dt>
@@ -145,9 +145,27 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="gsshapy.orm.ProjectFile.srid">
+<tt class="descname">srid</tt><a class="headerlink" href="#gsshapy.orm.ProjectFile.srid" title="Permalink to this definition">¶</a></dt>
+<dd><p>SRID</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ProjectFile.name">
+<tt class="descname">name</tt><a class="headerlink" href="#gsshapy.orm.ProjectFile.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="gsshapy.orm.ProjectFile.mapType">
 <tt class="descname">mapType</tt><a class="headerlink" href="#gsshapy.orm.ProjectFile.mapType" title="Permalink to this definition">¶</a></dt>
 <dd><p>INTEGER</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ProjectFile.fileExtension">
+<tt class="descname">fileExtension</tt><a class="headerlink" href="#gsshapy.orm.ProjectFile.fileExtension" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -211,12 +229,6 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="gsshapy.orm.ProjectFile.timeSeriesFiles">
-<tt class="descname">timeSeriesFiles</tt><a class="headerlink" href="#gsshapy.orm.ProjectFile.timeSeriesFiles" title="Permalink to this definition">¶</a></dt>
-<dd><p>RELATIONSHIP</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="gsshapy.orm.ProjectFile.projectionFile">
 <tt class="descname">projectionFile</tt><a class="headerlink" href="#gsshapy.orm.ProjectFile.projectionFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>RELATIONSHIP</p>
@@ -231,6 +243,12 @@
 <dl class="attribute">
 <dt id="gsshapy.orm.ProjectFile.replaceValFile">
 <tt class="descname">replaceValFile</tt><a class="headerlink" href="#gsshapy.orm.ProjectFile.replaceValFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ProjectFile.timeSeriesFiles">
+<tt class="descname">timeSeriesFiles</tt><a class="headerlink" href="#gsshapy.orm.ProjectFile.timeSeriesFiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>RELATIONSHIP</p>
 </dd></dl>
 
@@ -253,22 +271,40 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="gsshapy.orm.ProjectFile.name">
-<tt class="descname">name</tt><a class="headerlink" href="#gsshapy.orm.ProjectFile.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>STRING</p>
+<dt id="gsshapy.orm.ProjectFile.genericFiles">
+<tt class="descname">genericFiles</tt><a class="headerlink" href="#gsshapy.orm.ProjectFile.genericFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.ProjectFile.wmsDatasets">
+<tt class="descname">wmsDatasets</tt><a class="headerlink" href="#gsshapy.orm.ProjectFile.wmsDatasets" title="Permalink to this definition">¶</a></dt>
+<dd><p>RELATIONSHIP</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gsshapy.orm.ProjectFile.appendDirectory">
-<tt class="descname">appendDirectory</tt><big>(</big><em>directory</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.appendDirectory" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">appendDirectory</tt><big>(</big><em>directory</em>, <em>projectFilePath</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.appendDirectory" title="Permalink to this definition">¶</a></dt>
 <dd><p>Append directory to relative paths in project file.
 By default, the project files are written with relative paths.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gsshapy.orm.ProjectFile.readProject">
-<tt class="descname">readProject</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.readProject" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">readProject</tt><big>(</big><em>directory</em>, <em>projectFileName</em>, <em>session</em>, <em>spatial=False</em>, <em>spatialReferenceID=4236</em>, <em>raster2pgsqlPath='raster2pgsql'</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.readProject" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read all files for a GSSHA project into the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.ProjectFile.readInput">
+<tt class="descname">readInput</tt><big>(</big><em>directory</em>, <em>projectFileName</em>, <em>session</em>, <em>spatial=False</em>, <em>spatialReferenceID=4236</em>, <em>raster2pgsqlPath='raster2pgsql'</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.readInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read only input files for a GSSHA project into the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.ProjectFile.readOutput">
+<tt class="descname">readOutput</tt><big>(</big><em>directory</em>, <em>projectFileName</em>, <em>session</em>, <em>spatial=False</em>, <em>spatialReferenceID=4236</em>, <em>raster2pgsqlPath='raster2pgsql'</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.readOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read only output files for a GSSHA project to the database.</p>
 </dd></dl>
 
 <dl class="method">
@@ -281,24 +317,12 @@ By default, the project files are written with relative paths.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gsshapy.orm.ProjectFile.readInput">
-<tt class="descname">readInput</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.readInput" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read only input files for a GSSHA project into the database.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="gsshapy.orm.ProjectFile.writeInput">
 <tt class="descname">writeInput</tt><big>(</big><em>session</em>, <em>directory</em>, <em>name</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.writeInput" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write only input files for a GSSHA project from the database to file.</p>
 <p><em>session</em> = SQLAlchemy session object</p>
 <p><em>directory</em> = to which directory will the files be written (e.g.: &#8216;/example/path&#8217;)</p>
 <p><em>name</em> = project name (e.g.: &#8216;my_project&#8217;)</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gsshapy.orm.ProjectFile.readOutput">
-<tt class="descname">readOutput</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.readOutput" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read only output files for a GSSHA project to the database.</p>
 </dd></dl>
 
 <dl class="method">
@@ -311,8 +335,97 @@ By default, the project files are written with relative paths.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gsshapy.orm.ProjectFile.getFiles">
+<tt class="descname">getFiles</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.getFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of the files that are loaded</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.ProjectFile.getCard">
+<tt class="descname">getCard</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.getCard" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the card object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.ProjectFile.getModelSummaryAsKml">
+<tt class="descname">getModelSummaryAsKml</tt><big>(</big><em>session</em>, <em>path=None</em>, <em>withStreamNetwork=True</em>, <em>withNodes=False</em>, <em>styles={}</em>, <em>documentName=None</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.getModelSummaryAsKml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve a KML representation of the model. Includes vectorized mask map and stream network.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>session</strong> &#8211; SQLAlchemy session object bound to PostGIS enabled database</li>
+<li><strong>path</strong> &#8211; Path to which to write KML</li>
+<li><strong>withStreamNetwork</strong> &#8211; Include stream network in summary</li>
+<li><strong>withNodes</strong> &#8211; Include stream nodes in summary</li>
+<li><strong>styles</strong> &#8211; <p>Dictionary of styling options
+valid styles:</p>
+<blockquote>
+<div>streamLineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
+streamLineWidth: float line width in pixels
+nodeIconHref: link to icon image (PNG format) to represent nodes (see: <a class="reference external" href="http://kml4earth.appspot.com/icons.html">http://kml4earth.appspot.com/icons.html</a>)
+nodeIconScale: scale of the icon image
+maskLineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
+maskLineWidth: float line width in pixels
+maskFillColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)</div></blockquote>
+</li>
+<li><strong>documentName</strong> &#8211; Name to give to KML document</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:rtype : string</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.ProjectFile.getModelSummaryAsWkt">
+<tt class="descname">getModelSummaryAsWkt</tt><big>(</big><em>session</em>, <em>withStreamNetwork=True</em>, <em>withNodes=False</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.getModelSummaryAsWkt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve a Well Known Text representation of the model. Includes vectorized mask map and stream network.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>session</strong> &#8211; SQLAlchemy session object bound to PostGIS enabled database</li>
+<li><strong>withStreamNetwork</strong> &#8211; Include stream network in summary</li>
+<li><strong>withNodes</strong> &#8211; Include stream nodes in summary</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gsshapy.orm.ProjectFile.getModelSummaryAsGeoJson">
+<tt class="descname">getModelSummaryAsGeoJson</tt><big>(</big><em>session</em>, <em>withStreamNetwork=True</em>, <em>withNodes=False</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.getModelSummaryAsGeoJson" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve a GeoJSON representation of the model. Includes vectorized mask map and stream network.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>session</strong> &#8211; SQLAlchemy session object bound to PostGIS enabled database</li>
+<li><strong>withStreamNetwork</strong> &#8211; Include stream network in summary</li>
+<li><strong>withNodes</strong> &#8211; Include stream nodes in summary</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="gsshapy.orm.ProjectFile.read">
-<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.read" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">read</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em>, <em>spatial=False</em>, <em>spatialReferenceID=4236</em>, <em>raster2pgsqlPath='raster2pgsql'</em><big>)</big><a class="headerlink" href="#gsshapy.orm.ProjectFile.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read file into the database.</p>
 </dd></dl>
 
@@ -322,7 +435,7 @@ By default, the project files are written with relative paths.</p>
 <dd><p>Write from database to file.</p>
 <p><em>session</em> = SQLAlchemy session object</p>
 <p><em>directory</em> = to which directory will the files be written (e.g.: &#8216;/example/path&#8217;)</p>
-<p><em>name</em> = project name (e.g.: &#8216;my_project&#8217;)</p>
+<p><em>name</em> = name of file that will be written (e.g.: &#8216;my_project.ext&#8217;)</p>
 </dd></dl>
 
 </dd></dl>
@@ -431,13 +544,13 @@ By default, the project files are written with relative paths.</p>
         <li class="right" >
           <a href="file-base.html" title="Gssha File Object Base"
              >previous</a> |</li>
-        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">GSSHAPY 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../../api.html" >API Documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013, Brigham Young University.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

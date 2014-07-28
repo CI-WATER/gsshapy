@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Storm Pipe Network File &mdash; GSSHAPY 1.0.0 documentation</title>
+    <title>Storm Pipe Network File &mdash; GSSHAPY 2.0.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.0',
+        VERSION:     '2.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GSSHAPY 1.0.0 documentation" href="../../index.html" />
+    <link rel="top" title="GSSHAPY 2.0.0 documentation" href="../../index.html" />
     <link rel="up" title="API Documentation" href="../../api.html" />
     <link rel="next" title="Time Series Files" href="tim.html" />
     <link rel="prev" title="Snow Simulation Related Files" href="snw.html" /> 
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="snw.html" title="Snow Simulation Related Files"
              accesskey="P">previous</a> |</li>
-        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">GSSHAPY 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../../api.html" accesskey="U">API Documentation</a> &raquo;</li> 
       </ul>
     </div>  
@@ -59,7 +59,7 @@
 <h2>File Object<a class="headerlink" href="#file-object" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="gsshapy.orm.StormPipeNetworkFile">
-<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">StormPipeNetworkFile</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em><big>)</big><a class="headerlink" href="#gsshapy.orm.StormPipeNetworkFile" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">gsshapy.orm.</tt><tt class="descname">StormPipeNetworkFile</tt><a class="headerlink" href="#gsshapy.orm.StormPipeNetworkFile" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="attribute">
 <dt id="gsshapy.orm.StormPipeNetworkFile.tableName">
 <tt class="descname">tableName</tt><em class="property"> = 'spn_storm_pipe_network_files'</em><a class="headerlink" href="#gsshapy.orm.StormPipeNetworkFile.tableName" title="Permalink to this definition">¶</a></dt>
@@ -70,6 +70,12 @@
 <dt id="gsshapy.orm.StormPipeNetworkFile.id">
 <tt class="descname">id</tt><a class="headerlink" href="#gsshapy.orm.StormPipeNetworkFile.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>PK</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gsshapy.orm.StormPipeNetworkFile.fileExtension">
+<tt class="descname">fileExtension</tt><a class="headerlink" href="#gsshapy.orm.StormPipeNetworkFile.fileExtension" title="Permalink to this definition">¶</a></dt>
+<dd><p>STRING</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -98,7 +104,7 @@
 
 <dl class="method">
 <dt id="gsshapy.orm.StormPipeNetworkFile.read">
-<tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#gsshapy.orm.StormPipeNetworkFile.read" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">read</tt><big>(</big><em>directory</em>, <em>filename</em>, <em>session</em>, <em>spatial=False</em>, <em>spatialReferenceID=4236</em>, <em>raster2pgsqlPath='raster2pgsql'</em><big>)</big><a class="headerlink" href="#gsshapy.orm.StormPipeNetworkFile.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read file into the database.</p>
 </dd></dl>
 
@@ -108,7 +114,7 @@
 <dd><p>Write from database to file.</p>
 <p><em>session</em> = SQLAlchemy session object</p>
 <p><em>directory</em> = to which directory will the files be written (e.g.: &#8216;/example/path&#8217;)</p>
-<p><em>name</em> = project name (e.g.: &#8216;my_project&#8217;)</p>
+<p><em>name</em> = name of file that will be written (e.g.: &#8216;my_project.ext&#8217;)</p>
 </dd></dl>
 
 </dd></dl>
@@ -525,13 +531,13 @@
         <li class="right" >
           <a href="snw.html" title="Snow Simulation Related Files"
              >previous</a> |</li>
-        <li><a href="../../index.html">GSSHAPY 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">GSSHAPY 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../../api.html" >API Documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013, Brigham Young University.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+        &copy; Copyright 2014, Brigham Young University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>
