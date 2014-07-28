@@ -4,18 +4,13 @@ Channel Input File
 
 File extension: **cif**
 
-.. automodule:: gsshapy.orm.cif
-    :members:
-
 File Object
 ===========
 
 .. autoclass:: gsshapy.orm.ChannelInputFile
     :members:
-    :inherited-members:
-
-    .. automethod:: gsshapy.orm.ChannelInputFile.getStreamNetworkAsKml
-
+    :undoc-members:
+    :show-inheritance:
 
 Table Objects
 +++++++++++++
