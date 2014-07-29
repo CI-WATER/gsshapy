@@ -8,19 +8,20 @@ File Object
 ===========
 
 .. autoclass:: gsshapy.orm.TimeSeriesFile
-	:members:
-	:inherited-members:
-	
-	
-Table Objects
-+++++++++++++
+    :members:
+    :show-inheritance:
+
+
+Supporting Objects
+==================
 
 .. autoclass:: gsshapy.orm.TimeSeries
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+
 .. autoclass:: gsshapy.orm.TimeSeriesValue
-	:members:
-	
-	
+    :members:
+    :show-inheritance:
+

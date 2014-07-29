@@ -7,6 +7,7 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
+## TODO: Add support for automatically determining the projection using web service
 
 __all__ = ['ProjectionFile']
 
@@ -17,9 +18,15 @@ from sqlalchemy.orm import relationship
 from gsshapy.orm import DeclarativeBase
 from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
-
 class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    Object interface for the Projection File.
+
+    The projection file contains the Well Known Text version of the spatial reference system for the GSSHA model. This
+    file contains a single line, so the file contents is stored in the file object. No supporting objects are needed.
+
+    See: http://www.geoapi.org/3.0/javadoc/org/opengis/referencing/doc-files/WKT.html
+         http://spatialreference.org/
     """
     __tablename__ = 'pro_projection_files'
 

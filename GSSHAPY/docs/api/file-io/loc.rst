@@ -12,8 +12,8 @@ File Object
     :show-inheritance:
 
 
-Table Objects
-+++++++++++++
+Supporting Objects
+==================
 
 .. autoclass:: gsshapy.orm.OutputLocation
     :members:

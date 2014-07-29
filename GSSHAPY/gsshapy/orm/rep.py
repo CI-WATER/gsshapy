@@ -22,6 +22,13 @@ from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
 class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    Object interface for the Replacement Parameters File.
+
+    The contents of this file are abstracted to one other supporting object: :class:`.TargetParameter`. Use this object
+    in conjunction with the :class:`.ReplaceValFile`.
+
+    See: http://www.gsshawiki.com/Alternate_Run_Modes:Simulation_Setup_for_Alternate_Run_Modes
+         http://www.gsshawiki.com/File_Formats:Project_File_Format#Replacement_cards
     """
     __tablename__ = 'rep_replace_param_files'
 
@@ -81,6 +88,7 @@ class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class TargetParameter(DeclarativeBase):
     """
+    Object containing data for a single target value as defined in the Replacement Parameters File.
     """
     __tablename__ = 'rep_target_parameter'
 
@@ -107,6 +115,12 @@ class TargetParameter(DeclarativeBase):
 
 class ReplaceValFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    Object interface for the Replacement Values File.
+
+    Use this object in conjunction with the :class:`.ReplaceParamFile`.
+
+    See: http://www.gsshawiki.com/Alternate_Run_Modes:Simulation_Setup_for_Alternate_Run_Modes
+         http://www.gsshawiki.com/File_Formats:Project_File_Format#Replacement_cards
     """
     __tablename__ = 'rep_replace_val_files'
 

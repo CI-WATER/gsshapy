@@ -11,24 +11,24 @@ Replace Parameter File
 File extension: **None**
 
 .. autoclass:: gsshapy.orm.ReplaceParamFile
-	:members:
-	:inherited-members:
-	
-	
-Table Objects
-+++++++++++++
+    :members:
+    :show-inheritance:
+
+
+Supporting Objects
+==================
 
 .. autoclass:: gsshapy.orm.TargetParameter
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+
 Replace Value File
 ==================
 
 File extension: **None**
 
 .. autoclass:: gsshapy.orm.ReplaceValFile
-	:members:
-	:inherited-members:
-	
+    :members:
+    :show-inheritance:

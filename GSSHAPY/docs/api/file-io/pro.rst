@@ -9,6 +9,6 @@ File Object
 
 .. autoclass:: gsshapy.orm.ProjectionFile
 	:members:
-	:inherited-members:
+	:show-inheritance:
 	
 	

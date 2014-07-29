@@ -8,31 +8,35 @@ File Object
 ===========
 
 .. autoclass:: gsshapy.orm.StormPipeNetworkFile
-	:members:
-	:inherited-members:
-	
-	
-Table Objects
-+++++++++++++
+    :members:
+    :show-inheritance:
+
+
+Supporting Objects
+==================
 
 .. autoclass:: gsshapy.orm.SuperLink
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+
 .. autoclass:: gsshapy.orm.SuperNode
-	:members:
-	
-	
+    :members:
+    :show-inheritance:
+
+
 .. autoclass:: gsshapy.orm.Pipe
-	:members:
-	
-	
+    :members:
+    :show-inheritance:
+
+
 .. autoclass:: gsshapy.orm.SuperJunction
-	:members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+
 .. autoclass:: gsshapy.orm.Connection
-	:members:
-	
+    :members:
+    :show-inheritance:

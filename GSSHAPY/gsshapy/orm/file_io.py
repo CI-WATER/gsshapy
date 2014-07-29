@@ -14,7 +14,7 @@ from gsshapy.orm.gag import PrecipFile
 from gsshapy.orm.cif import ChannelInputFile
 from gsshapy.orm.spn import StormPipeNetworkFile
 from gsshapy.orm.hmet import HmetFile
-from gsshapy.orm.snw import NwsrfsFile, OrthographicGageFile
+from gsshapy.orm.snw import NwsrfsFile, OrographicGageFile
 from gsshapy.orm.gpi import GridPipeFile
 from gsshapy.orm.gst import GridStreamFile
 from gsshapy.orm.tim import TimeSeriesFile

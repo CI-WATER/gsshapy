@@ -11,17 +11,16 @@ Index Map File Object
 File extension: **idx**
 
 .. autoclass:: gsshapy.orm.IndexMap
-	:members:
-	:inherited-members:
-	
-	
-	
+    :members:
+    :show-inheritance:
+
+
+
 Raster Map File Object
 ======================
 
 File extensions: **Variable** (e.g.: ele, msk, aqe)
 
 .. autoclass:: gsshapy.orm.RasterMapFile
-	:members:
-	:inherited-members:
-	
+    :members:
+    :show-inheritance:

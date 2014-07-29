@@ -10,33 +10,32 @@ NWSRFS File
 File extension: **None**
 
 .. autoclass:: gsshapy.orm.NwsrfsFile
-	:members:
-	:inherited-members:
-	
-	
-Table Objects
-+++++++++++++
+    :members:
+    :show-inheritance:
+
+
+Supporting Objects
+==================
 
 .. autoclass:: gsshapy.orm.NwsrfsRecord
-	:members:
-	
-	
-	
-	
-Orthographic Gage File
+    :members:
+    :show-inheritance:
+
+
+Orographic Gage File
 ======================
 
 File extension: **None**
 
-.. autoclass:: gsshapy.orm.OrthographicGageFile
-	:members:
-	:inherited-members:
-	
-	
-	
-Table Objects
-+++++++++++++
+.. autoclass:: gsshapy.orm.OrographicGageFile
+    :members:
+    :show-inheritance:
 
-.. autoclass:: gsshapy.orm.OrthoMeasurement
-	:members:
-	
+
+
+Supporting Objects
+==================
+
+.. autoclass:: gsshapy.orm.OrographicMeasurement
+    :members:
+    :show-inheritance:

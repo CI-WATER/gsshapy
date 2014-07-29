@@ -29,6 +29,17 @@ from gsshapy.orm.file_io import *
 
 class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    Object interface for the Project File.
+
+    The project file is the main configuration file for GSSHA models. As such, the project file object is different than
+    most of the other file objects. In addition to providing read and write methods for the project file, a project file
+    instance also provides methods for reading and writing the GSSHA project as a whole. These methods should be the
+    primary interface for working with GSSHA models.
+
+    The project file is composed of a series of cards and values. Each card in the project file is read into a
+    supporting object: :class:`.ProjectCard`.
+
+    See: http://www.gsshawiki.com/Project_File:Project_File
     """
     __tablename__ = 'prj_project_files'
 
@@ -42,7 +53,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id'))  #: FK
     hmetFileID = Column(Integer, ForeignKey('hmet_files.id'))  #: FK
     nwsrfsFileID = Column(Integer, ForeignKey('snw_nwsrfs_files.id'))  #: FK
-    orthoGageFileID = Column(Integer, ForeignKey('snw_orthographic_gage_files.id'))  #: FK
+    orographicGageFileID = Column(Integer, ForeignKey('snw_orographic_gage_files.id'))  #: FK
     gridPipeFileID = Column(Integer, ForeignKey('gpi_grid_pipe_files.id'))  #: FK
     gridStreamFileID = Column(Integer, ForeignKey('gst_grid_stream_files.id'))  #: FK
     projectionFileID = Column(Integer, ForeignKey('pro_projection_files.id'))  #: FK
@@ -65,7 +76,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='projectFile')  #: RELATIONSHIP
     hmetFile = relationship('HmetFile', back_populates='projectFile')  #: RELATIONSHIP
     nwsrfsFile = relationship('NwsrfsFile', back_populates='projectFile')  #: RELATIONSHIP
-    orthoGageFile = relationship('OrthographicGageFile', back_populates='projectFile')  #: RELATIONSHIP
+    orographicGageFile = relationship('OrographicGageFile', back_populates='projectFile')  #: RELATIONSHIP
     gridPipeFile = relationship('GridPipeFile', back_populates='projectFile')  #: RELATIONSHIP
     gridStreamFile = relationship('GridStreamFile', back_populates='projectFile')  #: RELATIONSHIP
     projectionFile = relationship('ProjectionFile', back_populates='projectFile')  #: RELATIONSHIP
@@ -103,7 +114,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                    'HMET_SAMSON': GenericFile,  ## TODO: Create support in HmetFile for these formats
                    'HMET_WES': HmetFile,
                    'NWSRFS_ELEV_SNOW': NwsrfsFile,
-                   'HMET_OROG_GAGES': OrthographicGageFile,
+                   'HMET_OROG_GAGES': OrographicGageFile,
                    'HMET_ASCII': GenericFile,
                    'GW_FLUXBOUNDTABLE': GenericFile,  # Saturated Groundwater Flow
                    'STORM_SEWER': StormPipeNetworkFile,  # Subsurface Drainage
@@ -260,8 +271,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def appendDirectory(self, directory, projectFilePath):
         """
-        Append directory to relative paths in project file.
-        By default, the project files are written with relative paths.
+        Append directory to relative paths in project file. By default, the project file paths are read and written as
+        relative paths. Use this method to prepend a directory to all the paths in the project file.
+
+        Args:
+            directory (str): Directory path to prepend to file paths in project file.
+            projectFilePath (str): Path to project file that will be modified.
         """
         lines = []
         with open(projectFilePath, 'r') as original:
@@ -303,6 +318,22 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     def readProject(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         """
         Read all files for a GSSHA project into the database.
+
+        This method will read all the files, both input and output files, that are supported by GsshaPy into a database.
+        To use GsshaPy more efficiently, it is recommended that you use the readInput method when performing
+        pre-processing tasks and readOutput when performing post-processing tasks.
+
+        Args:
+            directory (str): Directory containing all GSSHA model files. This method assumes that all files are located
+                in the same directory.
+            projectFileName (str): Name of the project file for the GSSHA model which will be read (e.g.: 'example.prj').
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
+            spatial (bool, optional): If True, spatially enabled objects will be read in as PostGIS spatial objects.
+                Defaults to False.
+            spatialReferenceID (int, optional): Integer id of spatial reference system for the model. Required if
+                spatial is True.
+            raster2pgsqlPath (str, optional): Path to the raster2pgsql program. This program ships with PostGIS and is
+                used to read rasters into the PostGIS database. Required if spatial is True.
         """
         # Add project file to session
         session.add(self)
@@ -332,6 +363,20 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     def readInput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         """
         Read only input files for a GSSHA project into the database.
+
+        Use this method to read a project when only pre-processing tasks need to be performed.
+
+        Args:
+            directory (str): Directory containing all GSSHA model files. This method assumes that all files are located
+                in the same directory.
+            projectFileName (str): Name of the project file for the GSSHA model which will be read (e.g.: 'example.prj').
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
+            spatial (bool, optional): If True, spatially enabled objects will be read in as PostGIS spatial objects.
+                Defaults to False.
+            spatialReferenceID (int, optional): Integer id of spatial reference system for the model. Required if
+                spatial is True.
+            raster2pgsqlPath (str, optional): Path to the raster2pgsql program. This program ships with PostGIS and is
+                used to read rasters into the PostGIS database. Required if spatial is True.
         """
         # Add project file to session
         session.add(self)
@@ -353,6 +398,20 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     def readOutput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
         """
         Read only output files for a GSSHA project to the database.
+
+        Use this method to read a project when only post-processing tasks need to be performed.
+
+        Args:
+            directory (str): Directory containing all GSSHA model files. This method assumes that all files are located
+                in the same directory.
+            projectFileName (str): Name of the project file for the GSSHA model which will be read (e.g.: 'example.prj').
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
+            spatial (bool, optional): If True, spatially enabled objects will be read in as PostGIS spatial objects.
+                Defaults to False.
+            spatialReferenceID (int, optional): Integer id of spatial reference system for the model. Required if
+                spatial is True.
+            raster2pgsqlPath (str, optional): Path to the raster2pgsql program. This program ships with PostGIS and is
+                used to read rasters into the PostGIS database. Required if spatial is True.
         """
         # Add project file to session
         session.add(self)
@@ -374,10 +433,17 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Write all files for a project from the database to file.
 
+        Use this method to write all GsshaPy supported files back into their native file formats. If writing to execute
+        the model, increase efficiency by using the writeInput method to write only the file needed to run the model.
 
-        *session* = SQLAlchemy session object\n
-        *directory* = to which directory will the files be written (e.g.: '/example/path')\n
-        *name* = project name (e.g.: 'my_project')\n
+        Args:
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
+            directory (str): Directory containing all GSSHA model files. This method assumes that all files are located
+                in the same directory.
+            name (str): Name that will be given to project when written (e.g.: 'example'). Files that follow the project
+                naming convention will be given this name with the appropriate extension (e.g.: 'example.prj',
+                'example.cmt', and 'example.gag'). Files that do not follow this convention will retain their original
+                file names.
         """
 
         # Write Project File
@@ -399,10 +465,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Write only input files for a GSSHA project from the database to file.
 
-
-        *session* = SQLAlchemy session object\n
-        *directory* = to which directory will the files be written (e.g.: '/example/path')\n
-        *name* = project name (e.g.: 'my_project')\n
+        Args:
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
+            directory (str): Directory containing all GSSHA model files. This method assumes that all files are located
+                in the same directory.
+            name (str): Name that will be given to project when written (e.g.: 'example'). Files that follow the project
+                naming convention will be given this name with the appropriate extension (e.g.: 'example.prj',
+                'example.cmt', and 'example.gag'). Files that do not follow this convention will retain their original
+                file names.
         """
         # Write Project File
         self.write(session=session, directory=directory, name=name)
@@ -417,10 +487,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Write only output files for a GSSHA project from the database to file.
 
-
-        *session* = SQLAlchemy session object\n
-        *directory* = to which directory will the files be written (e.g.: '/example/path')\n
-        *name* = project name (e.g.: 'my_project')\n
+        Args:
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
+            directory (str): Directory containing all GSSHA model files. This method assumes that all files are located
+                in the same directory.
+            name (str): Name that will be given to project when written (e.g.: 'example'). Files that follow the project
+                naming convention will be given this name with the appropriate extension (e.g.: 'example.prj',
+                'example.cmt', and 'example.gag'). Files that do not follow this convention will retain their original
+                file names.
         """
         # Write Project File
         self.write(session=session, directory=directory, name=name)
@@ -431,10 +505,38 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Write WMS Dataset Files
         self._writeWMSDatasets(session=session, directory=directory, wmsDatasetCards=self.WMS_DATASETS, name=name)
 
-    def getFiles(self):
+    def getFileKeys(self):
         """
-        Get a list of the files that are loaded
+        Retrieve a list of file keys that have been read into the database.
+
+        This is a utility method that can be used to programmatically access the GsshaPy file objects. Use these keys
+        in conjunction with the dictionary returned by the getFileObjects method.
+
+        Returns:
+            list: List of keys representing file objects that have been read into the database.
         """
+        files = self.getFileObjects()
+
+        files_list = []
+
+        for key, value in files.iteritems():
+            if value:
+                files_list.append(key)
+
+        return files_list
+
+    def getFileObjects(self):
+        """
+        Retrieve a dictionary of file objects.
+
+        This is a utility method that can be used to programmatically access the GsshaPy file objects. Use this method
+        in conjunction with the getFileKeys method to access only files that have been read into the database.
+
+        Returns:
+            dict: Dictionary with human readable keys and values of GsshaPy file object instances. Files that have not
+            been read into the database will have a value of None.
+        """
+
         files = {'project-file': self,
                  'mapping-table-file': self.mapTableFile,
                  'channel-input-file': self.channelInputFile,
@@ -442,7 +544,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                  'storm-pipe-network-file': self.stormPipeNetworkFile,
                  'hmet-file': self.hmetFile,
                  'nwsrfs-file': self.nwsrfsFile,
-                 'orthographic-gage-file': self.orthoGageFile,
+                 'orographic-gage-file': self.orographicGageFile,
                  'grid-pipe-file': self.gridPipeFile,
                  'grid-stream-file': self.gridStreamFile,
                  'time-series-file': self.timeSeriesFiles,
@@ -453,46 +555,49 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                  'maps': self.maps,
                  'link-node-datasets-file': self.linkNodeDatasets}
 
-        files_list = []
-
-        for key, value in files.iteritems():
-            if value:
-                files_list.append(key)
-
-        return files_list
+        return files
 
     def getCard(self, name):
         """
-        Get the card object
+        Retrieve card object for given card name.
+
+        Args:
+            name (str): Name of card to be retrieved.
+
+        Returns:
+            :class:`.ProjectCard` or None: Project card object. Will return None if the card is not available.
         """
         cards = self.projectCards
 
         for card in cards:
-            if card.name == name:
+            if card.name.upper() == name.upper():
                 return card
 
         return None
 
-    def getModelSummaryAsKml(self, session, path=None, withStreamNetwork=True, withNodes=False, styles={}, documentName=None):
+    def getModelSummaryAsKml(self, session, path=None, documentName=None, withStreamNetwork=True, withNodes=False, styles={}):
         """
-        Retrieve a KML representation of the model. Includes vectorized mask map and stream network.
+        Retrieve a KML representation of the model. Includes polygonized mask map and vector stream network.
 
-        :param session: SQLAlchemy session object bound to PostGIS enabled database
-        :param path: Path to which to write KML
-        :param withStreamNetwork: Include stream network in summary
-        :param withNodes: Include stream nodes in summary
-        :param styles: Dictionary of styling options
-                valid styles:
-                   streamLineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
-                   streamLineWidth: float line width in pixels
-                   nodeIconHref: link to icon image (PNG format) to represent nodes (see: http://kml4earth.appspot.com/icons.html)
-                   nodeIconScale: scale of the icon image
-                   maskLineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
-                   maskLineWidth: float line width in pixels
-                   maskFillColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
+        Args:
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
+            path (str, optional): Path to file where KML file will be written. Defaults to None.
+            documentName (str, optional): Name of the KML document. This will be the name that appears in the legend.
+                Defaults to 'Stream Network'.
+            withStreamNetwork (bool, optional): Include stream network. Defaults to True.
+            withNodes (bool, optional): Include nodes. Defaults to False.
+            styles (dict, optional): Custom styles to apply to KML geometry. Defaults to empty dictionary.
+                Valid keys (styles) include:
+                   * streamLineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
+                   * streamLineWidth: float line width in pixels
+                   * nodeIconHref: link to icon image (PNG format) to represent nodes (see: http://kml4earth.appspot.com/icons.html)
+                   * nodeIconScale: scale of the icon image
+                   * maskLineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
+                   * maskLineWidth: float line width in pixels
+                   * maskFillColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
 
-        :param documentName: Name to give to KML document
-        :rtype : string
+        Returns:
+            str: KML string
         """
         # Get mask map
         watershedMaskCard = self.getCard('WATERSHED_MASK')
@@ -684,13 +789,15 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def getModelSummaryAsWkt(self, session, withStreamNetwork=True, withNodes=False):
         """
-        Retrieve a Well Known Text representation of the model. Includes vectorized mask map and stream network.
+        Retrieve a Well Known Text representation of the model. Includes polygonized mask map and vector stream network.
 
-        :param session: SQLAlchemy session object bound to PostGIS enabled database
-        :param withStreamNetwork: Include stream network in summary
-        :param withNodes: Include stream nodes in summary
+        Args:
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
+            withStreamNetwork (bool, optional): Include stream network. Defaults to True.
+            withNodes (bool, optional): Include nodes. Defaults to False.
 
-        :rtype: string
+        Returns:
+            str: Well Known Text string
         """
         # Get mask map
         watershedMaskCard = self.getCard('WATERSHED_MASK')
@@ -743,11 +850,13 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Retrieve a GeoJSON representation of the model. Includes vectorized mask map and stream network.
 
-        :param session: SQLAlchemy session object bound to PostGIS enabled database
-        :param withStreamNetwork: Include stream network in summary
-        :param withNodes: Include stream nodes in summary
+        Args:
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
+            withStreamNetwork (bool, optional): Include stream network. Defaults to True.
+            withNodes (bool, optional): Include nodes. Defaults to False.
 
-        :rtype: string
+        Returns:
+            str: GeoJSON string
         """
         # Get mask map
         watershedMaskCard = self.getCard('WATERSHED_MASK')
@@ -1149,6 +1258,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class ProjectCard(DeclarativeBase):
     """
+    Object containing data for a single card in the project file.
     """
     __tablename__ = 'prj_project_cards'
 
@@ -1176,6 +1286,17 @@ class ProjectCard(DeclarativeBase):
         return '<ProjectCard: Name=%s, Value=%s>' % (self.name, self.value)
 
     def write(self, originalPrefix, newPrefix=None):
+        """
+        Write project card to string.
+
+        Args:
+            originalPrefix (str): Original name to give to files that follow the project naming convention
+                (e.g: prefix.gag).
+            newPrefix (str, optional): If new prefix is desired, pass in this parameter. Defaults to None.
+
+        Returns:
+            str: Card and value as they would be written to the project file.
+        """
         # Determine number of spaces between card and value for nice alignment
         numSpaces = 25 - len(self.name)
 

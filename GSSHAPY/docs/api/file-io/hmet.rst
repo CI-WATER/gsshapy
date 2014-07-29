@@ -11,10 +11,8 @@ File Object
     :members:
     :show-inheritance:
 
-
-
-Table Objects
-+++++++++++++
+Supporting Objects
+==================
 
 .. autoclass:: gsshapy.orm.HmetRecord
     :members:

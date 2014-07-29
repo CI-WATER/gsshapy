@@ -91,7 +91,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                    'HMET_SAMSON':               {'filename': None, 'fileio': None},
                    'HMET_WES':                  {'filename': None, 'fileio': HmetFile},
                    'NWSRFS_ELEV_SNOW':          {'filename': None, 'fileio': NwsrfsFile},
-                   'HMET_OROG_GAGES':           {'filename': None, 'fileio': OrthographicGageFile},
+                   'HMET_OROG_GAGES':           {'filename': None, 'fileio': OrographicGageFile},
                    'HMET_ASCII':                {'filename': None, 'fileio': None},
                    'GW_FLUXBOUNDTABLE':         {'filename': None, 'fileio': None},                 # Saturated Groundwater Flow
                    'STORM_SEWER':               {'filename': None, 'fileio': StormPipeNetworkFile}, # Subsurface Drainage

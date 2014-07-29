@@ -26,13 +26,30 @@ from mapkit.RasterConverter import RasterConverter
 
 class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObject):
     """
+    Object interface for Raster Map type files.
+
+    GSSHA uses GRASS ASCII rasters to store spatially distributed parameters. Rasters that are not index maps are stored
+    using this object. Index maps are stored separately, because they are closely tied to the mapping table file objects
+    and they are stored with different metadata than the other raster maps.
+
+    Raster maps are declared in the project file. Examples of cards that require raster maps are ELEVATION, ROUGHNESS
+    WATERSHED_MASK, WATER_TABLE, and MOISTURE. Many of these map inputs are mutually exclusive with the mapping tables
+    for the same variable.
+
+    If the spatial option is enabled when the rasters are read in, the rasters will be read in as PostGIS raster
+    objects. There are no supporting objects for raster map file objects.
+
+    This object inherits several methods from the :class:`gsshapy.orm.RasterObject` base class for generating raster
+    visualizations.
+
+    See: http://www.gsshawiki.com/Project_File:Project_File
     """
     __tablename__ = 'raster_maps'
 
     # Public Table Metadata
     tableName = __tablename__  #: Database tablename
-    rasterColumnName = 'raster'
-    defaultNoDataValue = 0
+    rasterColumnName = 'raster'  #: Raster column name
+    defaultNoDataValue = 0  #: Default no data value
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK

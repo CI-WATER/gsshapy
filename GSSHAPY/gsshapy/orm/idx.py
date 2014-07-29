@@ -1,4 +1,4 @@
-'''
+"""
 ********************************************************************************
 * Name: IndexMapModel
 * Author: Nathan Swain
@@ -6,7 +6,7 @@
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
-'''
+"""
 
 __all__ = ['IndexMap']
 
@@ -27,13 +27,30 @@ from gsshapy.orm.rast import RasterObject
 
 class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObject):
     """
+    Object interface for Index Map Files.
+
+    GSSHA uses GRASS ASCII rasters to store spatially distributed parameters. Index maps are stored using a different
+    object than other raster maps, because they are closely tied to the mapping table file objects and they are stored
+    with different metadata than the other raster maps. Index maps are declared in the mapping table file.
+
+    The values for each cell in an index map are integer indices that correspond with the indexes of the mapping tables
+    that reference the index map. Many different hydrological parameters are distributed spatially in this manner. The
+    result is that far fewer maps are needed to parametrize a GSSHA model.
+
+    If the spatial option is enabled when the rasters are read in, the rasters will be read in as PostGIS raster
+    objects. There are no supporting objects for index map file objects.
+
+    This object inherits several methods from the :class:`gsshapy.orm.RasterObject` base class for generating raster
+    visualizations.
+
+    See: http://www.gsshawiki.com/Mapping_Table:Index_Maps
     """
     __tablename__ = 'idx_index_maps'
 
     # Public Table Metadata
     tableName = __tablename__  #: Database tablename
-    rasterColumnName = 'raster'
-    defaultNoDataValue = -1
+    rasterColumnName = 'raster'  #: Raster column name
+    defaultNoDataValue = -1  #: Default no data value
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK

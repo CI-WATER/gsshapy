@@ -11,8 +11,8 @@ File Object
     :members:
     :show-inheritance:
 
-Table Objects
-+++++++++++++
+Supporting Objects
+==================
 
 .. autoclass:: gsshapy.orm.StreamLink
     :members:

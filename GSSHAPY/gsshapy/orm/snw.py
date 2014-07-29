@@ -10,8 +10,8 @@
 
 __all__ = ['NwsrfsFile',
            'NwsrfsRecord',
-           'OrthographicGageFile',
-           'OrthoMeasurement']
+           'OrographicGageFile',
+           'OrographicMeasurement']
 
 from datetime import datetime
 
@@ -25,6 +25,11 @@ from gsshapy.orm.file_base import GsshaPyFileObjectBase
 
 class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    Object interface for the NWSRFS Snow File.
+
+    The contents of this file is abstracted into one supporting object: :class:`.NwsrfsRecord`.
+
+    See: http://www.gsshawiki.com/Snow_Card_Inputs_-_Optional
     """
     __tablename__ = 'snw_nwsrfs_files'
 
@@ -116,6 +121,7 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class NwsrfsRecord(DeclarativeBase):
     """
+    Object containing data for a single NWSRFS record from the NWSRFS snow file.
     """
     __tablename__ = 'snw_nwsrfs_records'
 
@@ -170,10 +176,15 @@ class NwsrfsRecord(DeclarativeBase):
             self.plwhc)
 
 
-class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
+class OrographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    Object interface for the Orographic Gage File.
+
+    The contents of this file is abstracted into one supporting object: :class:`.OrographicMeasurement`.
+
+    See: http://www.gsshawiki.com/Snow_Card_Inputs_-_Optional
     """
-    __tablename__ = 'snw_orthographic_gage_files'
+    __tablename__ = 'snw_orographic_gage_files'
 
     tableName = __tablename__  #: Database tablename
 
@@ -187,8 +198,8 @@ class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
     fileExtension = Column(String, default='txt')  #: STRING
 
     # Relationship Properties
-    orthoMeasurements = relationship('OrthoMeasurement', back_populates='orthoGageFile')  #: RELATIONSHIP
-    projectFile = relationship('ProjectFile', uselist=False, back_populates='orthoGageFile')  #: RELATIONSHIP
+    orographicMeasurements = relationship('OrographicMeasurement', back_populates='orographicGageFile')  #: RELATIONSHIP
+    projectFile = relationship('ProjectFile', uselist=False, back_populates='orographicGageFile')  #: RELATIONSHIP
 
     def __init__(self):
         """
@@ -225,8 +236,8 @@ class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
                                         hour=int(sline[3]))
 
                     # Create GSSHAPY OrthoMeasurement object
-                    measurement = OrthoMeasurement(dateTime=dateTime,
-                                                   temp2=sline[4])
+                    measurement = OrographicMeasurement(dateTime=dateTime,
+                                                        temp2=sline[4])
 
                     # Associate OrthoMeasurement with OrthographicGageFile
                     measurement.orthoGageFile = self
@@ -258,23 +269,24 @@ class OrthographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
                 measurement.temp2))
 
 
-class OrthoMeasurement(DeclarativeBase):
+class OrographicMeasurement(DeclarativeBase):
     """
+    Object containing data for a single orographic gage as defined in the orographic gage file.
     """
-    __tablename__ = 'snw_orthographic_measurements'
+    __tablename__ = 'snw_orographic_measurements'
 
     tableName = __tablename__  #: Database tablename
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
-    orthoGageID = Column(Integer, ForeignKey('snw_orthographic_gage_files.id'))  #: FK
+    orthoGageID = Column(Integer, ForeignKey('snw_orographic_gage_files.id'))  #: FK
 
     # Value Columns
     dateTime = Column(DateTime, nullable=False)  #: DATETIME
     temp2 = Column(Float, nullable=False)  #: FLOAT
 
     # Relationship Properties
-    orthoGageFile = relationship('OrthographicGageFile', back_populates='orthoMeasurements')  #: RELATIONSHIP
+    orographicGageFile = relationship('OrographicGageFile', back_populates='orographicMeasurements')  #: RELATIONSHIP
 
     def __init__(self, dateTime, temp2):
         """
@@ -284,4 +296,4 @@ class OrthoMeasurement(DeclarativeBase):
         self.temp2 = temp2
 
     def __repr__(self):
-        return '<OrthoMeasurement: DateTime=%s, Temp2=%s>' % (self.dateTime, self.temp2)
+        return '<OroMeasurement: DateTime=%s, Temp2=%s>' % (self.dateTime, self.temp2)

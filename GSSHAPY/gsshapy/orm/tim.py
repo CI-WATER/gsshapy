@@ -24,6 +24,12 @@ from gsshapy.lib.pivot import pivot
 
 class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    Object interface for Time Series Files.
+
+    This object stores information from several time series output files. There are two supporting objects that are used
+    to store the contents of this file: :class:`.TimeSeries` and :class:`.TimeSeriesValue`.
+
+    See:
     """
 
     __tablename__ = 'tim_time_series_files'
@@ -143,6 +149,10 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class TimeSeries(DeclarativeBase):
     """
+    Object that stores data for a single time series in a time series file.
+
+    Time series files can contain several time series datasets. The values for the times series are stored in
+    :class:`.TimeSeriesValue` objects.
     """
 
     __tablename__ = 'tim_time_series'
@@ -160,6 +170,7 @@ class TimeSeries(DeclarativeBase):
 
 class TimeSeriesValue(DeclarativeBase):
     """
+    Object containing the data for a single time series value. Includes the time stamp and value.
     """
 
     __tablename__ = 'tim_time_series_values'

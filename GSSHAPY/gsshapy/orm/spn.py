@@ -26,6 +26,14 @@ from gsshapy.lib import parsetools as pt, spn_chunk as spc
 
 class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
+    Object interface for the Storm Pipe Network File.
+
+    This file is similar in structure as the channel input file. The contents of this file is abstracted to several
+    supporting objects: :class:`.SuperLink`, :class:`.SuperNode`, :class:`.Pipe`, :class:`.SuperJunction`, and
+    :class:`.Connection`.
+
+    See: http://www.gsshawiki.com/Subsurface_Drainage:Subsurface_Drainage
+         http://www.gsshawiki.com/images/d/d6/SUPERLINK_TN.pdf
     """
     __tablename__ = 'spn_storm_pipe_network_files'
 
@@ -249,6 +257,8 @@ class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class SuperLink(DeclarativeBase):
     """
+    Object containing data for a single super link in the subsurface drainage network. A super link consists of several
+    pipes and super nodes.
     """
     __tablename__ = 'spn_super_links'
 
@@ -282,6 +292,8 @@ class SuperLink(DeclarativeBase):
 
 class SuperNode(DeclarativeBase):
     """
+    Object containing data for a single super node in the subsurface drainage network. Super nodes belong to one super
+    link.
     """
     __tablename__ = 'spn_super_nodes'
 
@@ -335,6 +347,7 @@ class SuperNode(DeclarativeBase):
 
 class Pipe(DeclarativeBase):
     """
+    Object containing data for a single pipe in the subsurface drainage network. Pipes belong to one super link.
     """
     __tablename__ = 'spn_pipes'
 
@@ -388,6 +401,8 @@ class Pipe(DeclarativeBase):
 
 class SuperJunction(DeclarativeBase):
     """
+    Object containing data for a single super junction in the subsurface drainage network. Super junctions are where two
+    or more super links join or the unconnected end of a super link.
     """
     __tablename__ = 'spn_super_junctions'
 
@@ -441,6 +456,8 @@ class SuperJunction(DeclarativeBase):
 
 class Connection(DeclarativeBase):
     """
+    Object containing data for a single connection in the subsurface drainage network. Connections between super links
+    and super junctions are mapped via these records.
     """
     __tablename__ = 'spn_connections'
 

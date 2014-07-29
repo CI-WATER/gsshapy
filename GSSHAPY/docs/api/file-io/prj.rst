@@ -8,13 +8,13 @@ File Object
 ===========
 
 .. autoclass:: gsshapy.orm.ProjectFile
-	:inherited-members:
-	:members:
-	
-	
-Table Objects
-+++++++++++++
+    :members:
+    :show-inheritance:
+
+
+Supporting Objects
+==================
 
 .. autoclass:: gsshapy.orm.ProjectCard
-	:members:
-	
+    :members:
+    :show-inheritance:

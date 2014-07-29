@@ -95,7 +95,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                    'HMET_SAMSON':               GenericFile,          ## TODO: Create support in HmetFile for these formats
                    'HMET_WES':                  HmetFile,
                    'NWSRFS_ELEV_SNOW':          NwsrfsFile,
-                   'HMET_OROG_GAGES':           OrthographicGageFile,
+                   'HMET_OROG_GAGES':           OrographicGageFile,
                    'HMET_ASCII':                GenericFile,
                    'GW_FLUXBOUNDTABLE':         GenericFile,          # Saturated Groundwater Flow
                    'STORM_SEWER':               StormPipeNetworkFile, # Subsurface Drainage

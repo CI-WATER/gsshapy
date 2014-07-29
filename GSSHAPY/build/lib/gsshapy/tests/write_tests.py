@@ -204,7 +204,7 @@ class TestWriteMethods(unittest.TestCase):
         Test OrthographicGageFile write method
         '''
         # Query and invoke write method
-        self._query_n_write_filename(OrthographicGageFile, 'ortho_gages.txt')
+        self._query_n_write_filename(OrographicGageFile, 'ortho_gages.txt')
         
         # Test
         self._compare_files('ortho_gages', 'ortho_gages', 'txt')

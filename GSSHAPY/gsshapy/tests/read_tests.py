@@ -298,7 +298,7 @@ class TestReadMethods(unittest.TestCase):
         '''
         Test OrthographicGageFile read method
         '''
-        snwR, snwQ = self._read_n_query(fileIO=OrthographicGageFile,
+        snwR, snwQ = self._read_n_query(fileIO=OrographicGageFile,
                                         directory=self.directory,
                                         filename='ortho_gages.txt')
         

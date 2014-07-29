@@ -26,6 +26,7 @@ class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
     There are several files that are used to specify output at internal locations in the model. These files are
     specified by the following cards in the project file: IN_HYD_LOCATION, IN_THETA_LOCATION, IN_GWFLUX_LOCATION,
     IN_SED_LOC, OVERLAND_DEPTH_LOCATION, OVERLAND_WSE_LOCATION, and OUT_WELL_LOCATION.
+
     Output location files contain either a list of cell addresses (i and j) for output from the grid **or** a list of
     link node addresses (link number and node number) for output requested from the stream network. The output is
     generated as timeseries at each location. The contents of this file is abstracted to one other object:
