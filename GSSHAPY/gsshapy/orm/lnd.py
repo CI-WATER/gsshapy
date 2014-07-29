@@ -36,6 +36,8 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
     The link node dataset file is a WMS output format supported by GSSHA. The file contents are abstracted into three
     different types of objects: :class:`.LinkNodeTimeStep`, :class:`.LinkDataset`, :class:`.NodeDataset`.
 
+    Note: only the scalar form of the WMS dataset file is supported.
+
     See: http://www.xmswiki.com/xms/WMS:ASCII_Dataset_Files
     """
     __tablename__ = 'lnd_link_node_dataset_files'
@@ -70,13 +72,24 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def linkToChannelInputFile(self, session, channelInputFile, force=False):
         """
-        Create database relationships between the dataset and the channel input file. This is
-        done so that the geometry associated with links and nodes can be associated with the
-        link and node datasets.
-        :param session: SQLAlchemy session bound to a PostGIS enabled database
-        :param channelInputFile: The GSSHAPY ChannelInputFile object to associate with this LinkNodeDatasetFile
-        :param force: For ChannelInputFile reassignment. Default behaviour is to skip assignment if already done.
+        Create database relationships between the link node dataset and the channel input file.
+
+        The link node dataset only stores references to the links and nodes--not the geometry. The link and node
+        geometries are stored in the channel input file. The two files must be linked with database relationships to
+        allow the creation of link node dataset visualizations.
+
+        This process is not performed automatically during reading, because it can be very costly in terms of read time.
+        This operation can only be performed after both files have been read into the database.
+
+        Args:
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
+            channelInputFile (:class:`gsshapy.orm.ChannelInputFile`): Channel input file object to be associated with
+                this link node dataset file.
+            force (bool, optional): Force channel input file reassignment. When false (default), channel input file
+                assignment is skipped if it has already been performed.
         """
+        ## TODO: Reconcile method to work with datasets that include structure and lake nodes
+
         # Only perform operation if the channel input file has not been assigned or the force parameter is true
         if self.channelInputFile is not None and not force:
             return
@@ -113,30 +126,70 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         session.add(self)
         session.commit()
 
-    def getAsKmlAnimation(self, session, channelInputFile, path=None, documentName=None, zScale=1.0, radius=1, colorRampEnum=None):
+    def getAsKmlAnimation(self, session, channelInputFile, path=None, documentName=None, styles={}):
         """
-        Generate a KML visualization of the the dataset file.
+        Generate a KML visualization of the the link node dataset file.
+
+        Link node dataset files are time stamped link node value datasets. This will yield a value for each stream node
+        at each time step that output is written. The resulting KML visualization will be an animation.
+
+        The stream nodes are represented by cylinders where the z dimension/elevation represents the values. A color
+        ramp is applied to make different values stand out even more. The method attempts to identify an appropriate
+        scale factor for the z dimension, but it can be set manually using the styles dictionary.
+
+        Args:
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
+            channelInputFile (:class:`gsshapy.orm.ChannelInputFile`): Channel input file object to be associated with
+                this link node dataset file.
+            path (str, optional): Path to file where KML will be written. Defaults to None.
+            documentName (str, optional): Name of the KML document. This will be the name that appears in the legend.
+                Defaults to the name of the link node dataset file.
+            styles (dict, optional): Custom styles to apply to KML geometry. Defaults to empty dictionary.
+                Valid keys (styles) include:
+                   * zScale (float): multiplier to apply to the values (z dimension)
+                   * radius (float): radius in meters of the node cylinder
+                   * colorRampEnum (:mod:`mapkit.ColorRampGenerator.ColorRampEnum` or dict):
+                        Use ColorRampEnum to select a default color ramp or a dictionary with keys 'colors' and
+                        'interpolatedPoints' to specify a custom color ramp. The 'colors' key must be a list of RGB
+                        integer tuples (e.g.: (255, 0, 0)) and the 'interpolatedPoints' must be an integer representing
+                        the number of points to interpolate between each color given in the colors list.
+
+        Returns:
+            str: KML string
         """
         # Constants
         DECMIAL_DEGREE_METER = 0.00001
+        OPTIMAL_Z_MAX = 200  # meters
 
-        # Defaults
-        radiusMeters = 1
+        # Default styles
+        radiusMeters = 2 * DECMIAL_DEGREE_METER  # 2 meters
+        zScale = 1
+        colorRamp = ColorRampGenerator.generateDefaultColorRamp(ColorRampEnum.COLOR_RAMP_HUE)
 
         # Validate
         if not documentName:
-            documentName = self.fileExtension
+            documentName = self.name
 
-        try:
-            radius = float(radius)
-            radiusMeters = radius * DECMIAL_DEGREE_METER
-        except ValueError:
-            print 'WARNING: radius must be a number representing the radius of the value cylinders in meters.'
+        if 'zScale' in styles:
+            try:
+                float(styles['zScale'])
+                zScale = styles['zScale']
 
-        # Configure color ramp
-            if colorRampEnum is None:
-                colorRamp = ColorRampGenerator.generateDefaultColorRamp(ColorRampEnum.COLOR_RAMP_HUE)
-            elif isinstance(colorRampEnum, dict):
+            except ValueError:
+                print 'WARNING: zScale must be a valid number representing z dimension multiplier.'
+
+        if 'radius' in styles:
+            try:
+                float(styles['radius'])
+                radiusMeters = styles['radius'] * DECMIAL_DEGREE_METER
+
+            except ValueError:
+                print 'WARNING: radius must be a number representing the radius of the value cylinders in meters.'
+
+        if 'colorRampEnum' in styles:
+            colorRampEnum = styles['colorRampEnum']
+
+            if isinstance(colorRampEnum, dict):
                 colorRamp = ColorRampGenerator.generateCustomColorRamp(colorRampEnum['colors'], colorRampEnum['interpolatedPoints'])
             elif isinstance(colorRampEnum, int):
                 colorRamp = ColorRampGenerator.generateDefaultColorRamp(colorRampEnum)
@@ -156,8 +209,12 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         startTimeParts = self.startTime.split()
 
         # Calculate min and max values for the color ramp
-        minValue = session.query(func.min(NodeDataset.value)).filter(NodeDataset.linkNodeDatasetFile==self).scalar()
-        maxValue = session.query(func.max(NodeDataset.value)).filter(NodeDataset.linkNodeDatasetFile==self).scalar()
+        minValue = session.query(func.min(NodeDataset.value)).filter(NodeDataset.linkNodeDatasetFile == self).scalar()
+        maxValue = session.query(func.max(NodeDataset.value)).filter(NodeDataset.linkNodeDatasetFile == self).scalar()
+
+        # Calculate automatic zScale if not assigned
+        if 'zScale' not in styles:
+            zScale = OPTIMAL_Z_MAX / maxValue
 
         # Map color ramp to values
         mappedColorRamp = ColorRampGenerator.mapColorRampToValues(colorRamp, minValue, maxValue)
@@ -406,6 +463,8 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class LinkNodeTimeStep(DeclarativeBase):
     """
+    Object containing data for a single time step of a link node dataset file. Each link node time step will have
+    a link dataset for each stream link in the channel input file.
     """
     __tablename__ = 'lnd_time_steps'
 
@@ -431,6 +490,8 @@ class LinkNodeTimeStep(DeclarativeBase):
 
 class LinkDataset(DeclarativeBase):
     """
+    Object containing data for a single link dataset in a link node dataset file. A link dataset will have a node
+    dataset for each of the stream nodes belonging to the stream link that it is associated with.
     """
     __tablename__ = 'lnd_link_datasets'
     tableName = __tablename__  #: Database tablename
@@ -440,7 +501,6 @@ class LinkDataset(DeclarativeBase):
     timeStepID = Column(Integer, ForeignKey('lnd_time_steps.id'))  #: FK
     streamLinkID = Column(Integer, ForeignKey('cif_links.id'))  #: FK
     linkNodeDatasetFileID = Column(Integer, ForeignKey('lnd_link_node_dataset_files.id'))  #: FK
-
 
     # Value Columns
     numNodeDatasets = Column(Integer)  #: INTEGER
@@ -457,6 +517,8 @@ class LinkDataset(DeclarativeBase):
 
 class NodeDataset(DeclarativeBase):
     """
+    Object containing data for a single node dataset in a link node dataset file. The values stored in a link node
+    dataset file are found in the node datasets.
     """
     __tablename__ = 'lnd_node_datasets'
     tableName = __tablename__  #: Database tablename

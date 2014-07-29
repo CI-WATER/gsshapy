@@ -8,14 +8,14 @@ File Object
 ===========
 
 .. autoclass:: gsshapy.orm.OutputLocationFile
-	:members:
-	:inherited-members:
-	
-	
+    :members:
+    :show-inheritance:
+
+
 Table Objects
 +++++++++++++
 
 .. autoclass:: gsshapy.orm.OutputLocation
-	:members:
-	
-	
+    :members:
+    :show-inheritance:
+

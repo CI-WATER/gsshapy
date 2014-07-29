@@ -46,8 +46,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
     :class:`.Reservoir`, :class:`.ReservoirPoint`, :class:`.BreakpointCS`, :class:`.Breakpoint`, and
     :class:`.TrapezoidalCS`. See the documentation provided for each object for a more details.
 
-    The GSSHA documentation used to design this object can be found by following these links:
-    http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing
+    See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing
     """
     __tablename__ = 'cif_channel_input_files'
 
@@ -107,14 +106,15 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return fluvialLinks
 
-    def getStreamNetworkAsKml(self, session, path=None, withNodes=False, styles={},
-                              documentName='Stream Network'):
+    def getStreamNetworkAsKml(self, session, path=None, documentName='Stream Network', withNodes=False, styles={}):
         """
         Retrieve the stream network visualization in KML format.
 
         Args:
-            session (sqlalchemy.orm.session.Session): SQLAlchemy session object bound to PostGIS enabled database
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
             path (str, optional): Path to file where KML will be written. Defaults to None.
+            documentName (str, optional): Name of the KML document. This will be the name that appears in the legend.
+                Defaults to 'Stream Network'.
             withNodes (bool, optional): Include nodes. Defaults to False.
             styles (dict, optional): Custom styles to apply to KML geometry. Defaults to empty dictionary.
                 Valid keys (styles) include:
@@ -122,9 +122,6 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                    * lineWidth: float line width in pixels
                    * nodeIconHref: link to icon image (PNG format) to represent nodes (see: http://kml4earth.appspot.com/icons.html)
                    * nodeIconScale: scale of the icon image
-            documentName (str, optional): Name of the KML document. This will be the name that appears in the legend.
-                Defaults to 'Stream Network'.
-
 
         Returns:
             str: KML string
@@ -280,7 +277,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         Retrieve the stream network geometry in Well Known Text format.
 
         Args:
-            session (sqlalchemy.orm.session.Session): SQLAlchemy session object bound to PostGIS enabled database
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
             withNodes (bool, optional): Include nodes. Defaults to False.
 
         Returns:
@@ -302,7 +299,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         Retrieve the stream network geometry in GeoJSON format.
 
         Args:
-            session (sqlalchemy.orm.session.Session): SQLAlchemy session object bound to PostGIS enabled database
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
             withNodes (bool, optional): Include nodes. Defaults to False.
 
         Returns:
@@ -670,8 +667,8 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Retrieve the links
         links = self.streamLinks
 
-        # Create geometry for each link
-        for link in links:
+        # Create geometry for each fluvial link
+        for link in self.getFluvialLinks():
 
             # Retrieve the nodes for each link
             nodes = link.nodes

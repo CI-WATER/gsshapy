@@ -8,20 +8,27 @@ File Object
 ===========
 
 .. autoclass:: gsshapy.orm.LinkNodeDatasetFile
-	:members:
-	:inherited-members:
+    :members:
+    :show-inheritance:
 
-	
+
 Table Objects
 +++++++++++++
 
-.. autoclass:: gsshapy.orm.TimeStep
-	:members:
-	
-	
+.. autoclass:: gsshapy.orm.LinkNodeTimeStep
+    :members:
+    :show-inheritance:
 
-	
-.. autoclass:: gsshapy.orm.LinkNodeLine
-	:members:
-	
-	
+
+
+.. autoclass:: gsshapy.orm.LinkDataset
+    :members:
+    :show-inheritance:
+
+
+
+.. autoclass:: gsshapy.orm.NodeDataset
+    :members:
+    :show-inheritance:
+
+

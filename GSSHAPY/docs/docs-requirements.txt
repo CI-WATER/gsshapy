@@ -1,2 +1,3 @@
 gsshapy>=2.0.0
 sphinxcontrib-napoleon
+sqlalchemy

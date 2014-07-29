@@ -18,9 +18,9 @@ from mapkit.RasterConverter import RasterConverter
 from mapkit.ColorRampGenerator import ColorRampGenerator, ColorRampEnum
 
 # DATABASE SETUP ------------------------------------------------------------------------------------------------------#
-'''
+#'''
 # Drop all tables except the spatial reference table that PostGIS uses
-db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis_2'
+db_url = 'postgresql://swainn:(|water@localhost/gsshapy_structures'
 engine = create_engine(db_url)
 meta = MetaData()
 meta.reflect(bind=engine)
@@ -34,19 +34,12 @@ for table in reversed(meta.sorted_tables):
 sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
                                         password='(|w@ter',
                                         host='localhost',
-                                        database='gsshapy_postgis_2')
+                                        database='gsshapy_structures')
 
 # GLOBAL PARAMETERS ---------------------------------------------------------------------------------------------------#
-#'''
-read_directory = '/Users/swainn/testing/timeseries_maps/Park_City_Chan_Depth'
-write_directory = '/Users/swainn/testing/timeseries_maps/Park_City_Chan_Depth/write'
-project_file_name = 'parkcity.prj'
-'''
-read_directory = '/Users/swainn/testing/test_models/SNOW_DATA'
-write_directory = '/Users/swainn/testing/test_models/SNOW_DATA/write'
-project_file_name = 'longterm_snow.prj'
-#'''
-
+read_directory = '/Users/swainn/testing/test_models/structures'
+write_directory = '/Users/swainn/testing/test_models/structures/write'
+project_file_name = 'EMBANKSTRUCT.prj'
 
 out_file_name = 'out'
 new_name = 'out'
@@ -58,7 +51,7 @@ write_session = dbt.create_session(sqlalchemy_url)
    
 
 # READ PROJECT --------------------------------------------------------------------------------------------------------#
-'''
+#'''
 project_file = ProjectFile()
 
 START = time.time()
@@ -133,7 +126,7 @@ styles = {'maskFillColor': (255, 128, 0, 255),
 #'''
 
 # LINK NODE DATASET ANIMATION -----------------------------------------------------------------------------------------#
-#'''
+'''
 channel_input_file = write_session.query(ChannelInputFile).first()
 link_node_dataset_file = write_session.query(LinkNodeDatasetFile).first()
 
