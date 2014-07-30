@@ -4,8 +4,8 @@ API Documentation
 
 API documentation is provided in this section.
 
-File and Table Object API
-=========================
+Input File Objects
+==================
 
 .. toctree::
     :maxdepth: 1
@@ -15,7 +15,6 @@ File and Table Object API
     api/file-io/gpi
     api/file-io/gst
     api/file-io/hmet
-    api/file-io/lnd
     api/file-io/map
     api/file-io/cmt
     api/file-io/loc
@@ -24,7 +23,17 @@ File and Table Object API
     api/file-io/rep
     api/file-io/snw
     api/file-io/spn
+
+Output File Objects
+===================
+
+.. toctree::
+    :maxdepth: 1
+
+    api/file-io/generic
+    api/file-io/lnd
     api/file-io/tim
+    api/file-io/wms_dataset
 
 Base Classes
 ============
@@ -32,6 +41,8 @@ Base Classes
     :maxdepth: 1
 
     api/file-io/file-base
+    api/file-io/geom
+    api/file-io/rast
 
 
 GsshaPy Utilities API

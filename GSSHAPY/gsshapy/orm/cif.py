@@ -28,12 +28,11 @@ import json
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String, Float, Boolean
 from sqlalchemy.orm import relationship
-
 from mapkit.sqlatypes import Geometry
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.geom import GeometricObject
-from gsshapy.orm.file_base import GsshaPyFileObjectBase
+from gsshapy.base.geom import GeometricObject
+from gsshapy.base.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt, cif_chunk as cic
 
 
@@ -117,6 +116,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 Defaults to 'Stream Network'.
             withNodes (bool, optional): Include nodes. Defaults to False.
             styles (dict, optional): Custom styles to apply to KML geometry. Defaults to empty dictionary.
+
                 Valid keys (styles) include:
                    * lineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
                    * lineWidth: float line width in pixels

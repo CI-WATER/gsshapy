@@ -18,8 +18,9 @@ from sqlalchemy.types import Integer, DateTime, String, Float
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.file_base import GsshaPyFileObjectBase
+from gsshapy.base.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import pivot, parsetools as pt, gag_chunk as gak
+
 
 gag_assoc_event_gage = Table('gag_assoc_event_gage', DeclarativeBase.metadata,
                              Column('gageID', Integer, ForeignKey('gag_coord.id')),

@@ -13,15 +13,13 @@ __all__ = ['RasterMapFile']
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Float
 from sqlalchemy.orm import relationship
-
 from mapkit.sqlatypes import Raster
 from mapkit.RasterLoader import RasterLoader
+from mapkit.RasterConverter import RasterConverter
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.file_base import GsshaPyFileObjectBase
-from gsshapy.orm.rast import RasterObject
-
-from mapkit.RasterConverter import RasterConverter
+from gsshapy.base.file_base import GsshaPyFileObjectBase
+from gsshapy.base.rast import RasterObject
 
 
 class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObject):

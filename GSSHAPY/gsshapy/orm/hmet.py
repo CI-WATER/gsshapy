@@ -17,7 +17,7 @@ from sqlalchemy.types import Integer, Float, DateTime, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.file_base import GsshaPyFileObjectBase
+from gsshapy.base.file_base import GsshaPyFileObjectBase
 
 
 class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):

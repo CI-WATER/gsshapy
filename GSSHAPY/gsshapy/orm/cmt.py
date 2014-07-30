@@ -21,7 +21,7 @@ from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.file_base import GsshaPyFileObjectBase
+from gsshapy.base.file_base import GsshaPyFileObjectBase
 from gsshapy.orm.idx import IndexMap
 from gsshapy.lib import parsetools as pt, cmt_chunk as mtc
 

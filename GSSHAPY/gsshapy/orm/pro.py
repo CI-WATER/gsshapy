@@ -16,7 +16,8 @@ from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.file_base import GsshaPyFileObjectBase
+from gsshapy.base.file_base import GsshaPyFileObjectBase
+
 
 class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
     """

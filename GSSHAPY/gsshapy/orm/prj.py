@@ -23,7 +23,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.file_base import GsshaPyFileObjectBase
+from gsshapy.base.file_base import GsshaPyFileObjectBase
 from gsshapy.orm.file_io import *
 
 
@@ -438,8 +438,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         Args:
             session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
-            directory (str): Directory containing all GSSHA model files. This method assumes that all files are located
-                in the same directory.
+            directory (str): Directory where the files will be written.
             name (str): Name that will be given to project when written (e.g.: 'example'). Files that follow the project
                 naming convention will be given this name with the appropriate extension (e.g.: 'example.prj',
                 'example.cmt', and 'example.gag'). Files that do not follow this convention will retain their original
@@ -467,8 +466,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         Args:
             session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
-            directory (str): Directory containing all GSSHA model files. This method assumes that all files are located
-                in the same directory.
+            directory (str): Directory where the files will be written.
             name (str): Name that will be given to project when written (e.g.: 'example'). Files that follow the project
                 naming convention will be given this name with the appropriate extension (e.g.: 'example.prj',
                 'example.cmt', and 'example.gag'). Files that do not follow this convention will retain their original
@@ -489,8 +487,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         Args:
             session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
-            directory (str): Directory containing all GSSHA model files. This method assumes that all files are located
-                in the same directory.
+            directory (str): Directory where the files will be written.
             name (str): Name that will be given to project when written (e.g.: 'example'). Files that follow the project
                 naming convention will be given this name with the appropriate extension (e.g.: 'example.prj',
                 'example.cmt', and 'example.gag'). Files that do not follow this convention will retain their original

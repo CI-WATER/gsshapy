@@ -18,21 +18,28 @@ from zipfile import ZipFile
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Float
 from sqlalchemy.orm import relationship
-
-from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.file_base import GsshaPyFileObjectBase
-from gsshapy.lib import parsetools as pt, wms_dataset_chunk as wdc
-from gsshapy.orm.map import RasterMapFile
-from gsshapy.orm.rast import RasterObject
-
 from mapkit.RasterLoader import RasterLoader
 from mapkit.RasterConverter import RasterConverter
 from mapkit.sqlatypes import Raster
 
+from gsshapy.orm import DeclarativeBase
+from gsshapy.base.file_base import GsshaPyFileObjectBase
+from gsshapy.lib import parsetools as pt, wms_dataset_chunk as wdc
+from gsshapy.orm.map import RasterMapFile
+from gsshapy.base.rast import RasterObject
+
 
 class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
-    File object for interfacing with WMS Gridded and Vector Datasets
+    Object interface for WMS Dataset Files.
+
+    The WMS dataset file format is used to store gridded timeseries output data for GSSHA. The file contents are
+    abstracted into one other object: :class:`.WMSDatasetRaster`. The WMS dataset contains a raster for each time step
+    that output is written.
+
+    Note: only the scalar form of the WMS dataset file is supported.
+
+    See: http://www.xmswiki.com/xms/WMS:ASCII_Dataset_Files
     """
     __tablename__ = 'wms_dataset_files'
 
@@ -171,9 +178,28 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 
 
-    def getAsKmlGridAnimation(self, session, projectFile=None, path=None, colorRamp=None, documentName=None, alpha=1.0, noDataValue=0):
+    def getAsKmlGridAnimation(self, session, projectFile=None, path=None, documentName=None, colorRamp=None, alpha=1.0, noDataValue=0.0):
         """
-        Retrieve the WMS dataset as a gridded time stamped KML string
+        Retrieve the WMS dataset as a gridded time stamped KML string.
+
+        Args:
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database.
+            projectFile(:class:`gsshapy.orm.ProjectFile`): Project file object for the GSSHA project to which the WMS dataset belongs.
+            path (str, optional): Path to file where KML file will be written. Defaults to None.
+            documentName (str, optional): Name of the KML document. This will be the name that appears in the legend.
+                Defaults to 'Stream Network'.
+            colorRamp (:mod:`mapkit.ColorRampGenerator.ColorRampEnum` or dict, optional): Use ColorRampEnum to select a
+                default color ramp or a dictionary with keys 'colors' and 'interpolatedPoints' to specify a custom color
+                ramp. The 'colors' key must be a list of RGB integer tuples (e.g.: (255, 0, 0)) and the
+                'interpolatedPoints' must be an integer representing the number of points to interpolate between each
+                color given in the colors list.
+            alpha (float, optional): Set transparency of visualization. Value between 0.0 and 1.0 where 1.0 is 100%
+                opaque and 0.0 is 100% transparent. Defaults to 1.0.
+            noDataValue (float, optional): The value to treat as no data when generating visualizations of rasters.
+                Defaults to 0.0.
+
+        Returns:
+            str: KML string
         """
         # Prepare rasters
         timeStampedRasters = self._assembleRasterParams(projectFile, self.rasters)
@@ -204,10 +230,38 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return kmlString
 
-    def getAsKmlPngAnimation(self, session, projectFile=None, path=None, colorRamp=None, documentName=None, alpha=1.0,
-                             drawOrder=0, noDataValue=0, cellSize=None, resampleMethod='NearestNeighbour'):
+    def getAsKmlPngAnimation(self, session, projectFile=None, path=None, documentName=None, colorRamp=None, alpha=1.0,
+                              noDataValue=0, drawOrder=0, cellSize=None, resampleMethod='NearestNeighbour'):
         """
         Retrieve the WMS dataset as a PNG time stamped KMZ
+
+        Args:
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database.
+            projectFile(:class:`gsshapy.orm.ProjectFile`): Project file object for the GSSHA project to which the WMS dataset belongs.
+            path (str, optional): Path to file where KML file will be written. Defaults to None.
+            documentName (str, optional): Name of the KML document. This will be the name that appears in the legend.
+                Defaults to 'Stream Network'.
+            colorRamp (:mod:`mapkit.ColorRampGenerator.ColorRampEnum` or dict, optional): Use ColorRampEnum to select a
+                default color ramp or a dictionary with keys 'colors' and 'interpolatedPoints' to specify a custom color
+                ramp. The 'colors' key must be a list of RGB integer tuples (e.g.: (255, 0, 0)) and the
+                'interpolatedPoints' must be an integer representing the number of points to interpolate between each
+                color given in the colors list.
+            alpha (float, optional): Set transparency of visualization. Value between 0.0 and 1.0 where 1.0 is 100%
+                opaque and 0.0 is 100% transparent. Defaults to 1.0.
+            noDataValue (float, optional): The value to treat as no data when generating visualizations of rasters.
+                Defaults to 0.0.
+            drawOrder (int, optional): Set the draw order of the images. Defaults to 0.
+            cellSize (float, optional): Define the cell size in the units of the project projection at which to resample
+                the raster to generate the PNG. Defaults to None which will cause the PNG to be generated with the
+                original raster cell size. It is generally better to set this to a size smaller than the original cell
+                size to obtain a higher resolution image. However, computation time increases exponentially as the cell
+                size is decreased.
+            resampleMethod (str, optional): If cellSize is set, this method will be used to resample the raster. Valid
+                values include: NearestNeighbour, Bilinear, Cubic, CubicSpline, and Lanczos. Defaults to
+                NearestNeighbour.
+
+        Returns:
+            (str, list): Returns a KML string and a list of binary strings that are the PNG images.
         """
         # Prepare rasters
         timeStampedRasters = self._assembleRasterParams(projectFile, self.rasters)
@@ -430,7 +484,10 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 class WMSDatasetRaster(DeclarativeBase, RasterObject):
     """
-    File object for interfacing with WMS Gridded and Vector Datasets
+    Object storing a single raster dataset for a WMS dataset file.
+
+    This object inherits several methods from the :class:`gsshapy.orm.RasterObject` base class for generating raster
+    visualizations. These methods can be used to generate individual raster visualizations for specific time steps.
     """
     __tablename__ = 'wms_dataset_rasters'
 

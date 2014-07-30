@@ -15,13 +15,16 @@ from sqlalchemy.types import Integer, String, Binary
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.file_base import GsshaPyFileObjectBase
+from gsshapy.base.file_base import GsshaPyFileObjectBase
 
 
 class GenericFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
-    For storing generic files or files that are not yet supported
-    by the ORM. The files are stored as text.
+    Object interface for Generic Files.
+
+    This object is used to store files that are not fully supported in GsshaPy. The files must be non-binary text files
+    to be stored as a GenericFile object. The object simply reads the contents of the file into a text field during
+    reading and dumps it again during writing. This allows these files to be carried through the entire GsshaPy cycle.
     """
     __tablename__ = 'gen_generic_files'
 

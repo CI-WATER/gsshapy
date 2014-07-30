@@ -24,8 +24,7 @@ from mapkit.GeometryConverter import GeometryConverter
 from mapkit.ColorRampGenerator import ColorRampEnum, ColorRampGenerator
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.file_base import GsshaPyFileObjectBase
-
+from gsshapy.base.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt
 
 
@@ -33,12 +32,11 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
     Object interface for Link Node Dataset files.
 
-    The link node dataset file is a WMS output format supported by GSSHA. The file contents are abstracted into three
-    different types of objects: :class:`.LinkNodeTimeStep`, :class:`.LinkDataset`, :class:`.NodeDataset`.
+    As the name implies, link node datasets store output data for link node networks. In the case of GSSHA, this type of
+    file is used to write output for the stream network nodes. The contents of this file is abstracted to several
+    supporting objects including: :class:`.LinkNodeTimeStep`, :class:`.LinkDataset`, and :class:`.NodeDataset`.
 
-    Note: only the scalar form of the WMS dataset file is supported.
-
-    See: http://www.xmswiki.com/xms/WMS:ASCII_Dataset_Files
+    Note: The link node dataset must be linked with the channel input file to generate spatial visualizations.
     """
     __tablename__ = 'lnd_link_node_dataset_files'
 
@@ -145,14 +143,11 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             documentName (str, optional): Name of the KML document. This will be the name that appears in the legend.
                 Defaults to the name of the link node dataset file.
             styles (dict, optional): Custom styles to apply to KML geometry. Defaults to empty dictionary.
+
                 Valid keys (styles) include:
                    * zScale (float): multiplier to apply to the values (z dimension)
                    * radius (float): radius in meters of the node cylinder
-                   * colorRampEnum (:mod:`mapkit.ColorRampGenerator.ColorRampEnum` or dict):
-                        Use ColorRampEnum to select a default color ramp or a dictionary with keys 'colors' and
-                        'interpolatedPoints' to specify a custom color ramp. The 'colors' key must be a list of RGB
-                        integer tuples (e.g.: (255, 0, 0)) and the 'interpolatedPoints' must be an integer representing
-                        the number of points to interpolate between each color given in the colors list.
+                   * colorRampEnum (:mod:`mapkit.ColorRampGenerator.ColorRampEnum` or dict): Use ColorRampEnum to select a default color ramp or a dictionary with keys 'colors' and 'interpolatedPoints' to specify a custom color ramp. The 'colors' key must be a list of RGB integer tuples (e.g.: (255, 0, 0)) and the 'interpolatedPoints' must be an integer representing the number of points to interpolate between each color given in the colors list.
 
         Returns:
             str: KML string
