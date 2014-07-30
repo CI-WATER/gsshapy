@@ -1,4 +1,4 @@
-'''
+"""
 ********************************************************************************
 * Name: Initialize Database Functions
 * Author: Nathan Swain
@@ -6,8 +6,12 @@
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
-'''
-import os, time
+"""
+
+
+import os
+import time
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import SingletonThreadPool

@@ -377,7 +377,7 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 # Otherwise, set the raster text properties
                 else:
-                    wmsRasterDatasetFile.rasterText = ''
+                    wmsRasterDatasetFile.rasterText = timeStepRaster['rasterText']
 
             # Add current file object to the session
             session.add(self)
@@ -414,8 +414,11 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Convert Mask Map to GRASS ASCII Raster
             statusGrassRasterString = maskMap.getAsGrassAsciiGrid(session)
 
-            # Split by lines
-            statusValues = statusGrassRasterString.split()
+            if statusGrassRasterString is not None:
+                # Split by lines
+                statusValues = statusGrassRasterString.split()
+            else:
+                statusValues = maskMap.rasterText.split()
 
             # Assemble into a string in the WMS Dataset format
             for i in range(FIRST_VALUE_INDEX, len(statusValues)):
@@ -437,7 +440,7 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 openFile.write(valueString)
 
             else:
-                print 'Not Spatial'
+                openFile.write(timeStepRaster.rasterText)
 
         # Write ending tag for the dataset
         openFile.write('ENDDS\r\n')
@@ -541,3 +544,6 @@ class WMSDatasetRaster(DeclarativeBase, RasterObjectBase):
                 wmsDatasetString += '{0:.6f}\r\n'.format(float(values[i]))
 
             return wmsDatasetString
+
+        else:
+            wmsDatasetString = self.rasterText

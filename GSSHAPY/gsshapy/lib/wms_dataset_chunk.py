@@ -75,7 +75,8 @@ def datasetScalarTimeStepChunk(lines, numberColumns, numberCells):
     # Define the result object
     result = {'iStatus': None,
               'timestamp': None,
-              'cellArray': None}
+              'cellArray': None,
+              'rasterText': None}
 
     # Split the chunks
     timeStep = pt.splitLine(lines.pop(0))
@@ -98,6 +99,9 @@ def datasetScalarTimeStepChunk(lines, numberColumns, numberCells):
     columnCounter = 1
     lenLines = len(lines) - 1
 
+    # Also assemble raster text field to preserve for spatial datasets
+    rasterText = ''
+
     for index in range(startCellsIndex, len(lines)):
         # Check columns condition
         if columnCounter % numberColumns != 0 and index != lenLines:
@@ -110,8 +114,11 @@ def datasetScalarTimeStepChunk(lines, numberColumns, numberCells):
         # Advance counter
         columnCounter += 1
 
+        rasterText += lines[index]
+
     # Get Value Array
     result['cellArray'] = arrayString
+    result['rasterText'] = rasterText
 
     # Assign Result
     result['iStatus'] = iStatus

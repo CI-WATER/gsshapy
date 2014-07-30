@@ -2,7 +2,7 @@
 Introduction
 ************
 
-**Last Updated:** August 14, 2013
+**Last Updated:** July 30, 2014
 
 GsshaPy is an object relational model (ORM) for the Gridded Surface Subsurface
 Hydrologic Analysis (GSSHA) model. The purpose of GsshaPy is to expose GSSHA files
@@ -27,6 +27,14 @@ moisture as well as runoff and flooding on watersheds.
 
 .. _GSSHA website: http://chl.erdc.usace.army.mil/gssha	
 .. _gsshawiki: http://www.gsshawiki.com/Main_Page
+
+Requirements
+============
+
+The spatial components of GsshaPy rely heavily on the PostGIS spatial extension for the PostgreSQL database. To work with
+spatial data in GsshaPy you will need to use a PostgreSQL database with PostGIS 2.1 or greater enabled. In addition,
+GsshaPy relies on a Python module called mapkit to generate visualizations. This will automatically be installed when
+you install GsshaPy.
 
 Installation
 ============
