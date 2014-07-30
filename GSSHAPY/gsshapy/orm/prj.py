@@ -172,7 +172,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     'CHAN_STAGE': LinkNodeDatasetFile,
                     'CHAN_DISCHARGE': LinkNodeDatasetFile,
                     'CHAN_VELOCITY': LinkNodeDatasetFile,
-                    'LAKE_OUTPUT': None,  ## TODO: Special format? .lel
+                    'LAKE_OUTPUT': GenericFile,
                     'GW_WELL_LEVEL': GenericFile,  # Saturated Groundwater Flow
                     'OUT_GWFULX_LOCATION': TimeSeriesFile,
                     'OUTLET_SED_FLUX': TimeSeriesFile,  # Soil Erosion

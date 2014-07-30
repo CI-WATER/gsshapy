@@ -16,6 +16,7 @@ Contents
 	
 	intro
 	tutorial
+	changes
 	support
 	api
 

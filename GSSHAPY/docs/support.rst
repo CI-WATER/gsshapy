@@ -2,6 +2,8 @@
 Supported Files
 ***************
 
+**Last Updated:** July 30, 2014
+
 Not all files are supported by GsshaPy. A summary of the files that are supported and
 the *file* class handler that reads the file is provided in the following table.
 
@@ -11,7 +13,8 @@ Input Files Supported
 
 The following table lists the input files that are supported by the current 
 version of GsshaPy. The files are listed with the appropriate project file card
-and *file* class handler.
+and *file* class handler. Some files do not have a specified file extension. These are indicated with
+an ellipses ( ... ).
 
 =======================  ================  ==============================================
 Project File Card        File Extension    Handler                
@@ -70,11 +73,8 @@ INDEX_MAP*               idx			   :doc:`IndexMapFile <api/file-io/map>`
 
 
 .. note::
-	
-	Some files do not have a specified file extension. These are indicated with
-	an ellipses ( ... ).
-	
-	*Index maps are listed in the mapping table file with the INDEX_MAP card. 
+
+    *Index maps are listed in the mapping table file with the INDEX_MAP card.
 
 ----------------------
 Output Files Supported
@@ -82,7 +82,8 @@ Output Files Supported
 
 The following table lists the output files that are supported by the current 
 version of GsshaPy. The files are listed with the appropriate project file card
-and *file* class handler.
+and *file* class handler. Some files do not have a specified file extension. These are indicated with
+an ellipses ( ... ).
 
 ==========================  ==================  ==============================================
 Project File Card           File Extension      Handler
@@ -107,33 +108,35 @@ SUPERLINK_JUNC_FLOW         ...                 :doc:`TimeSeriesFile <api/file-i
 SUPERLINK_NODE_FLOW         ...                 :doc:`TimeSeriesFile <api/file-io/tim>`
 OVERLAND_DEPTHS             odo                 :doc:`TimeSeriesFile <api/file-io/tim>`
 OVERLAND_WSE         		owo                 :doc:`TimeSeriesFile <api/file-io/tim>`
-GW_OUTPUT                   ...                 :doc:`RasterMapFile <api/file-io/map>` 
-DISCHARGE                   ...                 :doc:`RasterMapFile <api/file-io/map>`
-INF_DEPTH                   ...                 :doc:`RasterMapFile <api/file-io/map>`
-SURF_MOIS                   ...                 :doc:`RasterMapFile <api/file-io/map>`
-RATE_OF_INFIL               ...                 :doc:`RasterMapFile <api/file-io/map>`
-DIS_RAIN                    ...                 :doc:`RasterMapFile <api/file-io/map>`
-GW_OUTPUT                   ...                 :doc:`RasterMapFile <api/file-io/map>`
-GW_RECHARGE_CUM             ...                 :doc:`RasterMapFile <api/file-io/map>`
-GW_RECHARGE_INC             ...                 :doc:`RasterMapFile <api/file-io/map>`
-WRITE_OV_HOTSTART           ...                 :doc:`RasterMapFile <api/file-io/map>`
-WRITE_SM_HOSTART            ...                 :doc:`RasterMapFile <api/file-io/map>`
+GW_OUTPUT                   ...                 :doc:`WMSDatasetFile <api/file-io/wms_dataset>`
+DISCHARGE                   ...                 :doc:`WMSDatasetFile <api/file-io/wms_dataset>`
+INF_DEPTH                   ...                 :doc:`WMSDatasetFile <api/file-io/wms_dataset>`
+SURF_MOIS                   ...                 :doc:`WMSDatasetFile <api/file-io/wms_dataset>`
+RATE_OF_INFIL               ...                 :doc:`WMSDatasetFile <api/file-io/wms_dataset>`
+DIS_RAIN                    ...                 :doc:`WMSDatasetFile <api/file-io/wms_dataset>`
+GW_OUTPUT                   ...                 :doc:`WMSDatasetFile <api/file-io/wms_dataset>`
+GW_RECHARGE_CUM             ...                 :doc:`WMSDatasetFile <api/file-io/wms_dataset>`
+GW_RECHARGE_INC             ...                 :doc:`WMSDatasetFile <api/file-io/wms_dataset>`
+DEPTH                       dep                 :doc:`WMSDatasetFile <api/file-io/wms_dataset>`
+SNOW_SWE_FILE               swe                 :doc:`WMSDatasetFile <api/file-io/wms_dataset>`
 ==========================  ==================  ==============================================
 
 .. note::
-	
-	Some files do not have a specified file extension. These are indicated with
-	an ellipses ( ... ).                
-                 
--------------------
-Files Not Supported
--------------------
 
-The following table lists the files that are *not* supported in the current 
-version of GsshaPy. The file are listed with the appropriate project file card.
+    WMS Dataset Files can only be read in if the map type was set to 1 during the model run.
+
+---------------
+Partial Support
+---------------
+
+Many files are not fully supported by GsshaPy, meaning that they are not abstracted into several objects to make working
+with them easy. However, many of these files are partially supported via the :class:`gsshapy.orm.GenericFile` object.
+This file works by reading the entire contents of the file into a single text field in the database. The files that are
+supported by this class are listed in the following table. Some files do not have a specified file extension. These are indicated with
+an ellipses ( ... ).
 
 ========================  ================
-Project Card              File Extension   
+Project Card              File Extension
 ========================  ================
 ST_MAPPING_TABLE          smt
 SECTION_TABLE             ...
@@ -147,21 +150,13 @@ HMET_ASCII                ...
 GW_FLUXBOUNDTABLE         flx
 SUPERLINK_JUNC_LOCATION   ...
 SUPERLINK_NODE_LOCATION   ...
-LOWSPOT_FILE              lsp
 SUMMARY                   sum
-DEPTH                     dep
-EXPLIC_BACKWATER          
-WRITE_CHAN_HOTSTART       
-LAKE_OUTPUT               lel  
-SNOW_SWE_FILE             swe
+EXPLIC_BACKWATER          ...
+WRITE_CHAN_HOTSTART       ...
+LAKE_OUTPUT               lel
 GW_WELL_LEVEL             owl
 ADJUST_ELEV               ele
 NET_SED_VOLUME            ...
 VOL_SED_SUSP              ...
 OPTIMIZE                  opt
 ========================  ================
-
-.. note::
-	
-	Some files do not have a specified file extension. These are indicated with
-	an ellipses ( ... ).
