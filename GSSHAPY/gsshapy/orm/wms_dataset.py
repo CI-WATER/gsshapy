@@ -26,7 +26,7 @@ from gsshapy.orm import DeclarativeBase
 from gsshapy.base.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt, wms_dataset_chunk as wdc
 from gsshapy.orm.map import RasterMapFile
-from gsshapy.base.rast import RasterObject
+from gsshapy.base.rast import RasterObjectBase
 
 
 class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
@@ -482,11 +482,11 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         return timeStampedRasters
 
 
-class WMSDatasetRaster(DeclarativeBase, RasterObject):
+class WMSDatasetRaster(DeclarativeBase, RasterObjectBase):
     """
     Object storing a single raster dataset for a WMS dataset file.
 
-    This object inherits several methods from the :class:`gsshapy.orm.RasterObject` base class for generating raster
+    This object inherits several methods from the :class:`gsshapy.orm.RasterObjectBase` base class for generating raster
     visualizations. These methods can be used to generate individual raster visualizations for specific time steps.
     """
     __tablename__ = 'wms_dataset_rasters'

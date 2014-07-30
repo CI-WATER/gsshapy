@@ -21,10 +21,10 @@ from mapkit.RasterConverter import RasterConverter
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.base.file_base import GsshaPyFileObjectBase
-from gsshapy.base.rast import RasterObject
+from gsshapy.base.rast import RasterObjectBase
 
 
-class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObject):
+class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
     """
     Object interface for Index Map Files.
 
@@ -39,7 +39,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObject):
     If the spatial option is enabled when the rasters are read in, the rasters will be read in as PostGIS raster
     objects. There are no supporting objects for index map file objects.
 
-    This object inherits several methods from the :class:`gsshapy.orm.RasterObject` base class for generating raster
+    This object inherits several methods from the :class:`gsshapy.orm.RasterObjectBase` base class for generating raster
     visualizations.
 
     See: http://www.gsshawiki.com/Mapping_Table:Index_Maps

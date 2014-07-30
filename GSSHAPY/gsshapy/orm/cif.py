@@ -31,7 +31,7 @@ from sqlalchemy.orm import relationship
 from mapkit.sqlatypes import Geometry
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.base.geom import GeometricObject
+from gsshapy.base.geom import GeometricObjectBase
 from gsshapy.base.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt, cif_chunk as cic
 
@@ -930,13 +930,16 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         return statement
 
 
-class StreamLink(DeclarativeBase, GeometricObject):
+class StreamLink(DeclarativeBase, GeometricObjectBase):
     """
     Object containing generic stream link or reach data.
 
     GSSHA stream networks are composed of a series of stream links and nodes. A stream link is composed of two or more
     nodes. A basic fluvial stream link contains the cross section. Stream links can also be used to describe structures
     on a stream such as culverts, weirs, or reservoirs.
+
+    This object inherits several methods from the :class:`gsshapy.orm.GeometricObjectBase` base class for generating
+    geometric visualizations.
 
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4_-_Link_.28Reach.29_information
     """
@@ -1038,12 +1041,15 @@ class UpstreamLink(DeclarativeBase):
         return self.upstreamLinkID == other.upstreamLinkID
 
 
-class StreamNode(DeclarativeBase, GeometricObject):
+class StreamNode(DeclarativeBase, GeometricObjectBase):
     """
     Object containing the stream node data in the channel network.
 
     Stream nodes represent the computational unit of GSSHA stream networks. Each stream link must consist of two or more
     stream nodes.
+
+    This object inherits several methods from the :class:`gsshapy.orm.GeometricObjectBase` base class for generating
+    geometric visualizations.
 
     See: http://www.gsshawiki.com/Surface_Water_Routing:Channel_Routing#5.1.4.1.4.2.1.4_Node_information
     """

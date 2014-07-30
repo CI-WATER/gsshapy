@@ -192,7 +192,8 @@ class GsshaPyFileObjectBase:
         Override this method to preprocess the filename during writing.
 
         Args:
-            name (str): The name of the file that will be created (file extension is optional).
+            name (str): The name of the file without the extension. The file extension will be appended after
+                preprocessing
 
         Returns:
             str: Filename that will given to the file being written.
