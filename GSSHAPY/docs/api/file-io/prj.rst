@@ -4,6 +4,8 @@ Project File
 
 File extension: **prj**
 
+**This file object supports spatial objects.**
+
 File Object
 ===========
 

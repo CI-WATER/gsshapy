@@ -14,6 +14,7 @@ from zipfile import ZipFile
 from mapkit.ColorRampGenerator import ColorRampEnum
 from mapkit.RasterConverter import RasterConverter
 
+__all__ = ['RasterObjectBase']
 
 class RasterObjectBase:
     """

@@ -10,6 +10,8 @@ Index Map File Object
 
 File extension: **idx**
 
+**This file object supports spatial objects.**
+
 .. autoclass:: gsshapy.orm.IndexMap
     :members:
     :show-inheritance:
@@ -20,6 +22,8 @@ Raster Map File Object
 ======================
 
 File extensions: **Variable** (e.g.: ele, msk, aqe)
+
+**This file object supports spatial objects.**
 
 .. autoclass:: gsshapy.orm.RasterMapFile
     :members:

@@ -87,10 +87,35 @@ newProjectFileAll.writeProject(session=all_session, directory=writeDirectory, na
 
 # Read as Spatial Objects and Generate Spatial Visualizations ---------------------------------------------------------#
 
-
+# Create a new session and a project file object as before
 from gsshapy.lib import db_tools as dbt
 sqlalchemy_url = dbt.sqlalchemy_url = dbt.init_postgresql_db(username='gsshapy', host='localhost', database='gsshapy_tutorial', port='5432', password='pass')
-all_session = dbt.create_session(sqlalchemy_url)
+spatial_session = dbt.create_session(sqlalchemy_url)
+from gsshapy.orm import ProjectFile
+spatialProjectFile = ProjectFile()
+
+# Define variables and invoke project read method
+readDirectory = '/path_to/tutorial-data'
+filename = 'parkcity.prj'
+spatial = True
+srid = 26912
+raster2pgsql_path = '/path_to/raster2pgsql'
+spatialProjectFile.readProject(directory=readDirectory, projectFileName=filename, session=spatial_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
+
+# Read an individual file with spatial objects (using same inputs as above)
+from gsshapy.orm import RasterMapFile
+maskMap = RasterMapFile()
+filename = 'parkcity.msk'
+maskMap.read(directory=readDirectory, filename=filename, session=spatial_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
+
+
+
+
+
+##### TESTING #####
+from gsshapy.lib import db_tools as dbt
+sqlalchemy_url = dbt.sqlalchemy_url = dbt.init_postgresql_db(username='gsshapy', host='localhost', database='gsshapy_tutorial', port='5432', password='pass')
+spatial_session = dbt.create_session(sqlalchemy_url)
 
 from gsshapy.orm import ProjectFile
 spatialProjectFile = ProjectFile()
@@ -99,7 +124,7 @@ filename = 'parkcity.prj'
 spatial = True
 srid = 26912
 raster2pgsql_path = '/Applications/Postgres93.app/Contents/MacOS/bin/raster2pgsql'
-spatialProjectFile.readProject(directory=readDirectory, projectFileName=filename, session=all_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
-writeDirectory = '/Users/swainn/testing/test_models/tutorial-data/write'
+spatialProjectFile.readProject(directory=readDirectory, projectFileName=filename, session=spatial_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
+
 name = 'spatialmodel'
-spatialProjectFile.writeProject(session=all_session, directory=writeDirectory, name=name)
+spatialProjectFile.writeProject(session=spatial_session, directory=writeDirectory, name=name)

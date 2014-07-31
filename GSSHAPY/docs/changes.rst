@@ -19,16 +19,16 @@ Adding support for this file means that GsshaPy now supports almost all of the a
 New Base Objects
 ================
 
-Two new base objects are now included in GsshaPy including the :class:`gsshapy.base.rast.RasterObjectBase` and the
-:class:`gsshapy.base.geom.GeometricObjectBase`. These objects provide methods for generating visualizations for objects
+Two new base objects are now included in GsshaPy including the :class:`gsshapy.base.RasterObjectBase` and the
+:class:`gsshapy.base.GeometricObjectBase`. These objects provide methods for generating visualizations for objects
 that have either a raster or geometry field. For example, the :class:`gsshapy.orm.IndexMap` and
-:class:`gsshapy.orm.RasterMapFile` objects now inherit from :class:`gsshapy.base.rast.RasterObjectBase` to provide their
+:class:`gsshapy.orm.RasterMapFile` objects now inherit from :class:`gsshapy.base.RasterObjectBase` to provide their
 visualization methods.
 
 .. Note::
     The "getAsKml" methods have been moved from the :class:`gsshapy.orm.IndexMap` and :class:`gsshapy.orm.RasterMapFile`
-    to the :class:`gsshapy.base.rast.RasterObjectBase` to avoid duplicating code in multiple places. Both map classes now
-    inherit these KML visualization methods from the :class:`gsshapy.base.rast.RasterObjectBase`.
+    to the :class:`gsshapy.base.RasterObjectBase` to avoid duplicating code in multiple places. Both map classes now
+    inherit these KML visualization methods from the :class:`gsshapy.base.RasterObjectBase`.
 
 
 Improved Visualization Methods
@@ -37,7 +37,7 @@ Improved Visualization Methods
 The ``getAsKmlPng()`` method was improved to include a methodology for resampling the raster prior to image generation.
 This allows you to generate images that have a higher resolution than the GSSHA model grid. This results in a clean
 polished look as opposed to the fuzzy look that was typical of these types of visualizations. See the documentation for
-the :class:`gsshapy.base.rast.RasterObjectBase` for an explanation of this new functionality.
+the :class:`gsshapy.base.RasterObjectBase` for an explanation of this new functionality.
 
 
 New Spatial Methods
@@ -69,13 +69,20 @@ the API documentation for each object to learn how to use each method.
 * getModelSummaryAsWkt()
 * getModelSummaryAsGeoJson()
 
-In addition, the :class:`gsshapy.base.geom.GeometricObjectBase` offers several general purpose methods for objects that
-implement it:
+The :class:`gsshapy.base.GeometricObjectBase` offers several general purpose methods for objects that inherit from
+it:
 
 * getAsKml()
 * getAsWkt()
 * getAsGeoJson()
 * getSpatialReferenceId()
+
+The :class:`gsshapy.base.RasterObjectBase` offers several general purpose methods for objects that inherit from it:
+
+* getAsKmlGrid()
+* getAsKmlClusters()
+* getAsKmlPng()
+* getAsGrassAsciiGrid()
 
 
 Changes to How Files are Read

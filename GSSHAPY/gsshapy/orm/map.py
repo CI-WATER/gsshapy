@@ -108,6 +108,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
                 self.columns = int(spline[1])
 
         if spatial:
+            ## TODO: Refactor to use the createSingleBandRaster method of mapkit (i.e.: eliminate the dependency on raster2pgsql)
             # Get well known binary from the raster file using the MapKit RasterLoader
             wkbRaster = RasterLoader.rasterToWKB(path, str(spatialReferenceID), '0', raster2pgsqlPath)
             self.raster = wkbRaster

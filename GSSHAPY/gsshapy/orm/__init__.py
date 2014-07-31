@@ -1,4 +1,4 @@
-'''
+"""
 ********************************************************************************
 * Name: Object Relational Model
 * Author: Nathan Swain
@@ -6,7 +6,7 @@
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
-'''
+"""
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 

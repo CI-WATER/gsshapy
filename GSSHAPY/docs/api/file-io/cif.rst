@@ -4,6 +4,8 @@ Channel Input File
 
 File extension: **cif**
 
+**This file object supports spatial objects.**
+
 File Object
 ===========
 

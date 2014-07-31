@@ -4,6 +4,9 @@ Mapping Table File
 
 File extension: **cmt**
 
+**This file object supports spatial objects (when the mapping table is read into the database, the index maps are read in
+as well).**
+
 File Object
 ===========
 

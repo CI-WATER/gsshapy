@@ -2,7 +2,9 @@
 Link Node Dataset Files
 ***********************
 
-File extensions: **Variable** (e.g.: cdp, cdq, cds) 
+File extensions: **Variable** (e.g.: cdp, cdq, cds)
+
+**This file object supports spatial objects.**
 
 File Object
 ===========

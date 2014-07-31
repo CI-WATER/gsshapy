@@ -4,6 +4,8 @@ WMS Dataset Files
 
 File extensions: **Variable** (e.g.: dep and swe)
 
+**This file object supports spatial objects.**
+
 File Object
 ===========
 
