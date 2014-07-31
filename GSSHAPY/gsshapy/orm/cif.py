@@ -346,7 +346,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return json.dumps(feature_collection)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
         """
         Channel Input File Read from File Method
         """

@@ -77,7 +77,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
     def __repr__(self):
         return '<RasterMap: FileExtension=%s>' % self.fileExtension
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
         """
         Raster Map File Read from File Method
         """
@@ -108,9 +108,11 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
                 self.columns = int(spline[1])
 
         if spatial:
-            ## TODO: Refactor to use the createSingleBandRaster method of mapkit (i.e.: eliminate the dependency on raster2pgsql)
             # Get well known binary from the raster file using the MapKit RasterLoader
-            wkbRaster = RasterLoader.rasterToWKB(path, str(spatialReferenceID), '0', raster2pgsqlPath)
+            wkbRaster = RasterLoader.grassAsciiRasterToWKB(session=session,
+                                                           grassRasterPath=path,
+                                                           srid=str(spatialReferenceID),
+                                                           noData='0')
             self.raster = wkbRaster
 
     def _write(self, session, openFile):

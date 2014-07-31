@@ -18,7 +18,7 @@ from mapkit.RasterConverter import RasterConverter
 from mapkit.ColorRampGenerator import ColorRampGenerator, ColorRampEnum
 
 # DATABASE SETUP ------------------------------------------------------------------------------------------------------#
-'''
+#'''
 # Drop all tables except the spatial reference table that PostGIS uses
 db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis_2'
 engine = create_engine(db_url)
@@ -58,20 +58,37 @@ write_session = dbt.create_session(sqlalchemy_url)
    
 
 # READ PROJECT --------------------------------------------------------------------------------------------------------#
-'''
+#'''
 project_file = ProjectFile()
 
 START = time.time()
-project_file.readProject(read_directory, project_file_name, read_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
+project_file.readProject(read_directory, project_file_name, read_session, spatial=spatial, spatialReferenceID=srid)
 print 'READ: ', time.time() - START
 #'''
 
 # WRITE PROJECT -------------------------------------------------------------------------------------------------------#
-'''
+#'''
 project_file = write_session.query(ProjectFile).first()
 START = time.time()
 project_file.writeProject(write_session, write_directory, out_file_name)
 print 'WRITE: ', time.time() - START
+#'''
+
+# READ MASK -----------------------------------------------------------------------------------------------------------#
+'''
+raster_map = RasterMapFile()
+START = time.time()
+raster_map.read(read_directory, 'parkcity.msk', read_session, spatial=spatial, spatialReferenceID=srid)
+print 'MASK READ SPATIAL: ', time.time() - START
+#'''
+
+# WRITE MASK ----------------------------------------------------------------------------------------------------------#
+'''
+kml_path = os.path.join(write_directory, 'mask.kml')
+raster_map = write_session.query(RasterMapFile).filter(RasterMapFile.fileExtension == 'msk').one()
+START = time.time()
+raster_map.getAsKmlClusters(session=write_session, path=kml_path)
+print 'MASK KML OUT: ', time.time() - START
 #'''
 
 # KML TESTING ---------------------------------------------------------------------------------------------------------#

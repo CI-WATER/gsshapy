@@ -64,7 +64,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         GsshaPyFileObjectBase.__init__(self)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
         """
         Mapping Table Read from File Method
         """
@@ -121,7 +121,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                     # Invoke IndexMap read method
                     indexMap.read(directory=directory, filename=result['filename'], session=session, spatial=spatial,
-                                  spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
+                                  spatialReferenceID=spatialReferenceID)
 
                 # Map Table handler
                 else:
@@ -244,7 +244,6 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self._createValueObjects(mt['valueList'], mt['varList'], mapTable, indexMap, None)
 
             except:
-                ## TODO: Formalize warning messages as Error objects
                 print ('WARNING: Index Map "%s" for Mapping Table "%s" not found in list of index maps in the mapping '
                        'table file. The Mapping Table was not read into the database.') % (
                     mt['indexMapName'], mt['name'])

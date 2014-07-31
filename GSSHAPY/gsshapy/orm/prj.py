@@ -208,7 +208,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     def __init__(self):
         GsshaPyFileObjectBase.__init__(self)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
         """
         Project File Read from File Method
         """
@@ -315,7 +315,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 new.write(rewriteLine)
 
-    def readProject(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+    def readProject(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236):
         """
         Read all files for a GSSHA project into the database.
 
@@ -332,27 +332,21 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 Defaults to False.
             spatialReferenceID (int, optional): Integer id of spatial reference system for the model. Required if
                 spatial is True.
-            raster2pgsqlPath (str, optional): Path to the raster2pgsql program. This program ships with PostGIS and is
-                used to read rasters into the PostGIS database. Required if spatial is True.
         """
         # Add project file to session
         session.add(self)
 
         # First read self
-        self.read(directory, projectFileName, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
-                  raster2pgsqlPath=raster2pgsqlPath)
+        self.read(directory, projectFileName, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Read Input Files
-        self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
-                       raster2pgsqlPath=raster2pgsqlPath)
+        self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Read Output Files
-        self._readXput(self.OUTPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
-                       raster2pgsqlPath=raster2pgsqlPath)
+        self._readXput(self.OUTPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Read Input Map Files
-        self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
-                           raster2pgsqlPath=raster2pgsqlPath)
+        self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Read WMS Dataset Files
         self._readWMSDatasets(self.WMS_DATASETS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
@@ -360,7 +354,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Commit to database
         self._commit(session, self.COMMIT_ERROR_MESSAGE)
 
-    def readInput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+    def readInput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236):
         """
         Read only input files for a GSSHA project into the database.
 
@@ -375,27 +369,23 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 Defaults to False.
             spatialReferenceID (int, optional): Integer id of spatial reference system for the model. Required if
                 spatial is True.
-            raster2pgsqlPath (str, optional): Path to the raster2pgsql program. This program ships with PostGIS and is
-                used to read rasters into the PostGIS database. Required if spatial is True.
         """
         # Add project file to session
         session.add(self)
 
         # Read Project File
-        self.read(directory, projectFileName, session, spatial, spatialReferenceID, raster2pgsqlPath)
+        self.read(directory, projectFileName, session, spatial, spatialReferenceID)
 
         # Read Input Files
-        self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
-                       raster2pgsqlPath=raster2pgsqlPath)
+        self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Read Input Map Files
-        self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
-                           raster2pgsqlPath=raster2pgsqlPath)
+        self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Commit to database
         self._commit(session, self.COMMIT_ERROR_MESSAGE)
 
-    def readOutput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+    def readOutput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236):
         """
         Read only output files for a GSSHA project to the database.
 
@@ -410,18 +400,15 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 Defaults to False.
             spatialReferenceID (int, optional): Integer id of spatial reference system for the model. Required if
                 spatial is True.
-            raster2pgsqlPath (str, optional): Path to the raster2pgsql program. This program ships with PostGIS and is
-                used to read rasters into the PostGIS database. Required if spatial is True.
         """
         # Add project file to session
         session.add(self)
 
         # Read Project File
-        self.read(directory, projectFileName, session, spatial, spatialReferenceID, raster2pgsqlPath)
+        self.read(directory, projectFileName, session, spatial, spatialReferenceID)
 
         # Read Output Files
-        self._readXput(self.OUTPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
-                       raster2pgsqlPath=raster2pgsqlPath)
+        self._readXput(self.OUTPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Read WMS Dataset Files
         self._readWMSDatasets(self.WMS_DATASETS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
@@ -911,7 +898,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return jsonString
 
-    def _readXput(self, fileCards, directory, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+    def _readXput(self, fileCards, directory, session, spatial=False, spatialReferenceID=4236):
         """
         GSSHAPY Project Read Files from File Method
         """
@@ -928,10 +915,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                  filename=filename,
                                  session=session,
                                  spatial=spatial,
-                                 spatialReferenceID=spatialReferenceID,
-                                 raster2pgsqlPath=raster2pgsqlPath)
+                                 spatialReferenceID=spatialReferenceID)
 
-    def _readXputMaps(self, mapCards, directory, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+    def _readXputMaps(self, mapCards, directory, session, spatial=False, spatialReferenceID=4236):
         """
         GSSHA Project Read Map Files from File Method
         """
@@ -946,8 +932,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                      filename=filename,
                                      session=session,
                                      spatial=spatial,
-                                     spatialReferenceID=spatialReferenceID,
-                                     raster2pgsqlPath=raster2pgsqlPath)
+                                     spatialReferenceID=spatialReferenceID)
         else:
             for card in self.projectCards:
                 if (card.name in mapCards) and self._noneOrNumValue(card.value):
@@ -960,8 +945,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                          filename=filename,
                                          session=session,
                                          spatial=spatial,
-                                         spatialReferenceID=spatialReferenceID,
-                                         raster2pgsqlPath=raster2pgsqlPath)
+                                         spatialReferenceID=spatialReferenceID)
 
             print 'WARNING: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
 
@@ -992,13 +976,13 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                         spatial=spatial,
                                         spatialReferenceID=spatialReferenceID)
 
-    def _invokeRead(self, fileIO, directory, filename, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+    def _invokeRead(self, fileIO, directory, filename, session, spatial=False, spatialReferenceID=4236):
         """
         Invoke File Read Method on Other Files
         """
         instance = fileIO()
         instance.projectFile = self
-        instance.read(directory, filename, session, spatial=spatial, spatialReferenceID=spatialReferenceID, raster2pgsqlPath=raster2pgsqlPath)
+        instance.read(directory, filename, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
     def _writeXput(self, session, directory, fileCards, name=None):
         """

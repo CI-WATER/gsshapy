@@ -52,7 +52,7 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
     def __repr__(self):
         return '<ProjectionFile: Projection=%s>' % self.projection
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
         """
         Projection File Read from File Method
         """

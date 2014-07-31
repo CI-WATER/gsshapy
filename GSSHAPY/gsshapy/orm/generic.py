@@ -52,7 +52,7 @@ class GenericFile(DeclarativeBase, GsshaPyFileObjectBase):
     def __repr__(self):
         return '<GenericFile: Projection=%s>' % (self.projection)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
         """
         Generic File Read from File Method
         """

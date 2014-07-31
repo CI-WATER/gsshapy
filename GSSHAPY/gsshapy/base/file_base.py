@@ -31,7 +31,7 @@ class GsshaPyFileObjectBase:
         """
         self.fileExtension = ''
 
-    def read(self, directory, filename, session, spatial=False, spatialReferenceID=4236, raster2pgsqlPath='raster2pgsql'):
+    def read(self, directory, filename, session, spatial=False, spatialReferenceID=4236):
         """
         Generic read file into database method.
 
@@ -43,9 +43,6 @@ class GsshaPyFileObjectBase:
                 Defaults to False.
             spatialReferenceID (int, optional): Integer id of spatial reference system for the model. Required if
                 spatial is True.
-            raster2pgsqlPath (str, optional): Path to the raster2pgsql program. This program ships with PostGIS and is
-                used to read rasters into the PostGIS database. Required if spatial is True. Defaults to relative path
-                of 'raster2pgsql'.
         """
 
         # Read parameter derivatives
@@ -64,7 +61,7 @@ class GsshaPyFileObjectBase:
             session.add(self)
 
             # Read
-            self._read(directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath)
+            self._read(directory, filename, session, path, name, extension, spatial, spatialReferenceID)
 
             # Commit to database
             self._commit(session, self.COMMIT_ERROR_MESSAGE)
@@ -126,7 +123,7 @@ class GsshaPyFileObjectBase:
             # Raise other errors as normal
             raise
     
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
         """
         Private file object read method. Classes that inherit from this base class must implement this method.
 
@@ -155,9 +152,6 @@ class GsshaPyFileObjectBase:
                 Defaults to False. Same as given by user in ``read()``.
             spatialReferenceID (int, optional): Integer id of spatial reference system for the model. Required if
                 spatial is True. Same as given by user in ``read()``.
-            raster2pgsqlPath (str, optional): Path to the raster2pgsql program. This program ships with PostGIS and is
-                used to read rasters into the PostGIS database. Required if spatial is True. Defaults to relative path
-                of 'raster2pgsql'. Same as given by user in ``read()``.
         """
         
     def _write(self, session, openFile):

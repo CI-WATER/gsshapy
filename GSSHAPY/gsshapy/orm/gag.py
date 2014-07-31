@@ -57,7 +57,7 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         GsshaPyFileObjectBase.__init__(self)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
         """
         Precipitation Read from File Method
         """
@@ -210,7 +210,6 @@ class PrecipEvent(DeclarativeBase):
         """
         Constructor
         """
-        #TODO - add validation
         self.description = description
         self.nrGag = nrGag
         self.nrPds = nrPds

@@ -60,7 +60,7 @@ class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
     def __repr__(self):
         return '<PipeNetwork: ID=%s>' % self.id
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
         """
         Storm Pipe Network File Read from File Method
         """

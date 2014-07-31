@@ -90,7 +90,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
                 self.filename == other.filename and
                 self.raster == other.raster)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, raster2pgsqlPath):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
         """
         Index Map Read from File Method
         """
@@ -120,9 +120,11 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
                 self.columns = int(spline[1])
 
         if spatial:
-            ## TODO: Refactor to use the createSingleBandRaster method of mapkit (i.e.: eliminate the dependency on raster2pgsql)
             # Get well known binary from the raster file using the MapKit RasterLoader
-            wkbRaster = RasterLoader.rasterToWKB(path, str(spatialReferenceID), '-1', raster2pgsqlPath)
+            wkbRaster = RasterLoader.grassAsciiRasterToWKB(session=session,
+                                                           grassRasterPath=path,
+                                                           srid=str(spatialReferenceID),
+                                                           noData='-1')
             self.raster = wkbRaster
             self.srid = spatialReferenceID
 
