@@ -415,17 +415,25 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                             valueIndex = statusIndex + 1
 
                             # Parse line into node datasets
-                            for i in range(0, linkDataset.numNodeDatasets):
-                                # Create NodeDataset GSSHAPY object
+                            if linkDataset.numNodeDatasets > 0:
+                                for i in range(0, linkDataset.numNodeDatasets):
+                                    # Create NodeDataset GSSHAPY object
+                                    nodeDataset = NodeDataset()
+                                    nodeDataset.status = int(spLinkLine[statusIndex])
+                                    nodeDataset.value = float(spLinkLine[valueIndex])
+                                    nodeDataset.linkDataset = linkDataset
+                                    nodeDataset.linkNodeDatasetFile = self
+
+                                    # Increment to next status/value pair
+                                    statusIndex += NODE_VALUE_INCREMENT
+                                    valueIndex += NODE_VALUE_INCREMENT
+                            else:
                                 nodeDataset = NodeDataset()
-                                nodeDataset.status = int(spLinkLine[statusIndex])
-                                nodeDataset.value = float(spLinkLine[valueIndex])
+                                nodeDataset.value = float(spLinkLine[1])
                                 nodeDataset.linkDataset = linkDataset
                                 nodeDataset.linkNodeDatasetFile = self
+                                print spLinkLine
 
-                                # Increment to next status/value pair
-                                statusIndex += NODE_VALUE_INCREMENT
-                                valueIndex += NODE_VALUE_INCREMENT
 
 
     def _write(self, session, openFile):
@@ -455,9 +463,18 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # Retrieve NodeDatasets
                 nodeDatasets = linkDataset.nodeDatasets
 
-                for nodeDataset in nodeDatasets:
-                    # Write status and value
-                    openFile.write('{0}  {1:.5f}   '.format(nodeDataset.status, nodeDataset.value))
+                if linkDataset.numNodeDatasets > 0:
+                    for nodeDataset in nodeDatasets:
+                        # Write status and value
+                        openFile.write('{0}  {1:.5f}   '.format(nodeDataset.status, nodeDataset.value))
+                else:
+                    for nodeDataset in nodeDatasets:
+                        # Write status and value
+
+                        if linkDataset.numNodeDatasets < 0:
+                            openFile.write('{0:.5f}'.format(nodeDataset.value))
+                        else:
+                            openFile.write('{0:.3f}'.format(nodeDataset.value))
 
                 # Write new line character after each link dataset
                 openFile.write('\n')

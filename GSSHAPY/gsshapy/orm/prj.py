@@ -1289,6 +1289,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         elif cardName in PRESERVE_DIRECTORY:
             cardValue = "{0}".format(currLine[1:])
         else:
+            print cardName
             # TODO: Write code to handle nested directory cards
             cardValue = '""'
 
