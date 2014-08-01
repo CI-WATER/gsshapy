@@ -119,8 +119,9 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # Retrieve node datasets
                 nodeDatasets = linkDataset.nodeDatasets
 
-                for n, nodeDataset in enumerate(nodeDatasets):
-                    nodeDataset.node = streamNodes[n]
+                if linkDataset.numNodeDatasets > 0:
+                    for n, nodeDataset in enumerate(nodeDatasets):
+                        nodeDataset.node = streamNodes[n]
 
         session.add(self)
         session.commit()
@@ -155,7 +156,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         # Constants
         DECMIAL_DEGREE_METER = 0.00001
-        OPTIMAL_Z_MAX = 200  # meters
+        OPTIMAL_Z_MAX = 300  # meters
 
         # Default styles
         radiusMeters = 2 * DECMIAL_DEGREE_METER  # 2 meters
@@ -206,11 +207,22 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Calculate min and max values for the color ramp
         minValue = 0.0
-        maxValue = session.query(func.max(NodeDataset.value)).filter(NodeDataset.linkNodeDatasetFile == self).scalar()
+        maxValue = session.query(func.max(NodeDataset.value)).\
+                           filter(NodeDataset.linkNodeDatasetFile == self).\
+                           filter(NodeDataset.status == 1).\
+                           scalar()
+
+        avgValue = session.query(func.avg(NodeDataset.value)).\
+                           filter(NodeDataset.linkNodeDatasetFile == self).\
+                           filter(NodeDataset.status == 1).\
+                           scalar()
+
+        print maxValue
 
         # Calculate automatic zScale if not assigned
         if 'zScale' not in styles:
-            zScale = OPTIMAL_Z_MAX / maxValue
+            zScale = OPTIMAL_Z_MAX / ((maxValue + avgValue) / 2)
+            print zScale
 
         # Map color ramp to values
         mappedColorRamp = ColorRampGenerator.mapColorRampToValues(colorRamp, minValue, maxValue)

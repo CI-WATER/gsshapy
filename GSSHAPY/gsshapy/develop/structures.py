@@ -60,7 +60,7 @@ print 'READ: ', time.time() - START
 #'''
 
 # WRITE PROJECT -------------------------------------------------------------------------------------------------------#
-#'''
+'''
 project_file = write_session.query(ProjectFile).first()
 START = time.time()
 project_file.writeProject(write_session, write_directory, out_file_name)
@@ -126,7 +126,7 @@ styles = {'maskFillColor': (255, 128, 0, 255),
 #'''
 
 # LINK NODE DATASET ANIMATION -----------------------------------------------------------------------------------------#
-'''
+#'''
 channel_input_file = write_session.query(ChannelInputFile).first()
 link_node_dataset_file = write_session.query(LinkNodeDatasetFile).first()
 
