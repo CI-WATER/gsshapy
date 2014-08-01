@@ -217,12 +217,9 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                            filter(NodeDataset.status == 1).\
                            scalar()
 
-        print maxValue
-
         # Calculate automatic zScale if not assigned
         if 'zScale' not in styles:
             zScale = OPTIMAL_Z_MAX / ((maxValue + avgValue) / 2)
-            print zScale
 
         # Map color ramp to values
         mappedColorRamp = ColorRampGenerator.mapColorRampToValues(colorRamp, minValue, maxValue)
