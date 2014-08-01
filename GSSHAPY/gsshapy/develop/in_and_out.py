@@ -11,7 +11,7 @@
 import os
 
 import time
-from gsshapy.orm import WMSDatasetFile, ProjectFile, ChannelInputFile, LinkNodeDatasetFile, IndexMap, RasterMapFile, WMSDatasetRaster
+from gsshapy.orm import WMSDatasetFile, ProjectFile, ChannelInputFile, LinkNodeDatasetFile, IndexMap, RasterMapFile, WMSDatasetRaster, ProjectionFile
 from gsshapy.lib import db_tools as dbt
 from sqlalchemy import MetaData, create_engine
 from mapkit.RasterConverter import RasterConverter
@@ -51,23 +51,22 @@ project_file_name = 'longterm_snow.prj'
 out_file_name = 'out'
 new_name = 'out'
 spatial = True
-srid = 26912
+srid = ProjectionFile.lookupSpatialReferenceID(read_directory, 'parkcity_prj.pro')
 raster2pgsql_path = '/Applications/Postgres93.app/Contents/MacOS/bin/raster2pgsql'
 read_session = dbt.create_session(sqlalchemy_url)
 write_session = dbt.create_session(sqlalchemy_url)
-   
 
 # READ PROJECT --------------------------------------------------------------------------------------------------------#
 #'''
 project_file = ProjectFile()
 
 START = time.time()
-project_file.readProject(read_directory, project_file_name, read_session, spatial=spatial, spatialReferenceID=srid)
+project_file.readOutput(read_directory, project_file_name, read_session, spatial=spatial)
 print 'READ: ', time.time() - START
 #'''
 
 # WRITE PROJECT -------------------------------------------------------------------------------------------------------#
-#'''
+'''
 project_file = write_session.query(ProjectFile).first()
 START = time.time()
 project_file.writeProject(write_session, write_directory, out_file_name)

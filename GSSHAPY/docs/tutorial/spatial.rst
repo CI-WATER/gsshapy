@@ -2,7 +2,7 @@
 Work with Spatial Data
 **********************
 
-**Last Updated:** July 31, 2014
+**Last Updated:** August 1, 2014
 
 Up to this point in the tutorial, you have not been using the spatial functionality in GsshaPy. This is where most of the
 progress occurred in version 2.0. In this tutorial you will learn how to read a project using spatial database objects.
@@ -19,43 +19,47 @@ To read the GSSHA files into spatial fields in the database we setup as we did b
 instance of the :class:`gsshapy.orm.ProjectFile` class::
 
     >>> from gsshapy.lib import db_tools as dbt
-    >>> sqlalchemy_url = dbt.sqlalchemy_url = dbt.init_postgresql_db(username='gsshapy', host='localhost', database='gsshapy_tutorial', port='5432', password='pass')
-    >>> spatial_session = dbt.create_session(sqlalchemy_url)
     >>> from gsshapy.orm import ProjectFile
+    >>> sqlalchemy_url = dbt.sqlalchemy_url = dbt.init_postgresql_db(username='gsshapy', host='localhost', database='gsshapy_tutorial', port='5432', password='pass')
+    >>> spatialSession = dbt.create_session(sqlalchemy_url)
     >>> spatialProjectFile = ProjectFile()
 
-Then we call the ``readProject()`` method on the project file object, this time with a few new arguments. We
-enable spatial objects by setting the ``spatial`` argument to ``True``. Then we define the spatial reference system
-for the model by giving it the spatial reference ID (see: http://spatialreference.org). For Park City this is 26912,
-determined based on the projection file. Finally, we pass in the path to the ``raster2pgsql`` commandline program that
-ships with PostGIS. Invoking the ``readProject()`` method looks like this::
+Then we call the ``readProject()`` method enabling spatial objects by setting the ``spatial`` argument to ``True``.
+Invoking the ``readProject()`` method looks like this::
 
     >>> readDirectory = '/path_to/tutorial-data'
     >>> filename = 'parkcity.prj'
-    >>> spatial = True
-    >>> srid = 26912
-    >>> raster2pgsql_path = '/path_to/raster2pgsql'
-    >>> spatialProjectFile.readProject(directory=readDirectory, projectFileName=filename, session=spatial_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
+    >>> spatialProjectFile.readProject(directory=readDirectory, projectFileName=filename, session=spatialSession, spatial=True)
 
-You should notice that reading the project into the database using spatial objects takes a little more time than when
+You will probably notice that reading the project into the database using spatial objects takes a little more time than when
 reading it without spatial objects. This delay is caused primarily by the conversion of the native GSSHA spatial formats
 to the PostGIS spatial formats. For example, GSSHA stores raster files in GRASS ASCII format while PostGIS stores rasters
 in the binary version of the Well Known Text format (Well Known Binary).
+
+The ``readProject()``, ``readInput()``, and ``readOutput()`` methods attempt to automatically lookup the spatial reference
+ID using the projection file that can be included with GSSHA models. This uses a web service, so an internet connection
+is required. If the projection file is not included or no id can be found, the default spatial reference ID will be used:
+4236 WGS 84. Warnings will be thrown in this case, but GsshaPy will not throw an error. If you want to force the spatial
+reference ID, pass it in manually using the ``spatialReferenceID`` parameter.
 
 Spatial Read for Individual Files
 ---------------------------------
 
 You can also apply the spatial read methodology to individual files. Instantiate the file object for the file you wish
 to read into the database with spatial objects and call the ``read()`` method with the same spatial arguments as
-illustrated above. For example, let's read in the mask map file. The file object that is used to read in the mask map is
-the :class:`gsshapy.orm.RasterMapFile` object (use the :doc:`Supported Files <../support>` page to determine what objects
-are used for what files). Create a new instance of this object and invoke the ``read()`` method with the same
-arguments as above, but pointing it instead at the mask map file (:file:`parkcity.msk`)::
+illustrated above. For example, let's read in the mask map file.
 
-    >>> from gsshapy.orm import RasterMapFile
-    >>> maskMap = RasterMapFile()
+The file object that is used to read in the mask map is the :class:`gsshapy.orm.RasterMapFile` object (use the
+:doc:`Supported Files <../support>` page to determine what objects are used to read each file). Automatic spatial reference
+id lookup is not a feature for the read methods of individual files. Use the :class:`gsshapy.orm.ProjectionFile` class
+method, ``lookupSpatialReferenceID``, too look up the srid or enter it manually. Create a new instance
+of this object and invoke the ``read()`` method pointing it at the mask map file (:file:`parkcity.msk`)::
+
+    >>> from gsshapy.orm import RasterMapFile, ProjectionFile
     >>> filename = 'parkcity.msk'
-    >>> maskMap.read(directory=readDirectory, filename=filename, session=spatial_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
+    >>> srid = ProjectionFile.lookupSpatialReferenceID('readDirectory, 'parkcity_prj.pro')
+    >>> maskMap = RasterMapFile()
+    >>> maskMap.read(directory=readDirectory, filename=filename, session=spatialSession, spatial=True, spatialReferenceID=srid)
 
 .. Note::
     Not all files have spatial data, so passing in the spatial arguments to the read methods of these objects has no
@@ -83,8 +87,8 @@ tutorial) and invoke the ``getModelSummaryAsKml()`` method on it::
     >>> from gsshapy.orm import ProjectFile
     >>> import os
     >>> kml_path = os.path.join(writeDirectory, 'model_summary.kml')
-    >>> newSpatialProjectFile = spatial_session.query(ProjectFile).filter(ProjectFile.id == 3).one()
-    >>> newSpatialProjectFile.getModelSummaryAsKml(session=spatial_session, path=kml_path)
+    >>> newSpatialProjectFile = spatialSession.query(ProjectFile).filter(ProjectFile.id == 3).one()
+    >>> newSpatialProjectFile.getModelSummaryAsKml(session=spatialSession, path=kml_path)
 
 You will find the :file:`model_summary.kml` file in your **write** directory. If you have the
 `Google Earth Desktop <http://www.google.com/earth/explore/products/desktop.html>`_ application, you can view the

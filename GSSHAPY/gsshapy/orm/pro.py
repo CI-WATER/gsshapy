@@ -11,9 +11,13 @@
 
 __all__ = ['ProjectionFile']
 
+import os
+
 from sqlalchemy import Column
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
+
+from mapkit import lookupSpatialReferenceID
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.base.file_base import GsshaPyFileObjectBase
@@ -51,6 +55,27 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def __repr__(self):
         return '<ProjectionFile: Projection=%s>' % self.projection
+
+    @classmethod
+    def lookupSpatialReferenceID(cls, directory, filename):
+        """
+        Look up spatial reference system using the projection file.
+
+        Args:
+            directory (str):
+            filename (str):
+
+        Return:
+            int: Spatial Reference ID
+        """
+
+        path = os.path.join(directory, filename)
+
+        with open(path, 'r') as f:
+            srid = lookupSpatialReferenceID(f.read())
+
+        return srid
+
 
     def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
         """

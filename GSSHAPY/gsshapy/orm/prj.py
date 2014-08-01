@@ -315,7 +315,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 new.write(rewriteLine)
 
-    def readProject(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236):
+
+
+    def readProject(self, directory, projectFileName, session, spatial=False, spatialReferenceID=None):
         """
         Read all files for a GSSHA project into the database.
 
@@ -330,14 +332,19 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
             spatial (bool, optional): If True, spatially enabled objects will be read in as PostGIS spatial objects.
                 Defaults to False.
-            spatialReferenceID (int, optional): Integer id of spatial reference system for the model. Required if
-                spatial is True.
+            spatialReferenceID (int, optional): Integer id of spatial reference system for the model. If no id is
+                provided GsshaPy will attempt to automatically lookup the spatial reference ID. If this process fails,
+                default srid will be used (4326 for WGS 84).
         """
         # Add project file to session
         session.add(self)
 
         # First read self
         self.read(directory, projectFileName, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+
+        # Automatically derive the spatial reference system, if possible
+        if spatialReferenceID is None:
+            spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
 
         # Read Input Files
         self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
@@ -354,7 +361,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Commit to database
         self._commit(session, self.COMMIT_ERROR_MESSAGE)
 
-    def readInput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236):
+    def readInput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=None):
         """
         Read only input files for a GSSHA project into the database.
 
@@ -367,14 +374,19 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
             spatial (bool, optional): If True, spatially enabled objects will be read in as PostGIS spatial objects.
                 Defaults to False.
-            spatialReferenceID (int, optional): Integer id of spatial reference system for the model. Required if
-                spatial is True.
+            spatialReferenceID (int, optional): Integer id of spatial reference system for the model. If no id is
+                provided GsshaPy will attempt to automatically lookup the spatial reference ID. If this process fails,
+                default srid will be used (4326 for WGS 84).
         """
         # Add project file to session
         session.add(self)
 
         # Read Project File
         self.read(directory, projectFileName, session, spatial, spatialReferenceID)
+
+        # Automatically derive the spatial reference system, if possible
+        if spatialReferenceID is None:
+            spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
 
         # Read Input Files
         self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
@@ -385,7 +397,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Commit to database
         self._commit(session, self.COMMIT_ERROR_MESSAGE)
 
-    def readOutput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=4236):
+    def readOutput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=None):
         """
         Read only output files for a GSSHA project to the database.
 
@@ -398,14 +410,25 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
             spatial (bool, optional): If True, spatially enabled objects will be read in as PostGIS spatial objects.
                 Defaults to False.
-            spatialReferenceID (int, optional): Integer id of spatial reference system for the model. Required if
-                spatial is True.
+            spatialReferenceID (int, optional): Integer id of spatial reference system for the model. If no id is
+                provided GsshaPy will attempt to automatically lookup the spatial reference ID. If this process fails,
+                default srid will be used (4326 for WGS 84).
         """
         # Add project file to session
         session.add(self)
 
         # Read Project File
         self.read(directory, projectFileName, session, spatial, spatialReferenceID)
+
+        # Read Mask (dependency of some output files)
+        maskMap = RasterMapFile()
+        maskMapFilename = self.getCard('WATERSHED_MASK').value.strip('"')
+        maskMap.read(session=session, directory=directory, filename=maskMapFilename, spatial=spatial)
+        maskMap.projectFile = self
+
+        # Automatically derive the spatial reference system, if possible
+        if spatialReferenceID is None:
+            spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
 
         # Read Output Files
         self._readXput(self.OUTPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
@@ -897,6 +920,41 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 jsonString = json.dumps(featureCollection)
 
         return jsonString
+
+    def _automaticallyDeriveSpatialReferenceId(self, directory):
+        """
+        This method is used to automatically lookup the spatial reference ID of the GSSHA project. This method is a
+        wrapper for the ProjectionFile class method lookupSpatialReferenceID(). It requires an internet connection
+        (the lookup uses a web service) and the projection file to be present and the appropriate card in the project
+        file pointing to the projection file (#PROJECTION_FILE). If the process fails, it defaults to SRID 4326 which is
+        the id for WGS 84.
+        """
+        # Only do automatic look up if spatial reference is not specified by the user
+        DEFAULT_SPATIAL_REFERENCE_ID = 4236
+        # Lookup the projection card in the project file
+        projectionCard = self.getCard('#PROJECTION_FILE')
+
+        if projectionCard is not None:
+            # Use lookup service
+            srid = ProjectionFile.lookupSpatialReferenceID(directory=directory,
+                                                           filename=projectionCard.value.strip('"'))
+
+            try:
+                # Verify the resulting srid is a number
+                int(srid)
+                self.srid = srid
+                spatialReferenceID = srid
+                print "INFO: Automatic spatial reference ID lookup succeded. Using id: {0}".format(spatialReferenceID)
+            except:
+                # Otherwise, use the default id
+                spatialReferenceID = DEFAULT_SPATIAL_REFERENCE_ID
+                print "WARNING: Automatic spatial reference ID lookup failed. Using default id: {0}".format(DEFAULT_SPATIAL_REFERENCE_ID)
+        else:
+            # If there is no projection card in the project file, use default
+            spatialReferenceID = DEFAULT_SPATIAL_REFERENCE_ID
+            print "WARNING: Automatic spatial reference ID lookup failed. Using default id: {0}".format(DEFAULT_SPATIAL_REFERENCE_ID)
+
+        return spatialReferenceID
 
     def _readXput(self, fileCards, directory, session, spatial=False, spatialReferenceID=4236):
         """
