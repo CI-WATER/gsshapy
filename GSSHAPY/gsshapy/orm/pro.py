@@ -7,7 +7,6 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
-## TODO: Add support for automatically determining the projection using web service
 
 __all__ = ['ProjectionFile']
 

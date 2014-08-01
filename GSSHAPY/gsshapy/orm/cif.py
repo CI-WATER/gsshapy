@@ -105,6 +105,25 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return fluvialLinks
 
+    def getOrderedLinks(self, session):
+        """
+        Retrieve the links in the order of the link number.
+
+        Args:
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database.
+
+        Returns:
+            list: A list of :class:`.StreamLink` objects.
+        """
+        streamLinks = session.query(StreamLink).\
+                            filter(StreamLink.channelInputFile == self).\
+                            order_by(StreamLink.linkNumber).\
+                            all()
+
+        return streamLinks
+
+
+
     def getStreamNetworkAsKml(self, session, path=None, documentName='Stream Network', withNodes=False, styles={}):
         """
         Retrieve the stream network visualization in KML format.

@@ -104,7 +104,7 @@ these parameters are passed into the ``read()`` method when it is called. See th
 
 This change makes it easier to work with the file objects and is more consistent with how the ``write()`` method works.
 
-Other changes have been made to the read methods related to the spatial capabilities if GsshaPy. Prior to 2.0.0, it was
+Other changes have been made to the read methods related to the spatial capabilities of GsshaPy. Prior to 2.0.0, it was
 required to specify the path to a commandline program called ``raster2pgsql`` when reading files with spatial objects
 enabled, but this is no longer required. The project file ``readProject()``, ``readInput()``, and ``readOutput()`` methods
 now attempt to automatically determine the spatial reference ID if it is not provided. See the documentation for

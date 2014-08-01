@@ -18,7 +18,7 @@ from mapkit.RasterConverter import RasterConverter
 from mapkit.ColorRampGenerator import ColorRampGenerator, ColorRampEnum
 
 # DATABASE SETUP ------------------------------------------------------------------------------------------------------#
-#'''
+'''
 # Drop all tables except the spatial reference table that PostGIS uses
 db_url = 'postgresql://swainn:(|water@localhost/gsshapy_structures'
 engine = create_engine(db_url)
@@ -51,11 +51,11 @@ write_session = dbt.create_session(sqlalchemy_url)
    
 
 # READ PROJECT --------------------------------------------------------------------------------------------------------#
-#'''
+'''
 project_file = ProjectFile()
 
 START = time.time()
-project_file.readProject(read_directory, project_file_name, read_session, spatial=spatial, spatialReferenceID=srid, raster2pgsqlPath=raster2pgsql_path)
+project_file.readProject(read_directory, project_file_name, read_session, spatial=spatial)
 print 'READ: ', time.time() - START
 #'''
 
@@ -126,17 +126,15 @@ styles = {'maskFillColor': (255, 128, 0, 255),
 #'''
 
 # LINK NODE DATASET ANIMATION -----------------------------------------------------------------------------------------#
-'''
+#'''
 channel_input_file = write_session.query(ChannelInputFile).first()
 link_node_dataset_file = write_session.query(LinkNodeDatasetFile).first()
 
 
 # link_node_dataset_file.linkToChannelInputFile(write_session, channel_input_file)
 out_path = os.path.join(write_directory, 'channel_depth.kml')
-styles = {'zScale': 150,
-          'colorRampEnum': ColorRampEnum.COLOR_RAMP_TERRAIN,
-          'radius': 5}
-link_node_dataset_file.getAsKmlAnimation(write_session, channel_input_file, path=out_path)
+styles = {'radius': 10}
+link_node_dataset_file.getAsKmlAnimation(write_session, channel_input_file, path=out_path, styles=styles)
 #'''
 
 print 'KML OUT: ', time.time() - START

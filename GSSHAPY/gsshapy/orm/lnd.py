@@ -24,6 +24,7 @@ from mapkit.GeometryConverter import GeometryConverter
 from mapkit.ColorRampGenerator import ColorRampEnum, ColorRampGenerator
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.cif import ChannelInputFile, StreamLink, StreamNode
 from gsshapy.base.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt
 
@@ -86,7 +87,6 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             force (bool, optional): Force channel input file reassignment. When false (default), channel input file
                 assignment is skipped if it has already been performed.
         """
-        ## TODO: Reconcile method to work with datasets that include structure and lake nodes
 
         # Only perform operation if the channel input file has not been assigned or the force parameter is true
         if self.channelInputFile is not None and not force:
@@ -96,7 +96,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.channelInputFile = channelInputFile
 
         # Retrieve the fluvial stream links
-        fluvialLinks = channelInputFile.getFluvialLinks()
+        orderedLinks = channelInputFile.getOrderedLinks(session)
 
         # Retrieve the LinkNodeTimeStep objects
         timeSteps = self.timeSteps
@@ -109,17 +109,18 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Link each node dataset
             for l, linkDataset in enumerate(linkDatasets):
                 # Get the fluvial link
-                fluvialLink = fluvialLinks[l]
-                fluvialNodes = fluvialLink.nodes
+                streamLink = orderedLinks[l]
+
+                streamNodes = streamLink.nodes
 
                 # Link link datasets to fluvial links
-                linkDataset.link = fluvialLink
+                linkDataset.link = streamLink
 
                 # Retrieve node datasets
                 nodeDatasets = linkDataset.nodeDatasets
 
                 for n, nodeDataset in enumerate(nodeDatasets):
-                    nodeDataset.node = fluvialNodes[n]
+                    nodeDataset.node = streamNodes[n]
 
         session.add(self)
         session.commit()
@@ -204,7 +205,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
         startTimeParts = self.startTime.split()
 
         # Calculate min and max values for the color ramp
-        minValue = session.query(func.min(NodeDataset.value)).filter(NodeDataset.linkNodeDatasetFile == self).scalar()
+        minValue = 0.0
         maxValue = session.query(func.max(NodeDataset.value)).filter(NodeDataset.linkNodeDatasetFile == self).scalar()
 
         # Calculate automatic zScale if not assigned
@@ -245,6 +246,10 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             linkDatasets = linkNodeTimeStep.linkDatasets
 
             for linkDataset in linkDatasets:
+                # Don't process special link datasets (with node counts of -1 or 0)
+                if linkDataset.numNodeDatasets <= 0:
+                    break
+
                 # Get Node Datasets
                 nodeDatasets = linkDataset.nodeDatasets
 
@@ -252,11 +257,16 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Get node
                     node = nodeDataset.node
                     link = node.streamLink
+                    extrude = nodeDataset.value
+
+                    # Don't extrude below 0
+                    if nodeDataset.value < 0.0:
+                        extrude = 0.0
 
                     # Convert to circle
                     circleString = converter.getPointAsKmlCircle(tableName=node.tableName,
                                                                  radius=radiusMeters,
-                                                                 extrude=nodeDataset.value,
+                                                                 extrude=extrude,
                                                                  zScaleFactor=zScale,
                                                                  geometryId=node.id)
 
