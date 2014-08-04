@@ -20,7 +20,7 @@ from mapkit.ColorRampGenerator import ColorRampGenerator, ColorRampEnum
 # DATABASE SETUP ------------------------------------------------------------------------------------------------------#
 #'''
 # Drop all tables except the spatial reference table that PostGIS uses
-db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis_2'
+db_url = 'postgresql://swainn:(|water@localhost/gsshapy_replace'
 engine = create_engine(db_url)
 meta = MetaData()
 meta.reflect(bind=engine)
@@ -34,29 +34,44 @@ for table in reversed(meta.sorted_tables):
 sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
                                         password='(|w@ter',
                                         host='localhost',
-                                        database='gsshapy_postgis_2')
+                                        database='gsshapy_replace')
 
 # GLOBAL PARAMETERS ---------------------------------------------------------------------------------------------------#
 #'''
-read_directory = '/Users/swainn/testing/timeseries_maps/Park_City_Chan_Depth'
-write_directory = '/Users/swainn/testing/timeseries_maps/Park_City_Chan_Depth/write'
-project_file_name = 'parkcity.prj'
-'''
-read_directory = '/Users/swainn/testing/test_models/SNOW_DATA'
-write_directory = '/Users/swainn/testing/test_models/SNOW_DATA/write'
-project_file_name = 'longterm_snow.prj'
+read_directory = '/Users/swainn/testing/test_models/replace_test'
+write_directory = '/Users/swainn/testing/test_models/replace_test/write'
+project_file_name = 'ProvoStochastic.prj'
 #'''
 
 
-out_file_name = 'out'
-new_name = 'out'
+out_file_name = 'replace_out'
+new_name = 'replace_out'
 spatial = True
-srid = ProjectionFile.lookupSpatialReferenceID(read_directory, 'parkcity_prj.pro')
+srid = ProjectionFile.lookupSpatialReferenceID(read_directory, 'ProvoStochastic_prj.pro')
 read_session = dbt.create_session(sqlalchemy_url)
 write_session = dbt.create_session(sqlalchemy_url)
 
-# READ PROJECT --------------------------------------------------------------------------------------------------------#
+# READ PROJECT FILE ---------------------------------------------------------------------------------------------------#
 #'''
+project_file = ProjectFile()
+
+START = time.time()
+project_file.read(read_directory, project_file_name, read_session, spatial=spatial)
+print 'PROJECT FILE READ: ', time.time() - START
+#'''
+
+# WRITE PROJECT FILE --------------------------------------------------------------------------------------------------#
+#'''
+project_file = write_session.query(ProjectFile).first()
+
+START = time.time()
+project_file.write(write_session, write_directory, out_file_name)
+print 'PROJECT FILE WRITE: ', time.time() - START
+#'''
+
+
+# READ PROJECT --------------------------------------------------------------------------------------------------------#
+'''
 project_file = ProjectFile()
 
 START = time.time()

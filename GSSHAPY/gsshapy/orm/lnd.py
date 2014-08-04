@@ -24,7 +24,6 @@ from mapkit.GeometryConverter import GeometryConverter
 from mapkit.ColorRampGenerator import ColorRampEnum, ColorRampGenerator
 
 from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.cif import ChannelInputFile, StreamLink, StreamNode
 from gsshapy.base.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt
 

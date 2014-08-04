@@ -125,7 +125,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                    'OVERLAND_WSE_LOCATION': OutputLocationFile,
                    'OUT_WELL_LOCATION': OutputLocationFile,
                    'REPLACE_PARAMS': ReplaceParamFile,  # Replacement Cards
-                   'REPLACE_VALS': ReplaceValFile}
+                   'REPLACE_VALS': ReplaceValFile,
+                   'SIMULATION_INPUT': GenericFile}
 
     INPUT_MAPS = ('ELEVATION',  # Required Inputs
                   'WATERSHED_MASK',
@@ -213,11 +214,21 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         Project File Read from File Method
         """
         # Headers to ignore
-        HEADERS = ('GSSHAPROJECT')
+        HEADERS = ('GSSHAPROJECT',)
+
+        # WMS Cards to include (don't discount as comments)
+        WMS_CARDS = ('#INDEXGRID_GUID', '#PROJECTION_FILE', '#LandSoil')
 
         with open(path, 'r') as f:
             for line in f:
-                card = {}
+                if not line.strip():
+                    # Skip empty lines
+                    continue
+
+                elif '#' in line.split()[0] and line.split()[0] not in WMS_CARDS:
+                    # Skip comments designated by the hash symbol (with the exception of WMS_CARDS
+                    continue
+
                 try:
                     card = self._extractCard(line)
 
@@ -1222,8 +1233,11 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         return False
 
     def _extractCard(self, projectLine):
+        DIRECTORY_PATHS = ('REPLACE_FOLDER',)
+
         splitLine = shlex.split(projectLine)
         cardName = splitLine[0]
+
         # pathSplit will fail on boolean cards (no value
         # = no second parameter in list (currLine[1])
         try:
@@ -1238,9 +1252,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 float(pathSplit[-1])
                 cardValue = ' '.join(splitLine[1:])
             except:
-                # A string will throw an exception with
-                # an atempt to convert to float. In this 
-                # case wrap the string in double quotes.
+                # A string will throw an exception with an attempt to convert to float. In this case wrap the string
+                # in double quotes.
                 if cardName == 'WMS':
                     cardValue = ' '.join(splitLine[1:])
                 elif '.' in pathSplit[-1]:
@@ -1252,17 +1265,17 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                             # Like normal if the ID isn't there
                             cardValue = '"%s"' % pathSplit[-1]
                     else:
-                        # If the string contains a '.' it is a
-                        # path: wrap in double quotes
+                        # If the string contains a '.' it is a path: wrap in double quotes
                         cardValue = '"%s"' % pathSplit[-1]
                 elif pathSplit[-1] == '':
-                    # For directory cards with unix paths 
-                    # use double quotes (all paths will be
-                    # stored as relative).
-                    cardValue = '""'
+                    # For directory cards with unix run through _extractDirectoryCard() method to extract relative
+                    # path to the directory.
+                    cardValue = self._extractDirectoryCard(projectLine)['value']
+
+                elif cardName in DIRECTORY_PATHS:
+                    cardValue = '"%s"' % pathSplit[-1]
                 else:
-                    # Else it is a card name/option
-                    # don't wrap in quotes
+                    # Else it is a card name/option don't wrap in quotes
                     cardValue = pathSplit[-1]
 
         # For boolean cards store None
@@ -1273,25 +1286,38 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def _extractDirectoryCard(self, projectLine):
         PROJECT_PATH = ('PROJECT_PATH')
-        PRESERVE_DIRECTORY = ('REPLACE_FOLDER')
 
-        # Handle special case with directory cards in
-        # windows. shlex.split fails because windows 
-        # directory cards end with an escape character.
-        # e.g.: "this\path\ends\with\escape\"
+        # Handle special case with directory cards in windows. shlex.split fails because windows directory cards end
+        # with an escape character. (e.g.: "this\path\ends\with\escape\")
         currLine = projectLine.strip().split()
 
         # Extract Card Name from the first item in the list
         cardName = currLine[0]
+        preValue = currLine[1].strip('"')
 
         if cardName in PROJECT_PATH:
+            # Project as relative is the current directory (empty string)
             cardValue = '""'
-        elif cardName in PRESERVE_DIRECTORY:
-            cardValue = "{0}".format(currLine[1:])
         else:
-            print cardName
-            # TODO: Write code to handle nested directory cards
-            cardValue = '""'
+            # Pull only the last directory to make it relative
+            if preValue.endswith('/'):
+                splath = preValue.split('/')
+                dirname = splath[-2]
+
+            elif preValue.endswith('\\\\'):
+                splath = preValue.split('\\\\')
+                dirname = splath[-2]
+
+            elif preValue.endswith('\\'):
+                splath = preValue.split('\\')
+                dirname = splath[-2]
+
+            else:
+                dirname = os.path.basename(preValue)
+
+            # Eliminate slashes to make it OS agnostic
+            basename = dirname.replace('\\', '')
+            cardValue = '"%s"' % basename.replace('/', '')
 
         return {'name': cardName, 'value': cardValue}
 
@@ -1346,7 +1372,7 @@ class ProjectCard(DeclarativeBase):
         else:
             if self.name == 'WMS':
                 line = '%s %s\n' % (self.name, self.value)
-            elif newPrefix == None:
+            elif newPrefix is None:
                 line = '%s%s%s\n' % (self.name, ' ' * numSpaces, self.value)
             elif originalPrefix in self.value:
                 line = '%s%s%s\n' % (self.name, ' ' * numSpaces, self.value.replace(originalPrefix, newPrefix))
