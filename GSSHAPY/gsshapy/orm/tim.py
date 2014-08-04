@@ -178,11 +178,11 @@ class TimeSeriesValue(DeclarativeBase):
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
-    timeSeriesID = Column(Integer, ForeignKey('tim_time_series.id'), nullable=False)  #: FK
+    timeSeriesID = Column(Integer, ForeignKey('tim_time_series.id'))  #: FK
 
     # Value Columns
-    simTime = Column(Float, nullable=False)  #: FLOAT
-    value = Column(Float, nullable=False)  #: FLOAT
+    simTime = Column(Float)  #: FLOAT
+    value = Column(Float)  #: FLOAT
 
     # Relationship Properties
     timeSeries = relationship('TimeSeries', back_populates='values')  #: RELATIONSHIP

@@ -197,9 +197,9 @@ class PrecipEvent(DeclarativeBase):
     precipFileID = Column(Integer, ForeignKey('gag_precipitation_files.id'))  #: FK
 
     # Value Columns
-    description = Column(String, nullable=False)  #: STRING
-    nrGag = Column(Integer, nullable=False)  #: INTEGER
-    nrPds = Column(Integer, nullable=False)  #: INTEGER
+    description = Column(String)  #: STRING
+    nrGag = Column(Integer)  #: INTEGER
+    nrPds = Column(Integer)  #: INTEGER
 
     # Relationship Properties
     values = relationship('PrecipValue', back_populates='event')  #: RELATIONSHIP
@@ -233,9 +233,9 @@ class PrecipValue(DeclarativeBase):
     coordID = Column(Integer, ForeignKey('gag_coord.id'))  #: FK
 
     # Value Columns
-    valueType = Column(String, nullable=False)  #: STRING
-    dateTime = Column(DateTime, nullable=False)  #: DATETIME
-    value = Column(Float, nullable=False)  #: FLOAT
+    valueType = Column(String)  #: STRING
+    dateTime = Column(DateTime)  #: DATETIME
+    value = Column(Float)  #: FLOAT
 
     # Relationship Properties
     event = relationship('PrecipEvent', back_populates='values')  #: RELATIONSHIP
@@ -266,8 +266,8 @@ class PrecipGage(DeclarativeBase):
 
     # Value Columns
     description = Column(String)  #: STRING
-    x = Column(Float, nullable=False)  #: FLOAT
-    y = Column(Float, nullable=False)  #: FLOAT
+    x = Column(Float)  #: FLOAT
+    y = Column(Float)  #: FLOAT
     #     geom = Column(Geometry('POINT')) #: POINT
 
     # Relationship Properties

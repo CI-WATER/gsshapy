@@ -49,11 +49,11 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     # Value Columns
     fileExtension = Column(String, default='lnd')  #: STRING
-    name = Column(String, nullable=False)  #: STRING
-    numLinks = Column(Integer, nullable=False)  #: INTEGER
-    timeStepInterval = Column(Integer, nullable=False)  #: INTEGER
-    numTimeSteps = Column(Integer, nullable=False)  #: INTEGER
-    startTime = Column(String, nullable=False)  #: STRING
+    name = Column(String)  #: STRING
+    numLinks = Column(Integer)  #: INTEGER
+    timeStepInterval = Column(Integer)  #: INTEGER
+    numTimeSteps = Column(Integer)  #: INTEGER
+    startTime = Column(String)  #: STRING
 
     # Relationship Properties
     projectFile = relationship('ProjectFile', back_populates='linkNodeDatasets')  #: RELATIONSHIP
@@ -505,7 +505,7 @@ class LinkNodeTimeStep(DeclarativeBase):
     linkNodeDatasetFileID = Column(Integer, ForeignKey('lnd_link_node_dataset_files.id'))  #: FK
 
     # Value Columns
-    timeStep = Column(Integer, nullable=False)  #: INTEGER
+    timeStep = Column(Integer)  #: INTEGER
 
     # Relationship Properties
     linkNodeDataset = relationship('LinkNodeDatasetFile', back_populates='timeSteps')  #: RELATIONSHIP

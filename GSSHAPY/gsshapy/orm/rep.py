@@ -38,7 +38,7 @@ class ReplaceParamFile(DeclarativeBase, GsshaPyFileObjectBase):
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
 
     # Value Columns
-    numParameters = Column(Integer, nullable=False)  #: INTEGER
+    numParameters = Column(Integer)  #: INTEGER
     fileExtension = Column(String, default='txt')  #: STRING
 
     # Relationship Properties
@@ -99,8 +99,8 @@ class TargetParameter(DeclarativeBase):
     replaceParamFileID = Column(Integer, ForeignKey('rep_replace_param_files.id'))  #: FK
 
     # Value Columns
-    targetVariable = Column(String, nullable=False)  #: STRING
-    varFormat = Column(String, nullable=False)  #: STRING
+    targetVariable = Column(String)  #: STRING
+    varFormat = Column(String)  #: STRING
 
     # Relationship Properties
     replaceParamFile = relationship('ReplaceParamFile', back_populates='targetParameters')  #: RELATIONSHIP
@@ -130,7 +130,7 @@ class ReplaceValFile(DeclarativeBase, GsshaPyFileObjectBase):
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
 
     # Value Columns
-    values = Column(String, nullable=False)  #: STRING
+    values = Column(String)  #: STRING
     fileExtension = Column(String, default='txt')  #: STRING
 
     # Relationship Properties

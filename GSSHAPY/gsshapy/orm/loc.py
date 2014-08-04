@@ -110,8 +110,8 @@ class OutputLocation(DeclarativeBase):
     outputLocationFileID = Column(Integer, ForeignKey('loc_output_location_files.id'))  #: FK
 
     # Value Columns
-    linkOrCellI = Column(Integer, nullable=False)  #: INTEGER
-    nodeOrCellJ = Column(Integer, nullable=False)  #: INTEGER
+    linkOrCellI = Column(Integer)  #: INTEGER
+    nodeOrCellJ = Column(Integer)  #: INTEGER
 
     # Relationship Properties
     outputLocationFile = relationship('OutputLocationFile', back_populates='outputLocations')  #: RELATIONSHIP

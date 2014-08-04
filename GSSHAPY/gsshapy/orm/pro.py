@@ -40,7 +40,7 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
 
     # Value Columns
-    projection = Column(String, nullable=False)  #: STRING
+    projection = Column(String)  #: STRING
     fileExtension = Column(String, default='pro')  #: STRING
 
     # Relationship Properties

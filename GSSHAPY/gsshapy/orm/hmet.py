@@ -120,14 +120,14 @@ class HmetRecord(DeclarativeBase):
     hmetConfigID = Column(Integer, ForeignKey('hmet_files.id'))  #: INTEGER
 
     # Value Columns
-    hmetDateTime = Column(DateTime, nullable=False)  #: DATETIME
-    barometricPress = Column(Float, nullable=False)  #: FLOAT
-    relHumidity = Column(Integer, nullable=False)  #: INTEGER
-    totalSkyCover = Column(Integer, nullable=False)  #: INTEGER
-    windSpeed = Column(Integer, nullable=False)  #: INTEGER
-    dryBulbTemp = Column(Integer, nullable=False)  #: INTEGER
-    directRad = Column(Float, nullable=False)  #: FLOAT
-    globalRad = Column(Float, nullable=False)  #: FLOAT
+    hmetDateTime = Column(DateTime)  #: DATETIME
+    barometricPress = Column(Float)  #: FLOAT
+    relHumidity = Column(Integer)  #: INTEGER
+    totalSkyCover = Column(Integer)  #: INTEGER
+    windSpeed = Column(Integer)  #: INTEGER
+    dryBulbTemp = Column(Integer)  #: INTEGER
+    directRad = Column(Float)  #: FLOAT
+    globalRad = Column(Float)  #: FLOAT
 
     # Relationship Properties
     hmetFile = relationship('HmetFile', back_populates='hmetRecords')  #: RELATIONSHIP

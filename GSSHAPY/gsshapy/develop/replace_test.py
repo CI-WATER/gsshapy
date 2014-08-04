@@ -52,7 +52,7 @@ read_session = dbt.create_session(sqlalchemy_url)
 write_session = dbt.create_session(sqlalchemy_url)
 
 # READ PROJECT FILE ---------------------------------------------------------------------------------------------------#
-#'''
+'''
 project_file = ProjectFile()
 
 START = time.time()
@@ -61,7 +61,7 @@ print 'PROJECT FILE READ: ', time.time() - START
 #'''
 
 # WRITE PROJECT FILE --------------------------------------------------------------------------------------------------#
-#'''
+'''
 project_file = write_session.query(ProjectFile).first()
 
 START = time.time()
@@ -71,7 +71,7 @@ print 'PROJECT FILE WRITE: ', time.time() - START
 
 
 # READ PROJECT --------------------------------------------------------------------------------------------------------#
-'''
+#'''
 project_file = ProjectFile()
 
 START = time.time()

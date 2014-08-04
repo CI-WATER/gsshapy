@@ -972,12 +972,12 @@ class StreamLink(DeclarativeBase, GeometricObjectBase):
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
-    channelInputFileID = Column(Integer, ForeignKey('cif_channel_input_files.id'), nullable=False)  #: FK
+    channelInputFileID = Column(Integer, ForeignKey('cif_channel_input_files.id'))  #: FK
 
     # Value Columns
-    linkNumber = Column(Integer, nullable=False)  #: INTEGER
-    type = Column(String, nullable=False)  #: STRING
-    numElements = Column(Integer, nullable=False)  #: INTEGER
+    linkNumber = Column(Integer)  #: INTEGER
+    type = Column(String)  #: STRING
+    numElements = Column(Integer)  #: INTEGER
     dx = Column(Float)  #: FLOAT
     erode = Column(Boolean)  #: BOOLEAN
     subsurface = Column(Boolean)  #: BOOLEAN
@@ -1045,7 +1045,7 @@ class UpstreamLink(DeclarativeBase):
     linkID = Column(Integer, ForeignKey('cif_links.id'))  #: INTEGER
 
     # Value Columns
-    upstreamLinkID = Column(Integer, nullable=False)  #: INTEGER
+    upstreamLinkID = Column(Integer)  #: INTEGER
 
     # Relationship Properties
     streamLink = relationship('StreamLink', back_populates='upstreamLinks')  #: RELATIONSHIP
@@ -1085,10 +1085,10 @@ class StreamNode(DeclarativeBase, GeometricObjectBase):
     linkID = Column(Integer, ForeignKey('cif_links.id'))  #: FK
 
     # Value Columns
-    nodeNumber = Column(Integer, nullable=False)  #: INTEGER
-    x = Column(Float, nullable=False)  #: FLOAT
-    y = Column(Float, nullable=False)  #: FLOAT
-    elevation = Column(Float, nullable=False)  #: FLOAT
+    nodeNumber = Column(Integer)  #: INTEGER
+    x = Column(Float)  #: FLOAT
+    y = Column(Float)  #: FLOAT
+    elevation = Column(Float)  #: FLOAT
     geometry = Column(Geometry)  #: GEOMETRY
 
     # Relationship Properties
@@ -1315,8 +1315,8 @@ class ReservoirPoint(DeclarativeBase):
     reservoirID = Column(Integer, ForeignKey('cif_reservoirs.id'))  #: FK
 
     # Value Columns
-    i = Column(Integer, nullable=False)  #: INTEGER
-    j = Column(Integer, nullable=False)  #: INTEGER
+    i = Column(Integer)  #: INTEGER
+    j = Column(Integer)  #: INTEGER
 
     # Relationship Properties
     reservoir = relationship('Reservoir', back_populates='reservoirPoints')  #: RELATIONSHIP
@@ -1414,8 +1414,8 @@ class Breakpoint(DeclarativeBase):
     crossSectionID = Column(Integer, ForeignKey('cif_breakpoint.id'))  #: FK
 
     # Value Columns
-    x = Column(Float, nullable=False)  #: FLOAT
-    y = Column(Float, nullable=False)  #: FLOAT
+    x = Column(Float)  #: FLOAT
+    y = Column(Float)  #: FLOAT
 
     # Relationship Properties
     crossSection = relationship('BreakpointCS', back_populates='breakpoints')  #: RELATIONSHIP

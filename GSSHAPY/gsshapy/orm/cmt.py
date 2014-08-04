@@ -468,7 +468,7 @@ class MapTable(DeclarativeBase):
     mapTableFileID = Column(Integer, ForeignKey('cmt_map_table_files.id'))  #: FK
 
     # Value Columns
-    name = Column(String, nullable=False)  #: STRING
+    name = Column(String)  #: STRING
     numIDs = Column(Integer)  #: INTEGER
     maxNumCells = Column(Integer)  #: INTEGER
     numSed = Column(Integer)  #: INTEGER
@@ -520,10 +520,10 @@ class MTIndex(DeclarativeBase):
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
-    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'), nullable=False)  #: FK
+    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'))  #: FK
 
     # Value Columns
-    index = Column(Integer, nullable=False)  #: INTEGER
+    index = Column(Integer)  #: INTEGER
     description1 = Column(String(40))  #: STRING
     description2 = Column(String(40))  #: STRING
 
@@ -561,13 +561,13 @@ class MTValue(DeclarativeBase):
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
-    mapTableID = Column(Integer, ForeignKey('cmt_map_tables.id'), nullable=False)  #: FK
-    mapTableIndexID = Column(Integer, ForeignKey('cmt_indexes.id'), nullable=False)  #: FK
+    mapTableID = Column(Integer, ForeignKey('cmt_map_tables.id'))  #: FK
+    mapTableIndexID = Column(Integer, ForeignKey('cmt_indexes.id'))  #: FK
     contaminantID = Column(Integer, ForeignKey('cmt_contaminants.id'))  #: FK
 
     # Value Columns
-    variable = Column(String, nullable=False)  #: STRING
-    value = Column(Float, nullable=False)  #: FLOAT
+    variable = Column(String)  #: STRING
+    value = Column(Float)  #: FLOAT
 
     # Relationship Properties
     mapTable = relationship('MapTable', back_populates='values')  #: RELATIONSHIP
@@ -601,14 +601,14 @@ class MTContaminant(DeclarativeBase):
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
-    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'), nullable=False)  #: FK
+    idxMapID = Column(Integer, ForeignKey('idx_index_maps.id'))  #: FK
 
     # Value Columns
-    name = Column(String, nullable=False)  #: STRING
-    outputFilename = Column(String, nullable=False)  #: STRING
-    precipConc = Column(Float, nullable=False)  #: FLOAT
-    partition = Column(Float, nullable=False)  #: FLOAT
-    numIDs = Column(Integer, nullable=False)  #: INTEGER
+    name = Column(String)  #: STRING
+    outputFilename = Column(String)  #: STRING
+    precipConc = Column(Float)  #: FLOAT
+    partition = Column(Float)  #: FLOAT
+    numIDs = Column(Integer)  #: INTEGER
 
     # Relationship Properties
     indexMap = relationship('IndexMap', back_populates='contaminants')  #: RELATIONSHIP
@@ -652,13 +652,13 @@ class MTSediment(DeclarativeBase):
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
-    mapTableID = Column(Integer, ForeignKey('cmt_map_tables.id'), nullable=False)  #: FK
+    mapTableID = Column(Integer, ForeignKey('cmt_map_tables.id'))  #: FK
 
     # Value Columns
-    description = Column(String, nullable=False)  #: STRING
-    specificGravity = Column(Float, nullable=False)  #: FLOAT
-    particleDiameter = Column(Float, nullable=False)  #: FLOAT
-    outputFilename = Column(String, nullable=False)  #: STRING
+    description = Column(String)  #: STRING
+    specificGravity = Column(Float)  #: FLOAT
+    particleDiameter = Column(Float)  #: FLOAT
+    outputFilename = Column(String)  #: STRING
 
     # Relationship Properties
     mapTable = relationship('MapTable', back_populates='sediments')  #: RELATIONSHIP

@@ -63,8 +63,8 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
     rows = Column(Integer)  #: INTEGER
     columns = Column(Integer)  #: INTEGER
     srid = Column(Integer)  #: SRID
-    name = Column(String, nullable=False)  #: STRING
-    filename = Column(String, nullable=False)  #: STRING
+    name = Column(String)  #: STRING
+    filename = Column(String)  #: STRING
     rasterText = Column(String)  #: STRING
     raster = Column(Raster)  #: RASTER
     fileExtension = Column(String, default='idx')  #: STRING

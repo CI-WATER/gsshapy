@@ -269,8 +269,8 @@ class SuperLink(DeclarativeBase):
     stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id'))  #: FK
 
     # Value Columns
-    slinkNumber = Column(Integer, nullable=False)  #: INTEGER
-    numPipes = Column(Integer, nullable=False)  #: INTEGER
+    slinkNumber = Column(Integer)  #: INTEGER
+    numPipes = Column(Integer)  #: INTEGER
 
     # Relationship Properties
     stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='superLinks')  #: RELATIONSHIP
@@ -304,15 +304,15 @@ class SuperNode(DeclarativeBase):
     superLinkID = Column(Integer, ForeignKey('spn_super_links.id'))  #: FK
 
     # Value Columns
-    nodeNumber = Column(Integer, nullable=False)  #: INTEGER
-    groundSurfaceElev = Column(Float, nullable=False)  #: FLOAT
-    invertElev = Column(Float, nullable=False)  #: FLOAT
-    manholeSA = Column(Float, nullable=False)  #: FLOAT
-    nodeInletCode = Column(Integer, nullable=False)  #: INTEGER
-    cellI = Column(Integer, nullable=False)  #: INTEGER
-    cellJ = Column(Integer, nullable=False)  #: INTEGER
-    weirSideLength = Column(Float, nullable=False)  #: FLOAT
-    orificeDiameter = Column(Float, nullable=False)  #: FLOAT
+    nodeNumber = Column(Integer)  #: INTEGER
+    groundSurfaceElev = Column(Float)  #: FLOAT
+    invertElev = Column(Float)  #: FLOAT
+    manholeSA = Column(Float)  #: FLOAT
+    nodeInletCode = Column(Integer)  #: INTEGER
+    cellI = Column(Integer)  #: INTEGER
+    cellJ = Column(Integer)  #: INTEGER
+    weirSideLength = Column(Float)  #: FLOAT
+    orificeDiameter = Column(Float)  #: FLOAT
 
     # Relationship Properties
     superLink = relationship('SuperLink', back_populates='superNodes')  #: RELATIONSHIP
@@ -358,15 +358,15 @@ class Pipe(DeclarativeBase):
     superLinkID = Column(Integer, ForeignKey('spn_super_links.id'))  #: FK
 
     # Value Columns
-    pipeNumber = Column(Integer, nullable=False)  #: INTEGER
-    xSecType = Column(Integer, nullable=False)  #: INTEGER
-    diameterOrHeight = Column(Float, nullable=False)  #: FLOAT
-    width = Column(Float, nullable=False)  #: FLOAT
-    slope = Column(Float, nullable=False)  #: FLOAT
-    roughness = Column(Float, nullable=False)  #: FLOAT
-    length = Column(Float, nullable=False)  #: FLOAT
-    conductance = Column(Float, nullable=False)  #: FLOAT
-    drainSpacing = Column(Float, nullable=False)  #: FLOAT
+    pipeNumber = Column(Integer)  #: INTEGER
+    xSecType = Column(Integer)  #: INTEGER
+    diameterOrHeight = Column(Float)  #: FLOAT
+    width = Column(Float)  #: FLOAT
+    slope = Column(Float)  #: FLOAT
+    roughness = Column(Float)  #: FLOAT
+    length = Column(Float)  #: FLOAT
+    conductance = Column(Float)  #: FLOAT
+    drainSpacing = Column(Float)  #: FLOAT
 
     # Relationship Properties
     superLink = relationship('SuperLink', back_populates='pipes')  #: RELATIONSHIP
@@ -413,15 +413,15 @@ class SuperJunction(DeclarativeBase):
     stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id'))  #: FK
 
     # Value Columns
-    sjuncNumber = Column(Integer, nullable=False)  #: INTEGER
-    groundSurfaceElev = Column(Float, nullable=False)  #: FLOAT
-    invertElev = Column(Float, nullable=False)  #: FLOAT
-    manholeSA = Column(Float, nullable=False)  #: FLOAT
-    inletCode = Column(Integer, nullable=False)  #: INTEGER
-    linkOrCellI = Column(Integer, nullable=False)  #: INTEGER
-    nodeOrCellJ = Column(Integer, nullable=False)  #: INTEGER
-    weirSideLength = Column(Float, nullable=False)  #: FLOAT
-    orificeDiameter = Column(Float, nullable=False)  #: FLOAT
+    sjuncNumber = Column(Integer)  #: INTEGER
+    groundSurfaceElev = Column(Float)  #: FLOAT
+    invertElev = Column(Float)  #: FLOAT
+    manholeSA = Column(Float)  #: FLOAT
+    inletCode = Column(Integer)  #: INTEGER
+    linkOrCellI = Column(Integer)  #: INTEGER
+    nodeOrCellJ = Column(Integer)  #: INTEGER
+    weirSideLength = Column(Float)  #: FLOAT
+    orificeDiameter = Column(Float)  #: FLOAT
 
     # Relationship Properties
     stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='superJunctions')  #: RELATIONSHIP
@@ -468,9 +468,9 @@ class Connection(DeclarativeBase):
     stormPipeNetworkFileID = Column(Integer, ForeignKey('spn_storm_pipe_network_files.id'))  #: FK
 
     # Value Columns
-    slinkNumber = Column(Integer, nullable=False)  #: INTEGER
-    upSjuncNumber = Column(Integer, nullable=False)  #: INTEGER
-    downSjuncNumber = Column(Integer, nullable=False)  #: INTEGER
+    slinkNumber = Column(Integer)  #: INTEGER
+    upSjuncNumber = Column(Integer)  #: INTEGER
+    downSjuncNumber = Column(Integer)  #: INTEGER
 
     # Relationship Properties
     stormPipeNetworkFile = relationship('StormPipeNetworkFile', back_populates='connections')  #: RELATIONSHIP

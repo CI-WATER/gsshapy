@@ -282,8 +282,8 @@ class OrographicMeasurement(DeclarativeBase):
     orthoGageID = Column(Integer, ForeignKey('snw_orographic_gage_files.id'))  #: FK
 
     # Value Columns
-    dateTime = Column(DateTime, nullable=False)  #: DATETIME
-    temp2 = Column(Float, nullable=False)  #: FLOAT
+    dateTime = Column(DateTime)  #: DATETIME
+    temp2 = Column(Float)  #: FLOAT
 
     # Relationship Properties
     orographicGageFile = relationship('OrographicGageFile', back_populates='orographicMeasurements')  #: RELATIONSHIP

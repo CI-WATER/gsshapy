@@ -183,9 +183,9 @@ class GridPipeCell(DeclarativeBase):
     gridPipeFileID = Column(Integer, ForeignKey('gpi_grid_pipe_files.id'))  #: FK
 
     # Value Columns
-    cellI = Column(Integer, nullable=False)  #: INTEGER
-    cellJ = Column(Integer, nullable=False)  #: INTEGER
-    numPipes = Column(Integer, nullable=False)  #: INTEGER
+    cellI = Column(Integer)  #: INTEGER
+    cellJ = Column(Integer)  #: INTEGER
+    numPipes = Column(Integer)  #: INTEGER
 
 
     # Relationship Properties
@@ -220,9 +220,9 @@ class GridPipeNode(DeclarativeBase):
     gridPipeCellID = Column(Integer, ForeignKey('gpi_grid_pipe_cells.id'))  #: FK
 
     # Value Columns
-    linkNumber = Column(Integer, nullable=False)  #: INTEGER
-    nodeNumber = Column(Integer, nullable=False)  #: INTEGER
-    fractPipeLength = Column(Float, nullable=False)  #: FLOAT
+    linkNumber = Column(Integer)  #: INTEGER
+    nodeNumber = Column(Integer)  #: INTEGER
+    fractPipeLength = Column(Float)  #: FLOAT
 
     # Relationship Properties
     gridPipeCell = relationship('GridPipeCell', back_populates='gridPipeNodes')  #: RELATIONSHIP

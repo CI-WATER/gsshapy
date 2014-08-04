@@ -94,6 +94,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     # File Properties
     MAP_TYPES_SUPPORTED = (1,)
     ALWAYS_READ_AND_WRITE_MAPS = ('ele', 'msk')
+    OUTPUT_DIRECTORIES_SUPPORTED = ('REPLACE_FOLDER',)
+
 
     INPUT_FILES = {'#PROJECTION_FILE': ProjectionFile,  # WMS
                    'MAPPING_TABLE': MapTableFile,  # Mapping Table
@@ -347,6 +349,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 provided GsshaPy will attempt to automatically lookup the spatial reference ID. If this process fails,
                 default srid will be used (4326 for WGS 84).
         """
+        # Defaults
+        output_directory = directory
+
         # Add project file to session
         session.add(self)
 
@@ -357,17 +362,23 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         if spatialReferenceID is None:
             spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
 
+        # If one of the output directory cards is enabled, use it to derive the directory where the output is written
+        for card in self.projectCards:
+            if card.name in self.OUTPUT_DIRECTORIES_SUPPORTED:
+                replace_dir = card.value.strip('"')
+                output_directory = os.path.join(output_directory, replace_dir)
+
         # Read Input Files
         self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Read Output Files
-        self._readXput(self.OUTPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+        self._readXput(self.OUTPUT_FILES, output_directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Read Input Map Files
         self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Read WMS Dataset Files
-        self._readWMSDatasets(self.WMS_DATASETS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+        self._readWMSDatasets(self.WMS_DATASETS, output_directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Commit to database
         self._commit(session, self.COMMIT_ERROR_MESSAGE)
@@ -425,6 +436,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 provided GsshaPy will attempt to automatically lookup the spatial reference ID. If this process fails,
                 default srid will be used (4326 for WGS 84).
         """
+        # Defaults
+        output_directory = directory
+
         # Add project file to session
         session.add(self)
 
@@ -441,11 +455,17 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         if spatialReferenceID is None:
             spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
 
+        # If one of the output directory cards is enabled, use it to derive the directory where the output is written
+        for card in self.projectCards:
+            if card.name in self.OUTPUT_DIRECTORIES_SUPPORTED:
+                replace_dir = card.value.strip('"')
+                output_directory = os.path.join(output_directory, replace_dir)
+
         # Read Output Files
-        self._readXput(self.OUTPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+        self._readXput(self.OUTPUT_FILES, output_directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Read WMS Dataset Files
-        self._readWMSDatasets(self.WMS_DATASETS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+        self._readWMSDatasets(self.WMS_DATASETS, output_directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Commit to database
         self._commit(session, self.COMMIT_ERROR_MESSAGE)
@@ -1335,7 +1355,7 @@ class ProjectCard(DeclarativeBase):
     projectFileID = Column(Integer, ForeignKey('prj_project_files.id'))  #: FK
 
     # Value Columns
-    name = Column(String, nullable=False)  #: STRING
+    name = Column(String)  #: STRING
     value = Column(String)  #: STRING
 
     # Relationship Properties
@@ -1368,7 +1388,7 @@ class ProjectCard(DeclarativeBase):
 
         # Handle special case of booleans
         if self.value is None:
-            line = '%s\n' % (self.name)
+            line = '%s\n' % self.name
         else:
             if self.name == 'WMS':
                 line = '%s %s\n' % (self.name, self.value)

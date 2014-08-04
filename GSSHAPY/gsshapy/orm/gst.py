@@ -184,9 +184,9 @@ class GridStreamCell(DeclarativeBase):
     gridStreamFileID = Column(Integer, ForeignKey('gst_grid_stream_files.id'))  #: FK
 
     # Value Columns
-    cellI = Column(Integer, nullable=False)  #: INTEGER
-    cellJ = Column(Integer, nullable=False)  #: INTEGER
-    numNodes = Column(Integer, nullable=False)  #: INTEGER
+    cellI = Column(Integer)  #: INTEGER
+    cellJ = Column(Integer)  #: INTEGER
+    numNodes = Column(Integer)  #: INTEGER
 
     # Relationship Properties
     gridStreamFile = relationship('GridStreamFile', back_populates='gridStreamCells')  #: RELATIONSHIP
@@ -217,9 +217,9 @@ class GridStreamNode(DeclarativeBase):
     gridStreamCellID = Column(Integer, ForeignKey('gst_grid_stream_cells.id'))  #: FK
 
     # Value Columns
-    linkNumber = Column(Integer, nullable=False)  #: INTEGER
-    nodeNumber = Column(Integer, nullable=False)  #: INTEGER
-    nodePercentGrid = Column(Float, nullable=False)  #: FLOAT
+    linkNumber = Column(Integer)  #: INTEGER
+    nodeNumber = Column(Integer)  #: INTEGER
+    nodePercentGrid = Column(Float)  #: FLOAT
 
     # Relationship Properties
     gridStreamCell = relationship('GridStreamCell', back_populates='gridStreamNodes')  #: RELATIONSHIP
