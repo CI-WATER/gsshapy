@@ -85,7 +85,7 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 except:
                     pass
 
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         Write HMET WES to File Method
         """

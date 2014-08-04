@@ -89,7 +89,7 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Create GSSHAPY object
                     self._createGsshaPyObjects(result)
 
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         Grid Pipe File Write to File Method
         """

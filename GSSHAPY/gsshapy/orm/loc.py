@@ -79,7 +79,7 @@ class OutputLocationFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Associate OutputLocation with OutputLocationFile
                     location.outputLocationFile = self
 
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         Generic Output Location Write to File Method
         """

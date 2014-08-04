@@ -87,7 +87,7 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(path, 'r') as f:
             self.projection = f.read()
 
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         Projection File Write to File Method
         """

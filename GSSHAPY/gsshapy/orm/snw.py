@@ -85,7 +85,7 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Associate NwsrfsRecord with NwsrfsFile
                     record.nwsrfsFile = self
 
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         NWSRFS Write to File Method
         """
@@ -242,7 +242,7 @@ class OrographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Associate OrthoMeasurement with OrthographicGageFile
                     measurement.orthoGageFile = self
 
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         Orthographic Gage File Write to File Method
         """

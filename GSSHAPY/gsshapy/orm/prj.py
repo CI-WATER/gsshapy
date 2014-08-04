@@ -254,7 +254,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.name = name
         self.fileExtension = extension
 
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         Project File Write to File Method
         """
@@ -504,18 +504,20 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 'example.cmt', and 'example.gag'). Files that do not follow this convention will retain their original
                 file names.
         """
+        # Get param file for writing
+        replaceParamFile = self.replaceParamFile
 
         # Write Project File
         self.write(session=session, directory=directory, name=name)
 
         # Write input files
-        self._writeXput(session=session, directory=directory, fileCards=self.INPUT_FILES, name=name)
+        self._writeXput(session=session, directory=directory, fileCards=self.INPUT_FILES, name=name, replaceParamFile=replaceParamFile)
 
         # Write output files
         self._writeXput(session=session, directory=directory, fileCards=self.OUTPUT_FILES, name=name)
 
         # Write input map files
-        self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name)
+        self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name, replaceParamFile=replaceParamFile)
 
         # Write WMS Dataset Files
         self._writeWMSDatasets(session=session, directory=directory, wmsDatasetCards=self.WMS_DATASETS, name=name)
@@ -532,14 +534,17 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 'example.cmt', and 'example.gag'). Files that do not follow this convention will retain their original
                 file names.
         """
+        # Get param file for writing
+        replaceParamFile = self.replaceParamFile
+
         # Write Project File
         self.write(session=session, directory=directory, name=name)
 
         # Write input files
-        self._writeXput(session=session, directory=directory, fileCards=self.INPUT_FILES, name=name)
+        self._writeXput(session=session, directory=directory, fileCards=self.INPUT_FILES, name=name, replaceParamFile=replaceParamFile)
 
         # Write input map files
-        self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name)
+        self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name, replaceParamFile=replaceParamFile)
 
     def writeOutput(self, session, directory, name):
         """
@@ -1096,7 +1101,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         instance.read(directory, filename, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
                       replaceParamFile=replaceParamFile)
 
-    def _writeXput(self, session, directory, fileCards, name=None):
+    def _writeXput(self, session, directory, fileCards, name=None, replaceParamFile=None):
         """
         GSSHA Project Write Files to File Method
         """
@@ -1113,9 +1118,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 self._invokeWrite(fileIO=fileIO,
                                   session=session,
                                   directory=directory,
-                                  filename=filename)
+                                  filename=filename,
+                                  replaceParamFile=replaceParamFile)
 
-    def _writeXputMaps(self, session, directory, mapCards, name=None):
+    def _writeXputMaps(self, session, directory, mapCards, name=None, replaceParamFile=None):
         """
         GSSHAPY Project Write Map Files to File Method
         """
@@ -1131,7 +1137,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self._invokeWrite(fileIO=RasterMapFile,
                                       session=session,
                                       directory=directory,
-                                      filename=filename)
+                                      filename=filename,
+                                      replaceParamFile=replaceParamFile)
         else:
             for card in self.projectCards:
                 if (card.name in mapCards) and self._noneOrNumValue(card.value):
@@ -1147,7 +1154,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                         self._invokeWrite(fileIO=RasterMapFile,
                                           session=session,
                                           directory=directory,
-                                          filename=filename)
+                                          filename=filename,
+                                          replaceParamFile=replaceParamFile)
 
             print 'Error: Could not write map files. MAP_TYPE', self.mapType, 'not supported.'
 
@@ -1189,7 +1197,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         else:
             print 'Error: Could not write WMS Dataset files. MAP_TYPE', self.mapType, 'not supported.'
 
-    def _invokeWrite(self, fileIO, session, directory, filename):
+    def _invokeWrite(self, fileIO, session, directory, filename, replaceParamFile):
         """
         Invoke File Write Method on Other Files
         """
@@ -1221,7 +1229,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Initiate Write Method on File
         if instance is not None:
-            instance.write(session=session, directory=directory, name=filename)
+            instance.write(session=session, directory=directory, name=filename, replaceParamFile=replaceParamFile)
 
     def _replaceNewFilename(self, filename, name):
         # Variables

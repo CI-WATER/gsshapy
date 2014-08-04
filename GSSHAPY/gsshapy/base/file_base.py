@@ -159,8 +159,8 @@ class GsshaPyFileObjectBase:
                 spatial is True. Same as given by user in ``read()``.
             replaceParamFile (:class:`gsshapy.orm.ReplaceParamFile`, optional): Handle the case when replacement
                 parameters are used in place of normal variables. If this is not None, then the user expects there
-                to be replacement variables in the file. Use the gsshapy.lib.parsetools.valuePreprocessor() to handle
-                these.
+                to be replacement variables in the file. Use the gsshapy.lib.parsetools.valueReadPreprocessor() to
+                handle these.
         """
         
     def _write(self, session, openFile, replaceParamFile):
@@ -190,7 +190,8 @@ class GsshaPyFileObjectBase:
                 method. Write lines of the file directly to this object. (e.g.: ``openFile.write('foo')``)
             replaceParamFile (:class:`gsshapy.orm.ReplaceParamFile`, optional): Handle the case when replacement
                 parameters are used in place of normal variables. If this is not None, then the user expects there
-                to be rep
+                to be replacement variables in the file. Use the gsshapy.lib.parsetools.valueWritePreprocessor() to
+                handle these.
         """
 
     def _namePreprocessor(self, name):

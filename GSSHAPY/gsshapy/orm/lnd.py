@@ -444,7 +444,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 
 
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         Link Node Dataset File Write to File Method
         """

@@ -133,7 +133,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         # returned from the parser functions
         self._createGsshaPyObjects(mapTables, indexMaps)
 
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         Map Table Write to File Method
         """

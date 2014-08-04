@@ -81,7 +81,7 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Add this PrecipFile to the database session
         session.add(self)
 
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         Precipitation File Write to File Method
         """

@@ -115,7 +115,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
                                                            noData='0')
             self.raster = wkbRaster
 
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         Raster Map File Write to File Method
         """

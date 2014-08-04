@@ -90,7 +90,7 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self._createGsshaPyObjects(result)
 
 
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         Grid Stream File Write to File Method
         """

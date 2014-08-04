@@ -414,26 +414,42 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                     elif card == 'MAXNODES':
                         self.maxNodes = int(value)
                     elif card == 'ALPHA':
-                        self.alpha = float(value)
+                        self.alpha = float(vrp(value, replaceParamFile))
                     elif card == 'BETA':
-                        self.beta = float(value)
+                        self.beta = float(vrp(value, replaceParamFile))
                     elif card == 'THETA':
-                        self.theta = float(value)
+                        self.theta = float(vrp(value, replaceParamFile))
 
         self._createConnectivity(linkList=links, connectList=connectivity)
 
         if spatial:
             self._createGeometry(session, spatialReferenceID)
 
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         Channel Input File Write to File Method
         """
         # Write lines
         openFile.write('GSSHA_CHAN\n')
-        openFile.write('ALPHA%s%.6f\n' % (' ' * 7, self.alpha))
-        openFile.write('BETA%s%.6f\n' % (' ' * 8, self.beta))
-        openFile.write('THETA%s%.6f\n' % (' ' * 7, self.theta))
+
+        alpha = vwp(self.alpha, replaceParamFile)
+        try:
+            openFile.write('ALPHA%s%.6f\n' % (' ' * 7, alpha))
+        except:
+            openFile.write('ALPHA%s%s\n' % (' ' * 7, alpha))
+
+        beta = vwp(self.beta, replaceParamFile)
+        try:
+            openFile.write('BETA%s%.6f\n' % (' ' * 8, beta))
+        except:
+            openFile.write('BETA%s%.6f\n' % (' ' * 8, beta))
+
+        theta = vwp(self.theta, replaceParamFile)
+        try:
+            openFile.write('THETA%s%.6f\n' % (' ' * 7, theta))
+        except:
+            openFile.write('THETA%s%s\n' % (' ' * 7, theta))
+
         openFile.write('LINKS%s%s\n' % (' ' * 7, self.links))
         openFile.write('MAXNODES%s%s\n' % (' ' * 4, self.maxNodes))
 
@@ -443,7 +459,8 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._writeConnectivity(links=links,
                                 fileObject=openFile)
         self._writeLinks(links=links,
-                         fileObject=openFile)
+                         fileObject=openFile,
+                         replaceParamFile=replaceParamFile)
 
     def _createLink(self, linkResult, replaceParamFile):
         """
@@ -553,7 +570,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             node = StreamNode(nodeNumber=int(n['node']),
                               x=n['x'],
                               y=n['y'],
-                              elevation=vrp(n['elev'], replaceParamFile))
+                              elevation=n['elev'])
 
             # Associate StreamNode with StreamLink
             node.streamLink = link
@@ -733,7 +750,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             fileObject.write(line)
         fileObject.write('\n')
 
-    def _writeLinks(self, links, fileObject):
+    def _writeLinks(self, links, fileObject, replaceParamFile):
         """
         Write Link Lines to File Method
         """
@@ -743,20 +760,20 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
             # Cases
             if 'TRAP' in linkType or 'TRAPEZOID' in linkType or 'BREAKPOINT' in linkType:
-                self._writeCrossSectionLink(link, fileObject)
+                self._writeCrossSectionLink(link, fileObject, replaceParamFile)
 
             elif linkType == 'STRUCTURE':
-                self._writeStructureLink(link, fileObject)
+                self._writeStructureLink(link, fileObject, replaceParamFile)
 
             elif linkType in ('RESERVOIR', 'LAKE'):
-                self._writeReservoirLink(link, fileObject)
+                self._writeReservoirLink(link, fileObject, replaceParamFile)
 
             else:
                 print 'OOPS: CIF LINE 417'  # THIS SHOULDN"T HAPPEN
 
             fileObject.write('\n')
 
-    def _writeReservoirLink(self, link, fileObject):
+    def _writeReservoirLink(self, link, fileObject, replaceParamFile):
         """
         Write Reservoir/Lake Link to File Method
         """
@@ -792,7 +809,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             fileObject.write('\n')
 
 
-    def _writeStructureLink(self, link, fileObject):
+    def _writeStructureLink(self, link, fileObject, replaceParamFile):
         """
         Write Structure Link to File Method
         """
@@ -862,14 +879,19 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             if culvert.height != None:
                 fileObject.write('HEIGHT                   %.6f\n' % culvert.height)
 
-    def _writeCrossSectionLink(self, link, fileObject):
+    def _writeCrossSectionLink(self, link, fileObject, replaceParamFile):
         """
         Write Cross Section Link to File Method
         """
         linkType = link.type
 
         # Write cross section link header
-        fileObject.write('DX             %.6f\n' % link.dx)
+        dx = vwp(link.dx, replaceParamFile)
+        try:
+            fileObject.write('DX             %.6f\n' % dx)
+        except:
+            fileObject.write('DX             %s\n' % dx)
+
         fileObject.write('%s\n' % linkType)
         fileObject.write('NODES          %s\n' % link.numElements)
 
@@ -889,10 +911,30 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                     xSec = link.trapezoidalCS
 
                     # Write cross section properties
-                    fileObject.write('MANNINGS_N     %.6f\n' % xSec.mannings_n)
-                    fileObject.write('BOTTOM_WIDTH   %.6f\n' % xSec.bottomWidth)
-                    fileObject.write('BANKFULL_DEPTH %.6f\n' % xSec.bankfullDepth)
-                    fileObject.write('SIDE_SLOPE     %.6f\n' % xSec.sideSlope)
+                    mannings_n = vwp(xSec.mannings_n, replaceParamFile)
+                    bottomWidth = vwp(xSec.bottomWidth, replaceParamFile)
+                    bankfullDepth = vwp(xSec.bankfullDepth, replaceParamFile)
+                    sideSlope = vwp(xSec.sideSlope, replaceParamFile)
+
+                    try:
+                        fileObject.write('MANNINGS_N     %.6f\n' % mannings_n)
+                    except:
+                        fileObject.write('MANNINGS_N     %s\n' % mannings_n)
+
+                    try:
+                        fileObject.write('BOTTOM_WIDTH   %.6f\n' % bottomWidth)
+                    except:
+                        fileObject.write('BOTTOM_WIDTH   %s\n' % bottomWidth)
+
+                    try:
+                        fileObject.write('BANKFULL_DEPTH %.6f\n' % bankfullDepth)
+                    except:
+                        fileObject.write('BANKFULL_DEPTH %s\n' % bankfullDepth)
+
+                    try:
+                        fileObject.write('SIDE_SLOPE     %.6f\n' % sideSlope)
+                    except:
+                        fileObject.write('SIDE_SLOPE     %s\n' % sideSlope)
 
                     # Write optional cross section properties
                     self._writeOptionalXsecCards(fileObject=fileObject, xSec=xSec)
@@ -902,12 +944,18 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                     xSec = link.breakpointCS
 
                     # Write cross section properties
-                    fileObject.write('MANNINGS_N     %.6f\n' % xSec.mannings_n)
+                    mannings_n = vwp(xSec.mannings_n, replaceParamFile)
+                    try:
+                        fileObject.write('MANNINGS_N     %.6f\n' % mannings_n)
+                    except:
+                        fileObject.write('MANNINGS_N     %s\n' % mannings_n)
+
                     fileObject.write('NPAIRS         %s\n' % xSec.numPairs)
-                    fileObject.write('NUM_INTERP     %s\n' % xSec.numInterp)
+                    fileObject.write('NUM_INTERP     %s\n' % vwp(xSec.numInterp, replaceParamFile))
+
 
                     # Write optional cross section properties
-                    self._writeOptionalXsecCards(fileObject=fileObject, xSec=xSec)
+                    self._writeOptionalXsecCards(fileObject=fileObject, xSec=xSec, replaceParamFile)
 
                     # Write breakpoint lines
                     for bp in xSec.breakpoints:
@@ -915,7 +963,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 else:
                     print 'OOPS: MISSED A CROSS SECTION TYPE. CIF LINE 580.', linkType
 
-    def _writeOptionalXsecCards(self, fileObject, xSec):
+    def _writeOptionalXsecCards(self, fileObject, xSec, replaceParamFile):
         """
         Write Optional Cross Section Cards to File Method
         """
@@ -929,10 +977,18 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             fileObject.write('SUBSURFACE\n')
 
         if xSec.mRiver != None:
-            fileObject.write('M_RIVER        %.6f\n' % xSec.mRiver)
+            mRiver = vwp(xSec.mRiver, replaceParamFile)
+            try:
+                fileObject.write('M_RIVER        %.6f\n' % mRiver)
+            except:
+                fileObject.write('M_RIVER        %s\n' % mRiver)
 
         if xSec.kRiver != None:
-            fileObject.write('K_RIVER        %.6f\n' % xSec.kRiver)
+            kRiver = vwp(xSec.kRiver, replaceParamFile)
+            try:
+                fileObject.write('K_RIVER        %.6f\n' % kRiver)
+            except:
+                fileObject.write('K_RIVER        %s\n' % kRiver)
 
     def _getUpdateGeometrySqlString(self, geometryID, tableName, spatialReferenceID, wktString):
         statement = '''

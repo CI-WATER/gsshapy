@@ -131,7 +131,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
         # Assign other properties
         self.filename = filename
 
-    def write(self, directory, name=None, session=None):
+    def write(self, directory, name=None, session=None, replaceParamFile=None):
         """
         Index Map Write to File Method
         """
