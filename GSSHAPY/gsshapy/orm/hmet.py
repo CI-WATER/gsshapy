@@ -52,7 +52,7 @@ class HmetFile(DeclarativeBase, GsshaPyFileObjectBase):
     def __repr__(self):
         return '<HmetFile: NumRecords=%s>' % (len(self.hmetRecords))
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Read HMET WES from File Method
         """

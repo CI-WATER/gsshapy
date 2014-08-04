@@ -37,11 +37,10 @@ sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
                                         database='gsshapy_replace')
 
 # GLOBAL PARAMETERS ---------------------------------------------------------------------------------------------------#
-#'''
 read_directory = '/Users/swainn/testing/test_models/replace_test'
 write_directory = '/Users/swainn/testing/test_models/replace_test/write'
 project_file_name = 'ProvoStochastic.prj'
-#'''
+
 
 
 out_file_name = 'replace_out'
@@ -80,7 +79,7 @@ print 'READ: ', time.time() - START
 #'''
 
 # WRITE PROJECT -------------------------------------------------------------------------------------------------------#
-'''
+#'''
 project_file = write_session.query(ProjectFile).first()
 START = time.time()
 project_file.writeProject(write_session, write_directory, out_file_name)

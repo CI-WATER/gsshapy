@@ -52,7 +52,7 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         GsshaPyFileObjectBase.__init__(self)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Generic Time Series Read from File Method
         """

@@ -11,7 +11,6 @@
 import shlex
 import re
 
-
 def splitLine(line):
     """
     Split lines read from files and preserve
@@ -61,3 +60,73 @@ def chunk(keywords, lines):
                 chunk.append(line)
 
     return chunks
+
+
+def valueReadPreprocessor(valueString, replaceParamsFile=None):
+    """
+    Apply global pre-processing to values during reading throughout the project.
+
+    Args:
+        valueString (str): String representing the value to be preprocessed.
+        replaceParamsFile (gsshapy.orm.ReplaceParamFile, optional): Instance of the replace param file. Required if
+            replacement variables are included in the project.
+
+    Returns:
+        str: Processed value as a string
+    """
+    if type(valueString) is bool:
+        print "Warning: Only numerical variable types can be handled by the valueReadPreprocessor function."
+        return valueString
+
+    # Default
+    processedValue = valueString
+
+    # Check for replacement variables
+    if replaceParamsFile is not None and valueString is not None:
+        if '[' in valueString or ']' in valueString:
+
+            processedValue = '{0}'.format(-999999)
+
+            # Find the matching parameter and return the negative of the id
+            for targetParam in replaceParamsFile.targetParameters:
+                if targetParam.targetVariable == valueString:
+                    processedValue = '{0}'.format(-1 * targetParam.id)
+                    break
+
+    return processedValue
+
+def valueWritePreprocessor(valueString, replaceParamsFile=None):
+    """
+    Look up variable name in replace param file for the negative id given and return it.
+
+    Args:
+        valueString (str): String representing the value to be preprocessed.
+        replaceParamsFile (gsshapy.orm.ReplaceParamFile, optional): Instance of the replace param file. Required if
+            replacement variables are included in the project.
+
+    Returns:
+        str: Processed value as a string
+    """
+    if type(valueString) is bool:
+        print "Warning: Only numerical variable types can be handled by the valueReadPreprocessor function."
+        return valueString
+
+    # Default
+    variableString = valueString
+
+    # Check for replacement variables
+    if replaceParamsFile is not None:
+        try:
+            number = int(valueString)
+            if number < 0:
+                parameterID = number * -1
+
+                # Find the matching parameter
+                for targetParam in replaceParamsFile.targetParameters:
+                    if targetParam.id == parameterID:
+                        variableString = targetParam.targetVariable
+                        break
+        except:
+            pass
+
+    return variableString

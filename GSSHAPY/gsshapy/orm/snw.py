@@ -52,7 +52,7 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         GsshaPyFileObjectBase.__init__(self)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         NWSRFS Read from File Method
         """
@@ -207,7 +207,7 @@ class OrographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         GsshaPyFileObjectBase.__init__(self)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Orthographic Gage File Read from File Method
         """

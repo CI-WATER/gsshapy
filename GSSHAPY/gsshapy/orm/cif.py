@@ -34,7 +34,7 @@ from gsshapy.orm import DeclarativeBase
 from gsshapy.base.geom import GeometricObjectBase
 from gsshapy.base.file_base import GsshaPyFileObjectBase
 from gsshapy.lib import parsetools as pt, cif_chunk as cic
-
+from gsshapy.lib.parsetools import valueReadPreprocessor as vrp, valueWritePreprocessor as vwp
 
 class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
@@ -365,7 +365,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return json.dumps(feature_collection)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Channel Input File Read from File Method
         """
@@ -398,7 +398,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # Cases
                 if key == 'LINK':
                     # Link handler
-                    links.append(self._createLink(result))
+                    links.append(self._createLink(result, replaceParamFile))
 
                 elif key == 'CONNECT':
                     # Connectivity handler
@@ -445,7 +445,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._writeLinks(links=links,
                          fileObject=openFile)
 
-    def _createLink(self, linkResult):
+    def _createLink(self, linkResult, replaceParamFile):
         """
         Create GSSHAPY Link Object Method
         """
@@ -454,15 +454,15 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Cases
         if linkResult['type'] == 'XSEC':
             # Cross section link handler
-            link = self._createCrossSection(linkResult)
+            link = self._createCrossSection(linkResult, replaceParamFile)
 
         elif linkResult['type'] == 'STRUCTURE':
             # Structure link handler
-            link = self._creatStructure(linkResult)
+            link = self._createStructure(linkResult, replaceParamFile)
 
         elif linkResult['type'] in ('RESERVOIR', 'LAKE'):
             # Reservoir/lake handler
-            link = self._createReservoir(linkResult)
+            link = self._createReservoir(linkResult, replaceParamFile)
 
         return link
 
@@ -486,7 +486,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             link.numUpstreamLinks = int(connectivity['numUpLinks'])
 
 
-    def _createCrossSection(self, linkResult):
+    def _createCrossSection(self, linkResult, replaceParamFile):
         """
         Create GSSHAPY Cross Section Objects Method
         """
@@ -497,7 +497,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         link = StreamLink(linkNumber=int(header['link']),
                           type=header['xSecType'],
                           numElements=header['nodes'],
-                          dx=header['dx'],
+                          dx=vrp(header['dx'], replaceParamFile),
                           erode=header['erode'],
                           subsurface=header['subsurface'])
 
@@ -511,15 +511,15 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         if 'TRAPEZOID' in link.type or 'TRAP' in link.type:
             # Trapezoid cross section handler
             # Initialize GSSHPY TrapeziodalCS object
-            trapezoidCS = TrapezoidalCS(mannings_n=xSection['mannings_n'],
-                                        bottomWidth=xSection['bottom_width'],
-                                        bankfullDepth=xSection['bankfull_depth'],
-                                        sideSlope=xSection['side_slope'],
-                                        mRiver=xSection['m_river'],
-                                        kRiver=xSection['k_river'],
+            trapezoidCS = TrapezoidalCS(mannings_n=vrp(xSection['mannings_n'], replaceParamFile),
+                                        bottomWidth=vrp(xSection['bottom_width'], replaceParamFile),
+                                        bankfullDepth=vrp(xSection['bankfull_depth'], replaceParamFile),
+                                        sideSlope=vrp(xSection['side_slope'], replaceParamFile),
+                                        mRiver=vrp(xSection['m_river'], replaceParamFile),
+                                        kRiver=vrp(xSection['k_river'], replaceParamFile),
                                         erode=xSection['erode'],
                                         subsurface=xSection['subsurface'],
-                                        maxErosion=xSection['max_erosion'])
+                                        maxErosion=vrp(xSection['max_erosion'], replaceParamFile))
 
             # Associate TrapezoidalCS with StreamLink
             trapezoidCS.streamLink = link
@@ -527,14 +527,14 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         elif 'BREAKPOINT' in link.type:
             # Breakpoint cross section handler
             # Initialize GSSHAPY BreakpointCS objects
-            breakpointCS = BreakpointCS(mannings_n=xSection['mannings_n'],
+            breakpointCS = BreakpointCS(mannings_n=vrp(xSection['mannings_n'], replaceParamFile),
                                         numPairs=xSection['npairs'],
-                                        numInterp=xSection['num_interp'],
-                                        mRiver=xSection['m_river'],
-                                        kRiver=xSection['k_river'],
+                                        numInterp=vrp(xSection['num_interp'], replaceParamFile),
+                                        mRiver=vrp(xSection['m_river'], replaceParamFile),
+                                        kRiver=vrp(xSection['k_river'], replaceParamFile),
                                         erode=xSection['erode'],
                                         subsurface=xSection['subsurface'],
-                                        maxErosion=xSection['max_erosion'])
+                                        maxErosion=vrp(xSection['max_erosion'], replaceParamFile))
 
             # Associate BreakpointCS with StreamLink
             breakpointCS.streamLink = link
@@ -553,14 +553,14 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             node = StreamNode(nodeNumber=int(n['node']),
                               x=n['x'],
                               y=n['y'],
-                              elevation=n['elev'])
+                              elevation=vrp(n['elev'], replaceParamFile))
 
             # Associate StreamNode with StreamLink
             node.streamLink = link
 
         return link
 
-    def _creatStructure(self, linkResult):
+    def _createStructure(self, linkResult, replaceParamFile):
         """
         Create GSSHAPY Structure Objects Method
         """
@@ -573,12 +573,12 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         header = linkResult['header']
 
-        # Intialize GSSHAPY StreamLink object
+        # Initialize GSSHAPY StreamLink object
         link = StreamLink(linkNumber=header['link'],
                           type=linkResult['type'],
                           numElements=header['numstructs'])
 
-        # Assosciate StreamLink with ChannelInputFile
+        # Associate StreamLink with ChannelInputFile
         link.channelInputFile = self
 
         # Create Structure objects
@@ -590,13 +590,13 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # Weir type handler
                 # Initialize GSSHAPY Weir object
                 weir = Weir(type=structType,
-                            crestLength=s['crest_length'],
-                            crestLowElevation=s['crest_low_elev'],
-                            dischargeCoeffForward=s['discharge_coeff_forward'],
-                            dischargeCoeffReverse=s['discharge_coeff_reverse'],
-                            crestLowLocation=s['crest_low_loc'],
-                            steepSlope=s['steep_slope'],
-                            shallowSlope=s['shallow_slope'])
+                            crestLength=vrp(s['crest_length'], replaceParamFile),
+                            crestLowElevation=vrp(s['crest_low_elev'], replaceParamFile),
+                            dischargeCoeffForward=vrp(s['discharge_coeff_forward'], replaceParamFile),
+                            dischargeCoeffReverse=vrp(s['discharge_coeff_reverse'], replaceParamFile),
+                            crestLowLocation=vrp(s['crest_low_loc'], replaceParamFile),
+                            steepSlope=vrp(s['steep_slope'], replaceParamFile),
+                            shallowSlope=vrp(s['shallow_slope'], replaceParamFile))
 
                 # Associate Weir with StreamLink
                 weir.streamLink = link
@@ -605,16 +605,16 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # Culvert type handler
                 # Initialize GSSHAPY Culvert object
                 culvert = Culvert(type=structType,
-                                  upstreamInvert=s['upinvert'],
-                                  downstreamInvert=s['downinvert'],
-                                  inletDischargeCoeff=s['inlet_disch_coeff'],
-                                  reverseFlowDischargeCoeff=s['rev_flow_disch_coeff'],
-                                  slope=s['slope'],
-                                  length=s['length'],
-                                  roughness=s['rough_coeff'],
-                                  diameter=s['diameter'],
-                                  width=s['width'],
-                                  height=s['height'])
+                                  upstreamInvert=vrp(s['upinvert'], replaceParamFile),
+                                  downstreamInvert=vrp(s['downinvert'], replaceParamFile),
+                                  inletDischargeCoeff=vrp(s['inlet_disch_coeff'], replaceParamFile),
+                                  reverseFlowDischargeCoeff=vrp(s['rev_flow_disch_coeff'], replaceParamFile),
+                                  slope=vrp(s['slope'], replaceParamFile),
+                                  length=vrp(s['length'], replaceParamFile),
+                                  roughness=vrp(s['rough_coeff'], replaceParamFile),
+                                  diameter=vrp(s['diameter'], replaceParamFile),
+                                  width=vrp(s['width'], replaceParamFile),
+                                  height=vrp(s['height'], replaceParamFile))
 
                 # Associate Culvert with StreamLink
                 culvert.streamLink = link
@@ -625,28 +625,27 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return link
 
-    def _createReservoir(self, linkResult):
+    def _createReservoir(self, linkResult, replaceParamFile):
         """
         Create GSSHAPY Reservoir Objects Method
         """
         # Extract header variables from link result object
         header = linkResult['header']
 
-
         # Cases
         if linkResult['type'] == 'LAKE':
             # Lake handler
-            initWSE = header['initwse']
-            minWSE = header['minwse']
-            maxWSE = header['maxwse']
-            numPts = header['numpts']
+            initWSE = vrp(header['initwse'], replaceParamFile)
+            minWSE = vrp(header['minwse'], replaceParamFile)
+            maxWSE = vrp(header['maxwse'], replaceParamFile)
+            numPts = vrp(header['numpts'], replaceParamFile)
 
         elif linkResult['type'] == 'RESERVOIR':
             # Reservoir handler
-            initWSE = header['res_initwse']
-            minWSE = header['res_minwse']
-            maxWSE = header['res_maxwse']
-            numPts = header['res_numpts']
+            initWSE = vrp(header['res_initwse'], replaceParamFile)
+            minWSE = vrp(header['res_minwse'], replaceParamFile)
+            maxWSE = vrp(header['res_maxwse'], replaceParamFile)
+            numPts = vrp(header['res_numpts'], replaceParamFile)
 
         # Initialize GSSHAPY Reservoir object
         reservoir = Reservoir(initWSE=initWSE,
@@ -666,7 +665,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Create ReservoirPoint objects
         for p in linkResult['points']:
-            # Initialize GSSHAPY ResrvoirPoint object
+            # Initialize GSSHAPY ReservoirPoint object
             resPoint = ReservoirPoint(i=p['i'],
                                       j=p['j'])
 
@@ -682,9 +681,6 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Flush the current session
         session.flush()
-
-        # Retrieve the links
-        links = self.streamLinks
 
         # Create geometry for each fluvial link
         for link in self.getFluvialLinks():

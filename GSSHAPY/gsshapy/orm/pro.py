@@ -76,7 +76,7 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
         return srid
 
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Projection File Read from File Method
         """

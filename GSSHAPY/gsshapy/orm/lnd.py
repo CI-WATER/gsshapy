@@ -347,7 +347,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Link Node Dataset File Read from File Method
         """

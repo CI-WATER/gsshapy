@@ -55,7 +55,7 @@ class GridPipeFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         GsshaPyFileObjectBase.__init__(self)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Grid Pipe File Read from File Method
         """

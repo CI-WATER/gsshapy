@@ -55,7 +55,7 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         GsshaPyFileObjectBase.__init__(self)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Grid Stream File Read from File Method
         """

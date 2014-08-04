@@ -10,6 +10,7 @@
 
 __all__ = ['GeometricObjectBase']
 
+
 class GeometricObjectBase:
     """
     Abstract base class for geometric objects.

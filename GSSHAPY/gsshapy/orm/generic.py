@@ -50,9 +50,9 @@ class GenericFile(DeclarativeBase, GsshaPyFileObjectBase):
         GsshaPyFileObjectBase.__init__(self)
 
     def __repr__(self):
-        return '<GenericFile: Projection=%s>' % (self.projection)
+        return '<GenericFile: Name=%s>' % (self.name)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Generic File Read from File Method
         """

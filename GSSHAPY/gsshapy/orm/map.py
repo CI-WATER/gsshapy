@@ -77,7 +77,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
     def __repr__(self):
         return '<RasterMap: FileExtension=%s>' % self.fileExtension
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Raster Map File Read from File Method
         """

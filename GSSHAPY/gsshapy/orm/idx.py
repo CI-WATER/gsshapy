@@ -90,7 +90,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
                 self.filename == other.filename and
                 self.raster == other.raster)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Index Map Read from File Method
         """

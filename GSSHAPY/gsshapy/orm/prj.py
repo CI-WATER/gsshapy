@@ -126,8 +126,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                    'OVERLAND_DEPTH_LOCATION': OutputLocationFile,  # Overland Flow (Other Output)
                    'OVERLAND_WSE_LOCATION': OutputLocationFile,
                    'OUT_WELL_LOCATION': OutputLocationFile,
-                   'REPLACE_PARAMS': ReplaceParamFile,  # Replacement Cards
-                   'REPLACE_VALS': ReplaceValFile,
                    'SIMULATION_INPUT': GenericFile}
 
     INPUT_MAPS = ('ELEVATION',  # Required Inputs
@@ -211,7 +209,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     def __init__(self):
         GsshaPyFileObjectBase.__init__(self)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Project File Read from File Method
         """
@@ -362,20 +360,41 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         if spatialReferenceID is None:
             spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
 
-        # If one of the output directory cards is enabled, use it to derive the directory where the output is written
+        # Handle special card cases
         for card in self.projectCards:
             if card.name in self.OUTPUT_DIRECTORIES_SUPPORTED:
                 replace_dir = card.value.strip('"')
                 output_directory = os.path.join(output_directory, replace_dir)
 
+            elif card.name == 'REPLACE_PARAMS':
+                # Read parameter replacement file
+                filename = card.value.strip('"')
+                replaceParamFile = ReplaceParamFile()
+                replaceParamFile.read(directory=directory,
+                                      filename=filename,
+                                      session=session,
+                                      spatial=spatial,
+                                      spatialReferenceID=spatialReferenceID)
+                replaceParamFile.projectFile = self
+
+            elif card.name == 'REPLACE_VALS':
+                filename = card.value.strip('"')
+                replaceValFile = ReplaceValFile()
+                replaceValFile.read(directory=directory,
+                                    filename=filename,
+                                    session=session,
+                                    spatial=spatial,
+                                    spatialReferenceID=spatialReferenceID)
+                replaceValFile.projectFile = self
+
         # Read Input Files
-        self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+        self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
 
         # Read Output Files
-        self._readXput(self.OUTPUT_FILES, output_directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+        self._readXput(self.OUTPUT_FILES, output_directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
 
         # Read Input Map Files
-        self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+        self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
 
         # Read WMS Dataset Files
         self._readWMSDatasets(self.WMS_DATASETS, output_directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
@@ -987,7 +1006,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return spatialReferenceID
 
-    def _readXput(self, fileCards, directory, session, spatial=False, spatialReferenceID=4236):
+    def _readXput(self, fileCards, directory, session, spatial=False, spatialReferenceID=4236, replaceParamFile=None):
         """
         GSSHAPY Project Read Files from File Method
         """
@@ -1004,9 +1023,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                  filename=filename,
                                  session=session,
                                  spatial=spatial,
-                                 spatialReferenceID=spatialReferenceID)
+                                 spatialReferenceID=spatialReferenceID,
+                                 replaceParamFile=replaceParamFile)
 
-    def _readXputMaps(self, mapCards, directory, session, spatial=False, spatialReferenceID=4236):
+    def _readXputMaps(self, mapCards, directory, session, spatial=False, spatialReferenceID=4236, replaceParamFile=None):
         """
         GSSHA Project Read Map Files from File Method
         """
@@ -1021,7 +1041,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                      filename=filename,
                                      session=session,
                                      spatial=spatial,
-                                     spatialReferenceID=spatialReferenceID)
+                                     spatialReferenceID=spatialReferenceID,
+                                     replaceParamFile=replaceParamFile)
         else:
             for card in self.projectCards:
                 if (card.name in mapCards) and self._noneOrNumValue(card.value):
@@ -1034,7 +1055,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                          filename=filename,
                                          session=session,
                                          spatial=spatial,
-                                         spatialReferenceID=spatialReferenceID)
+                                         spatialReferenceID=spatialReferenceID,
+                                         replaceParamFile=replaceParamFile)
 
             print 'WARNING: Could not read map files. MAP_TYPE', self.mapType, 'not supported.'
 
@@ -1065,13 +1087,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                         spatial=spatial,
                                         spatialReferenceID=spatialReferenceID)
 
-    def _invokeRead(self, fileIO, directory, filename, session, spatial=False, spatialReferenceID=4236):
+    def _invokeRead(self, fileIO, directory, filename, session, spatial=False, spatialReferenceID=4236, replaceParamFile=None):
         """
         Invoke File Read Method on Other Files
         """
         instance = fileIO()
         instance.projectFile = self
-        instance.read(directory, filename, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+        instance.read(directory, filename, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
+                      replaceParamFile=replaceParamFile)
 
     def _writeXput(self, session, directory, fileCards, name=None):
         """

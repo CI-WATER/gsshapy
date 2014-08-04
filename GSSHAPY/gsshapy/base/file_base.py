@@ -31,7 +31,7 @@ class GsshaPyFileObjectBase:
         """
         self.fileExtension = ''
 
-    def read(self, directory, filename, session, spatial=False, spatialReferenceID=4236):
+    def read(self, directory, filename, session, spatial=False, spatialReferenceID=4236, replaceParamFile=None):
         """
         Generic read file into database method.
 
@@ -42,7 +42,9 @@ class GsshaPyFileObjectBase:
             spatial (bool, optional): If True, spatially enabled objects will be read in as PostGIS spatial objects.
                 Defaults to False.
             spatialReferenceID (int, optional): Integer id of spatial reference system for the model. Required if
-                spatial is True.
+                spatial is True. Defaults to srid 4236.
+            replaceParamFile (:class:`gsshapy.orm.ReplaceParamFile`, optional): ReplaceParamFile instance. Use this if
+                the file you are reading contains replacement parameters.
         """
 
         # Read parameter derivatives
@@ -61,7 +63,7 @@ class GsshaPyFileObjectBase:
             session.add(self)
 
             # Read
-            self._read(directory, filename, session, path, name, extension, spatial, spatialReferenceID)
+            self._read(directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile)
 
             # Commit to database
             self._commit(session, self.COMMIT_ERROR_MESSAGE)
@@ -72,7 +74,7 @@ class GsshaPyFileObjectBase:
             # Issue warning
             print 'WARNING: {0} listed in project file, but no such file exists.'.format(filename)
 
-    def write(self, session, directory, name):
+    def write(self, session, directory, name, replaceParamFile=None):
         """
         Write from database back to file.
 
@@ -80,6 +82,8 @@ class GsshaPyFileObjectBase:
             session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database.
             directory (str): Directory where the file will be written.
             name (str): The name of the file that will be created (including the file extension is optional).
+            replaceParamFile (:class:`gsshapy.orm.ReplaceParamFile`, optional): ReplaceParamFile instance. Use this if
+                the file you are writing contains replacement parameters.
         """
 
         # Assemble Path to file
@@ -108,7 +112,8 @@ class GsshaPyFileObjectBase:
         with open(filePath, 'w') as openFile:
             # Write Lines
             self._write(session=session,
-                        openFile=openFile)
+                        openFile=openFile,
+                        replaceParamFile=replaceParamFile)
             
     def _commit(self, session, errorMessage):
         """
@@ -123,7 +128,7 @@ class GsshaPyFileObjectBase:
             # Raise other errors as normal
             raise
     
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID):
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Private file object read method. Classes that inherit from this base class must implement this method.
 
@@ -152,9 +157,13 @@ class GsshaPyFileObjectBase:
                 Defaults to False. Same as given by user in ``read()``.
             spatialReferenceID (int, optional): Integer id of spatial reference system for the model. Required if
                 spatial is True. Same as given by user in ``read()``.
+            replaceParamFile (:class:`gsshapy.orm.ReplaceParamFile`, optional): Handle the case when replacement
+                parameters are used in place of normal variables. If this is not None, then the user expects there
+                to be replacement variables in the file. Use the gsshapy.lib.parsetools.valuePreprocessor() to handle
+                these.
         """
         
-    def _write(self, session, openFile):
+    def _write(self, session, openFile, replaceParamFile):
         """
         Private file object write method. Classes that inherit from this base class must implement this method.
 
@@ -179,6 +188,9 @@ class GsshaPyFileObjectBase:
                 ``write()``.
             openFile (:mod:`file`): File object that has been instantiated and "opened" for writing by the ``write()``
                 method. Write lines of the file directly to this object. (e.g.: ``openFile.write('foo')``)
+            replaceParamFile (:class:`gsshapy.orm.ReplaceParamFile`, optional): Handle the case when replacement
+                parameters are used in place of normal variables. If this is not None, then the user expects there
+                to be rep
         """
 
     def _namePreprocessor(self, name):
