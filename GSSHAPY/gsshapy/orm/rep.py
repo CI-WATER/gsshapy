@@ -135,6 +135,7 @@ class ReplaceValFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     # Relationship Properties
     projectFile = relationship('ProjectFile', uselist=False, back_populates='replaceValFile')  #: RELATIONSHIP
+    lines = relationship('ReplaceValLine', back_populates='replaceValFile')  #: RELATIONSHIP
 
     def __init__(self):
         """
@@ -151,13 +152,39 @@ class ReplaceValFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Open file and parse into a data structure
         with open(path, 'r') as f:
-            self.values = f.read()
+            for line in f:
+                valLine = ReplaceValLine()
+                valLine.contents = line
+                valLine.replaceValFile = self
 
     def _write(self, session, openFile, replaceParamFile):
         """
         Replace Val File Write to File Method
         """
-        # Write lines               
-        openFile.write(self.values)
+        # Write lines
+        for line in self.lines:
+            openFile.write(line.contents)
+
+
+class ReplaceValLine(DeclarativeBase):
+    """
+    Object containing data for a single line in the replacement value file. Each line represents a new realization of the
+    parameters listed in the replacement parameter file.
+    """
+    __tablename__ = 'rep_replace_val_lines'
+
+    tableName = __tablename__  #: Database tablename
+
+    # Primary and Foreign Keys
+    id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
+    replaceValFileID = Column(Integer, ForeignKey('rep_replace_val_files.id'))  #: FK
+
+    # Value Columns
+    contents = Column(String)  #: STRING
+
+    # Relationship Properties
+    replaceValFile = relationship('ReplaceValFile', back_populates='lines')  #: RELATIONSHIP
+
+
             
 

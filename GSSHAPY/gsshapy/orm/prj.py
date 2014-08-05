@@ -98,6 +98,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 
     INPUT_FILES = {'#PROJECTION_FILE': ProjectionFile,  # WMS
+                   '#CHANNEL_POINT_INPUT_WMS': GenericFile,
                    'MAPPING_TABLE': MapTableFile,  # Mapping Table
                    'ST_MAPPING_TABLE': GenericFile,
                    'PRECIP_FILE': PrecipFile,  # Precipitation
@@ -219,7 +220,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         HEADERS = ('GSSHAPROJECT',)
 
         # WMS Cards to include (don't discount as comments)
-        WMS_CARDS = ('#INDEXGRID_GUID', '#PROJECTION_FILE', '#LandSoil')
+        WMS_CARDS = ('#INDEXGRID_GUID', '#PROJECTION_FILE', '#LandSoil', '#CHANNEL_POINT_INPUT_WMS')
 
         with open(path, 'r') as f:
             for line in f:
@@ -1013,6 +1014,11 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             replaceDir = replaceFolderCard.value.strip('"')
             batchDirectory = os.path.join(batchDirectory, replaceDir)
 
+        # Create directory if it doesn't exist
+        if not os.path.isdir(batchDirectory):
+            os.mkdir(batchDirectory)
+            print 'INFO: Creating directory for batch output: {0}'.format(batchDirectory)
+
         return batchDirectory
 
     def _readXput(self, fileCards, directory, session, spatial=False, spatialReferenceID=4236, replaceParamFile=None):
@@ -1174,10 +1180,11 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Issue warnings
         if '[' in filename or ']' in filename:
-            print 'WARNING: An instance of {0} cannot be read, because the path to the file in the project file has been replaced with replacement variable {1}.'.format(
-                type(self), filename)
+            print 'INFO: A file cannot be read, because the path to the file in the project file has been replaced with replacement variable {0}.'.format(filename)
+
         elif numFilesRead == 0:
             print 'WARNING: {0} listed in project file, but no such file exists.'.format(filename)
+
         else:
             print 'INFO: Batch mode output detected. {0} files read for file {1}'.format(numFilesRead, filename)
 
@@ -1207,7 +1214,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 # Check for replacement variables
                 if '[' in filename or ']' in filename:
-                    print 'WARNING: The file for project card {0} cannot be written, because the path has been replaced with replacement variable {1}.'.format(card.name, filename)
+                    print 'INFO: The file for project card {0} cannot be written, because the path has been replaced with replacement variable {1}.'.format(card.name, filename)
                     return
 
                 # Determine new filename
@@ -1384,7 +1391,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         extension = originalFilename.split('.')[1]
 
         # Special case with projection file
-        if '_' in originalPrefix:
+        if '_prj' in originalPrefix:
             originalPrefix = originalPrefix.split('_')[0]
             pro = True
 
@@ -1404,6 +1411,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             # is only changed for files that are prefixed with the 
             # project name
             filename = '%s.%s' % (name, extension)
+
+        elif originalProjectName in originalPrefix:
+            filename = '%s%s.%s' % (name, originalPrefix.replace(originalProjectName, ''), extension)
 
         else:
             # Filename doesn't change for files that don't share the 
