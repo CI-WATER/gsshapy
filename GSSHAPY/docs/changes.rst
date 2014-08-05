@@ -127,12 +127,63 @@ Bug Fixes
 Several bugs were addressed during the development of GsshaPy 2.0.0. Several examples are listed here, though not all:
 
 * The spatial reference ID was not being persisted in the database as intended, now it is.
-* GsshaPy would throw an error during reading when it encountered a file listed in the project file that did not exist in the GSSHA project files. GsshaPy will now skip the file and issue a warning, but it will not crash. The same issue was addressed for the file write phase.
-* An error would occur during writing of the map table file, because it's file extension property was named 'extension' instead of 'fileExtension'. All file extension properties were reviewed and renamed 'fileExtension' and the problem was eliminated.
+* GsshaPy would throw an error during reading when it encountered a file listed in the project file that did not exist in
+the GSSHA project files. GsshaPy will now skip the file and issue a warning, but it will not crash. The same issue was addressed for the file write phase.
+* An error would occur during writing of the map table file, because it's file extension property was named 'extension'
+instead of 'fileExtension'. All file extension properties were reviewed and renamed 'fileExtension' and the problem was eliminated.
 
 
-Expanded Documentation
-======================
+Replacement File Support
+========================
+
+Support extended for the replace mechanism in GSSHA. GsshaPy will support reading and writing of files with replacement
+variables with some constraints: only **string** and **numeric** parameters are allowed to have replacement variable names
+substituted. Files with GSSHA cards that have been replaced by a variable are not supported in GsshaPy. Also, parameters
+that represent counts of items in a file are not supported. The parameters with replacement variables are represented
+in the database as **negative integers**. These integers are the opposite of the corresponding ID for the replacement
+variable in the TargetParams table.
+
+The support for replacement parameters is currently limited to the following files:
+
+* Project File
+* Mapping Table File
+* Channel Input File
+* Precipitation File
+
+To read a file that has replacement parameters, you must first create an instance of the :class:`gsshapy.orm.ReplaceParamFile`
+and read the replacement parameters file for the project. Then call the read method on the file you want to read and
+pass it the :class:`gsshapy.orm.ReplaceParamFile` instance using the appropriate argument. The same process is followed
+to write a file from the database that has been read in using this method. This time query for the appropriate
+:class:`gsshapy.orm.ReplaceParamFile` object and pass it in as an argument to the write method.
+
+Here is an example of how to read a file with replacement variables::
+
+    >>> from gsshapy.orm import ReplaceParaFile, MapTableFile
+    >>> readDirectory = '/path_to/gssha_project/directory'
+    >>> replaceParamFile = ReplaceParamFile()
+    >>> replaceParamFile.read(directory=readDirectory, filename='replace_param.in', session=session)
+    >>> mapTableFile = MapTableFile()
+    >>> mapTableFile.read(directory=readDirectory, filename='example.cmt', session=session, replaceParamFile=replaceParamFile)
+
+Here is an example of how to write a file with replacement variables::
+
+    >>> from gsshapy.orm import ReplaceParamFile, MapTableFile
+    >>> writeDirectory = '/path_to/write/directory'
+    >>> replaceParamFile = session.query(ReplaceParamFile).get(1)
+    >>> mapTableFile = session.query(MapTableFile).get(1)
+    >>> mapTableFile.write(directory=writeDirectory, name='new_name.cmt', session=session, replaceParamFile=replaceParamFile)
+
+If you use the ``readProject()``, ``readInput()``, ``writeProject()``, or ``writeInput()`` methods on the
+:class:`gsshapy.orm.ProjectFile`, they will automatically detect when to read and write with replacement parameters
+if the appropriate cards are in the project file. No extra parameters are needed to do this.
+
+.. note::
+
+    These examples assume an SQLAlchemy session object has already been created. See tutorial for examples of how to
+    make an SQLAlchemy session.
+
+Expanded the Documentation
+==========================
 
 The documentation was reviewed and updated for the new version. This included a revamp of the API documentation (which was
 fairly useless before). Now API documentation includes in-depth explanations of all public methods and shows the

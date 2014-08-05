@@ -11,6 +11,9 @@
 import shlex
 import re
 
+# CONSTANTS
+REPLACE_NO_VALUE = -999999
+
 def splitLine(line):
     """
     Split lines read from files and preserve
@@ -84,8 +87,8 @@ def valueReadPreprocessor(valueString, replaceParamsFile=None):
     # Check for replacement variables
     if replaceParamsFile is not None and valueString is not None:
         if '[' in valueString or ']' in valueString:
-
-            processedValue = '{0}'.format(-999999)
+            # Set default value
+            processedValue = '{0}'.format(REPLACE_NO_VALUE)
 
             # Find the matching parameter and return the negative of the id
             for targetParam in replaceParamsFile.targetParameters:
@@ -94,6 +97,7 @@ def valueReadPreprocessor(valueString, replaceParamsFile=None):
                     break
 
     return processedValue
+
 
 def valueWritePreprocessor(valueString, replaceParamsFile=None):
     """
@@ -116,17 +120,21 @@ def valueWritePreprocessor(valueString, replaceParamsFile=None):
 
     # Check for replacement variables
     if replaceParamsFile is not None:
-        try:
-            number = int(valueString)
-            if number < 0:
-                parameterID = number * -1
+        # Set Default
+        if variableString == REPLACE_NO_VALUE:
+            variableString = '[NO_VARIABLE]'
+        else:
+            try:
+                number = int(valueString)
+                if number < 0:
+                    parameterID = number * -1
 
-                # Find the matching parameter
-                for targetParam in replaceParamsFile.targetParameters:
-                    if targetParam.id == parameterID:
-                        variableString = targetParam.targetVariable
-                        break
-        except:
-            pass
+                    # Find the matching parameter
+                    for targetParam in replaceParamsFile.targetParameters:
+                        if targetParam.id == parameterID:
+                            variableString = targetParam.targetVariable
+                            break
+            except:
+                pass
 
     return variableString

@@ -24,6 +24,7 @@ from gsshapy.orm import DeclarativeBase
 from gsshapy.base.file_base import GsshaPyFileObjectBase
 from gsshapy.orm.idx import IndexMap
 from gsshapy.lib import parsetools as pt, cmt_chunk as mtc
+from gsshapy.lib.parsetools import valueReadPreprocessor as vrp, valueWritePreprocessor as vwp
 
 
 class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
@@ -131,7 +132,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Create GSSHAPY ORM objects with the resulting objects that are 
         # returned from the parser functions
-        self._createGsshaPyObjects(mapTables, indexMaps)
+        self._createGsshaPyObjects(mapTables, indexMaps, replaceParamFile)
 
     def _write(self, session, openFile, replaceParamFile):
         """
@@ -141,7 +142,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         directory = os.path.split(openFile.name)[0]
 
         # Derive a Unique Set of Contaminants
-        for mapTable in self.mapTables:
+        for mapTable in self.getOrderedMapTables(session):
             if mapTable.name == 'CONTAMINANT_TRANSPORT':
                 contaminantList = []
                 for mtValue in mapTable.values:
@@ -167,19 +168,27 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             if mapTable.name == 'SEDIMENTS':
                 self._writeSedimentTable(session=session,
                                          fileObject=openFile,
-                                         mapTable=mapTable)
+                                         mapTable=mapTable,
+                                         replaceParamFile=replaceParamFile)
             elif mapTable.name == 'CONTAMINANT_TRANSPORT':
                 self._writeContaminantTable(session=session,
                                             fileObject=openFile,
                                             mapTable=mapTable,
-                                            contaminants=contaminants)
+                                            contaminants=contaminants,
+                                            replaceParamFile=replaceParamFile)
             else:
                 self._writeMapTable(session=session,
                                     fileObject=openFile,
-                                    mapTable=mapTable)
+                                    mapTable=mapTable,
+                                    replaceParamFile=replaceParamFile)
 
+    def getOrderedMapTables(self, session):
+        """
+        Retrieve the map tables ordered by name
+        """
+        return session.query(MapTable).filter(MapTable.mapTableFile == self).order_by(MapTable.name).all()
 
-    def _createGsshaPyObjects(self, mapTables, indexMaps):
+    def _createGsshaPyObjects(self, mapTables, indexMaps, replaceParamFile):
         """
         Create GSSHAPY Mapping Table ORM Objects Method
         """
@@ -213,8 +222,8 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                         # Initialize GSSHAPY MTContaminant object
                         contaminant = MTContaminant(name=contam['name'],
                                                     outputFilename=contam['outPath'],
-                                                    precipConc=contam['contamVars']['PRECIP_CONC'],
-                                                    partition=contam['contamVars']['PARTITION'],
+                                                    precipConc=vrp(contam['contamVars']['PRECIP_CONC'], replaceParamFile),
+                                                    partition=vrp(contam['contamVars']['PARTITION'], replaceParamFile),
                                                     numIDs=contam['contamVars']['NUM_IDS'])
 
                         # Associate MTContaminant with appropriate IndexMap
@@ -222,15 +231,15 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                         contaminant.indexMap = indexMap
 
                         self._createValueObjects(contam['valueList'], contam['varList'], mapTable, indexMap,
-                                                 contaminant)
+                                                 contaminant, replaceParamFile)
 
                 # SEDIMENTS map table handler
                 elif mt['name'] == 'SEDIMENTS':
                     for line in mt['valueList']:
                         # Create GSSHAPY MTSediment object
                         sediment = MTSediment(description=line[0],
-                                              specificGravity=line[1],
-                                              particleDiameter=line[2],
+                                              specificGravity=vrp(line[1], replaceParamFile),
+                                              particleDiameter=vrp(line[2], replaceParamFile),
                                               outputFilename=line[3])
 
                         # Associate the MTSediment with the MapTable
@@ -241,14 +250,14 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     indexMap = indexMaps[mt['indexMapName']]
 
                     # Create MTValue and MTIndex objects
-                    self._createValueObjects(mt['valueList'], mt['varList'], mapTable, indexMap, None)
+                    self._createValueObjects(mt['valueList'], mt['varList'], mapTable, indexMap, None, replaceParamFile)
 
             except:
                 print ('WARNING: Index Map "%s" for Mapping Table "%s" not found in list of index maps in the mapping '
                        'table file. The Mapping Table was not read into the database.') % (
                     mt['indexMapName'], mt['name'])
 
-    def _createValueObjects(self, valueList, varList, mapTable, indexMap, contaminant):
+    def _createValueObjects(self, valueList, varList, mapTable, indexMap, contaminant, replaceParamFile):
         """
         Populate GSSHAPY MTValue and MTIndex Objects Method
         """
@@ -258,6 +267,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             mtIndex.indexMap = indexMap
 
             for i, value in enumerate(row['values']):
+                value = vrp(value, replaceParamFile)
                 # Create MTValue object and associate with MTIndex and MapTable
                 mtValue = MTValue(variable=varList[i], value=float(value))
                 mtValue.index = mtIndex
@@ -267,7 +277,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                 if contaminant:
                     mtValue.contaminant = contaminant
 
-    def _writeMapTable(self, session, fileObject, mapTable):
+    def _writeMapTable(self, session, fileObject, mapTable, replaceParamFile):
         """
         Write Generic Map Table Method
 
@@ -293,10 +303,10 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             fileObject.write('NUM_SED %s\n' % (mapTable.numSed))
 
         # Write value lines from the database
-        self._writeValues(session, fileObject, mapTable, None)
+        self._writeValues(session, fileObject, mapTable, None, replaceParamFile)
 
 
-    def _writeContaminantTable(self, session, fileObject, mapTable, contaminants):
+    def _writeContaminantTable(self, session, fileObject, mapTable, contaminants, replaceParamFile):
         """
         This method writes the contaminant transport mapping table case.
         """
@@ -309,9 +319,18 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             fileObject.write(
                 '"%s"  "%s"  %s\n' % (contaminant.name, contaminant.indexMap.name, contaminant.outputFilename))
 
-            # Add trailing zeros to values
-            precipConc = '%.2f' % contaminant.precipConc
-            partition = '%.2f' % contaminant.partition
+            # Add trailing zeros to values / replacement parameter
+            precipConcString = vwp(contaminant.precipConc, replaceParamFile)
+            partitionString = vwp(contaminant.partition, replaceParamFile)
+            try:
+                precipConc = '%.2f' % precipConcString
+            except:
+                precipConc = '%s' % precipConcString
+
+            try:
+                partition = '%.2f' % partitionString
+            except:
+                partition = '%s' % partitionString
 
             # Write global variables for the contaminant
             fileObject.write('PRECIP_CONC%s%s\n' % (' ' * 10, precipConc))
@@ -319,10 +338,10 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             fileObject.write('NUM_IDS %s\n' % contaminant.numIDs)
 
             # Write value lines
-            self._writeValues(session, fileObject, mapTable, contaminant)
+            self._writeValues(session, fileObject, mapTable, contaminant, replaceParamFile)
 
 
-    def _writeSedimentTable(self, session, fileObject, mapTable):
+    def _writeSedimentTable(self, session, fileObject, mapTable, replaceParamFile):
         """
         Write Sediment Mapping Table Method
 
@@ -348,19 +367,29 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Determine spacing for aesthetics
             space1 = 42 - len(sediment.description)
 
-            # Pad values with zeros
-            specGrav = '%.6f' % sediment.specificGravity
-            partDiam = '%.6f' % sediment.particleDiameter
+            # Pad values with zeros / Get replacement variable
+            specGravString = vwp(sediment.specificGravity, replaceParamFile)
+            partDiamString = vwp(sediment.particleDiameter, replaceParamFile)
+
+            try:
+                specGrav = '%.6f' % specGravString
+            except:
+                specGrav = '%s' % specGravString
+
+            try:
+                partDiam = '%.6f' % partDiamString
+            except:
+                partDiam = '%s' % partDiamString
+
 
             fileObject.write('%s%s%s%s%s%s%s\n' % (
                 sediment.description, ' ' * space1, specGrav, ' ' * 5, partDiam, ' ' * 6, sediment.outputFilename))
 
-    def _valuePivot(self, session, mapTable, contaminant):
+    def _valuePivot(self, session, mapTable, contaminant, replaceParaFile):
         """
-        This function retrives the values of a mapping table from the database
-        and pivots them into the format that is required by the mapping table
-        file. This function returns a list of strings that can be printed to
-        the file directly.
+        This function retrieves the values of a mapping table from the database and pivots them into the format that is
+        required by the mapping table file. This function returns a list of strings that can be printed to the file
+        directly.
         """
         # Retrieve the indices for the current mapping table and mapping table file
         indexes = session.query(MTIndex). \
@@ -386,16 +415,12 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                 order_by(MTValue.id). \
                 all()
 
-            # NOTE: The second order_by modifier in the query above
-            # handles the special ordering of XSEDIMENT columns 
-            # in soil erosion properties table (i.e. these columns
-            # must be in the same order as the sediments in the 
-            # sediments table. Accomplished by using the sedimentID
-            # field). Similarly, the contaminant filter is only used 
-            # in the case of the contaminant transport table. Values
-            # that don't belong to a contaminant will have a contaminant
-            # attribute equal to None. Compare usage of this function 
-            # by _writeGeneric and _writeContaminant.
+            # NOTE: The second order_by modifier in the query above handles the special ordering of XSEDIMENT columns
+            # in soil erosion properties table (i.e. these columns must be in the same order as the sediments in the
+            # sediments table. Accomplished by using the sedimentID field). Similarly, the contaminant filter is only
+            # used in the case of the contaminant transport table. Values that don't belong to a contaminant will have
+            # a contaminant attribute equal to None. Compare usage of this function by _writeMapTable and
+            # _writeContaminant.
 
             #Value string
             valString = ''
@@ -403,7 +428,12 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Define valString    
             for val in values:
                 # Format value with trailing zeros up to 6 digits
-                numString = '%.6f' % val.value
+                processedValue = vwp(val.value, replaceParaFile)
+                try:
+                    numString = '%.6f' % processedValue
+                except:
+                    numString = '%s' % processedValue
+
                 valString = '%s%s%s' % (valString, numString, ' ' * 3)
 
             # Determine spacing for aesthetics (so each column lines up)
@@ -442,9 +472,9 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Return the list of lines
         return lines
 
-    def _writeValues(self, session, fileObject, mapTable, contaminant):
+    def _writeValues(self, session, fileObject, mapTable, contaminant, replaceParamFile):
 
-        valueLines = self._valuePivot(session, mapTable, contaminant)
+        valueLines = self._valuePivot(session, mapTable, contaminant, replaceParamFile)
 
         # Write map table value lines to file
         for valLine in valueLines:
