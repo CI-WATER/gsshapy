@@ -20,7 +20,7 @@ import xml.etree.ElementTree as ET
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from gsshapy.orm import DeclarativeBase
 from gsshapy.base.file_base import GsshaPyFileObjectBase
@@ -174,6 +174,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     'CHAN_DISCHARGE': LinkNodeDatasetFile,
                     'CHAN_VELOCITY': LinkNodeDatasetFile,
                     'LAKE_OUTPUT': GenericFile,
+                    'FLOOD_STREAM': LinkNodeDatasetFile,
                     'GW_WELL_LEVEL': GenericFile,  # Saturated Groundwater Flow
                     'OUT_GWFULX_LOCATION': TimeSeriesFile,
                     'OUTLET_SED_FLUX': TimeSeriesFile,  # Soil Erosion
@@ -200,7 +201,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     'DIS_RAIN',
                     'GW_OUTPUT',
                     'GW_RECHARGE_CUM',
-                    'GW_RECHARGE_INC')
+                    'GW_RECHARGE_INC',
+                    'FLOOD_GRID')
 
     # Error Messages
     COMMIT_ERROR_MESSAGE = ('Ensure the files listed in the project file '
@@ -326,8 +328,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 new.write(rewriteLine)
 
-
-
     def readProject(self, directory, projectFileName, session, spatial=False, spatialReferenceID=None):
         """
         Read all files for a GSSHA project into the database.
@@ -347,57 +347,33 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 provided GsshaPy will attempt to automatically lookup the spatial reference ID. If this process fails,
                 default srid will be used (4326 for WGS 84).
         """
-        # Defaults
-        output_directory = directory
-
         # Add project file to session
         session.add(self)
 
         # First read self
         self.read(directory, projectFileName, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
+        # Get the batch directory for output
+        batchDirectory = self._getBatchDirectory(directory)
+
         # Automatically derive the spatial reference system, if possible
         if spatialReferenceID is None:
             spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
 
-        # Handle special card cases
-        for card in self.projectCards:
-            if card.name in self.OUTPUT_DIRECTORIES_SUPPORTED:
-                replace_dir = card.value.strip('"')
-                output_directory = os.path.join(output_directory, replace_dir)
-
-            elif card.name == 'REPLACE_PARAMS':
-                # Read parameter replacement file
-                filename = card.value.strip('"')
-                replaceParamFile = ReplaceParamFile()
-                replaceParamFile.read(directory=directory,
-                                      filename=filename,
-                                      session=session,
-                                      spatial=spatial,
-                                      spatialReferenceID=spatialReferenceID)
-                replaceParamFile.projectFile = self
-
-            elif card.name == 'REPLACE_VALS':
-                filename = card.value.strip('"')
-                replaceValFile = ReplaceValFile()
-                replaceValFile.read(directory=directory,
-                                    filename=filename,
-                                    session=session,
-                                    spatial=spatial,
-                                    spatialReferenceID=spatialReferenceID)
-                replaceValFile.projectFile = self
+        # Read in replace param file
+        replaceParamFile = self._readReplacementFiles(directory, session, spatial, spatialReferenceID)
 
         # Read Input Files
         self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
 
         # Read Output Files
-        self._readXput(self.OUTPUT_FILES, output_directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
+        self._readXput(self.OUTPUT_FILES, batchDirectory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
 
         # Read Input Map Files
         self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
 
         # Read WMS Dataset Files
-        self._readWMSDatasets(self.WMS_DATASETS, output_directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+        self._readWMSDatasets(self.WMS_DATASETS, batchDirectory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Commit to database
         self._commit(session, self.COMMIT_ERROR_MESSAGE)
@@ -429,11 +405,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         if spatialReferenceID is None:
             spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
 
+        # Read in replace param file
+        replaceParamFile = self._readReplacementFiles(directory, session, spatial, spatialReferenceID)
+
         # Read Input Files
-        self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+        self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
 
         # Read Input Map Files
-        self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+        self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
 
         # Commit to database
         self._commit(session, self.COMMIT_ERROR_MESSAGE)
@@ -455,14 +434,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 provided GsshaPy will attempt to automatically lookup the spatial reference ID. If this process fails,
                 default srid will be used (4326 for WGS 84).
         """
-        # Defaults
-        output_directory = directory
-
         # Add project file to session
         session.add(self)
 
         # Read Project File
         self.read(directory, projectFileName, session, spatial, spatialReferenceID)
+
+        # Get the batch directory for output
+        batchDirectory = self._getBatchDirectory(directory)
 
         # Read Mask (dependency of some output files)
         maskMap = RasterMapFile()
@@ -474,17 +453,11 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         if spatialReferenceID is None:
             spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
 
-        # If one of the output directory cards is enabled, use it to derive the directory where the output is written
-        for card in self.projectCards:
-            if card.name in self.OUTPUT_DIRECTORIES_SUPPORTED:
-                replace_dir = card.value.strip('"')
-                output_directory = os.path.join(output_directory, replace_dir)
-
         # Read Output Files
-        self._readXput(self.OUTPUT_FILES, output_directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+        self._readXput(self.OUTPUT_FILES, batchDirectory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Read WMS Dataset Files
-        self._readWMSDatasets(self.WMS_DATASETS, output_directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+        self._readWMSDatasets(self.WMS_DATASETS, batchDirectory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
         # Commit to database
         self._commit(session, self.COMMIT_ERROR_MESSAGE)
@@ -504,8 +477,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 'example.cmt', and 'example.gag'). Files that do not follow this convention will retain their original
                 file names.
         """
+        # Get the batch directory for output
+        batchDirectory = self._getBatchDirectory(directory)
+
         # Get param file for writing
         replaceParamFile = self.replaceParamFile
+
+        # Write the replacement files
+        self._writeReplacementFiles(session=session, directory=directory, name=name)
 
         # Write Project File
         self.write(session=session, directory=directory, name=name)
@@ -514,13 +493,13 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self._writeXput(session=session, directory=directory, fileCards=self.INPUT_FILES, name=name, replaceParamFile=replaceParamFile)
 
         # Write output files
-        self._writeXput(session=session, directory=directory, fileCards=self.OUTPUT_FILES, name=name)
+        self._writeXput(session=session, directory=batchDirectory, fileCards=self.OUTPUT_FILES, name=name)
 
         # Write input map files
         self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name, replaceParamFile=replaceParamFile)
 
         # Write WMS Dataset Files
-        self._writeWMSDatasets(session=session, directory=directory, wmsDatasetCards=self.WMS_DATASETS, name=name)
+        self._writeWMSDatasets(session=session, directory=batchDirectory, wmsDatasetCards=self.WMS_DATASETS, name=name)
 
     def writeInput(self, session, directory, name):
         """
@@ -546,6 +525,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Write input map files
         self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name, replaceParamFile=replaceParamFile)
 
+
+
     def writeOutput(self, session, directory, name):
         """
         Write only output files for a GSSHA project from the database to file.
@@ -558,14 +539,20 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 'example.cmt', and 'example.gag'). Files that do not follow this convention will retain their original
                 file names.
         """
+        # Get the batch directory for output
+        batchDirectory = self._getBatchDirectory(directory)
+
+        # Write the replacement files
+        self._writeReplacementFiles(session=session, directory=directory, name=name)
+
         # Write Project File
         self.write(session=session, directory=directory, name=name)
 
         # Write output files
-        self._writeXput(session=session, directory=directory, fileCards=self.OUTPUT_FILES, name=name)
+        self._writeXput(session=session, directory=batchDirectory, fileCards=self.OUTPUT_FILES, name=name)
 
         # Write WMS Dataset Files
-        self._writeWMSDatasets(session=session, directory=directory, wmsDatasetCards=self.WMS_DATASETS, name=name)
+        self._writeWMSDatasets(session=session, directory=batchDirectory, wmsDatasetCards=self.WMS_DATASETS, name=name)
 
     def getFileKeys(self):
         """
@@ -1011,6 +998,23 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return spatialReferenceID
 
+    def _getBatchDirectory(self, projectRootDirectory):
+        """
+        Check the project file for the REPLACE_FOLDER card. If it exists, append it's value to create the batch directory path.
+        This is the directory output is written to when run in batch mode.
+        """
+        # Set output directory to main directory as default
+        batchDirectory = projectRootDirectory
+
+        # Get the replace folder card
+        replaceFolderCard = self.getCard('REPLACE_FOLDER')
+
+        if replaceFolderCard:
+            replaceDir = replaceFolderCard.value.strip('"')
+            batchDirectory = os.path.join(batchDirectory, replaceDir)
+
+        return batchDirectory
+
     def _readXput(self, fileCards, directory, session, spatial=False, spatialReferenceID=4236, replaceParamFile=None):
         """
         GSSHAPY Project Read Files from File Method
@@ -1082,24 +1086,115 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 if (card.name in datasetCards) and self._noneOrNumValue(card.value):
                     # Get filename from project file
                     filename = card.value.strip('"')
+                    path = os.path.join(directory, filename)
 
-                    wmsDatasetFile = WMSDatasetFile()
-                    wmsDatasetFile.projectFile = self
-                    wmsDatasetFile.read(directory=directory,
-                                        filename=filename,
-                                        session=session,
-                                        maskMap=maskMap,
-                                        spatial=spatial,
-                                        spatialReferenceID=spatialReferenceID)
+                    if os.path.isfile(path):
+                        wmsDatasetFile = WMSDatasetFile()
+                        wmsDatasetFile.projectFile = self
+                        wmsDatasetFile.read(directory=directory,
+                                            filename=filename,
+                                            session=session,
+                                            maskMap=maskMap,
+                                            spatial=spatial,
+                                            spatialReferenceID=spatialReferenceID)
+                    else:
+                        self._readBatchOutputForFile(directory, WMSDatasetFile, filename, session, spatial,
+                                                     spatialReferenceID, maskMap=maskMap)
+
+    def _readReplacementFiles(self, directory, session, spatial, spatialReferenceID):
+        """
+        Check for the parameter replacement file cards (REPLACE_PARAMS and REPLACE_VALS) and read the files into
+        database if they exist.
+
+        Returns:
+            replaceParamFile or None if it doesn't exist
+        """
+        # Set default
+        replaceParamFile = None
+
+        # Check for REPLACE_PARAMS card
+        replaceParamCard = self.getCard('REPLACE_PARAMS')
+
+        # Read the file if it exists
+        if replaceParamCard is not None:
+            filename = replaceParamCard.value.strip('"')
+            replaceParamFile = ReplaceParamFile()
+            replaceParamFile.read(directory=directory,
+                                  filename=filename,
+                                  session=session,
+                                  spatial=spatial,
+                                  spatialReferenceID=spatialReferenceID)
+            replaceParamFile.projectFile = self
+
+        # Check for the REPLACE_VALS card
+        replaceValsCard = self.getCard('REPLACE_VALS')
+
+        # Read the file if it exists
+        if replaceValsCard is not None:
+            filename = replaceValsCard.value.strip('"')
+            replaceValsCard = ReplaceValFile()
+            replaceValsCard.read(directory=directory,
+                                 filename=filename,
+                                 session=session,
+                                 spatial=spatial,
+                                 spatialReferenceID=spatialReferenceID)
+            replaceValsCard.projectFile = self
+
+        return replaceParamFile
+
+    def _readBatchOutputForFile(self, directory, fileIO, filename, session, spatial, spatialReferenceID,
+                                replaceParamFile=None, maskMap=None):
+        """
+        When batch mode is run in GSSHA, the files of the same type are prepended with an integer to avoid filename
+        conflicts. This will attempt to read files in this format and throw warnings if the files aren't found.
+        """
+        # If batch mode was run, the name of output files may have an integer prepended to it to designate the run
+        runCounter = 1
+        firstFilename = '0001_' + filename
+        newPath = os.path.join(directory, firstFilename)
+
+        while os.path.isfile(newPath):
+            newFileName = os.path.split(newPath)[1]
+            instance = fileIO()
+            instance.projectFile = self
+
+            if isinstance(instance, WMSDatasetFile):
+                instance.read(directory=directory, filename=newFileName, session=session, maskMap=maskMap, spatial=spatial,
+                              spatialReferenceID=spatialReferenceID)
+            else:
+                instance.read(directory, newFileName, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
+                              replaceParamFile=replaceParamFile)
+            # Increment runCounter for next file
+            runCounter += 1
+            prefix = '{0:04d}_'.format(runCounter)
+            nextFilename = prefix + filename
+            newPath = os.path.join(directory, nextFilename)
+
+        numFilesRead = runCounter - 1
+
+        # Issue warnings
+        if '[' in filename or ']' in filename:
+            print 'WARNING: An instance of {0} cannot be read, because the path to the file in the project file has been replaced with replacement variable {1}.'.format(
+                type(self), filename)
+        elif numFilesRead == 0:
+            print 'WARNING: {0} listed in project file, but no such file exists.'.format(filename)
+        else:
+            print 'INFO: Batch mode output detected. {0} files read for file {1}'.format(numFilesRead, filename)
 
     def _invokeRead(self, fileIO, directory, filename, session, spatial=False, spatialReferenceID=4236, replaceParamFile=None):
         """
         Invoke File Read Method on Other Files
         """
-        instance = fileIO()
-        instance.projectFile = self
-        instance.read(directory, filename, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
-                      replaceParamFile=replaceParamFile)
+        path = os.path.join(directory, filename)
+
+        if os.path.isfile(path):
+            instance = fileIO()
+            instance.projectFile = self
+            instance.read(directory, filename, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
+                          replaceParamFile=replaceParamFile)
+        else:
+            self._readBatchOutputForFile(directory, fileIO, filename, session, spatial, spatialReferenceID, replaceParamFile)
+
 
     def _writeXput(self, session, directory, fileCards, name=None, replaceParamFile=None):
         """
@@ -1180,6 +1275,15 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Retrieve File using FileIO and file extension
                     extension = filename.split('.')[1]
 
+                    # Get mask map file
+                    maskMap = session.query(RasterMapFile).\
+                        filter(RasterMapFile.projectFile == self).\
+                        filter(RasterMapFile.fileExtension == 'msk').\
+                        one()
+
+                    # Default wms dataset
+                    wmsDataset = None
+
                     try:
                         wmsDataset = session.query(WMSDatasetFile). \
                             filter(WMSDatasetFile.projectFile == self). \
@@ -1190,17 +1294,49 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                         # Handle case when there is no file in database but the card is listed in the project file
                         print 'WARNING: {0} listed as card in project file, but the file is not found in the database.'.format(filename)
 
-                    # Get mask map file
-                    maskMap = session.query(RasterMapFile).\
-                        filter(RasterMapFile.projectFile == self).\
-                        filter(RasterMapFile.fileExtension == 'msk').\
-                        one()
+                    except MultipleResultsFound:
+                        # Write all instances
+                        self._invokeWriteForMultipleOfType(directory, extension, WMSDatasetFile, filename, session, maskMap=maskMap)
+                        return
 
                     # Initiate Write Method on File
                     if wmsDataset is not None and maskMap is not None:
                         wmsDataset.write(session=session, directory=directory, name=filename, maskMap=maskMap)
         else:
             print 'Error: Could not write WMS Dataset files. MAP_TYPE', self.mapType, 'not supported.'
+
+    def _writeReplacementFiles(self, session, directory, name):
+        """
+        Write the replacement files
+        """
+        if self.replaceParamFile:
+            self.replaceParamFile.write(session=session, directory=directory, name=name)
+
+        if self.replaceValFile:
+            self.replaceValFile.write(session=session, directory=directory, name=name)
+
+    def _invokeWriteForMultipleOfType(self, directory, extension, fileIO, filename, session, replaceParamFile=None,
+                                      maskMap=None):
+        # Write all instances
+        instances = session.query(fileIO). \
+            filter(fileIO.projectFile == self). \
+            filter(fileIO.fileExtension == extension). \
+            all()
+
+        index = 0
+        for index, instance in enumerate(instances):
+            if instance is not None:
+                # Prefix each file with an integer representing the run
+                prefix = '{0:04d}_'.format(index + 1)
+                prefixFilename = prefix + filename
+
+                if isinstance(instance, WMSDatasetFile):
+                    instance.write(session=session, directory=directory, name=prefixFilename, maskMap=maskMap)
+                else:
+                    instance.write(session=session, directory=directory, name=prefixFilename,
+                                   replaceParamFile=replaceParamFile)
+
+        print 'INFO: Batch mode output detected. {1} files written having extension {0}.'.format(extension, index + 1)
 
     def _invokeWrite(self, fileIO, session, directory, filename, replaceParamFile):
         """
@@ -1231,6 +1367,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             except NoResultFound:
                 # Handle case when there is no file in database but the card is listed in the project file
                 print 'WARNING: {0} listed as card in project file, but the file is not found in the database.'.format(filename)
+            except MultipleResultsFound:
+                self._invokeWriteForMultipleOfType(directory, extension, fileIO, filename, session, replaceParamFile=replaceParamFile)
+                return
 
         # Initiate Write Method on File
         if instance is not None:

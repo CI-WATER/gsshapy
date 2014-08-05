@@ -71,11 +71,11 @@ class GsshaPyFileObjectBase:
             # Rollback the session if the file doesn't exist
             session.rollback()
 
-            # Issue warnings
-            if '[' in filename or ']' in filename:
-                print 'WARNING: An instance of {0} cannot be read, because the path to the file in the project file has been replaced with replacement variable {1}.'.format(type(self), filename)
-            else:
-                print 'WARNING: {0} listed in project file, but no such file exists.'.format(filename)
+            # Print warning
+            print 'WARNING: Could not find file named {0}. File not read.'.format(filename)
+
+
+
 
     def write(self, session, directory, name, replaceParamFile=None):
         """

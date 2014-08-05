@@ -148,7 +148,6 @@ The support for replacement parameters is currently limited to the following fil
 * Project File
 * Mapping Table File
 * Channel Input File
-* Precipitation File
 
 To read a file that has replacement parameters, you must first create an instance of the :class:`gsshapy.orm.ReplaceParamFile`
 and read the replacement parameters file for the project. Then call the read method on the file you want to read and

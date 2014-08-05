@@ -409,11 +409,11 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         for idx in indexes:
             # Retrieve values for the current index
             values = session.query(MTValue). \
-                filter(MTValue.mapTable == mapTable). \
-                filter(MTValue.contaminant == contaminant). \
-                filter(MTValue.index == idx). \
-                order_by(MTValue.id). \
-                all()
+                     filter(MTValue.mapTable == mapTable). \
+                     filter(MTValue.contaminant == contaminant). \
+                     filter(MTValue.index == idx). \
+                     order_by(MTValue.id). \
+                     all()
 
             # NOTE: The second order_by modifier in the query above handles the special ordering of XSEDIMENT columns
             # in soil erosion properties table (i.e. these columns must be in the same order as the sediments in the
