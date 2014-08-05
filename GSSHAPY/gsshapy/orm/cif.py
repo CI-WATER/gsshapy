@@ -442,7 +442,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         try:
             openFile.write('BETA%s%.6f\n' % (' ' * 8, beta))
         except:
-            openFile.write('BETA%s%.6f\n' % (' ' * 8, beta))
+            openFile.write('BETA%s%s\n' % (' ' * 8, beta))
 
         theta = vwp(self.theta, replaceParamFile)
         try:
@@ -454,7 +454,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         openFile.write('MAXNODES%s%s\n' % (' ' * 4, self.maxNodes))
 
         # Retrieve StreamLinks
-        links = self.streamLinks
+        links = self.getOrderedLinks(session)
 
         self._writeConnectivity(links=links,
                                 fileObject=openFile)
@@ -786,7 +786,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         initWSE = vwp(reservoir.initWSE, replaceParamFile)
         minWSE = vwp(reservoir.minWSE, replaceParamFile)
         maxWSE = vwp(reservoir.maxWSE, replaceParamFile)
-        numElements = reservoir.numElements
+        numElements = link.numElements
 
         # Cases
         if link.type == 'LAKE':
@@ -1038,7 +1038,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                         fileObject.write('SIDE_SLOPE     %s\n' % sideSlope)
 
                     # Write optional cross section properties
-                    self._writeOptionalXsecCards(fileObject=fileObject, xSec=xSec)
+                    self._writeOptionalXsecCards(fileObject=fileObject, xSec=xSec, replaceParamFile=replaceParamFile)
 
                 elif 'BREAKPOINT' in linkType:
                     # Retrieve cross section
@@ -1056,7 +1056,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
 
                     # Write optional cross section properties
-                    self._writeOptionalXsecCards(fileObject=fileObject, xSec=xSec, replaceParamFile)
+                    self._writeOptionalXsecCards(fileObject=fileObject, xSec=xSec, replaceParamFile=replaceParamFile)
 
                     # Write breakpoint lines
                     for bp in xSec.breakpoints:
