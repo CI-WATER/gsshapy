@@ -655,14 +655,14 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             initWSE = vrp(header['initwse'], replaceParamFile)
             minWSE = vrp(header['minwse'], replaceParamFile)
             maxWSE = vrp(header['maxwse'], replaceParamFile)
-            numPts = vrp(header['numpts'], replaceParamFile)
+            numPts = header['numpts']
 
         elif linkResult['type'] == 'RESERVOIR':
             # Reservoir handler
             initWSE = vrp(header['res_initwse'], replaceParamFile)
             minWSE = vrp(header['res_minwse'], replaceParamFile)
             maxWSE = vrp(header['res_maxwse'], replaceParamFile)
-            numPts = vrp(header['res_numpts'], replaceParamFile)
+            numPts = header['res_numpts']
 
         # Initialize GSSHAPY Reservoir object
         reservoir = Reservoir(initWSE=initWSE,
@@ -769,7 +769,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 self._writeReservoirLink(link, fileObject, replaceParamFile)
 
             else:
-                print 'OOPS: CIF LINE 417'  # THIS SHOULDN"T HAPPEN
+                print 'OOPS: CIF LINE 417'  # THIS SHOULDN'T HAPPEN
 
             fileObject.write('\n')
 
@@ -782,19 +782,50 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Retrieve reservoir
         reservoir = link.reservoir
 
+        # Reservoir parameters
+        initWSE = vwp(reservoir.initWSE, replaceParamFile)
+        minWSE = vwp(reservoir.minWSE, replaceParamFile)
+        maxWSE = vwp(reservoir.maxWSE, replaceParamFile)
+        numElements = reservoir.numElements
+
         # Cases
         if link.type == 'LAKE':
             # Lake handler
-            fileObject.write('INITWSE      %.6f\n' % reservoir.initWSE)
-            fileObject.write('MINWSE       %.6f\n' % reservoir.minWSE)
-            fileObject.write('MAXWSE       %.6f\n' % reservoir.maxWSE)
-            fileObject.write('NUMPTS       %s\n' % link.numElements)
+            try:
+                fileObject.write('INITWSE      %.6f\n' % initWSE)
+            except:
+                fileObject.write('INITWSE      %s\n' % initWSE)
+
+            try:
+                fileObject.write('MINWSE       %.6f\n' % minWSE)
+            except:
+                fileObject.write('MINWSE       %s\n' % minWSE)
+
+            try:
+                fileObject.write('MAXWSE       %.6f\n' % maxWSE)
+            except:
+                fileObject.write('MAXWSE       %s\n' % maxWSE)
+
+            fileObject.write('NUMPTS       %s\n' % numElements)
+
         elif link.type == 'RESERVOIR':
             # Reservoir handler
-            fileObject.write('RES_INITWSE      %.6f\n' % reservoir.initWSE)
-            fileObject.write('RES_MINWSE       %.6f\n' % reservoir.minWSE)
-            fileObject.write('RES_MAXWSE       %.6f\n' % reservoir.maxWSE)
-            fileObject.write('RES_NUMPTS       %s\n' % link.numElements)
+            try:
+                fileObject.write('RES_INITWSE      %.6f\n' % initWSE)
+            except:
+                fileObject.write('RES_INITWSE      %s\n' % initWSE)
+
+            try:
+                fileObject.write('RES_MINWSE       %.6f\n' % minWSE)
+            except:
+                fileObject.write('RES_MINWSE       %s\n' % minWSE)
+
+            try:
+                fileObject.write('RES_MAXWSE       %.6f\n' % maxWSE)
+            except:
+                fileObject.write('RES_MAXWSE       %s\n' % maxWSE)
+
+            fileObject.write('RES_NUMPTS       %s\n' % numElements)
 
         # Retrieve reservoir points
         points = reservoir.reservoirPoints
@@ -824,60 +855,130 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         for weir in weirs:
             fileObject.write('STRUCTTYPE     %s\n' % weir.type)
 
+            # Check for replacement vars
+            crestLength = vwp(weir.crestLength, replaceParamFile)
+            crestLowElevation = vwp(weir.crestLowElevation, replaceParamFile)
+            dischargeCoeffForward = vwp(weir.dischargeCoeffForward, replaceParamFile)
+            dischargeCoeffReverse = vwp(weir.dischargeCoeffReverse, replaceParamFile)
+            crestLowLocation = vwp(weir.crestLowLocation, replaceParamFile)
+            steepSlope = vwp(weir.steepSlope, replaceParamFile)
+            shallowSlope = vwp(weir.shallowSlope, replaceParamFile)
+
             if weir.crestLength != None:
-                fileObject.write('CREST_LENGTH             %.6f\n' % weir.crestLength)
+                try:
+                    fileObject.write('CREST_LENGTH             %.6f\n' % crestLength)
+                except:
+                    fileObject.write('CREST_LENGTH             %s\n' % crestLength)
 
             if weir.crestLowElevation != None:
-                fileObject.write('CREST_LOW_ELEV           %.6f\n' % weir.crestLowElevation)
+                try:
+                    fileObject.write('CREST_LOW_ELEV           %.6f\n' % crestLowElevation)
+                except:
+                    fileObject.write('CREST_LOW_ELEV           %s\n' % crestLowElevation)
 
             if weir.dischargeCoeffForward != None:
-                fileObject.write('DISCHARGE_COEFF_FORWARD  %.6f\n' % weir.dischargeCoeffForward)
+                try:
+                    fileObject.write('DISCHARGE_COEFF_FORWARD  %.6f\n' % dischargeCoeffForward)
+                except:
+                    fileObject.write('DISCHARGE_COEFF_FORWARD  %s\n' % dischargeCoeffForward)
 
             if weir.dischargeCoeffReverse != None:
-                fileObject.write('DISCHARGE_COEFF_REVERSE  %.6f\n' % weir.dischargeCoeffReverse)
+                try:
+                    fileObject.write('DISCHARGE_COEFF_REVERSE  %.6f\n' % dischargeCoeffReverse)
+                except:
+                    fileObject.write('DISCHARGE_COEFF_REVERSE  %s\n' % dischargeCoeffReverse)
 
             if weir.crestLowLocation != None:
-                fileObject.write('CREST_LOW_LOC            %s\n' % weir.crestLowLocation)
+                    fileObject.write('CREST_LOW_LOC            %s\n' % crestLowLocation)
 
             if weir.steepSlope != None:
-                fileObject.write('STEEP_SLOPE              %.6f\n' % weir.steepSlope)
+                try:
+                    fileObject.write('STEEP_SLOPE              %.6f\n' % steepSlope)
+                except:
+                    fileObject.write('STEEP_SLOPE              %s\n' % steepSlope)
 
             if weir.shallowSlope != None:
-                fileObject.write('SHALLOW_SLOPE            %.6f\n' % weir.shallowSlope)
+                try:
+                    fileObject.write('SHALLOW_SLOPE            %.6f\n' % shallowSlope)
+                except:
+                    fileObject.write('SHALLOW_SLOPE            %s\n' % shallowSlope)
 
         # Write culverts to file
         for culvert in culverts:
             fileObject.write('STRUCTTYPE     %s\n' % culvert.type)
 
+            # Check for replacement vars
+            upstreamInvert = vwp(culvert.upstreamInvert, replaceParamFile)
+            downstreamInvert = vwp(culvert.downstreamInvert, replaceParamFile)
+            inletDischargeCoeff = vwp(culvert.inletDischargeCoeff, replaceParamFile)
+            reverseFlowDischargeCoeff = vwp(culvert.reverseFlowDischargeCoeff, replaceParamFile)
+            slope = vwp(culvert.slope, replaceParamFile)
+            length = vwp(culvert.length, replaceParamFile)
+            roughness = vwp(culvert.roughness, replaceParamFile)
+            diameter = vwp(culvert.diameter, replaceParamFile)
+            width = vwp(culvert.width, replaceParamFile)
+            height = vwp(culvert.height, replaceParamFile)
+
             if culvert.upstreamInvert != None:
-                fileObject.write('UPINVERT                 %.6f\n' % culvert.upstreamInvert)
+                try:
+                    fileObject.write('UPINVERT                 %.6f\n' % upstreamInvert)
+                except:
+                    fileObject.write('UPINVERT                 %s\n' % upstreamInvert)
 
             if culvert.downstreamInvert != None:
-                fileObject.write('DOWNINVERT               %.6f\n' % culvert.downstreamInvert)
+                try:
+                    fileObject.write('DOWNINVERT               %.6f\n' % downstreamInvert)
+                except:
+                    fileObject.write('DOWNINVERT               %s\n' % downstreamInvert)
 
             if culvert.inletDischargeCoeff != None:
-                fileObject.write('INLET_DISCH_COEFF        %.6f\n' % culvert.inletDischargeCoeff)
+                try:
+                    fileObject.write('INLET_DISCH_COEFF        %.6f\n' % inletDischargeCoeff)
+                except:
+                    fileObject.write('INLET_DISCH_COEFF        %s\n' % inletDischargeCoeff)
 
             if culvert.reverseFlowDischargeCoeff != None:
-                fileObject.write('REV_FLOW_DISCH_COEFF     %.6f\n' % culvert.reverseFlowDischargeCoeff)
+                try:
+                    fileObject.write('REV_FLOW_DISCH_COEFF     %.6f\n' % reverseFlowDischargeCoeff)
+                except:
+                    fileObject.write('REV_FLOW_DISCH_COEFF     %s\n' % reverseFlowDischargeCoeff)
 
             if culvert.slope != None:
-                fileObject.write('SLOPE                    %.6f\n' % culvert.slope)
+                try:
+                    fileObject.write('SLOPE                    %.6f\n' % slope)
+                except:
+                    fileObject.write('SLOPE                    %s\n' % slope)
 
             if culvert.length != None:
-                fileObject.write('LENGHT                   %.6f\n' % culvert.length)
+                try:
+                    fileObject.write('LENGTH                   %.6f\n' % length)
+                except:
+                    fileObject.write('LENGTH                   %s\n' % length)
 
             if culvert.roughness != None:
-                fileObject.write('ROUGH_COEFF              %.6f\n' % culvert.roughness)
+                try:
+                    fileObject.write('ROUGH_COEFF              %.6f\n' % roughness)
+                except:
+                    fileObject.write('ROUGH_COEFF              %s\n' % roughness)
 
             if culvert.diameter != None:
-                fileObject.write('DIAMETER                 %.6f\n' % culvert.diameter)
+                try:
+                    fileObject.write('DIAMETER                 %.6f\n' % diameter)
+                except:
+                    fileObject.write('DIAMETER                 %s\n' % diameter)
+
 
             if culvert.width != None:
-                fileObject.write('WIDTH                    %.6f\n' % culvert.width)
+                try:
+                    fileObject.write('WIDTH                    %.6f\n' % width)
+                except:
+                    fileObject.write('WIDTH                    %s\n' % width)
 
             if culvert.height != None:
-                fileObject.write('HEIGHT                   %.6f\n' % culvert.height)
+                try:
+                    fileObject.write('HEIGHT                   %.6f\n' % height)
+                except:
+                    fileObject.write('HEIGHT                   %s\n' % height)
 
     def _writeCrossSectionLink(self, link, fileObject, replaceParamFile):
         """
