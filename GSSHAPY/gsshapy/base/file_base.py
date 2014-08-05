@@ -24,7 +24,7 @@ class GsshaPyFileObjectBase:
     """
     # Error Messages
     COMMIT_ERROR_MESSAGE = 'Ensure the file is not empty and try again.'
-    
+
     def __init__(self):
         """
         Constructor
@@ -71,8 +71,11 @@ class GsshaPyFileObjectBase:
             # Rollback the session if the file doesn't exist
             session.rollback()
 
-            # Issue warning
-            print 'WARNING: {0} listed in project file, but no such file exists.'.format(filename)
+            # Issue warnings
+            if '[' in filename or ']' in filename:
+                print 'WARNING: An instance of {0} cannot be read, because the path to the file in the project file has been replaced with replacement variable {1}.'.format(type(self), filename)
+            else:
+                print 'WARNING: {0} listed in project file, but no such file exists.'.format(filename)
 
     def write(self, session, directory, name, replaceParamFile=None):
         """
@@ -95,7 +98,7 @@ class GsshaPyFileObjectBase:
 
         if len(name_split) >= 2:
             extension = name_split[-1]
-            
+
         # Run name preprocessor method if present
         try:
             name = self._namePreprocessor(name)
@@ -108,13 +111,13 @@ class GsshaPyFileObjectBase:
             filename = '{0}.{1}'.format(name, extension)
 
         filePath = os.path.join(directory, filename)
-        
+
         with open(filePath, 'w') as openFile:
             # Write Lines
             self._write(session=session,
                         openFile=openFile,
                         replaceParamFile=replaceParamFile)
-            
+
     def _commit(self, session, errorMessage):
         """
         Custom commit function for file objects
@@ -123,11 +126,11 @@ class GsshaPyFileObjectBase:
             session.commit()
         except IntegrityError:
             # Raise special error if the commit fails due to empty files
-            print 'ERROR: Commit to database failed. %s' % errorMessage            
+            print 'ERROR: Commit to database failed. %s' % errorMessage
         except:
             # Raise other errors as normal
             raise
-    
+
     def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
         Private file object read method. Classes that inherit from this base class must implement this method.
@@ -162,7 +165,7 @@ class GsshaPyFileObjectBase:
                 to be replacement variables in the file. Use the gsshapy.lib.parsetools.valueReadPreprocessor() to
                 handle these.
         """
-        
+
     def _write(self, session, openFile, replaceParamFile):
         """
         Private file object write method. Classes that inherit from this base class must implement this method.

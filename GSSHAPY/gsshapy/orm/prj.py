@@ -1110,6 +1110,11 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 fileIO = fileCards[card.name]
                 filename = card.value.strip('"')
 
+                # Check for replacement variables
+                if '[' in filename or ']' in filename:
+                    print 'WARNING: The file for project card {0} cannot be written, because the path has been replaced with replacement variable {1}.'.format(card.name, filename)
+                    return
+
                 # Determine new filename
                 filename = self._replaceNewFilename(filename=filename,
                                                     name=name)
