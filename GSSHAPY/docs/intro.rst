@@ -21,9 +21,9 @@ States Army Corps of Engineers (USACE). GSSHA is used to predict soil
 moisture as well as runoff and flooding on watersheds.
 
 .. note::
-	
-	For more information about GSSHA please visit the `GSSHA website`_ 
-	and the gsshawiki_ .
+
+    For more information about GSSHA please visit the `GSSHA website`_
+    and the gsshawiki_ .
 
 .. _GSSHA website: http://chl.erdc.usace.army.mil/gssha	
 .. _gsshawiki: http://www.gsshawiki.com/Main_Page
@@ -39,22 +39,36 @@ you install GsshaPy.
 Installation
 ============
 
-To install GsshaPy use ``easy_install`` as follows::
-	
-	$ easy_install gsshapy
-	
+To install GsshaPy use ``pip`` as follows::
+
+    $ pip install gsshapy
+
+You may also use ``easy_install`` if that is your particular poison::
+
+    $ easy_install gsshapy
+
 Alternatively, the source code is available on bit bucket and can be 
 downloaded and installed as follows::
 
-	$ git clone git@bitbucket.org:swainn/gsshapy.git
-	$ cd gsshapy/GSSHAPY
-	$ python setup.py install
-	
-For Windows users, a Windows installer has been created. It can be
-downloaded here_.
+    $ git clone git@bitbucket.org:swainn/gsshapy.git
+    $ cd gsshapy/GSSHAPY
+    $ python setup.py install
 
-.. _here: https://bitbucket.org/swainn/gsshapy/src/48944590dcc5957d6e97bd80a95f03e0857a734f/GSSHAPY/dist/gsshapy-1.0.0.win-amd64.exe?at=master
-	
+.. note::
+
+    It may be necessary to first uninstall ``gsshapy`` to get it to upgrade properly. If you experience issues, use the
+    following commands to uninstall ``gsshapy`` and it's dependency ``mapkit``::
+
+        $ pip uninstall gsshapy mapkit
+
+    Now run the install command from above. Mapkit will automatically be installed as a dependency.
+
+Test out your new installation by opening a Python prompt and executing the following lines::
+
+    >>> import gsshapy
+    >>> gsshapy.version()
+    '2.0.0'
+    >>> exit()
 
 License
 =======
@@ -64,17 +78,17 @@ GsshaPy is released under the `BSD 2-Clause license`_.
 .. _BSD 2-Clause license: https://bitbucket.org/swainn/gsshapy/raw/48944590dcc5957d6e97bd80a95f03e0857a734f/GSSHAPY/LICENSE.txt
 
 .. raw:: html
-	
-	<div>
-		<script src="https://bitbucket.org/swainn/gsshapy/src/48944590dcc5957d6e97bd80a95f03e0857a734f/GSSHAPY/LICENSE.txt?embed=t"></script>
-	</div>
-	
+
+    <div>
+        <script src="https://bitbucket.org/swainn/gsshapy/src/48944590dcc5957d6e97bd80a95f03e0857a734f/GSSHAPY/LICENSE.txt?embed=t"></script>
+    </div>
+
 Source
 ======
 
 The source code is available on bitbucket::
-	
-	$ git clone git@bitbucket.org:swainn/gsshapy.git
+
+    $ git clone git@bitbucket.org:swainn/gsshapy.git
 
 Author
 ======
