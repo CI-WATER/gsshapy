@@ -18,7 +18,7 @@ from mapkit.RasterConverter import RasterConverter
 from mapkit.ColorRampGenerator import ColorRampGenerator, ColorRampEnum
 
 # DATABASE SETUP ------------------------------------------------------------------------------------------------------#
-#'''
+'''
 # Drop all tables except the spatial reference table that PostGIS uses
 db_url = 'postgresql://swainn:(|water@localhost/gsshapy_postgis_2'
 engine = create_engine(db_url)
@@ -37,15 +37,10 @@ sqlalchemy_url = dbt.init_postgresql_db(username='swainn',
                                         database='gsshapy_postgis_2')
 
 # GLOBAL PARAMETERS ---------------------------------------------------------------------------------------------------#
-#'''
 read_directory = '/Users/swainn/testing/timeseries_maps/Park_City_Chan_Depth'
 write_directory = '/Users/swainn/testing/timeseries_maps/Park_City_Chan_Depth/write'
 project_file_name = 'parkcity.prj'
-'''
-read_directory = '/Users/swainn/testing/test_models/SNOW_DATA'
-write_directory = '/Users/swainn/testing/test_models/SNOW_DATA/write'
-project_file_name = 'longterm_snow.prj'
-#'''
+
 
 
 out_file_name = 'out'
@@ -56,7 +51,7 @@ read_session = dbt.create_session(sqlalchemy_url)
 write_session = dbt.create_session(sqlalchemy_url)
 
 # READ PROJECT --------------------------------------------------------------------------------------------------------#
-#'''
+'''
 project_file = ProjectFile()
 
 START = time.time()
@@ -117,7 +112,7 @@ wms_raster.getAsKmlGrid(write_session, path=out_path)
 '''
 out_path = os.path.join(write_directory, 'index.kmz')
 index_map = write_session.query(IndexMap).first()
-index_map.getAsKmlPng(write_session, path=out_path)
+index_map.getAsKmlPng(write_session, path=out_path, cellSize=5)
 '''
 
 '''
@@ -142,9 +137,9 @@ channel_input_file.getStreamNetworkAsKml(write_session, out_path)
 out_path = os.path.join(write_directory, 'model.kml')
 styles = {'maskFillColor': (255, 128, 0, 255),
           'maskLineWidth': 0.0}
-# project_file.getModelSummaryAsKml(write_session, out_path, withStreamNetwork=True, styles=styles)
-# print project_file.getModelSummaryAsWkt(write_session, withStreamNetwork=True, withNodes=True)
-#print project_file.getModelSummaryAsGeoJson(write_session, withStreamNetwork=True)
+project_file.getModelSummaryAsKml(write_session, out_path, withStreamNetwork=True, styles=styles)
+print project_file.getModelSummaryAsWkt(write_session, withStreamNetwork=True, withNodes=True)
+print project_file.getModelSummaryAsGeoJson(write_session, withStreamNetwork=True)
 #'''
 
 # LINK NODE DATASET ANIMATION -----------------------------------------------------------------------------------------#

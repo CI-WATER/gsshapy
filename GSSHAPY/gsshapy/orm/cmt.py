@@ -21,6 +21,7 @@ from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
 
 from gsshapy.orm import DeclarativeBase
+from gsshapy.orm.lnd import LinkNodeDatasetFile
 from gsshapy.base.file_base import GsshaPyFileObjectBase
 from gsshapy.orm.idx import IndexMap
 from gsshapy.lib import parsetools as pt, cmt_chunk as mtc
@@ -132,7 +133,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Create GSSHAPY ORM objects with the resulting objects that are 
         # returned from the parser functions
-        self._createGsshaPyObjects(mapTables, indexMaps, replaceParamFile)
+        self._createGsshaPyObjects(mapTables, indexMaps, replaceParamFile, directory, session, spatial, spatialReferenceID)
 
     def _write(self, session, openFile, replaceParamFile):
         """
@@ -188,7 +189,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         return session.query(MapTable).filter(MapTable.mapTableFile == self).order_by(MapTable.name).all()
 
-    def _createGsshaPyObjects(self, mapTables, indexMaps, replaceParamFile):
+    def _createGsshaPyObjects(self, mapTables, indexMaps, replaceParamFile, directory, session, spatial, spatialReferenceID):
         """
         Create GSSHAPY Mapping Table ORM Objects Method
         """
@@ -196,8 +197,9 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Create GSSHAPY MapTable object
             try:
                 # Make sure the index map name listed with the map table is in the list of 
-                # index maps read from the top of the mapping table file
-                if mt['indexMapName'] != None:
+                # index maps read from the top of the mapping table file (Note that the index maps for the sediment
+                # and contaminant tables will have names of None, so we skip these cases.
+                if mt['indexMapName'] is not None:
                     indexMaps[mt['indexMapName']]
 
                 mapTable = MapTable(name=mt['name'],
@@ -219,9 +221,12 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # CONTAMINANT_TRANSPORT map table handler
                 if mt['name'] == 'CONTAMINANT_TRANSPORT':
                     for contam in mt['contaminants']:
+                        # Preprocess the contaminant output paths to be relative
+                        outputBaseFilename = self._preprocessContaminantOutFilePath(contam['outPath'])
+
                         # Initialize GSSHAPY MTContaminant object
                         contaminant = MTContaminant(name=contam['name'],
-                                                    outputFilename=contam['outPath'],
+                                                    outputFilename=outputBaseFilename,
                                                     precipConc=vrp(contam['contamVars']['PRECIP_CONC'], replaceParamFile),
                                                     partition=vrp(contam['contamVars']['PARTITION'], replaceParamFile),
                                                     numIDs=contam['contamVars']['NUM_IDS'])
@@ -232,6 +237,9 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                         self._createValueObjects(contam['valueList'], contam['varList'], mapTable, indexMap,
                                                  contaminant, replaceParamFile)
+
+                        # Read any output files if they are present
+                        self._readContaminantOutputFiles(directory, outputBaseFilename, session, spatial, spatialReferenceID)
 
                 # SEDIMENTS map table handler
                 elif mt['name'] == 'SEDIMENTS':
@@ -252,7 +260,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Create MTValue and MTIndex objects
                     self._createValueObjects(mt['valueList'], mt['varList'], mapTable, indexMap, None, replaceParamFile)
 
-            except:
+            except KeyError:
                 print ('INFO: Index Map "%s" for Mapping Table "%s" not found in list of index maps in the mapping '
                        'table file. The Mapping Table was not read into the database.') % (
                     mt['indexMapName'], mt['name'])
@@ -276,6 +284,41 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # MTContaminant handler (associate MTValue with MTContaminant)
                 if contaminant:
                     mtValue.contaminant = contaminant
+
+    def _readContaminantOutputFiles(self, directory, baseFileName, session, spatial, spatialReferenceID):
+        """
+        Read any contaminant output files if available
+        """
+        if not os.path.isdir(directory):
+            return
+        if baseFileName == '':
+            return
+
+        # Look for channel output files denoted by the ".chan" after the base filename
+        chanBaseFileName = '.'.join([baseFileName, 'chan'])
+
+        # Get contents of directory
+        directoryList = os.listdir(directory)
+
+        # Compile a list of files with "basename.chan" in them
+        chanFiles = []
+        for thing in directoryList:
+            if chanBaseFileName in thing:
+                chanFiles.append(thing)
+
+        # Assume all "chan" files are link node dataset files and try to read them
+        for chanFile in chanFiles:
+            linkNodeDatasetFile = LinkNodeDatasetFile()
+            linkNodeDatasetFile.projectFile = self.projectFile
+
+            try:
+                linkNodeDatasetFile.read(directory=directory,
+                                         filename=chanFile,
+                                         session=session,
+                                         spatial=spatial,
+                                         spatialReferenceID=spatialReferenceID)
+            except:
+                print 'WARNING: Attempted to read Contaminant Transport Output file {0}, but failed.'.format(chanFile)
 
     def _writeMapTable(self, session, fileObject, mapTable, replaceParamFile):
         """
@@ -479,6 +522,31 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Write map table value lines to file
         for valLine in valueLines:
             fileObject.write(valLine)
+
+    @staticmethod
+    def _preprocessContaminantOutFilePath(outPath):
+        """
+        Preprocess the contaminant output file path to a relative path.
+        """
+        if '/' in outPath:
+            splitPath = outPath.split('/')
+
+        elif '\\' in outPath:
+            splitPath = outPath.split('\\')
+
+        else:
+            splitPath = [outPath, ]
+
+        if splitPath[-1] == '':
+            outputFilename = splitPath[-2]
+
+        else:
+            outputFilename = splitPath[-1]
+
+        if '.' in outputFilename:
+            outputFilename = outputFilename.split('.')[0]
+
+        return outputFilename
 
 
 class MapTable(DeclarativeBase):

@@ -74,9 +74,6 @@ class GsshaPyFileObjectBase:
             # Print warning
             print 'WARNING: Could not find file named {0}. File not read.'.format(filename)
 
-
-
-
     def write(self, session, directory, name, replaceParamFile=None):
         """
         Write from database back to file.

@@ -773,7 +773,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             channelInputFile = self.channelInputFile
 
             # Retrieve Stream Links
-            links = channelInputFile.streamLinks
+            links = channelInputFile.getFluvialLinks()
 
             # Stream Network
             for link in links:
@@ -792,8 +792,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 lineWidth.text = str(streamLineWidthValue)
 
                 # Add the geometry to placemark
-                lineString = ET.fromstring(link.getAsKml(session))
-                placemark.append(lineString)
+                linkKML = link.getAsKml(session)
+                if linkKML:
+                    lineString = ET.fromstring(linkKML)
+                    placemark.append(lineString)
+                else:
+                    print "WARNING: No geometry found for link with id {0}".format(link.id)
 
                 if withNodes:
                     # Create the node styles
@@ -1154,29 +1158,30 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         When batch mode is run in GSSHA, the files of the same type are prepended with an integer to avoid filename
         conflicts. This will attempt to read files in this format and throw warnings if the files aren't found.
         """
-        # If batch mode was run, the name of output files may have an integer prepended to it to designate the run
-        runCounter = 1
-        firstFilename = '0001_' + filename
-        newPath = os.path.join(directory, firstFilename)
+        # Get contents of directory
+        directoryList = os.listdir(directory)
 
-        while os.path.isfile(newPath):
-            newFileName = os.path.split(newPath)[1]
+        # Compile a list of files with that include the filename in them
+        batchFiles = []
+        for thing in directoryList:
+            if filename in thing:
+                batchFiles.append(thing)
+
+        numFilesRead = 0
+
+        for batchFile in batchFiles:
+            print batchFile
             instance = fileIO()
             instance.projectFile = self
 
             if isinstance(instance, WMSDatasetFile):
-                instance.read(directory=directory, filename=newFileName, session=session, maskMap=maskMap, spatial=spatial,
+                instance.read(directory=directory, filename=batchFile, session=session, maskMap=maskMap, spatial=spatial,
                               spatialReferenceID=spatialReferenceID)
             else:
-                instance.read(directory, newFileName, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
+                instance.read(directory, batchFile, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
                               replaceParamFile=replaceParamFile)
             # Increment runCounter for next file
-            runCounter += 1
-            prefix = '{0:04d}_'.format(runCounter)
-            nextFilename = prefix + filename
-            newPath = os.path.join(directory, nextFilename)
-
-        numFilesRead = runCounter - 1
+            numFilesRead += 1
 
         # Issue warnings
         if '[' in filename or ']' in filename:

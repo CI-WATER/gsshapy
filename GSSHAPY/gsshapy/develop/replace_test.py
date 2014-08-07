@@ -18,7 +18,7 @@ from mapkit.RasterConverter import RasterConverter
 from mapkit.ColorRampGenerator import ColorRampGenerator, ColorRampEnum
 
 # DATABASE SETUP ------------------------------------------------------------------------------------------------------#
-#'''
+'''
 # Drop all tables except the spatial reference table that PostGIS uses
 db_url = 'postgresql://swainn:(|water@localhost/gsshapy_replace'
 engine = create_engine(db_url)
@@ -70,7 +70,7 @@ print 'PROJECT FILE WRITE: ', time.time() - START
 
 
 # READ PROJECT --------------------------------------------------------------------------------------------------------#
-#'''
+'''
 project_file = ProjectFile()
 
 START = time.time()
@@ -79,7 +79,7 @@ print 'READ: ', time.time() - START
 #'''
 
 # WRITE PROJECT -------------------------------------------------------------------------------------------------------#
-#'''
+'''
 project_file = write_session.query(ProjectFile).first()
 START = time.time()
 project_file.writeProject(write_session, write_directory, out_file_name)
@@ -111,27 +111,27 @@ START = time.time()
 
 # WMS DATASETS --------------------------------------------------------------------------------------------------------#
 '''
-out_path = os.path.join(write_directory, 'depth.kml')
+out_path = os.path.join(write_directory, 'flood_depth.kml')
 wms_dataset.getAsKmlGridAnimation(write_session, project_file, path=out_path, colorRamp=ColorRampEnum.COLOR_RAMP_AQUA)
 '''
 
 '''
-out_path = os.path.join(write_directory, 'depth.kmz')
+out_path = os.path.join(write_directory, 'flood_depth.kmz')
 wms_dataset.getAsKmlPngAnimation(write_session, project_file, path=out_path, colorRamp=ColorRampEnum.COLOR_RAMP_AQUA, alpha=0.8, cellSize=10)
 #'''
 
 # SINGLE WMS DATASET RASTER -------------------------------------------------------------------------------------------#
-'''
-out_path = os.path.join(write_directory, 'one_depth.kml')
-wms_raster = write_session.query(WMSDatasetRaster).get(144)
-wms_raster.getAsKmlGrid(write_session, path=out_path)
+#'''
+out_path = os.path.join(write_directory, 'max_flood_all.kml')
+wms_raster = write_session.query(WMSDatasetRaster).get(3)
+wms_raster.getAsKmlGrid(write_session, path=out_path, alpha=0.8)
 #'''
 
 # INDEX AND RASTER MAPS -----------------------------------------------------------------------------------------------#
 '''
 out_path = os.path.join(write_directory, 'index.kmz')
 index_map = write_session.query(IndexMap).first()
-index_map.getAsKmlPng(write_session, path=out_path)
+index_map.getAsKmlPng(write_session, path=out_path, cellSize=10)
 '''
 
 '''
@@ -153,12 +153,12 @@ channel_input_file.getStreamNetworkAsKml(write_session, out_path)
 
 # MODEL REPRESENTATION ------------------------------------------------------------------------------------------------#
 '''
-out_path = os.path.join(write_directory, 'model.kml')
+out_path = os.path.join(write_directory, 'model_summary.kml')
 styles = {'maskFillColor': (255, 128, 0, 255),
           'maskLineWidth': 0.0}
-# project_file.getModelSummaryAsKml(write_session, out_path, withStreamNetwork=True, styles=styles)
-# print project_file.getModelSummaryAsWkt(write_session, withStreamNetwork=True, withNodes=True)
-#print project_file.getModelSummaryAsGeoJson(write_session, withStreamNetwork=True)
+project_file.getModelSummaryAsKml(write_session, out_path, withStreamNetwork=True, styles=styles)
+print project_file.getModelSummaryAsWkt(write_session, withStreamNetwork=True, withNodes=True)
+print project_file.getModelSummaryAsGeoJson(write_session, withStreamNetwork=True)
 #'''
 
 # LINK NODE DATASET ANIMATION -----------------------------------------------------------------------------------------#
@@ -166,10 +166,10 @@ styles = {'maskFillColor': (255, 128, 0, 255),
 channel_input_file = write_session.query(ChannelInputFile).first()
 link_node_dataset_file = write_session.query(LinkNodeDatasetFile).first()
 
-
 # link_node_dataset_file.linkToChannelInputFile(write_session, channel_input_file)
-out_path = os.path.join(write_directory, 'channel_depth.kml')
-styles = {'radius': 5}
+out_path = os.path.join(write_directory, 'maximum_channel_depth_0001.kml')
+styles = {'radius': 5,
+          'colorRampEnum': ColorRampEnum.COLOR_RAMP_HUE}
 link_node_dataset_file.getAsKmlAnimation(write_session, channel_input_file, path=out_path, styles=styles)
 #'''
 

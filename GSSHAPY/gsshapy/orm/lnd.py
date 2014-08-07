@@ -107,9 +107,8 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
             # Link each node dataset
             for l, linkDataset in enumerate(linkDatasets):
-                # Get the fluvial link
+                # Get the fluvial link and nodes
                 streamLink = orderedLinks[l]
-
                 streamNodes = streamLink.nodes
 
                 # Link link datasets to fluvial links
@@ -118,7 +117,8 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # Retrieve node datasets
                 nodeDatasets = linkDataset.nodeDatasets
 
-                if linkDataset.numNodeDatasets > 0:
+                # Link the node dataset with the channel input file nodes
+                if len(nodeDatasets) > 0 and len(streamNodes) > 0:
                     for n, nodeDataset in enumerate(nodeDatasets):
                         nodeDataset.node = streamNodes[n]
 
@@ -225,9 +225,9 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         if len(startTimeParts) > 5:
             # Default start date time to epoch
-            startDateTime = datetime(year=int(startTimeParts[0]) or 1970,
+            startDateTime = datetime(year=int(startTimeParts[2]) or 1970,
                                      month=int(startTimeParts[1]) or 1,
-                                     day=int(startTimeParts[2]) or 1,
+                                     day=int(startTimeParts[0]) or 1,
                                      hour=int(startTimeParts[3]) or 0,
                                      minute=int(startTimeParts[4]) or 0)
 
@@ -308,14 +308,15 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                     polyColor = ET.SubElement(polyStyle, 'color')
                     polyColor.text = colorString
 
-                    # Create TimeSpan tag
-                    timeSpan = ET.SubElement(placemark, 'TimeSpan')
+                    if len(linkNodeTimeSteps) > 1:
+                        # Create TimeSpan tag
+                        timeSpan = ET.SubElement(placemark, 'TimeSpan')
 
-                    # Create begin and end tags
-                    begin = ET.SubElement(timeSpan, 'begin')
-                    begin.text = timeSpanBegin.strftime('%Y-%m-%dT%H:%M:%S')
-                    end = ET.SubElement(timeSpan, 'end')
-                    end.text = timeSpanEnd.strftime('%Y-%m-%dT%H:%M:%S')
+                        # Create begin and end tags
+                        begin = ET.SubElement(timeSpan, 'begin')
+                        begin.text = timeSpanBegin.strftime('%Y-%m-%dT%H:%M:%S')
+                        end = ET.SubElement(timeSpan, 'end')
+                        end.text = timeSpanEnd.strftime('%Y-%m-%dT%H:%M:%S')
 
                     # Append geometry
                     polygonCircle = ET.fromstring(circleString)
@@ -440,7 +441,6 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                                 nodeDataset.value = float(spLinkLine[1])
                                 nodeDataset.linkDataset = linkDataset
                                 nodeDataset.linkNodeDatasetFile = self
-                                print spLinkLine
 
 
 

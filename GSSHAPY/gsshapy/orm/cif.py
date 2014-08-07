@@ -146,7 +146,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             str: KML string
         """
         # Retrieve Stream Links
-        links = self.streamLinks
+        links = self.getFluvialLinks()
 
         # Set Default Styles
         lineColorValue = (255, 255, 0, 0)  # Blue
@@ -203,8 +203,12 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
             lineWidth.text = str(lineWidthValue)
 
             # Add the geometry to placemark
-            lineString = ET.fromstring(link.getAsKml(session))
-            placemark.append(lineString)
+            linkKML = link.getAsKml(session)
+            if linkKML:
+                lineString = ET.fromstring(linkKML)
+                placemark.append(lineString)
+            else:
+                print "WARNING: No geometry found for link with id {0}".format(link.id)
 
             if withNodes:
                 # Create the node styles
@@ -305,11 +309,17 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         wkt_list = []
 
         for link in self.streamLinks:
-            wkt_list.append(link.getAsWkt(session))
+            wkt_link = link.getAsWkt(session)
+
+            if wkt_link:
+                wkt_list.append(wkt_link)
 
             if withNodes:
                 for node in link.nodes:
-                    wkt_list.append(node.getAsWkt(session))
+                    wkt_node = node.getAsWkt(session)
+
+                    if wkt_node:
+                        wkt_list.append(wkt_node)
 
         return 'GEOMCOLLECTION ({0})'.format(', '.join(wkt_list))
 
@@ -328,26 +338,32 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Assemble link features
         for link in self.streamLinks:
-            link_geometry = json.loads(link.getAsGeoJson(session))
+            link_geoJson = link.getAsGeoJson(session)
 
-            link_properties = {"link_number": link.linkNumber,
-                               "type": link.type,
-                               "num_elements": link.numElements,
-                               "dx": link.dx,
-                               "erode": link.erode,
-                               "subsurface": link.subsurface}
+            if link_geoJson:
+                link_geometry = json.loads(link.getAsGeoJson(session))
 
-            link_feature = {"type": "Feature",
-                            "geometry": link_geometry,
-                            "properties": link_properties,
-                            "id": link.id}
+                link_properties = {"link_number": link.linkNumber,
+                                   "type": link.type,
+                                   "num_elements": link.numElements,
+                                   "dx": link.dx,
+                                   "erode": link.erode,
+                                   "subsurface": link.subsurface}
 
-            features_list.append(link_feature)
+                link_feature = {"type": "Feature",
+                                "geometry": link_geometry,
+                                "properties": link_properties,
+                                "id": link.id}
+
+                features_list.append(link_feature)
 
             # Assemble node features
             if withNodes:
                 for node in link.nodes:
-                    node_geometry = json.loads(node.getAsGeoJson(session))
+                    node_geoJson = node.getAsGeoJson(session)
+
+                    if node_geoJson:
+                        node_geometry = json.loads(node_geoJson)
 
                     node_properties = {"link_number": link.linkNumber,
                                        "node_number": node.nodeNumber,
@@ -695,7 +711,6 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Create PostGIS geometric objects
         """
-
         # Flush the current session
         session.flush()
 
@@ -1093,12 +1108,12 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def _getUpdateGeometrySqlString(self, geometryID, tableName, spatialReferenceID, wktString):
         statement = '''
-                            UPDATE {0} SET geometry=ST_GeomFromText('{1}', {2})
-                            WHERE id={3};
-                            '''.format(tableName,
-                                       wktString,
-                                       spatialReferenceID,
-                                       geometryID)
+                    UPDATE {0} SET geometry=ST_GeomFromText('{1}', {2})
+                    WHERE id={3};
+                    '''.format(tableName,
+                               wktString,
+                               spatialReferenceID,
+                               geometryID)
         return statement
 
 
