@@ -1,5 +1,3 @@
-import os
-
 from setuptools import setup, find_packages
 
 requires = [
@@ -15,7 +13,7 @@ setup(name='gsshapy',
       author_email='nathan.swain@byu.net',
       url='https://bitbucket.org/swainn/gsshapy',
       license='BSD 2-Clause License',
-      keywords='gssha database model',
+      keywords='GSSHA, database, object relational model',
       packages=find_packages(),
       include_package_data=True,
       install_requires=requires,
