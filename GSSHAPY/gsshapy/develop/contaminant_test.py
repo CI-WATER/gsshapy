@@ -128,7 +128,7 @@ wms_raster.getAsKmlGrid(write_session, path=out_path)
 #'''
 
 # INDEX AND RASTER MAPS -----------------------------------------------------------------------------------------------#
-'''
+#'''
 out_path = os.path.join(write_directory, 'index.kmz')
 index_map = write_session.query(IndexMap).get(4)
 index_map.getAsKmlPng(write_session, path=out_path, cellSize=1)
@@ -162,7 +162,7 @@ print project_file.getModelSummaryAsGeoJson(write_session, withStreamNetwork=Tru
 #'''
 
 # LINK NODE DATASET ANIMATION -----------------------------------------------------------------------------------------#
-#'''
+'''
 channel_input_file = write_session.query(ChannelInputFile).first()
 link_node_dataset_file = write_session.query(LinkNodeDatasetFile).first()
 

@@ -50,6 +50,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
     tableName = __tablename__  #: Database tablename
     rasterColumnName = 'raster'  #: Raster column name
     defaultNoDataValue = -1  #: Default no data value
+    discreet = True  #: Index maps should be discreet
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK

@@ -110,15 +110,22 @@ wms_raster.getAsKmlGrid(write_session, path=out_path)
 
 # INDEX AND RASTER MAPS -----------------------------------------------------------------------------------------------#
 '''
+index_map = write_session.query(IndexMap).get(2)
+
 out_path = os.path.join(write_directory, 'index.kmz')
-index_map = write_session.query(IndexMap).first()
 index_map.getAsKmlPng(write_session, path=out_path, cellSize=5)
+
+out_path = os.path.join(write_directory, 'index_clusters.kml')
+index_map.getAsKmlClusters(write_session, out_path)
+
+out_path = os.path.join(write_directory, 'index_grid.kml')
+index_map.getAsKmlGrid(write_session, out_path)
 '''
 
 '''
 out_path = os.path.join(write_directory, 'elevation.kml')
 elevation = write_session.query(RasterMapFile).filter(RasterMapFile.projectFile == project_file).filter(RasterMapFile.fileExtension == 'ele').one()
-elevation.getAsKmlGrid(write_session, path=out_path, colorRamp=ColorRampEnum.COLOR_RAMP_TERRAIN)
+elevation.getAsKmlClusters(write_session, path=out_path, colorRamp=ColorRampEnum.COLOR_RAMP_TERRAIN)
 #'''
 
 # STREAM NETWORK ------------------------------------------------------------------------------------------------------#

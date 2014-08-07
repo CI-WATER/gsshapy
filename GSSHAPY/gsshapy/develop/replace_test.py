@@ -121,7 +121,7 @@ wms_dataset.getAsKmlPngAnimation(write_session, project_file, path=out_path, col
 #'''
 
 # SINGLE WMS DATASET RASTER -------------------------------------------------------------------------------------------#
-#'''
+'''
 out_path = os.path.join(write_directory, 'max_flood_all.kml')
 wms_raster = write_session.query(WMSDatasetRaster).get(3)
 wms_raster.getAsKmlGrid(write_session, path=out_path, alpha=0.8)

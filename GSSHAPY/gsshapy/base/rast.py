@@ -28,6 +28,7 @@ class RasterObjectBase:
     filename = None            # Default name given to KML document
     raster = None              # Raster column
     defaultNoDataValue = 0     # Set the default no data value
+    discreet = False           # Whether rasters typically have discreet values or not
 
     def getAsKmlGrid(self, session, path=None, documentName=None, colorRamp=ColorRampEnum.COLOR_RAMP_HUE, alpha=1.0,
                      noDataValue=None):
@@ -80,7 +81,8 @@ class RasterObjectBase:
                                                rasterFieldName=self.rasterColumnName,
                                                documentName=documentName,
                                                alpha=alpha,
-                                               noDataValue=noDataValue)
+                                               noDataValue=noDataValue,
+                                               discreet=self.discreet)
 
             if path:
                 with open(path, 'w') as f:
@@ -139,7 +141,8 @@ class RasterObjectBase:
                                                    rasterFieldName=self.rasterColumnName,
                                                    documentName=documentName,
                                                    alpha=alpha,
-                                                   noDataValue=noDataValue)
+                                                   noDataValue=noDataValue,
+                                                   discreet=self.discreet)
 
             if path:
                 with open(path, 'w') as f:
@@ -210,8 +213,8 @@ class RasterObjectBase:
                                                                drawOrder=drawOrder,
                                                                noDataValue=noDataValue,
                                                                cellSize=cellSize,
-                                                               resampleMethod=resampleMethod)
-
+                                                               resampleMethod=resampleMethod,
+                                                               discreet=self.discreet)
             if path:
                 directory = os.path.dirname(path)
                 archiveName = (os.path.split(path)[1]).split('.')[0]
