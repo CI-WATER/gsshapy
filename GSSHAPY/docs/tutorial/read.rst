@@ -7,8 +7,8 @@ Read Files to a Database
 This page will provide an example of how GsshaPy can be used to read single a GSSHA model file into an SQL database. We
 will read in the project file from the Park City model that you downloaded on the previous page.
 
-Initiate GsshaPy Database
-=========================
+Initialize GsshaPy Database
+===========================
 
 The first step is to create a database and populate it with all of the GsshaPy tables. For this tutorial you will need
 to create a new database in a PostgreSQL database and enable the PostGIS extension. This can be done by following

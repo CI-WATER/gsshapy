@@ -11,7 +11,7 @@ simulation after modifying some input file in the database.
 Retrieve Object from Database
 =============================
 
-Like reading to the database, we need and instance of a :class:`gsshapy.orm.ProjectFile` class to call the ``write()``
+Like reading to the database, we need an instance of a :class:`gsshapy.orm.ProjectFile` class to call the ``write()``
 method on. When writing, the **ProjectFile** instance is created by querying the database for the project file we wish
 to write. Issue the following command in the Python prompt::
 

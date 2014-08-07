@@ -120,8 +120,47 @@ previous tutorial, we could also use the relationship properties to issue the qu
     ...	    print card
     ...
 
-The later two methods are equivilent. This is only a micro tasting of the power of the SQLAlchemy query language.
+The later two methods are equivalent. This is only a micro tasting of the power of the SQLAlchemy query language.
 Please review the SQLAlchemy documentation for a more detailed explanation of querying.
+
+Updating Records Using GsshaPy Objects
+======================================
+
+Using GsshaPy you can modify existing records in the database. For example, suppose you would like to modify one of the
+parameters in the project file. In the next step we will retrieve the project file and access the "MAP_FREQ" card. We'll
+change the value to 10, indicating that we would like the maps to be written every 10 minutes of simulation time. First,
+we query the database for the project file and use the ``getCard()`` method to retrieve the "MAP_FREQ" card::
+
+    >>> projectFile = session.query(ProjectFile).first()
+    >>> mapFreqCard = projectFile.getCard('MAP_FREQ')
+    >>> print mapFreqCard
+    <ProjectCard: Name=MAP_FREQ, Value=30>
+
+The results of the ``print mapFreqCard`` reveal that the value of the "MAP_FREQ" card is currently 30. To change it to 10
+simply reassign the ``value`` property on the ``mapFreqCard`` object.::
+
+    >>> mapFreqCard.value = 10
+    >>> print mapFreqCard
+    <ProjectCard: Name=MAP_FREQ, Value=10>
+
+The ``print mapFreqCard`` command reveals that the value is now set to 10. However, this change has only occurred with
+our copy of the card. To persist the change in the database, we need to tell the session to flush all the changes out to the
+database. This can be done by calling the ``commit()`` method of the session object. Be sure to use the same session
+object that you used to query project file. The session object has been tracking all the changes you have been making.
+You can inspect the changes that the session object is tracking via the ``dirty`` property of the session object::
+
+    >>> session.dirty
+    >>> session.commit()
+    >>> session.dirty
+
+You'll notice that the ``dirty`` property is empty after the session has been committed to the database. That's it, the
+"MAP_FREQ" card has been changed. You will see the change when we write the data back out to file in the next tutorial.
+However, there are other things we need to learn before going on.
+
+Creating New Records Using GsshaPy Objects
+==========================================
+
+
 
 .. _SQLAlchemy: http://www.sqlalchemy.org/
 .. _Object Relational Tutorial: http://docs.sqlalchemy.org/en/rel_0_8/orm/tutorial.html

@@ -52,12 +52,12 @@ illustrated above. For example, let's read in the mask map file.
 The file object that is used to read in the mask map is the :class:`gsshapy.orm.RasterMapFile` object (use the
 :doc:`Supported Files <../support>` page to determine what objects are used to read each file). Automatic spatial reference
 id lookup is not a feature for the read methods of individual files. Use the :class:`gsshapy.orm.ProjectionFile` class
-method, ``lookupSpatialReferenceID``, too look up the srid or enter it manually. Create a new instance
+method, ``lookupSpatialReferenceID``, to look up the srid or enter it manually. Create a new instance
 of this object and invoke the ``read()`` method pointing it at the mask map file (:file:`parkcity.msk`)::
 
     >>> from gsshapy.orm import RasterMapFile, ProjectionFile
     >>> filename = 'parkcity.msk'
-    >>> srid = ProjectionFile.lookupSpatialReferenceID('readDirectory, 'parkcity_prj.pro')
+    >>> srid = ProjectionFile.lookupSpatialReferenceID(readDirectory, 'parkcity_prj.pro')
     >>> maskMap = RasterMapFile()
     >>> maskMap.read(directory=readDirectory, filename=filename, session=spatialSession, spatial=True, spatialReferenceID=srid)
 

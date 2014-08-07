@@ -13,7 +13,7 @@ methods that can be used to read and write all or some of the GSSHA model files 
 * readOutput()
 * writeProject()
 * writeInput()
-* wrtieOutput()
+* writeOutput()
 
 The names are fairly self explanatory, but more detailed explanations are provided in the API documentation for the
 :class:`gsshapy.orm.ProjectFile` class. In this tutorial we will learn how to read an entire project and write it

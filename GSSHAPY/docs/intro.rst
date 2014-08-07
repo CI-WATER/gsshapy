@@ -63,7 +63,8 @@ downloaded and installed as follows::
 
     Now run the install command from above. Mapkit will automatically be installed as a dependency.
 
-Test out your new installation by opening a Python prompt and executing the following lines::
+Test out your new installation by opening a Python prompt and executing the following lines. You should see the new version
+number listed (2.0.0)::
 
     >>> import gsshapy
     >>> gsshapy.version()
