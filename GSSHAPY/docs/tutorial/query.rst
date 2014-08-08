@@ -96,14 +96,13 @@ this. Back in the Python console, execute the following::
     ...
 
 .. seealso::
-
     For an overview of the SQLAlchemy_ SQL expression language see the following tutorials:
     `Object Relational Tutorial`_ and `SQL Expression Language`_.
 
 As in the previous tutorial, the query returns a list of :class:`gsshapy.orm.ProjectCard` objects that represent the
 records in the ``prj_project_cards`` table. The :class:`gsshapy.orm.ProjectCard` class also has a relationship property
-called *projectFile* that maps to the associated :class:`gsshapy.orm.:class:`gsshapy.orm.ProjectFile`` class. If we wanted to ensure that we
-only queried for project cards that belong to the project file we read in during the first exercise, we could use the
+called *projectFile* that maps to the associated :class:`gsshapy.orm.ProjectFile` class. If you wanted to ensure that you
+only queried for project cards that belong to the project file you read in during the first exercise, you could use the
 ``filter()`` method of the ``query`` object::
 
     >>> cards = session.query(ProjectCard).filter(ProjectCard.projectFile == projectFile).all()
@@ -120,20 +119,14 @@ previous tutorial, we could also use the relationship properties to issue the qu
     ...	    print card
     ...
 
-The later two methods are equivalent. This is only a micro tasting of the power of the SQLAlchemy query language.
-Please review the SQLAlchemy documentation for a more detailed explanation of querying.
+The later two methods are equivalent.
 
 Updating Records Using GsshaPy Objects
 ======================================
 
 You can modify existing records in the database using GsshaPy. As an example scenario, suppose you need to modify the
 GSSHA model so that it outputs depth maps every 10 minutes instead of every 30 minutes. This is done by changing the value
-of the "MAP_FREQ" card in the project file. The data in the project file is split into two different tables: one for the
-project file meta data and one that stores the keys and values for all the cards. These tables map to the :class:`gsshapy.orm.ProjectFile`
-and the :class:`gsshapy.orm.ProjectCard` classes in GsshaPy, respectively. An instance (object) of each class represents a single row in the
-table.
-
-To modify the "MAP_FREQ" card, we need to access the appropriate record in the :class:`gsshapy.orm.ProjectCard` table. However, we want
+of the "MAP_FREQ" card in the project file. To modify the "MAP_FREQ" card, we need to access the appropriate record in the :class:`gsshapy.orm.ProjectCard` table. However, we want
 to make sure we are changing the card that belongs to the correct project file, so we will first query for the :class:`gsshapy.orm.ProjectFile`
 we want and then use its ``getCard()`` method to access its "MAP_FREQ" card::
 
@@ -207,12 +200,16 @@ you will create the new "ENGLISH" card.
 Creating New Records Using GsshaPy Objects
 ==========================================
 
-Creating new records is somewhat involved, but the basic process is this: (1) create a new GsshaPy object that maps to the
-type of record you would like to make, (2) set the values for all of the column properties, (3) set the values for all
-relationship properties, and (4) add the new object to the session using the ``add()`` method. Step 3 can involve creating
-other GsshaPy objects or querying for the appropriate object if it already exists. For example, we want to associate our
-new "ENGLISH" card with the project file that we are modifying. We don't need to create a new project file, because it
-already exists. Execute these lines to create the new card::
+Creating new records is somewhat involved, but the basic process is this:
+
+(1) create a new GsshaPy object that maps to the type of record you would like to make
+(2) set the values for all of the column properties
+(3) set the values for all relationship properties
+(4) add the new object to the session using the ``add()`` method
+
+Step 3 can involve creating other GsshaPy objects or querying for the appropriate object if it already exists.
+For example, we want to associate our new "ENGLISH" card with the project file that we are modifying. We don't need to
+create a new project file, because it already exists. Execute these lines to create the new card::
 
     >>> from gsshapy.orm import ProjectCard
     >>> englishCard = ProjectCard(name='ENGLISH', value=None)
@@ -235,6 +232,10 @@ There is currently no ID assigned to the object. This will be assigned automatic
     >>> session.commit()
     >>> print englishCard.id
     40
+
+GsshaPy is powered by SQLAlchemy. What has been demonstrated here is only a small sample of the powerful SQLAlchemy
+query language. For an overview of the SQLAlchemy_ SQL expression language see the following tutorials: `Object Relational Tutorial`_
+and `SQL Expression Language`_.
 
 In the next tutorial, you will write the project file back out file to see the changes that you have made.
 
