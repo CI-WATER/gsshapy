@@ -84,7 +84,7 @@ Execute the following command to quit the **psql** program::
 Querying Using GsshaPy Objects
 ==============================
 
-The **ProjectCard** *table* class maps to the ``prj_project_cards`` table and the **ProjectFile** class maps to the
+The :class:`gsshapy.orm.ProjectCard` *table* class maps to the ``prj_project_cards`` table and the :class:`gsshapy.orm.ProjectFile` class maps to the
 ``prj_project_files`` table. Instances of these classes can be used to query the database. Suppose we need to retrieve
 all of the project cards from a project file. We can use SQLAlchemy_ session object and SQL expression language to do
 this. Back in the Python console, execute the following::
@@ -102,7 +102,7 @@ this. Back in the Python console, execute the following::
 
 As in the previous tutorial, the query returns a list of :class:`gsshapy.orm.ProjectCard` objects that represent the
 records in the ``prj_project_cards`` table. The :class:`gsshapy.orm.ProjectCard` class also has a relationship property
-called *projectFile* that maps to the associated :class:`gsshapy.orm.ProjectFile` class. If we wanted to ensure that we
+called *projectFile* that maps to the associated :class:`gsshapy.orm.:class:`gsshapy.orm.ProjectFile`` class. If we wanted to ensure that we
 only queried for project cards that belong to the project file we read in during the first exercise, we could use the
 ``filter()`` method of the ``query`` object::
 
@@ -126,41 +126,117 @@ Please review the SQLAlchemy documentation for a more detailed explanation of qu
 Updating Records Using GsshaPy Objects
 ======================================
 
-Using GsshaPy you can modify existing records in the database. For example, suppose you would like to modify one of the
-parameters in the project file. In the next step we will retrieve the project file and access the "MAP_FREQ" card. We'll
-change the value to 10, indicating that we would like the maps to be written every 10 minutes of simulation time. First,
-we query the database for the project file and use the ``getCard()`` method to retrieve the "MAP_FREQ" card::
+You can modify existing records in the database using GsshaPy. As an example scenario, suppose you need to modify the
+GSSHA model so that it outputs depth maps every 10 minutes instead of every 30 minutes. This is done by changing the value
+of the "MAP_FREQ" card in the project file. The data in the project file is split into two different tables: one for the
+project file meta data and one that stores the keys and values for all the cards. These tables map to the :class:`gsshapy.orm.ProjectFile`
+and the :class:`gsshapy.orm.ProjectCard` classes in GsshaPy, respectively. An instance (object) of each class represents a single row in the
+table.
 
+To modify the "MAP_FREQ" card, we need to access the appropriate record in the :class:`gsshapy.orm.ProjectCard` table. However, we want
+to make sure we are changing the card that belongs to the correct project file, so we will first query for the :class:`gsshapy.orm.ProjectFile`
+we want and then use its ``getCard()`` method to access its "MAP_FREQ" card::
+
+    >>> from gsshapy.orm import ProjectFile
     >>> projectFile = session.query(ProjectFile).first()
     >>> mapFreqCard = projectFile.getCard('MAP_FREQ')
+
+As the name implies, the ``getCard()`` method of the :class:`gsshapy.orm.ProjectFile` object returns the :class:`gsshapy.orm.ProjectCard` object that matches the
+name provided. :class:`gsshapy.orm.ProjectCard` objects have three properties: ``name``, ``value``, and ``projectFile``. The ``name`` and ``value``
+properties map to the **name** and **value** columns in the :class:`gsshapy.orm.ProjectCard` table. The ``projectFile`` property is a *relationship*
+property. It maps to the :class:`gsshapy.orm.ProjectFile` to which the :class:`gsshapy.orm.ProjectCard` belongs. Execute these lines to learn more about the
+:class:`gsshapy.orm.ProjectCard` object::
+
+    >>> print mapFreqCard.name
+    MAP_FREQ
+    >>> print mapFreqCard.value
+    30
+    >>> mapFreqCard.projectFile is projectFile
+    True
     >>> print mapFreqCard
     <ProjectCard: Name=MAP_FREQ, Value=30>
 
-The results of the ``print mapFreqCard`` reveal that the value of the "MAP_FREQ" card is currently 30. To change it to 10
-simply reassign the ``value`` property on the ``mapFreqCard`` object.::
+Notice that the value of the ``projectFile`` property is the same as the ``projectFile`` object that was the result of our
+query in the previous step. Most GsshaPy object have relationship properties like these that can be used to access
+related objects. Behind the scenes, GsshaPy (via SQLAlchemy) performs a join between the two tables, queries for the
+appropriate record, and returns the result in the form of an object. Also notice, the results of the ``print mapFreqCard``
+reveals that the value of the "MAP_FREQ" card is currently 30. To change it to 10 simply reassign the ``value`` property
+on the ``mapFreqCard`` object.::
 
     >>> mapFreqCard.value = 10
     >>> print mapFreqCard
     <ProjectCard: Name=MAP_FREQ, Value=10>
 
 The ``print mapFreqCard`` command reveals that the value is now set to 10. However, this change has only occurred with
-our copy of the card. To persist the change in the database, we need to tell the session to flush all the changes out to the
-database. This can be done by calling the ``commit()`` method of the session object. Be sure to use the same session
-object that you used to query project file. The session object has been tracking all the changes you have been making.
-You can inspect the changes that the session object is tracking via the ``dirty`` property of the session object::
+our "copy" of the card record. To persist the change in the database, we need to tell the session to commit all the changes
+to the database. This can be done by calling the ``commit()`` method of the session object.  The session object has been
+tracking all the changes you have been making. You can inspect changes you make to GsshaPy objects that the session object
+is tracking via the ``dirty`` property of the session object::
 
     >>> session.dirty
     >>> session.commit()
     >>> session.dirty
 
-You'll notice that the ``dirty`` property is empty after the session has been committed to the database. That's it, the
-"MAP_FREQ" card has been changed. You will see the change when we write the data back out to file in the next tutorial.
-However, there are other things we need to learn before going on.
+You'll notice that the ``dirty`` property is empty after the session has been committed to the database. The "MAP_FREQ"
+card has been changed in the database. You will see the change when we write the data back out to file in the next tutorial.
+However, there are other changes that need to be made before getting to that point.
+
+.. note::
+
+    Although the session tracking seems like black magic, the session object was already aware of our :class:`gsshapy.orm.ProjectCard`
+    object, because we accessed it via a query with the session (although indirectly through the :class:`gsshapy.orm.ProjectFile`).
+
+Deleting Records Using GsshaPy Objects
+======================================
+
+Another common task that can be done using GsshaPy objects is deleting records in the database. Say, for instance you would
+like to change the units that are output by GSSHA from metric to imperial. This requires adding the new card,
+"ENGLISH", and deleting the "METRIC" card. Deleting cards is fairly straight forward. First, use the ``getCard()`` method
+again to get the "METRIC" card object and then tell the session to delete it using the ``delete()`` method::
+
+    >>> metricCard = projectFile.getCard("METRIC")
+    >>> print metricCard
+    <ProjectCard: Name=METRIC, Value=None>
+    >>> session.delete(metricCard)
+    >>> session.deleted
+
+Just as ``session.dirty`` contains a list of objects that have changes, ``session.deleted`` tracks objects that have been
+marked for deletion. Again, the ``commit()`` method must be called to persist this change. However, before you commit,
+you will create the new "ENGLISH" card.
 
 Creating New Records Using GsshaPy Objects
 ==========================================
 
+Creating new records is somewhat involved, but the basic process is this: (1) create a new GsshaPy object that maps to the
+type of record you would like to make, (2) set the values for all of the column properties, (3) set the values for all
+relationship properties, and (4) add the new object to the session using the ``add()`` method. Step 3 can involve creating
+other GsshaPy objects or querying for the appropriate object if it already exists. For example, we want to associate our
+new "ENGLISH" card with the project file that we are modifying. We don't need to create a new project file, because it
+already exists. Execute these lines to create the new card::
 
+    >>> from gsshapy.orm import ProjectCard
+    >>> englishCard = ProjectCard(name='ENGLISH', value=None)
+    >>> englishCard.projectFile = projectFile
+    >>> print englishCard
+    <ProjectCard: Name=ENGLISH, Value=None>
+    >>> session.add(englishCard)
+    >>> session.new
+
+You can use the ``session.new`` property to inspect any new records that have been created, but not persisted in the
+database. Before committing our changes to the database, there is one more lesson to learn. ID columns are automatically
+handled by the GsshaPy objects (again, via SQLAlchemy). To illustrate this, inspect the id column of the new :class:`gsshapy.orm.ProjectCard`
+we created::
+
+    >>> print englishCard.id
+    None
+
+There is currently no ID assigned to the object. This will be assigned automatically after we commit our changes::
+
+    >>> session.commit()
+    >>> print englishCard.id
+    40
+
+In the next tutorial, you will write the project file back out file to see the changes that you have made.
 
 .. _SQLAlchemy: http://www.sqlalchemy.org/
 .. _Object Relational Tutorial: http://docs.sqlalchemy.org/en/rel_0_8/orm/tutorial.html

@@ -32,11 +32,12 @@ to be saved as. Define these attributes and call the write method as follows::
 	
 .. _SQLAlchemy: http://www.sqlalchemy.org/
 
-If all has gone well, you will find a copy of the project file in the **write** directory. If you compare the
-file with the original you will notice some differences. Notice that most of the path prefixes have been changed
-to match the name of the project file. This is a GSSHA convention that is preserved by GsshaPy. If you change only the
-project file using GsshaPy, be sure it is written out with the same name as the original. Paths are stored as relative
-in the GsshaPy database. Consequently, all the paths will be written out again as relative paths.
+If all has gone well, you will find a new version of the project file in the **write** directory. If you compare the
+file with the original you will notice some differences. Of course there are the changes that we made in the previous
+tutorial: "MAP_FREQ" with a value of 10, "METRIC" removed, and "ENGLISH" added. Notice that most of the path prefixes
+have been changed to match the name of the project file. This is a GSSHA convention that is preserved by GsshaPy. If you
+change only the project file using GsshaPy, be sure it is written out with the same name as the original. Paths are
+stored as relative in the GsshaPy database. Consequently, all the paths will be written out again as relative paths.
 
 .. tip::
 
