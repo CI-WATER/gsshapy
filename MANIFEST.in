@@ -1,4 +1,4 @@
-prune schema
+prune docs/schema
 prune gsshapy/develop
 graft gsshapy/tests
 include *.txt
