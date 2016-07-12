@@ -48,7 +48,7 @@ def init_sqlite_memory(initTime=False):
     if initTime:
         print 'TIME:', time.time() - start, 'seconds'
         
-    return sqlalchemy_url
+    return sqlalchemy_url, engine
     
     
 def init_sqlite_db(path, initTime=False):
@@ -127,8 +127,9 @@ def init_mysql_db(username, host, database, port='', password='', initTime=False
     
     return sqlalchemy_url
 
-def create_session(sqlalchemy_url):
-    engine = create_engine(sqlalchemy_url)
+def create_session(sqlalchemy_url, engine=None):
+    if engine is None:
+        engine = create_engine(sqlalchemy_url)
     maker = sessionmaker(bind=engine)
     session = maker()
     return session
