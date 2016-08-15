@@ -16,8 +16,8 @@ def convertOtlFile(otlFile, convertedOtlFile):
     fileNew = open(convertedOtlFile, 'w')
     fileNew.write("LocalDateTime,DataValue" + "\n")
     for line in open(otlFile): #maybe add an if statement that alerts if there is no such filepath
-    dateTime, discharge = line.split()
-    fileNew.write("%s,%s\n" % (convertDateTime(dateTime), discharge))
+        dateTime, discharge = line.split()
+        fileNew.write("%s,%s\n" % (convertDateTime(dateTime), discharge))
     fileNew.close()
 
 def convertDateTime(gsshaDateTime):
