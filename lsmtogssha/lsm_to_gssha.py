@@ -562,18 +562,21 @@ class LSMtoGSSHA(object):
 
         if lsm_dx is None:
             lsm_dx = np.max(np.absolute(np.diff(lsm_lon_array)))
-        if lsm_dy is None:
-            lsm_dy = np.max(np.absolute(np.diff(lsm_lat_array)))
         
         # Extract the lat and lon within buffered extent
         #IF LAT LON IS !D:
         if len(lsm_lat_array.shape) == 1:
+            if lsm_dy is None:
+                lsm_dy = np.max(np.absolute(np.diff(lsm_lat_array)))
+
             self.lsm_lat_indices = np.where((lsm_lat_array >= (gssha_y_min - lsm_dy)) & (lsm_lat_array <= (gssha_y_max + lsm_dy)))[0]
             self.lsm_lon_indices = np.where((lsm_lon_array >= (gssha_x_min - lsm_dx)) & (lsm_lon_array <= (gssha_x_max + lsm_dx)))[0]
 
             lsm_lon_list, lsm_lat_list = np.meshgrid(lsm_lon_array[self.lsm_lon_indices], lsm_lat_array[self.lsm_lat_indices])
         #IF LAT LON IS 2D:
         elif len(lsm_lat_array.shape) == 2:
+            if lsm_dy is None:
+                lsm_dy = np.max(np.absolute(np.diff(lsm_lat_array, axis=0)))
             lsm_lat_indices_from_lat, lsm_lon_indices_from_lat = np.where((lsm_lat_array >= (gssha_y_min - lsm_dy)) & (lsm_lat_array <= (gssha_y_max + lsm_dy)))
             lsm_lat_indices_from_lon, lsm_lon_indices_from_lon = np.where((lsm_lon_array >= (gssha_x_min - lsm_dx)) & (lsm_lon_array <= (gssha_x_max + lsm_dx)))
 
