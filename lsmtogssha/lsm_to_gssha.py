@@ -929,7 +929,7 @@ class LSMtoGSSHA(object):
         else:
             raise Exception("Invalid data array ...")
             
-    def write_hmet_card_file(self, hmet_card_file_path):
+    def write_hmet_card_file(self, hmet_card_file_path, main_output_folder):
         """
         This function writes the HMET_ASCII card file 
         with ASCII file list for input to GSSHA
@@ -993,7 +993,7 @@ class LSMtoGSSHA(object):
 
         #PART 3: HMET_ASCII card input file with ASCII file list
         hmet_card_file_path = path.join(main_output_folder, 'hmet_file_list.txt')
-        self.write_hmet_card_file(hmet_card_file_path)
+        self.write_hmet_card_file(hmet_card_file_path, main_output_folder)
     
     def lsm_data_to_grass_ascii(self, data_var_map_array, 
                                       main_output_folder=""):
