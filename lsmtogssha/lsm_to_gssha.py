@@ -22,10 +22,80 @@ try:
 except ImportError:
     print("To use LSMtoGSSHA, you must have the numpy, pyproj, osgeo, and netCDF4 packages installed.")
     raise
+"""
+        Args:
+            session (str): SQLAlchemy session object bound to PostGIS enabled database.
 
+        Returns:
+            list: A list of :class:`.StreamLink` objects.
+"""
+#------------------------------------------------------------------------------
+# HELPER FUNCTIONS
+#------------------------------------------------------------------------------
+def update_hmet_card_file(hmet_card_file_path, new_hmet_data_path):
+    """
+    This function updates the paths in the HMET card file to the new 
+    location of the HMET data. This is necessary because the file paths
+    are absolute and will need to be updated if moved.
+    
+    Args:
+        hmet_card_file_path(string): Location of the file used for the HMET_ASCII card.
+        new_hmet_data_path(string): Location where the HMET ASCII files are currently. 
+
+    ::
+        update_hmet_card_file(hmet_card_file_path="E:\GSSHA\hmet_card_file.txt",
+                              new_hmet_data_path="E:\GSSHA\new_hmet_directory")
+
+    """
+    hmet_card_file_path_temp = "{0}_tmp".format(hmet_card_file_path)
+    try:
+        os.remove(hmet_card_file_path_temp)
+    except OSError:
+        pass
+        
+    os.copy(hmet_card_file_path, hmet_card_file_path_temp)
+    
+    with open(hmet_card_file_path_temp, 'wb') as out_hmet_list_file:
+        with open(hmet_card_file_path) as old_hmet_list_file:
+            for date_path in old_hmet_list_file:
+                out_hmet_list_file.write("{0}\n".format(path.join(new_hmet_data_path, 
+                                                        os.path.basename(date_path))))
+    try:
+        os.remove(hmet_card_file_path)
+    except OSError:
+        pass
+    
+    os.rename(hmet_card_file_path_temp, hmet_card_file_path)
+    
+    
 class LSMtoGSSHA(object):
     """
-    This class converts the LSM output data to GSSHA formatted input
+    This class converts the LSM output data to GSSHA formatted input.
+    
+    Attributes:
+        gssha_project_folder(str): Path to the GSSHA project folder
+        gssha_grid_file_name(str): Name of the GSSHA elevation grid file.
+        lsm_input_folder_path(str): Path to the input folder for the LSM files.
+        lsm_search_card(str): Glob search pattern for LSM files. Ex. "*.nc".
+        lsm_lat_var(str): Name of the latitude variable in the LSM netCDF files. Defaults to 'lat'.
+        lsm_lon_var(str): Name of the longitude variable in the LSM netCDF files. Defaults to 'lon'.
+        lsm_time_var(str): Name of the time variable in the LSM netCDF files. Defaults to 'time'.
+        lsm_file_date_naming_convention(str): (Optional) Use Pythons datetime conventions to find file. 
+                                              Ex. "gssha_ddd_%Y_%m_%d_%H_%M_%S.nc".
+        time_step_seconds(int): If the time step is not able to be determined automatically, 
+                                this parameter defines the time step in seconds for the LSM files.
+
+    Example
+    -------
+    ::
+        l2g = LSMtoGSSHA(gssha_project_folder='E:\\GSSHA',
+                         gssha_grid_file_name='gssha.ele',
+                         lsm_input_folder_path='E:\\GSSHA\\wrf-data',
+                         lsm_search_card="*.nc", 
+                         lsm_lat_var='XLAT',
+                         lsm_lon_var='XLONG',
+                         lsm_file_date_naming_convention='gssha_d02_%Y_%m_%d_%H_%M_%S.nc',
+                         )
     """
     
     def __init__(self,
@@ -37,7 +107,7 @@ class LSMtoGSSHA(object):
                  lsm_lon_var='lon',
                  lsm_time_var='time',
                  lsm_grid_type='geographic',
-                 lsm_file_date_naming_convention=None, #gssha_ddd_%Y_%m_%d_%H_%M_%S.nc
+                 lsm_file_date_naming_convention=None,
                  time_step_seconds=None,
                  ):
         """
@@ -244,7 +314,7 @@ class LSMtoGSSHA(object):
                                                                 },
                                         },
                                     'direct_radiation' :
-                                        #BEAM/SOLAR RADIATION
+                                        #DIRECT/BEAM/SOLAR RADIATION
                                         #NOTE: LSM
                                         #WRF: global_radiation * (1-DIFFUSIVE_FRACTION)
                                         #units = "W m-2" ;
@@ -262,19 +332,20 @@ class LSMtoGSSHA(object):
                                                                     'netcdf' : 1,
                                                                 },
                                         },
-                                    'global_radiation' :
-                                        #DIRECT/BEAM/SOLAR + DIFFUSIVE RADIATION
+                                    'diffusive_radiation' :
+                                        #DIFFUSIVE RADIATION
                                         #NOTE: LSM
+                                        #WRF: global_radiation * DIFFUSIVE_FRACTION
                                         #units = "W m-2" ;
                                         {
                                           'units' : {
                                                         'ascii': 'W hr m-2',
                                                         'netcdf': 'W hr m-2',
                                                     },
-                                          'standard_name' : 'surface_downwelling_shortwave_flux_in_air',
-                                          'long_name' : 'Global radiation flux',
-                                          'gssha_name' : 'global_radiation',
-                                          'hmet_name' : 'GRad',
+                                          'standard_name' : 'surface_diffusive_shortwave_flux_in_air',
+                                          'long_name' : 'Diffusive short wave radiation flux',
+                                          'gssha_name' : 'diffusive_radiation',
+                                          'hmet_name' : 'GRad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
                                           'conversion_factor' : {
                                                                     'ascii' : 1,
                                                                     'netcdf' : 1,
@@ -732,9 +803,19 @@ class LSMtoGSSHA(object):
                 self._load_lsm_data(diffusive_fraction_var)
                 diffusive_fraction = self.data_np_array
                 self.data_np_array = (1-diffusive_fraction)*global_radiation*self.time_step_seconds/3600.0
-            else:
+            elif gssha_var == 'diffusive_radiation' and not isinstance(lsm_var, basestring):
+                #diffusive_radiation = DIFFUSIVE_FRACION*global_radiation
+                global_radiation_var, diffusive_fraction_var = lsm_var
+                self._load_lsm_data(global_radiation_var)
+                global_radiation = self.data_np_array
+                self._load_lsm_data(diffusive_fraction_var)
+                diffusive_fraction = self.data_np_array
+                self.data_np_array = diffusive_fraction*global_radiation*self.time_step_seconds/3600.0
+            elif isinstance(lsm_var, basestring):
                 self._load_lsm_data(lsm_var, self.netcdf_attributes[gssha_var]['conversion_factor'][load_type])
                 self.data_np_array = self.data_np_array*self.time_step_seconds/3600.0
+            else:
+                raise IndexError("Invalid LSM variable ({0}) for GSSHA variable {1}".format(lsm_var, gssha_var))
                 
         elif gssha_var == 'relative_humidity' and not isinstance(lsm_var, basestring):
             ##CONVERSION ASSUMPTIONS:
@@ -873,9 +954,37 @@ class LSMtoGSSHA(object):
         
     def lsm_precip_to_gssha_precip_gage(self, out_gage_file, lsm_data_var, precip_type="RADAR"):
         """
-        This function takes array data and writes out GSSHA precip gage file
+        This function takes array data and writes out a GSSHA precip gage file.
         See: http://www.gsshawiki.com/Precipitation:Spatially_and_Temporally_Varied_Precipitation
-        GSSHA CARD: PRECIP_FILE  and RAIN_INV_DISTANCE or RAIN_THIESSEN
+        GSSHA CARDS: PRECIP_FILE card with path to gage file and need to add RAIN_INV_DISTANCE or RAIN_THIESSEN cards.
+        
+        Args:
+            out_gage_file(string): Location of gage file to generate.
+            lsm_data_var(string or list): This is the variable name for precipitation in the LSM files.
+                                          If there is a string, it assumes a single variable. If it is a
+                                          list, then it assumes the first element is the variable name for
+                                          RAINC and the second is for RAINNC 
+                                          (see: http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables).
+            precip_type(string): This tells if the data is the ACCUM, RADAR, or GAGES data type. Default is 'RADAR'.
+            
+        Example
+        -------
+        ::
+            #STEP 1: Initialize class
+            l2g = LSMtoGSSHA(
+                             #YOUR INIT PARAMETERS HERE
+                            )
+    
+            #OPTION 1: One precip variable to precip gage data.
+            l2g.lsm_precip_to_gssha_precip_gage(out_gage_file="E:\GSSHA\wrf_gage_1.gag",
+                                                lsm_data_var=['RAINC', 'RAINNC'],
+                                                precip_type='ACCUM')
+
+            #OPTION 2: Two precip variables to precip gage data.
+            l2g.lsm_precip_to_gssha_precip_gage(out_gage_file="E:\GSSHA\wrf_gage_2.gag",
+                                                lsm_data_var='Rainf_tavg',
+                                                precip_type='GAGES')
+
         
         """
         VALID_TYPES = ["ACCUM", "RADAR", "GAGES"] #NOTE: "RATES" currently not supported
@@ -929,7 +1038,7 @@ class LSMtoGSSHA(object):
         else:
             raise Exception("Invalid data array ...")
             
-    def write_hmet_card_file(self, hmet_card_file_path, main_output_folder):
+    def _write_hmet_card_file(self, hmet_card_file_path, main_output_folder):
         """
         This function writes the HMET_ASCII card file 
         with ASCII file list for input to GSSHA
@@ -939,16 +1048,6 @@ class LSMtoGSSHA(object):
                 date_str = self._time_to_string(hour_time, "%Y%m%d%H")
                 out_hmet_list_file.write("{0}\n".format(path.join(main_output_folder, date_str)))
  
-    def update_hmet_card_file(self, hmet_card_file_path, new_hmet_data_path):
-        """
-        This function updates the paths in the HMET card
-        file to the new location of the HMET data
-        """
-        with open(hmet_card_file_path, 'wb') as out_hmet_list_file:
-            for hour_time in self.hourly_time_array:
-                date_str = self._time_to_string(hour_time, "%Y%m%d%H")
-                out_hmet_list_file.write("{0}\n".format(path.join(main_output_folder, date_str)))
-
     def _lsm_data_to_ascii(self, header_string,
                                  data_var_map_array, 
                                  main_output_folder="",
@@ -993,12 +1092,13 @@ class LSMtoGSSHA(object):
 
         #PART 3: HMET_ASCII card input file with ASCII file list
         hmet_card_file_path = path.join(main_output_folder, 'hmet_file_list.txt')
-        self.write_hmet_card_file(hmet_card_file_path, main_output_folder)
+        self._write_hmet_card_file(hmet_card_file_path, main_output_folder)
     
     def lsm_data_to_grass_ascii(self, data_var_map_array, 
                                       main_output_folder=""):
         """
         Writes extracted data to GRASS ASCII file format
+        DO NOT USE THIS!!!!! IT WILL NOT WORK!!!!
         """
         #PART 1: HEADER
         #get data extremes
@@ -1016,9 +1116,49 @@ class LSMtoGSSHA(object):
                                 main_output_folder)
             
     def lsm_data_to_arc_ascii(self, data_var_map_array, 
-                                      main_output_folder=""):
+                                    main_output_folder=""):
         """
-        Writes extracted data to Arc ASCII file format
+        Writes extracted data to Arc ASCII file format into folder
+        to be read in by GSSHA. Also generates the HMET_ASCII card file
+        for GSSHA in the folder named 'hmet_file_list.txt'.
+        
+        NOTE: For GSSHA 6 Versions, for GSSHA 7 or greater, use lsm_data_to_subset_netcdf.
+
+        GSSHA CARD: HMET_ASCII
+        NOTE: MUST HAVE LONG_TERM GSSHA CARD TO WORK
+        See: http://www.gsshawiki.com/Long-term_Simulations:Global_parameters
+       
+        Args:
+            data_var_map_array(list): Array to map the variables in the LSM file to the 
+                                      matching required GSSHA data.
+            main_output_folder(string): This is the path to place the generated ASCII files. 
+                                        If not included, it defaults to 
+                                        os.path.join(self.gssha_project_folder, "hmet_ascii_data").
+            
+        Example
+        -------
+        ::
+            #STEP 1: Initialize class
+            l2g = LSMtoGSSHA(
+                             #YOUR INIT PARAMETERS HERE
+                            )
+    
+            #STEP 2: Generate ASCII DATA
+            #EXAMPLE DATA ARRAY 1: WRF GRID DATA BASED
+            #SEE: http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
+            
+            data_var_map_array = [
+                                  ['precipitation_acc', ['RAINC', 'RAINNC']], 
+                                  ['pressure', 'PSFC'], 
+                                  ['relative_humidity', ['Q2', 'PSFC', 'T2']], #MUST BE IN ORDER: ['SPECIFIC HUMIDITY', 'PRESSURE', 'TEMPERATURE']
+                                  ['wind_speed', ['U10', 'V10']], #['U_VELOCITY', 'V_VELOCITY']
+                                  ['direct_radiation', ['SWDOWN', 'DIFFUSE_FRAC']], #MUST BE IN ORDER: ['GLOBAL RADIATION', 'DIFFUSIVE FRACTION']
+                                  ['diffusive_radiation', ['SWDOWN', 'DIFFUSE_FRAC']], #MUST BE IN ORDER: ['GLOBAL RADIATION', 'DIFFUSIVE FRACTION']
+                                  ['temperature', 'T2'],
+                                  ['cloud_cover' , 'CLDFRA'], #'CLOUD_FRACTION'
+                                 ]
+                                 
+            l2g.lsm_data_to_arc_ascii(data_var_map_array)
         """
         #PART 1: HEADER
         #get data extremes
@@ -1036,11 +1176,46 @@ class LSMtoGSSHA(object):
     
     def lsm_data_to_subset_netcdf(self, netcdf_file_path, data_var_map_array):
         """
-        Writes extracted data to the NetCDF file format
+        Writes extracted data to the NetCDF file format 
+        (Works with GSSHA 7 versions or higher).
+        
         GSSHA CARD: HMET_NETCDF
+        
         NOTE: MUST HAVE LONG_TERM GSSHA CARD TO WORK
         See: http://www.gsshawiki.com/Long-term_Simulations:Global_parameters
+        
+        Args:
+            netcdf_file_path(string): Path to output the NetCDF file for GSSHA.
+            data_var_map_array(list): Array to map the variables in the LSM file to the 
+                                      matching required GSSHA data.
+            
+        Example
+        -------
+        ::
+            #STEP 1: Initialize class
+            l2g = LSMtoGSSHA(
+                             #YOUR INIT PARAMETERS HERE
+                            )
+    
+            #STEP 2: Generate ASCII DATA
+            #EXAMPLE DATA ARRAY 1: WRF GRID DATA BASED
+            #SEE: http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
+            
+            data_var_map_array = [
+                                  ['precipitation_acc', ['RAINC', 'RAINNC']], 
+                                  ['pressure', 'PSFC'], 
+                                  ['relative_humidity', ['Q2', 'PSFC', 'T2']], #MUST BE IN ORDER: ['SPECIFIC HUMIDITY', 'PRESSURE', 'TEMPERATURE']
+                                  ['wind_speed', ['U10', 'V10']], #['U_VELOCITY', 'V_VELOCITY']
+                                  ['direct_radiation', ['SWDOWN', 'DIFFUSE_FRAC']], #MUST BE IN ORDER: ['GLOBAL RADIATION', 'DIFFUSIVE FRACTION']
+                                  ['diffusive_radiation', ['SWDOWN', 'DIFFUSE_FRAC']], #MUST BE IN ORDER: ['GLOBAL RADIATION', 'DIFFUSIVE FRACTION']
+                                  ['temperature', 'T2'],
+                                  ['cloud_cover' , 'CLDFRA'], #'CLOUD_FRACTION'
+                                 ]
+                                 
+            l2g.lsm_data_to_subset_netcdf("E:\GSSHA\gssha_wrf_data.nc", 
+                                          data_var_map_array)
         """
+        
         self._check_lsm_input(data_var_map_array)
         
         subset_nc = Dataset(netcdf_file_path, 'w')
@@ -1186,7 +1361,7 @@ if __name__ == "__main__":
 ##                          ['wind_speed', 'Wind_f_inst'], 
 ##                          ['temperature', 'Tair_f_inst'],
 ##                          ['direct_radiation', 'Swnet_tavg'],
-##                          ['global_radiation', 'SWdown_f_tavg'],
+##                          ['diffusive_radiation', 'SWdown_f_tavg'],
 ##                         ]
     ##WRF
     # See: http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
@@ -1207,7 +1382,7 @@ if __name__ == "__main__":
                           ['relative_humidity', ['Q2', 'PSFC', 'T2']], 
                           ['wind_speed', ['U10', 'V10']], 
                           ['direct_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
-                          ['global_radiation', 'SWDOWN'],
+                          ['diffusive_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
                           ['temperature', 'T2'],
                           ['cloud_cover' , 'CLDFRA'],
                          ]
