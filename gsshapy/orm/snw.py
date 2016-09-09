@@ -29,7 +29,7 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     The contents of this file is abstracted into one supporting object: :class:`.NwsrfsRecord`.
 
-    See: http://www.gsshawiki.com/Snow_Card_Inputs_-_Optional
+    See: `GSSHAWIKI <http://www.gsshawiki.com/Snow_Card_Inputs_-_Optional>`_ 
     """
     __tablename__ = 'snw_nwsrfs_files'
 
@@ -182,7 +182,7 @@ class OrographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     The contents of this file is abstracted into one supporting object: :class:`.OrographicMeasurement`.
 
-    See: http://www.gsshawiki.com/Snow_Card_Inputs_-_Optional
+    See: `GSSHAWIKI <http://www.gsshawiki.com/Snow_Card_Inputs_-_Optional>`_ 
     """
     __tablename__ = 'snw_orographic_gage_files'
 

@@ -637,6 +637,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             withStreamNetwork (bool, optional): Include stream network. Defaults to True.
             withNodes (bool, optional): Include nodes. Defaults to False.
             styles (dict, optional): Custom styles to apply to KML geometry. Defaults to empty dictionary.
+            
                 Valid keys (styles) include:
                    * streamLineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
                    * streamLineWidth: float line width in pixels

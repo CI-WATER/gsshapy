@@ -10,7 +10,9 @@ from csv import writer as csv_writer
 from datetime import datetime, timedelta
 from dateutil import parser
 from glob import glob
-from os import mkdir, path
+import math
+from os import mkdir, path, remove, rename
+from shutil import copy
 import time
 
 #extra dependencies
@@ -22,82 +24,77 @@ try:
 except ImportError:
     print("To use LSMtoGSSHA, you must have the numpy, pyproj, osgeo, and netCDF4 packages installed.")
     raise
-"""
-        Args:
-            session (str): SQLAlchemy session object bound to PostGIS enabled database.
-
-        Returns:
-            list: A list of :class:`.StreamLink` objects.
-"""
 #------------------------------------------------------------------------------
 # HELPER FUNCTIONS
 #------------------------------------------------------------------------------
 def update_hmet_card_file(hmet_card_file_path, new_hmet_data_path):
-    """
-    This function updates the paths in the HMET card file to the new 
+    """This function updates the paths in the HMET card file to the new 
     location of the HMET data. This is necessary because the file paths
     are absolute and will need to be updated if moved.
-    
-    Args:
-        hmet_card_file_path(string): Location of the file used for the HMET_ASCII card.
-        new_hmet_data_path(string): Location where the HMET ASCII files are currently. 
 
-    ::
-        update_hmet_card_file(hmet_card_file_path="E:\GSSHA\hmet_card_file.txt",
-                              new_hmet_data_path="E:\GSSHA\new_hmet_directory")
+    Args:
+        hmet_card_file_path(str): Location of the file used for the HMET_ASCII card.
+        new_hmet_data_path(str): Location where the HMET ASCII files are currently. 
+
+    Example::
+
+        new_hmet_data_path = "E:\\GSSHA\\new_hmet_directory"
+        hmet_card_file_path = "E:\\GSSHA\\hmet_card_file.txt"
+        
+        update_hmet_card_file(hmet_card_file_path, new_hmet_data_path)
 
     """
     hmet_card_file_path_temp = "{0}_tmp".format(hmet_card_file_path)
     try:
-        os.remove(hmet_card_file_path_temp)
+        remove(hmet_card_file_path_temp)
     except OSError:
         pass
         
-    os.copy(hmet_card_file_path, hmet_card_file_path_temp)
+    copy(hmet_card_file_path, hmet_card_file_path_temp)
     
     with open(hmet_card_file_path_temp, 'wb') as out_hmet_list_file:
         with open(hmet_card_file_path) as old_hmet_list_file:
             for date_path in old_hmet_list_file:
                 out_hmet_list_file.write("{0}\n".format(path.join(new_hmet_data_path, 
-                                                        os.path.basename(date_path))))
+                                                        path.basename(date_path))))
     try:
-        os.remove(hmet_card_file_path)
+        remove(hmet_card_file_path)
     except OSError:
         pass
     
-    os.rename(hmet_card_file_path_temp, hmet_card_file_path)
-    
-    
+    rename(hmet_card_file_path_temp, hmet_card_file_path)
+
+#------------------------------------------------------------------------------
+# MAIN CLASS
+#------------------------------------------------------------------------------
 class LSMtoGSSHA(object):
-    """
-    This class converts the LSM output data to GSSHA formatted input.
+    """This class converts the LSM output data to GSSHA formatted input.
     
     Attributes:
         gssha_project_folder(str): Path to the GSSHA project folder
         gssha_grid_file_name(str): Name of the GSSHA elevation grid file.
         lsm_input_folder_path(str): Path to the input folder for the LSM files.
         lsm_search_card(str): Glob search pattern for LSM files. Ex. "*.nc".
-        lsm_lat_var(str): Name of the latitude variable in the LSM netCDF files. Defaults to 'lat'.
-        lsm_lon_var(str): Name of the longitude variable in the LSM netCDF files. Defaults to 'lon'.
-        lsm_time_var(str): Name of the time variable in the LSM netCDF files. Defaults to 'time'.
-        lsm_file_date_naming_convention(str): (Optional) Use Pythons datetime conventions to find file. 
+        lsm_lat_var(Optional[str]): Name of the latitude variable in the LSM netCDF files. Defaults to 'lat'.
+        lsm_lon_var(Optional[str]): Name of the longitude variable in the LSM netCDF files. Defaults to 'lon'.
+        lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. Defaults to 'time'.
+        lsm_file_date_naming_convention(Optional[str]): Use Pythons datetime conventions to find file. 
                                               Ex. "gssha_ddd_%Y_%m_%d_%H_%M_%S.nc".
-        time_step_seconds(int): If the time step is not able to be determined automatically, 
+        time_step_seconds(Optional[int]): If the time step is not able to be determined automatically, 
                                 this parameter defines the time step in seconds for the LSM files.
 
-    Example
-    -------
-    ::
+    Example::
+
         l2g = LSMtoGSSHA(gssha_project_folder='E:\\GSSHA',
                          gssha_grid_file_name='gssha.ele',
                          lsm_input_folder_path='E:\\GSSHA\\wrf-data',
                          lsm_search_card="*.nc", 
                          lsm_lat_var='XLAT',
                          lsm_lon_var='XLONG',
-                         lsm_file_date_naming_convention='gssha_d02_%Y_%m_%d_%H_%M_%S.nc',
+                         lsm_file_date_naming_convention='gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
                          )
+                         
     """
-    
     def __init__(self,
                  gssha_project_folder,
                  gssha_grid_file_name,
@@ -580,7 +577,7 @@ class LSMtoGSSHA(object):
         #file in the GSSHA folder. This searched for the file.
         gssha_projection_file_path = "{0}.pro".format(path.splitext(gssha_grid_path)[0])
         if not gssha_projection_file_path or not path.exists(gssha_projection_file_path):
-            gssha_projection_file_list = glob(path.join(gssha_project_folder, "*.pro"))
+            gssha_projection_file_list = glob(path.join(self.gssha_project_folder, "*.pro"))
             if len(gssha_projection_file_list) > 0:
                 gssha_projection_file_path = gssha_projection_file_list[0]
                 if len(gssha_projection_file_list) > 1:
@@ -907,7 +904,6 @@ class LSMtoGSSHA(object):
             else:
                 given_hmet_var_list.append(gssha_data_hmet_name)
 
-        dummy_hmet_var_list = []
         for REQUIRED_HMET_VAR in REQUIRED_HMET_VAR_LIST:
             if REQUIRED_HMET_VAR not in given_hmet_var_list:
                 raise Exception("ERROR: HMET param is required to continue {0} ...".format(REQUIRED_HMET_VAR))
@@ -953,23 +949,25 @@ class LSMtoGSSHA(object):
         self.data_np_array = hourly_3d_array
         
     def lsm_precip_to_gssha_precip_gage(self, out_gage_file, lsm_data_var, precip_type="RADAR"):
-        """
-        This function takes array data and writes out a GSSHA precip gage file.
+        """This function takes array data and writes out a GSSHA precip gage file.
         See: http://www.gsshawiki.com/Precipitation:Spatially_and_Temporally_Varied_Precipitation
-        GSSHA CARDS: PRECIP_FILE card with path to gage file and need to add RAIN_INV_DISTANCE or RAIN_THIESSEN cards.
         
-        Args:
-            out_gage_file(string): Location of gage file to generate.
-            lsm_data_var(string or list): This is the variable name for precipitation in the LSM files.
+        .. note::
+            GSSHA CARDS: 
+                * PRECIP_FILE card with path to gage file 
+                * RAIN_INV_DISTANCE or RAIN_THIESSEN
+        
+        Parameters:
+            out_gage_file(str): Location of gage file to generate.
+            lsm_data_var(str or list): This is the variable name for precipitation in the LSM files.
                                           If there is a string, it assumes a single variable. If it is a
                                           list, then it assumes the first element is the variable name for
                                           RAINC and the second is for RAINNC 
                                           (see: http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables).
-            precip_type(string): This tells if the data is the ACCUM, RADAR, or GAGES data type. Default is 'RADAR'.
+            precip_type(Optional[str]): This tells if the data is the ACCUM, RADAR, or GAGES data type. Default is 'RADAR'.
             
-        Example
-        -------
-        ::
+        Example::
+
             #STEP 1: Initialize class
             l2g = LSMtoGSSHA(
                              #YOUR INIT PARAMETERS HERE
@@ -985,7 +983,6 @@ class LSMtoGSSHA(object):
                                                 lsm_data_var='Rainf_tavg',
                                                 precip_type='GAGES')
 
-        
         """
         VALID_TYPES = ["ACCUM", "RADAR", "GAGES"] #NOTE: "RATES" currently not supported
         if precip_type not in VALID_TYPES:
@@ -1117,27 +1114,26 @@ class LSMtoGSSHA(object):
             
     def lsm_data_to_arc_ascii(self, data_var_map_array, 
                                     main_output_folder=""):
-        """
-        Writes extracted data to Arc ASCII file format into folder
+        """Writes extracted data to Arc ASCII file format into folder
         to be read in by GSSHA. Also generates the HMET_ASCII card file
         for GSSHA in the folder named 'hmet_file_list.txt'.
         
-        NOTE: For GSSHA 6 Versions, for GSSHA 7 or greater, use lsm_data_to_subset_netcdf.
+        .. warning:: For GSSHA 6 Versions, for GSSHA 7 or greater, use lsm_data_to_subset_netcdf.
 
-        GSSHA CARD: HMET_ASCII
-        NOTE: MUST HAVE LONG_TERM GSSHA CARD TO WORK
-        See: http://www.gsshawiki.com/Long-term_Simulations:Global_parameters
+        .. note::
+            GSSHA CARDS:
+                * HMET_ASCII pointing to the hmet_file_list.txt
+                * LONG_TERM (see: http://www.gsshawiki.com/Long-term_Simulations:Global_parameters)
        
-        Args:
+        Parameters:
             data_var_map_array(list): Array to map the variables in the LSM file to the 
                                       matching required GSSHA data.
-            main_output_folder(string): This is the path to place the generated ASCII files. 
+            main_output_folder(Optional[str]): This is the path to place the generated ASCII files. 
                                         If not included, it defaults to 
                                         os.path.join(self.gssha_project_folder, "hmet_ascii_data").
             
-        Example
-        -------
-        ::
+        Example::
+        
             #STEP 1: Initialize class
             l2g = LSMtoGSSHA(
                              #YOUR INIT PARAMETERS HERE
@@ -1159,6 +1155,7 @@ class LSMtoGSSHA(object):
                                  ]
                                  
             l2g.lsm_data_to_arc_ascii(data_var_map_array)
+            
         """
         #PART 1: HEADER
         #get data extremes
@@ -1175,23 +1172,22 @@ class LSMtoGSSHA(object):
                                 main_output_folder)
     
     def lsm_data_to_subset_netcdf(self, netcdf_file_path, data_var_map_array):
-        """
-        Writes extracted data to the NetCDF file format 
-        (Works with GSSHA 7 versions or higher).
+        """Writes extracted data to the NetCDF file format 
         
-        GSSHA CARD: HMET_NETCDF
+        .. warning:: The NetCDF GSSHA file is only supported in GSSHA 7 or greater.
+
+        .. note::
+            GSSHA CARDS:
+                * HMET_NETCDF pointing to the netcdf_file_path
+                * LONG_TERM (see: http://www.gsshawiki.com/Long-term_Simulations:Global_parameters)
         
-        NOTE: MUST HAVE LONG_TERM GSSHA CARD TO WORK
-        See: http://www.gsshawiki.com/Long-term_Simulations:Global_parameters
-        
-        Args:
+        Parameters:
             netcdf_file_path(string): Path to output the NetCDF file for GSSHA.
             data_var_map_array(list): Array to map the variables in the LSM file to the 
                                       matching required GSSHA data.
             
-        Example
-        -------
-        ::
+        Example::
+        
             #STEP 1: Initialize class
             l2g = LSMtoGSSHA(
                              #YOUR INIT PARAMETERS HERE
@@ -1214,8 +1210,8 @@ class LSMtoGSSHA(object):
                                  
             l2g.lsm_data_to_subset_netcdf("E:\GSSHA\gssha_wrf_data.nc", 
                                           data_var_map_array)
+                                          
         """
-        
         self._check_lsm_input(data_var_map_array)
         
         subset_nc = Dataset(netcdf_file_path, 'w')

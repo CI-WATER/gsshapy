@@ -52,3 +52,11 @@ GsshaPy Utilities API
     :maxdepth: 2
 
     api/lib/db-tools
+
+LSM to GSSHA
+============
+
+.. toctree::
+    :maxdepth: 1
+
+    api/lsmtogssha/lsm_tools.rst
