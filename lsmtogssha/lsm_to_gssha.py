@@ -129,7 +129,7 @@ class LSMtoGSSHA(object):
         self.output_unix_format = output_unix_format
         
         self.default_line_ending = '\r\n'
-        if output_unix_format == "unix":
+        if output_unix_format:
             self.default_line_ending = ''
             
         ##INIT FUNCTIONS
