@@ -85,6 +85,8 @@ class LSMtoGSSHA(object):
                                               Ex. "gssha_ddd_%Y_%m_%d_%H_%M_%S.nc".
         time_step_seconds(Optional[int]): If the time step is not able to be determined automatically, 
                                 this parameter defines the time step in seconds for the LSM files.
+        output_file_format(Optional[str]): This determines the format of the output file. 
+                                        Valid options are "dos" (Windows) and "unix". Default is "dos". 
 
     Example::
 
@@ -109,6 +111,7 @@ class LSMtoGSSHA(object):
                  lsm_grid_type='geographic',
                  lsm_file_date_naming_convention=None,
                  time_step_seconds=None,
+                 output_file_format="dos",
                  ):
         """
         Initializer function for the LSMtoGSSHA class
@@ -124,6 +127,13 @@ class LSMtoGSSHA(object):
         self.lsm_file_date_naming_convention = lsm_file_date_naming_convention
         self.time_step_seconds = time_step_seconds
         
+        if output_file_format == "dos" or output_file_format == "unix":
+            self.default_line_ending = '\r\n'
+            if output_file_format == "unix":
+                self.default_line_ending = ''
+        else:
+            raise LookupError("The file format {0} is not supported. Only \"dos\" or \"unix\" is allowed.")
+            
         ##INIT FUNCTIONS
         self._load_sorted_lsm_list_and_time()
         self._load_gssha_and_lsm_extent()
@@ -1001,7 +1011,7 @@ class LSMtoGSSHA(object):
         
         if len(self.data_np_array.shape) > 2:
             #LOOP THROUGH TIME
-            with io_open(out_gage_file, 'w', newline='\r\n') as gage_file:
+            with io_open(out_gage_file, 'w', newline=self.default_line_ending ) as gage_file:
                 if len(self.time_array)>1:
                     gage_file.write(u"EVENT \"Event of {0} to {1}\"\n".format(self._time_to_string(self.time_array[0]),
                                                                              self._time_to_string(self.time_array[-1])))
@@ -1022,7 +1032,7 @@ class LSMtoGSSHA(object):
                     gage_file.write(u"{0} {1} {2}\n".format(precip_type, date_str, data_str))
                     
         elif len(self.data_np_array.shape) == 2:
-            with io_open(out_gage_file, 'w', newline='\r\n') as gage_file:
+            with io_open(out_gage_file, 'w', newline=self.default_line_ending ) as gage_file:
                 date_str = self._time_to_string(self.time_array[0])
                 gage_file.write(u"EVENT \"Event of {0}\"\n".format(date_str))
                 gage_file.write(u"NRPDS 1\n")
@@ -1043,7 +1053,7 @@ class LSMtoGSSHA(object):
         This function writes the HMET_ASCII card file 
         with ASCII file list for input to GSSHA
         """
-        with io_open(hmet_card_file_path, 'w', newline='\r\n') as out_hmet_list_file:
+        with io_open(hmet_card_file_path, 'w', newline=self.default_line_ending ) as out_hmet_list_file:
             for hour_time in self.hourly_time_array:
                 date_str = self._time_to_string(hour_time, "%Y%m%d%H")
                 out_hmet_list_file.write(u"{0}\n".format(path.join(main_output_folder, date_str)))
@@ -1072,9 +1082,11 @@ class LSMtoGSSHA(object):
         
         print("Outputting HMET data to {0}".format(main_output_folder))
         
-        csv_newline = '\r\n'
-        if os_name is 'nt':
+        #the csv module line ending behaves different than io.open in python 2.7 than 3
+        csv_newline = '\r\n' #this is the case where we want windows style ending
+        if self.output_file_format == 'unix':
             csv_newline = '\n'
+            
         #PART 2: DATA
         for data_var_map in data_var_map_array:
             gssha_data_var, lsm_data_var = data_var_map
@@ -1086,7 +1098,7 @@ class LSMtoGSSHA(object):
                 for hourly_index, hour_time in enumerate(self.hourly_time_array):
                     date_str = self._time_to_string(hour_time, "%Y%m%d%H")
                     ascii_file_path = path.join(main_output_folder,"{0}_{1}.asc".format(date_str, gssha_data_hmet_name))
-                    with open(ascii_file_path, 'w') as out_ascii_grid:
+                    with open(ascii_file_path, 'wb') as out_ascii_grid:
                         out_ascii_grid.write(unicode(header_string))
                         grid_writer = csv_writer(out_ascii_grid, 
                                                  delimiter=" ", 
