@@ -10,8 +10,10 @@ from csv import writer as csv_writer
 from datetime import datetime, timedelta
 from dateutil import parser
 from glob import glob
+from io import open as io_open
 import math
 from os import mkdir, path, remove, rename
+from os import name as os_name
 from shutil import copy
 import time
 
@@ -24,6 +26,7 @@ try:
 except ImportError:
     print("To use LSMtoGSSHA, you must have the numpy, pyproj, osgeo, and netCDF4 packages installed.")
     raise
+    
 #------------------------------------------------------------------------------
 # HELPER FUNCTIONS
 #------------------------------------------------------------------------------
@@ -52,10 +55,10 @@ def update_hmet_card_file(hmet_card_file_path, new_hmet_data_path):
         
     copy(hmet_card_file_path, hmet_card_file_path_temp)
     
-    with open(hmet_card_file_path_temp, 'wb') as out_hmet_list_file:
+    with io_open(hmet_card_file_path_temp, 'w', newline='\r\n') as out_hmet_list_file:
         with open(hmet_card_file_path) as old_hmet_list_file:
             for date_path in old_hmet_list_file:
-                out_hmet_list_file.write("{0}\n".format(path.join(new_hmet_data_path, 
+                out_hmet_list_file.write(u"{0}\n".format(path.join(new_hmet_data_path, 
                                                         path.basename(date_path))))
     try:
         remove(hmet_card_file_path)
@@ -998,40 +1001,40 @@ class LSMtoGSSHA(object):
         
         if len(self.data_np_array.shape) > 2:
             #LOOP THROUGH TIME
-            with open(out_gage_file, 'wb') as gage_file:
+            with io_open(out_gage_file, 'w', newline='\r\n') as gage_file:
                 if len(self.time_array)>1:
-                    gage_file.write("EVENT \"Event of {0} to {1}\"\n".format(self._time_to_string(self.time_array[0]),
+                    gage_file.write(u"EVENT \"Event of {0} to {1}\"\n".format(self._time_to_string(self.time_array[0]),
                                                                              self._time_to_string(self.time_array[-1])))
                 else:
-                    gage_file.write("EVENT \"Event of {0}\"\n".format(self._time_to_string(self.time_array[0])))
-                gage_file.write("NRPDS {0}\n".format(self.data_np_array.shape[0]))
-                gage_file.write("NRGAG {0}\n".format(self.data_np_array.shape[1]*self.data_np_array.shape[2]))
+                    gage_file.write(u"EVENT \"Event of {0}\"\n".format(self._time_to_string(self.time_array[0])))
+                gage_file.write(u"NRPDS {0}\n".format(self.data_np_array.shape[0]))
+                gage_file.write(u"NRGAG {0}\n".format(self.data_np_array.shape[1]*self.data_np_array.shape[2]))
 
                 for lat_idx in range(len(self.lsm_lat_indices)):
                     for lon_idx in range(len(self.lsm_lon_indices)):
                         coord_idx = lat_idx*len(self.lsm_lon_indices) + lon_idx
-                        gage_file.write("COORD {0} {1} \"center of pixel #{2}\"\n".format(self.proj_lon_list[lat_idx,lon_idx],
+                        gage_file.write(u"COORD {0} {1} \"center of pixel #{2}\"\n".format(self.proj_lon_list[lat_idx,lon_idx],
                                                                                           self.proj_lat_list[lat_idx,lon_idx], 
                                                                                           coord_idx))
                 for time_idx, time_step_array in enumerate(self.data_np_array):
                     date_str = self._time_to_string(self.time_array[time_idx])
                     data_str = " ".join(time_step_array.ravel().astype(str))
-                    gage_file.write("{0} {1} {2}\n".format(precip_type, date_str, data_str))
+                    gage_file.write(u"{0} {1} {2}\n".format(precip_type, date_str, data_str))
                     
         elif len(self.data_np_array.shape) == 2:
-            with open(out_gage_file, 'wb') as gage_file:
+            with io_open(out_gage_file, 'w', newline='\r\n') as gage_file:
                 date_str = self._time_to_string(self.time_array[0])
-                gage_file.write("EVENT \"Event of {0}\"\n".format(date_str))
-                gage_file.write("NRPDS 1\n")
-                gage_file.write("NRGAG {0}\n".format(self.data_np_array.shape[0]*self.data_np_array.shape[1]))
+                gage_file.write(u"EVENT \"Event of {0}\"\n".format(date_str))
+                gage_file.write(u"NRPDS 1\n")
+                gage_file.write(u"NRGAG {0}\n".format(self.data_np_array.shape[0]*self.data_np_array.shape[1]))
                 for lat_idx in range(len(self.lsm_lat_indices)):
                     for lon_idx in range(len(self.lsm_lon_indices)):
                         coord_idx = lat_idx*len(self.lsm_lon_indices) + lon_idx
-                        gage_file.write("COORD {0} {1} \"center of pixel #{2}\"\n".format(self.proj_lon_list[lat_idx,lon_idx],
+                        gage_file.write(u"COORD {0} {1} \"center of pixel #{2}\"\n".format(self.proj_lon_list[lat_idx,lon_idx],
                                                                                           self.proj_lat_list[lat_idx,lon_idx], 
                                                                                           coord_idx))
                 data_str = " ".join(time_step_array.ravel().astype(str))
-                gage_file.write("{0} {1} {2}\n".format(precip_type, date_str, data_str))
+                gage_file.write(u"{0} {1} {2}\n".format(precip_type, date_str, data_str))
         else:
             raise Exception("Invalid data array ...")
             
@@ -1040,10 +1043,10 @@ class LSMtoGSSHA(object):
         This function writes the HMET_ASCII card file 
         with ASCII file list for input to GSSHA
         """
-        with open(hmet_card_file_path, 'wb') as out_hmet_list_file:
+        with io_open(hmet_card_file_path, 'w', newline='\r\n') as out_hmet_list_file:
             for hour_time in self.hourly_time_array:
                 date_str = self._time_to_string(hour_time, "%Y%m%d%H")
-                out_hmet_list_file.write("{0}\n".format(path.join(main_output_folder, date_str)))
+                out_hmet_list_file.write(u"{0}\n".format(path.join(main_output_folder, date_str)))
  
     def _lsm_data_to_ascii(self, header_string,
                                  data_var_map_array, 
@@ -1069,6 +1072,9 @@ class LSMtoGSSHA(object):
         
         print("Outputting HMET data to {0}".format(main_output_folder))
         
+        csv_newline = '\r\n'
+        if os_name is 'nt':
+            csv_newline = '\n'
         #PART 2: DATA
         for data_var_map in data_var_map_array:
             gssha_data_var, lsm_data_var = data_var_map
@@ -1080,9 +1086,11 @@ class LSMtoGSSHA(object):
                 for hourly_index, hour_time in enumerate(self.hourly_time_array):
                     date_str = self._time_to_string(hour_time, "%Y%m%d%H")
                     ascii_file_path = path.join(main_output_folder,"{0}_{1}.asc".format(date_str, gssha_data_hmet_name))
-                    with open(ascii_file_path, 'wb') as out_ascii_grid:
-                        out_ascii_grid.write(header_string)
-                        grid_writer = csv_writer(out_ascii_grid, delimiter=' ')
+                    with open(ascii_file_path, 'w') as out_ascii_grid:
+                        out_ascii_grid.write(unicode(header_string))
+                        grid_writer = csv_writer(out_ascii_grid, 
+                                                 delimiter=" ", 
+                                                 lineterminator=csv_newline)
                         grid_writer.writerows(self.data_np_array[hourly_index])
             else:
                 raise Exception("Invalid data array ...")
