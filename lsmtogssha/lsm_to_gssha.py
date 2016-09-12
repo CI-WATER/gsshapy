@@ -1081,10 +1081,12 @@ class LSMtoGSSHA(object):
         print("Outputting HMET data to {0}".format(main_output_folder))
         
         #the csv module line ending behaves different than io.open in python 2.7 than 3
-        csv_newline = '\r\n' #this is the case where we want windows style ending
-        if self.output_unix_format:
-            csv_newline = '\n'
-            
+        csv_newline = '\n'
+        if not self.output_unix_format:
+            #this is the case where we want windows style line endings
+            csv_newline = '\r\n' 
+            header_string = header_string.replace('\n', '\r\n')
+
         #PART 2: DATA
         for data_var_map in data_var_map_array:
             gssha_data_var, lsm_data_var = data_var_map
@@ -1097,7 +1099,7 @@ class LSMtoGSSHA(object):
                     date_str = self._time_to_string(hour_time, "%Y%m%d%H")
                     ascii_file_path = path.join(main_output_folder,"{0}_{1}.asc".format(date_str, gssha_data_hmet_name))
                     with open(ascii_file_path, 'wb') as out_ascii_grid:
-                        out_ascii_grid.write(unicode(header_string))
+                        out_ascii_grid.write(header_string)
                         grid_writer = csv_writer(out_ascii_grid, 
                                                  delimiter=" ", 
                                                  lineterminator=csv_newline)
