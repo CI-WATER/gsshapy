@@ -85,8 +85,8 @@ class LSMtoGSSHA(object):
                                               Ex. "gssha_ddd_%Y_%m_%d_%H_%M_%S.nc".
         time_step_seconds(Optional[int]): If the time step is not able to be determined automatically, 
                                 this parameter defines the time step in seconds for the LSM files.
-        output_file_format(Optional[str]): This determines the format of the output file. 
-                                        Valid options are "dos" (Windows) and "unix". Default is "dos". 
+        output_unix_format(Optional[str]): If True, it will output to "unix" format. 
+                                        Otherwise, it will output in "dos" (Windows) format. Default is False. 
 
     Example::
 
@@ -111,7 +111,7 @@ class LSMtoGSSHA(object):
                  lsm_grid_type='geographic',
                  lsm_file_date_naming_convention=None,
                  time_step_seconds=None,
-                 output_file_format="dos",
+                 output_unix_format=False,
                  ):
         """
         Initializer function for the LSMtoGSSHA class
@@ -126,13 +126,11 @@ class LSMtoGSSHA(object):
         self.lsm_grid_type = lsm_grid_type
         self.lsm_file_date_naming_convention = lsm_file_date_naming_convention
         self.time_step_seconds = time_step_seconds
+        self.output_unix_format = output_unix_format
         
-        if output_file_format == "dos" or output_file_format == "unix":
-            self.default_line_ending = '\r\n'
-            if output_file_format == "unix":
-                self.default_line_ending = ''
-        else:
-            raise LookupError("The file format {0} is not supported. Only \"dos\" or \"unix\" is allowed.")
+        self.default_line_ending = '\r\n'
+        if output_unix_format == "unix":
+            self.default_line_ending = ''
             
         ##INIT FUNCTIONS
         self._load_sorted_lsm_list_and_time()
@@ -1084,7 +1082,7 @@ class LSMtoGSSHA(object):
         
         #the csv module line ending behaves different than io.open in python 2.7 than 3
         csv_newline = '\r\n' #this is the case where we want windows style ending
-        if self.output_file_format == 'unix':
+        if self.output_unix_format:
             csv_newline = '\n'
             
         #PART 2: DATA
