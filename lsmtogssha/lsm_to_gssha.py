@@ -331,8 +331,8 @@ class LSMtoGSSHA(object):
                                                         'ascii': 'W hr m-2',
                                                         'netcdf': 'W hr m-2',
                                                     },
-                                          'standard_name' : 'surface_net_downward_shortwave_flux',
-                                          'long_name' : 'Net short wave radiation flux',
+                                          'standard_name' : 'surface_direct_downward_shortwave_flux',
+                                          'long_name' : 'Direct short wave radiation flux',
                                           'gssha_name' : 'direct_radiation',
                                           'hmet_name' : 'DRad',
                                           'conversion_factor' : {
@@ -350,7 +350,7 @@ class LSMtoGSSHA(object):
                                                         'ascii': 'W hr m-2',
                                                         'netcdf': 'W hr m-2',
                                                     },
-                                          'standard_name' : 'surface_diffusive_shortwave_flux_in_air',
+                                          'standard_name' : 'surface_diffusive_downward_shortwave_flux',
                                           'long_name' : 'Diffusive short wave radiation flux',
                                           'gssha_name' : 'diffusive_radiation',
                                           'hmet_name' : 'GRad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
