@@ -1,17 +1,4 @@
-name: bunnies
 dependencies:
-- anaconda::alabaster=0.7.8=py27_0
-- anaconda::babel=2.3.3=py27_0
-- anaconda::docutils=0.12=py27_2
-- anaconda::imagesize=0.7.1=py27_0
-- anaconda::jinja2=2.8=py27_1
-- anaconda::markupsafe=0.23=py27_2
-- anaconda::pygments=2.1.3=py27_0
-- anaconda::pytz=2016.6.1=py27_0
-- anaconda::six=1.10.0=py27_0
-- anaconda::snowballstemmer=1.2.1=py27_0
-- anaconda::sphinx=1.4.1=py27_0
-- anaconda::sphinx_rtd_theme=0.1.9=py27_0
 - curl=7.49.0=1
 - gdal=2.1.0=py27_0
 - geos=3.5.0=0
@@ -41,10 +28,6 @@ dependencies:
 - xz=5.2.2=0
 - zlib=1.2.8=3
 - pip:
-  - alabaster==0.7.8
-  - babel==2.3.3
-  - docutils==0.12
-  - gsshapy==2.0.0
   - imagesize==0.7.1
   - jinja2==2.8
   - mapkit==1.1.0
@@ -55,8 +38,6 @@ dependencies:
   - requests==2.11.1
   - six==1.10.0
   - snowballstemmer==1.2.1
-  - sphinx==1.4.1
-  - sphinx-rtd-theme==0.1.9
   - sphinxcontrib-napoleon==0.5.3
   - sqlalchemy==1.1.0b3
 
