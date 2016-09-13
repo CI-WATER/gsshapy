@@ -1,0 +1,6 @@
+conda:
+    file: gsshapy-conda-env.yml
+python:
+    version: 2
+    setup_py_install: true
+requirements_file: docs/docs-requirements.txt
