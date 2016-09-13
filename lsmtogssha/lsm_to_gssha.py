@@ -85,7 +85,7 @@ class LSMtoGSSHA(object):
                                               Ex. "gssha_ddd_%Y_%m_%d_%H_%M_%S.nc".
         time_step_seconds(Optional[int]): If the time step is not able to be determined automatically, 
                                 this parameter defines the time step in seconds for the LSM files.
-        output_unix_format(Optional[str]): If True, it will output to "unix" format. 
+        output_unix_format(Optional[bool]): If True, it will output to "unix" format. 
                                         Otherwise, it will output in "dos" (Windows) format. Default is False. 
 
     Example::
