@@ -367,8 +367,8 @@ class LSMtoGSSHA(object):
                                                         'ascii': '%',
                                                         'netcdf': '%/10',
                                                     },
-                                          'standard_name' : 'surface_net_downward_delta_flux',
-                                          'long_name' : 'Global radiation flux',
+                                          'standard_name' : 'cloud_cover_fraction',
+                                          'long_name' : 'Cloud cover fraction',
                                           'gssha_name' : 'cloud_cover',
                                           'hmet_name' : 'Clod',
                                           'conversion_factor' : {
@@ -383,8 +383,8 @@ class LSMtoGSSHA(object):
                                                         'ascii': '%',
                                                         'netcdf': '%/10',
                                                     },
-                                          'standard_name' : 'surface_net_downward_delta_flux',
-                                          'long_name' : 'Global radiation flux',
+                                          'standard_name' : 'cloud_cover_fraction',
+                                          'long_name' : 'Cloud cover fraction',
                                           'gssha_name' : 'cloud_cover',
                                           'hmet_name' : 'Clod',
                                           'conversion_factor' : {
