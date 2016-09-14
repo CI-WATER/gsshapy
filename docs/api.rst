@@ -53,10 +53,11 @@ GsshaPy Utilities API
 
     api/lib/db-tools
 
-LSM to GSSHA
-============
+GRID to GSSHA
+=============
 
 .. toctree::
     :maxdepth: 1
 
-    api/lsmtogssha/lsm_tools.rst
+    api/gridtogssha/lsm_tools.rst
+    api/gridtogssha/hrrr_tools.rst
