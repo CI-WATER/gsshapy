@@ -686,22 +686,34 @@ class GRIDtoGSSHA(object):
                                           (see: http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables).
             precip_type(Optional[str]): This tells if the data is the ACCUM, RADAR, or GAGES data type. Default is 'RADAR'.
             
-        Example::
+        LSMtoGSSHA Example::
 
             #STEP 1: Initialize class (LSMtoGSSHA or HRRRtoGSSHA)
             l2g = LSMtoGSSHA(
                              #YOUR INIT PARAMETERS HERE
                             )
     
-            #OPTION 1: One precip variable to precip gage data.
+            #OPTION 1 (WRF): One precip variable to precip gage data.
             l2g.lsm_precip_to_gssha_precip_gage(out_gage_file="E:\GSSHA\wrf_gage_1.gag",
                                                 lsm_data_var=['RAINC', 'RAINNC'],
                                                 precip_type='ACCUM')
 
-            #OPTION 2: Two precip variables to precip gage data.
-            l2g.lsm_precip_to_gssha_precip_gage(out_gage_file="E:\GSSHA\wrf_gage_2.gag",
+            #OPTION 2 (GLDAS): Two precip variables to precip gage data.
+            l2g.lsm_precip_to_gssha_precip_gage(out_gage_file="E:\GSSHA\gldas_gage_2.gag",
                                                 lsm_data_var='Rainf_tavg',
                                                 precip_type='GAGES')
+
+        HRRRtoGSSHA Example::
+        
+            #STEP 1: Initialize class
+            h2g = HRRRtoGSSHA(
+                              #YOUR INIT PARAMETERS HERE
+                             )
+    
+            #STEP 2: Generate GAGE data
+            l2g.lsm_precip_to_gssha_precip_gage(out_gage_file="E:\GSSHA\hrrr_gage_1.gag",
+                                                lsm_data_var='prate',
+                                                precip_type='RADAR')
 
         """
         VALID_TYPES = ["ACCUM", "RADAR", "GAGES"] #NOTE: "RATES" currently not supported
@@ -861,17 +873,18 @@ class GRIDtoGSSHA(object):
                                         If not included, it defaults to 
                                         os.path.join(self.gssha_project_folder, "hmet_ascii_data").
             
-        Example::
+        LSMtoGSSHA Example::
         
-            #STEP 1: Initialize class (LSMtoGSSHA or HRRRtoGSSHA)
+            #STEP 1: Initialize class
             l2g = LSMtoGSSHA(
                              #YOUR INIT PARAMETERS HERE
                             )
     
             #STEP 2: Generate ASCII DATA
-            #EXAMPLE DATA ARRAY 1: WRF GRID DATA BASED
+            
             #SEE: http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
             
+            #EXAMPLE DATA ARRAY 1: WRF GRID DATA BASED
             data_var_map_array = [
                                   ['precipitation_acc', ['RAINC', 'RAINNC']], 
                                   ['pressure', 'PSFC'], 
@@ -885,6 +898,29 @@ class GRIDtoGSSHA(object):
                                  
             l2g.lsm_data_to_arc_ascii(data_var_map_array)
             
+        HRRRtoGSSHA Example::
+        
+            #STEP 1: Initialize class
+            h2g = HRRRtoGSSHA(
+                              #YOUR INIT PARAMETERS HERE
+                             )
+    
+            #STEP 2: Generate ASCII DATA
+
+            #EXAMPLE DATA ARRAY 1: HRRR GRID DATA BASED
+            data_var_map_array = [
+                                  ['precipitation_rate', 'prate'], 
+                                  ['pressure', 'sp'], 
+                                  ['relative_humidity', '2r'], 
+                                  ['wind_speed', ['10u', '10v']], 
+                                  ['direct_radiation', ['dswrf', 'tcc']],
+                                  ['diffusive_radiation', ['dswrf', 'tcc']],
+                                  ['temperature', 't'],
+                                  ['cloud_cover_pc' , 'tcc'],
+                                 ]
+                                 
+            h2g.lsm_data_to_arc_ascii(data_var_map_array)
+
         """
         #PART 1: HEADER
         #get data extremes
@@ -915,14 +951,15 @@ class GRIDtoGSSHA(object):
             data_var_map_array(list): Array to map the variables in the LSM file to the 
                                       matching required GSSHA data.
             
-        Example::
+        LSMtoGSSHA Example::
         
-            #STEP 1: Initialize class  (LSMtoGSSHA or HRRRtoGSSHA)
+            #STEP 1: Initialize class
             l2g = LSMtoGSSHA(
                              #YOUR INIT PARAMETERS HERE
                             )
     
-            #STEP 2: Generate ASCII DATA
+            #STEP 2: Generate NetCDF DATA
+            
             #EXAMPLE DATA ARRAY 1: WRF GRID DATA BASED
             #SEE: http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
             
@@ -939,7 +976,29 @@ class GRIDtoGSSHA(object):
                                  
             l2g.lsm_data_to_subset_netcdf("E:\GSSHA\gssha_wrf_data.nc", 
                                           data_var_map_array)
-                                          
+        HRRRtoGSSHA Example::
+        
+            #STEP 1: Initialize class
+            h2g = HRRRtoGSSHA(
+                              #YOUR INIT PARAMETERS HERE
+                             )
+    
+            #STEP 2: Generate NetCDF DATA
+
+            #EXAMPLE DATA ARRAY 2: HRRR GRID DATA BASED
+            data_var_map_array = [
+                                  ['precipitation_rate', 'prate'], 
+                                  ['pressure', 'sp'], 
+                                  ['relative_humidity', '2r'], 
+                                  ['wind_speed', ['10u', '10v']], 
+                                  ['direct_radiation', ['dswrf', 'tcc']],
+                                  ['diffusive_radiation', ['dswrf', 'tcc']],
+                                  ['temperature', 't'],
+                                  ['cloud_cover_pc' , 'tcc'],
+                                 ]
+                                 
+            h2g.lsm_data_to_subset_netcdf("E:\GSSHA\gssha_wrf_data.nc", 
+                                          data_var_map_array)
         """
         self._check_lsm_input(data_var_map_array)
         
