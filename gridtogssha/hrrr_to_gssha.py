@@ -204,18 +204,38 @@ class HRRRtoGSSHA(GRIDtoGSSHA):
         #get general buffer size
         lsm_dx = np.max(np.absolute(np.diff(lsm_lon_array)))
         lsm_dy = np.max(np.absolute(np.diff(lsm_lat_array, axis=0)))
-        
+
         ##determine the bounds of the data with grid preservation
         lsm_lat_indices_from_lat, lsm_lon_indices_from_lat = np.where((lsm_lat_array >= (gssha_y_min - lsm_dy)) & (lsm_lat_array <= (gssha_y_max + lsm_dy)))
         lsm_lat_indices_from_lon, lsm_lon_indices_from_lon = np.where((lsm_lon_array >= (gssha_x_min - lsm_dx)) & (lsm_lon_array <= (gssha_x_max + lsm_dx)))
 
         self.lsm_lat_indices = np.intersect1d(lsm_lat_indices_from_lat, lsm_lat_indices_from_lon)
         self.lsm_lon_indices = np.intersect1d(lsm_lon_indices_from_lat, lsm_lon_indices_from_lon)
-
+        
         lsm_lat_list = lsm_lat_array[self.lsm_lat_indices,:][:,self.lsm_lon_indices]
         lsm_lon_list = lsm_lon_array[self.lsm_lat_indices,:][:,self.lsm_lon_indices]
+        """
+        #TODO: ANOTHER METHOD TO TEST
+        lat_where = np.where((lsm_lat_array >= (gssha_y_min - lsm_dy)) & (lsm_lat_array <= (gssha_y_max + lsm_dy)))[0]
+        lon_where = np.where((lsm_lon_array >= (gssha_x_min - lsm_dx)) & (lsm_lon_array <= (gssha_x_max + lsm_dx)))[1]
 
-        if not lsm_lat_list or not lsm_lon_list:
+        min_lat_index = lat_where.min()    
+        max_lat_index = lat_where.max()
+        if(max_lat_index-min_lat_index == 0):
+            max_lat_index+=1
+        
+        max_lon_index = lon_where.max()    
+        min_lon_index = lon_where.min()
+        if(max_lon_index-min_lon_index == 0):
+            max_lon_index+=1
+
+        self.lsm_lat_indices = range(min_lat_index,max_lat_index+1)
+        self.lsm_lon_indices = range(min_lon_index,max_lon_index+1)
+        
+        lsm_lat_list = lsm_lat_array[min_lat_index:max_lat_index,min_lon_index:max_lon_index]
+        lsm_lon_list = lsm_lon_array[min_lat_index:max_lat_index,min_lon_index:max_lon_index]
+        """
+        if lsm_lat_list.size<=0 or lsm_lon_list.size<=0:
             raise IndexError("The GSSHA grid is not inside the HRRR domain ...")
             
         return (lsm_lat_list,
@@ -262,11 +282,11 @@ class HRRRtoGSSHA(GRIDtoGSSHA):
                                        len(self.lsm_lon_indices)))
         
         for lsm_idx, lsm_nc_file in enumerate(self.lsm_nc_list):
-            grb_file = pygrib.open(self.lsm_nc_file)
+            grb_file = pygrib.open(lsm_nc_file)
             grb = grb_file.select(shortName=data_var)[0]
             #EXTRACT DATA WITHIN EXTENT
             if four_dim_var_calc_method is None:
-                self.data_np_array[lsm_idx] = grb.values[self.lsm_lat_indices, self.lsm_lon_indices]*conversion_factor
+                self.data_np_array[lsm_idx] = grb.values[self.lsm_lat_indices,:][:,self.lsm_lon_indices]*conversion_factor
             else:
                 self.data_np_array[lsm_idx] = four_dim_var_calc_method(grb.values[:, self.lsm_lat_indices, self.lsm_lon_indices]*conversion_factor, axis=0)
             grb_file.close()
