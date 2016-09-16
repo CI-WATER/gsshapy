@@ -294,13 +294,13 @@ class TestReadMethods(unittest.TestCase):
         
         # Tests
         
-    def test_ortho_gage_file_read(self):
+    def test_oro_gage_file_read(self):
         '''
-        Test OrthographicGageFile read method
+        Test OrographicGageFile read method
         '''
         snwR, snwQ = self._read_n_query(fileIO=OrographicGageFile,
                                         directory=self.directory,
-                                        filename='ortho_gages.txt')
+                                        filename='oro_gages.txt')
         
         # Tests
         
@@ -414,6 +414,8 @@ class TestReadMethods(unittest.TestCase):
             self.assertEqual(one, two)
         
     def tearDown(self):
+        self.readSession.close()
+        self.querySession.close()
         dbt.del_sqlite_db(self.db_path)
         
 suite = unittest.TestLoader().loadTestsFromTestCase(TestReadMethods)

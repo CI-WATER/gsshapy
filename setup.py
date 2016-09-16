@@ -4,6 +4,8 @@ requires = [
     'sqlalchemy>=0.7',
     'mapkit>=1.1.0',
     'python-dateutil',
+    'requests',
+    'psycopg2',
     ]
 
 setup(name='gsshapy',
