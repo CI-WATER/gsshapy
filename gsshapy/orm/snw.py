@@ -209,7 +209,7 @@ class OrographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
-        Orthographic Gage File Read from File Method
+        Orographic Gage File Read from File Method
         """
         # Set file extension property
         self.fileExtension = extension
@@ -240,11 +240,11 @@ class OrographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
                                                         temp2=sline[4])
 
                     # Associate OrthoMeasurement with OrthographicGageFile
-                    measurement.orthoGageFile = self
+                    self.orographicMeasurements.append(measurement)
 
     def _write(self, session, openFile, replaceParamFile):
         """
-        Orthographic Gage File Write to File Method
+        Orographic Gage File Write to File Method
         """
         # Write lines
         openFile.write('Num_Sites:    %s\n' % self.numSites)
@@ -252,8 +252,8 @@ class OrographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
         openFile.write('Elev_2        %s\n' % self.elev2)
         openFile.write('Year    Month   Day     Hour    Temp_2\n')
 
-        # Retrieve OrthoMeasurements
-        measurements = self.orthoMeasurements
+        # Retrieve OrographicMeasurements
+        measurements = self.orographicMeasurements
 
         for measurement in measurements:
             dateTime = measurement.dateTime
