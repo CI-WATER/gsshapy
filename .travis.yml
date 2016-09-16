@@ -44,7 +44,6 @@ before_install:
 #-----------------------------------------------------------------------------
 - conda install --yes python=$TRAVIS_PYTHON_VERSION nose numpy netCDF4 gdal pyproj
 - export GDAL_DATA=$HOME/miniconda2/share/gdal
-- pip install --upgrade pyproj
 - pip install pygrib
 
 #*******************************************************************************
@@ -57,6 +56,6 @@ install:
 #*******************************************************************************
 #Testing GSSHApy
 #*******************************************************************************
-script: 
 - cd $TRAVIS_BUILD_DIR/tests
+script: 
 - nosetests
