@@ -2,7 +2,7 @@
 Introduction
 ************
 
-**Last Updated:** July 30, 2014
+**Last Updated:** September 16, 2016
 
 GsshaPy is an object relational model (ORM) for the Gridded Surface Subsurface
 Hydrologic Analysis (GSSHA) model. The purpose of GsshaPy is to expose GSSHA files
@@ -22,10 +22,8 @@ moisture as well as runoff and flooding on watersheds.
 
 .. note::
 	
-	For more information about GSSHA please visit the `GSSHA website`_ 
-	and the gsshawiki_ .
+	For more information about GSSHA please visit the the gsshawiki_ .
 
-.. _GSSHA website: http://chl.erdc.usace.army.mil/gssha	
 .. _gsshawiki: http://www.gsshawiki.com/Main_Page
 
 Requirements
@@ -46,8 +44,8 @@ To install GsshaPy use ``easy_install`` as follows::
 Alternatively, the source code is available on bit bucket and can be 
 downloaded and installed as follows::
 
-	$ git clone git@bitbucket.org:swainn/gsshapy.git
-	$ cd gsshapy/GSSHAPY
+	$ git clone https://github.com/CI-WATER/gsshapy.git
+	$ cd gsshapy 
 	$ python setup.py install
 	
 For Windows users, a Windows installer has been created. It can be
@@ -59,27 +57,27 @@ downloaded here_.
 License
 =======
 
-GsshaPy is released under the `BSD 2-Clause license`_.
+GsshaPy is released under the `BSD 3-Clause license`_.
 
-.. _BSD 2-Clause license: https://bitbucket.org/swainn/gsshapy/raw/48944590dcc5957d6e97bd80a95f03e0857a734f/GSSHAPY/LICENSE.txt
+.. _BSD 3-Clause license: https://github.com/CI-WATER/gsshapy/blob/master/LICENSE.txt
 
 .. raw:: html
 	
 	<div>
-		<script src="https://bitbucket.org/swainn/gsshapy/src/48944590dcc5957d6e97bd80a95f03e0857a734f/GSSHAPY/LICENSE.txt?embed=t"></script>
+		<script src="https://github.com/CI-WATER/gsshapy/blob/master/LICENSE.txt?embed=t"></script>
 	</div>
 	
 Source
 ======
 
-The source code is available on bitbucket::
+The source code is available on GitHub::
 	
-	$ git clone git@bitbucket.org:swainn/gsshapy.git
+	$ git clone https://github.com/CI-WATER/gsshapy.git
 
-Author
+Authors
 ======
 
-Nathan Swain
+Nathan Swain & Alan D. Snow
 
 NSF Grant
 =========
