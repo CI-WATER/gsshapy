@@ -149,7 +149,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                 for mtValue in mapTable.values:
                     contaminantList.append(mtValue.contaminant)
 
-                contaminants = set(contaminantList)
+                contaminants = sorted(set(contaminantList), key=lambda x: (x.indexMap.name, x.name))
 
         # Derive a set of unique MTIndexMap objects    
         indexMaps = self.indexMaps
