@@ -17,7 +17,7 @@ def all_tests():
     suite2 = unittest.TestLoader().loadTestsFromTestCase(TestWriteMethods)
     return unittest.TestSuite([suite1, suite2])
 
-def run_all_tests(verbosity):
+def run_all_tests(verbosity=2):
     # Retrieve tests
     alltests = all_tests()
     
