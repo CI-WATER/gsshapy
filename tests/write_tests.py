@@ -34,7 +34,7 @@ class TestWriteMethods(unittest.TestCase):
         # Create DB Sessions
         readSession = dbt.create_session(sqlalchemy_url)
         self.writeSession = dbt.create_session(sqlalchemy_url)
-        
+
         # Instantiate GSSHAPY ProjectFile object
         prjR = ProjectFile()
         
@@ -43,7 +43,8 @@ class TestWriteMethods(unittest.TestCase):
                          projectFileName='standard.prj',
                          session=readSession)
         
-    
+        readSession.close()
+        
     def test_project_file_write(self):
         '''
         Test ProjectFile write method
@@ -63,7 +64,6 @@ class TestWriteMethods(unittest.TestCase):
         
         # Test
         self._compare_files(self.original, self.name, 'cif')
-        
 
     def test_map_table_file_write(self):
         '''
@@ -74,7 +74,7 @@ class TestWriteMethods(unittest.TestCase):
         
         # Test
         self._compare_files(self.original, self.name, 'cmt')
-        
+
     def test_precip_file_write(self):
         '''
         Test PrecipFile write method
@@ -96,7 +96,6 @@ class TestWriteMethods(unittest.TestCase):
         # Test
         self._compare_files(self.original, self.name, 'gpi')
         
-        
     def test_grid_stream_file_write(self):
         '''
         Test GridStreamFile write method
@@ -106,7 +105,6 @@ class TestWriteMethods(unittest.TestCase):
         
         # Test
         self._compare_files(self.original, self.name, 'gst')
-        
         
     def test_hmet_file_write(self):
         '''
@@ -118,7 +116,6 @@ class TestWriteMethods(unittest.TestCase):
         # Test
         self._compare_files('hmet_wes', 'hmet_wes', 'hmt')
         
-        
     def test_output_location_file_write(self):
         '''
         Test OutputLocationFile write method
@@ -128,8 +125,6 @@ class TestWriteMethods(unittest.TestCase):
         
         # Test
         self._compare_files(self.original, self.name, 'ihl')
-        
-        
         
     def test_link_node_dataset_file_write(self):
         '''
@@ -141,7 +136,6 @@ class TestWriteMethods(unittest.TestCase):
         # Test
         self._compare_files(self.original, self.name, 'cdp')
         
-        
     def test_raster_map_file_write(self):
         '''
         Test RasterMapFile write method
@@ -151,8 +145,6 @@ class TestWriteMethods(unittest.TestCase):
         
         # Test
         self._compare_files(self.original, self.name, 'msk')
-        
-        
         
     def test_projection_file_write(self):
         '''
@@ -164,7 +156,6 @@ class TestWriteMethods(unittest.TestCase):
         # Test
         self._compare_files('standard_prj', 'standard_prj', 'pro')
         
-        
     def test_replace_param_file_write(self):
         '''
         Test ReplaceParamFile write method
@@ -174,8 +165,6 @@ class TestWriteMethods(unittest.TestCase):
         
         # Test
         self._compare_files('replace_param', 'replace_param', 'txt')
-        
-        
         
     def test_replace_val_file_write(self):
         '''
@@ -187,7 +176,6 @@ class TestWriteMethods(unittest.TestCase):
         # Test
         self._compare_files('replace_val', 'replace_val', 'txt')
         
-        
     def test_nwsrfs_file_write(self):
         '''
         Test NwsrfsFile write method
@@ -197,19 +185,17 @@ class TestWriteMethods(unittest.TestCase):
         
         # Test
         self._compare_files('nwsrfs_elev', 'nwsrfs_elev', 'txt')
-        
-        
-    def test_ortho_gage_file_write(self):
+
+    def test_oro_gage_file_write(self):
         '''
-        Test OrthographicGageFile write method
+        Test OrographicGageFile write method
         '''
         # Query and invoke write method
-        self._query_n_write_filename(OrographicGageFile, 'ortho_gages.txt')
+        self._query_n_write_filename(OrographicGageFile, 'oro_gages.txt')
         
         # Test
-        self._compare_files('ortho_gages', 'ortho_gages', 'txt')
-        
-        
+        self._compare_files('oro_gages', 'oro_gages', 'txt')
+
     def test_storm_pipe_network_file_write(self):
         '''
         Test StormPipeNetworkFile write method
@@ -219,8 +205,6 @@ class TestWriteMethods(unittest.TestCase):
         
         # Test
         self._compare_files(self.original, self.name, 'spn')
-        
-        
         
     def test_time_series_file_write(self):
         '''
@@ -249,14 +233,13 @@ class TestWriteMethods(unittest.TestCase):
         # Test
         self._compare_files('Soil', 'soil_new_name', 'idx')
         
-        
     def test_project_file_write_all(self):
         '''
         Test ProjectFile write all method
         '''
         # Retrieve ProjectFile from database
         projectFile = self.writeSession.query(ProjectFile).one()
-        
+
         # Invoke write all method
         projectFile.writeProject(session=self.writeSession,
                                  directory=self.writeDirectory,
@@ -265,7 +248,6 @@ class TestWriteMethods(unittest.TestCase):
         # Compare all files
         self._compare_directories(self.readDirectory, self.writeDirectory)
         
-
     def test_project_file_write_input(self):
         '''
         Test ProjecFile write input method
@@ -280,7 +262,7 @@ class TestWriteMethods(unittest.TestCase):
         
         # Compare all files
         self._compare_directories(self.readDirectory, self.writeDirectory)
-        
+
     def test_project_file_write_output(self):
         '''
         Test ProjectFile write output method
@@ -295,7 +277,7 @@ class TestWriteMethods(unittest.TestCase):
         
         # Compare all files
         self._compare_directories(self.readDirectory, self.writeDirectory)
-    
+
     def _query_n_write(self, fileIO):
         '''
         Query database and write file method
@@ -360,17 +342,20 @@ class TestWriteMethods(unittest.TestCase):
         fileList2 = os.listdir(dir2)
         
         for afile in fileList2:
-            name = afile.split('.')[0]
-            ext = afile.split('.')[1]
-            
-            # Compare files with same name
-            self._compare_files(name, name, ext)
+            if not os.path.basename(afile).startswith("."):
+                name = afile.split('.')[0]
+                ext = afile.split('.')[1]
+                
+                # Compare files with same name
+                self._compare_files(name, name, ext)
             
     def _list_compare(self, listone, listtwo):
         for one, two in itertools.izip(listone, listtwo):
             self.assertEqual(one, two)
-        
+
     def tearDown(self):
+        self.writeSession.close()
+        
         # Remove temp database
         dbt.del_sqlite_db(self.db_path)
         
@@ -380,7 +365,7 @@ class TestWriteMethods(unittest.TestCase):
         for afile in fileList:
             path = os.path.join(self.writeDirectory, afile)
             os.remove(path)
-            
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestWriteMethods)
     
 
