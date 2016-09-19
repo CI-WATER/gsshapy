@@ -73,7 +73,7 @@ before_install:
 #-------------------------------------------------------------------------------
 # Install pygrib
 #-------------------------------------------------------------------------------
-- cd ../installz 
+- cd .. 
 - git clone https://github.com/jswhit/pygrib.git
 - cd pygrib
 - cp setup.cfg.template setup.cfg
