@@ -76,8 +76,8 @@ before_install:
 - cd .. 
 - git clone https://github.com/jswhit/pygrib.git
 - cd pygrib
-- cp setup.cfg.template setup.cfg
-- echo "grib_api_dir=$TRAVIS_BUILD_DIR/../installz/grib_api-install" >> setup.cfg
+- echo "[directories]" > setup.cfg
+- echo "grib_api_dir = $TRAVIS_BUILD_DIR/../installz/grib_api-install" >> setup.cfg
 - python setup.py build
 - python setup.py install
 
