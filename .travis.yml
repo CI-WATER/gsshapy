@@ -26,7 +26,12 @@ notifications:
 before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -y gcc gfortran g++
+#install cmake 3.2 on Ubuntu 14.04
+- sudo apt-get install software-properties-common
+- sudo add-apt-repository ppa:george-edison55/cmake-3.x
+- sudo apt-get update
 - sudo apt-get install -y --upgrade cmake
+
 #-------------------------------------------------------------------------------
 #Add miniconda - from https://gist.github.com/dan-blanchard/7045057
 #-----------------------------------------------------------------------------
