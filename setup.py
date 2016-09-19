@@ -20,6 +20,4 @@ setup(name='gsshapy',
       packages=['gridtogssha'] + find_packages(),
       include_package_data=True,
       install_requires=requires,
-      tests_require=requires,
-      test_suite='gsshapy.tests.all_tests'
       )
