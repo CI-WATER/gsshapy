@@ -10,12 +10,14 @@
 import unittest
 from read_tests import TestReadMethods
 from write_tests import TestWriteMethods
+from hrrr_tests import TestHRRRtoGSSHA
 
 def all_tests():
     # Retrieve tests
     suite1 = unittest.TestLoader().loadTestsFromTestCase(TestReadMethods)
     suite2 = unittest.TestLoader().loadTestsFromTestCase(TestWriteMethods)
-    return unittest.TestSuite([suite1, suite2])
+    suite3 = unittest.TestLoader().loadTestsFromTestCase(TestHRRRtoGSSHA)
+    return unittest.TestSuite([suite1, suite2, suite3])
 
 def run_all_tests(verbosity=2):
     # Retrieve tests

@@ -1,0 +1,38 @@
+GSSHA_INDEX_MAP_TABLES
+ROUGHNESS ""
+NUM_IDS 0
+ID    DESCRIPTION1                            DESCRIPTION2                                   ROUGH
+GREEN_AMPT_INFILTRATION ""
+NUM_IDS 0
+ID    DESCRIPTION1                            DESCRIPTION2                               HYDR_COND  CAPIL_HEAD    POROSITY  PORE_INDEX   RESID_SAT FIELD_CAPACITY  WILTING_PT
+GREEN_AMPT_INITIAL_SOIL_MOISTURE ""
+NUM_IDS 0
+ID    DESCRIPTION1                            DESCRIPTION2                            SOIL_MOISTURE
+RICHARDS_EQN_INFILTRATION_BROOKS  ""
+NUM_IDS 0
+MAX_NUMBER_CELLS 0
+ID    DESCRIPTION1                            DESCRIPTION2                                HYD_COND    POROSITY   RESID_SAT  SOIL_MOIST  WILTING_PT FIELD_CAPACITY       DEPTH      LAMBDA   BUB_PRESS     DELTA_Z
+RICHARDS_EQN_INFILTRATION_HAVERCAMP  ""
+NUM_IDS 0
+MAX_NUMBER_CELLS 0
+ID    DESCRIPTION1                            DESCRIPTION2                                HYD_COND    POROSITY   RESID_SAT  SOIL_MOIST  WILTING_PT FIELD_CAPACITY       DEPTH       ALPHA        BETA        AHAV        BHAV     DELTA_Z
+MULTI_LAYER_SOIL  ""
+NUM_IDS 0
+MAX_SOIL_ID 0
+ID    DESCRIPTION1                            DESCRIPTION2                                HYD_COND  PORE_INDEX  CAPIL_HEAD    POROSITY   FIELD_CAP  WILTING_PT   RESID_SAT  SOIL_MOIST       DEPTH
+EVAPOTRANSPIRATION ""
+NUM_IDS 0
+ID    DESCRIPTION1                            DESCRIPTION2                                  ALBEDO  VEG_HEIGHT  V_RAD_COEF CANOPY_RESIST
+SEDIMENTS
+NUM_SED  0
+Sediment Description                      Spec. Grav   Part. Dia     Output Filename
+SOIL_EROSION_PROPS ""
+NUM_IDS 0
+NUM_SED 0
+ID    DESCRIPTION1                            DESCRIPTION2                             SPLASH_COEF DETACH_COEF  DETACH_EXP DETACH_CRIT    SED_COEF   0 SEDIMENTS....
+GROUNDWATER ""
+NUM_IDS 0
+ID    DESCRIPTION1                            DESCRIPTION2                                HYD_COND    POROSITY
+WETLAND_PROPERTIES "wetlands"
+NUM_IDS 0
+ID                                                                                      INIT_DEPTH   RET_DEPTH RET_HYD_CON  VEG_HEIGHT VEG_HYD_CON   OVR_VEG_N

@@ -1,0 +1,31 @@
+GSSHAPROJECT
+WMS WMS 10.1.10 (64-bit)
+WATERSHED_MASK           "us_test.msk"
+PROJECT_PATH             ""
+#PROJECTION_FILE         "us_test_prj.pro"
+NON_ORTHO_CHANNELS
+FLINE                    "us_test.map"
+METRIC
+GRIDSIZE                 10.012451
+ROWS                     493
+COLS                     735
+TOT_TIME                 500
+TIMESTEP                 2
+OUTROW                   152
+OUTCOL                   1
+OUTSLOPE                 0.001000
+MAP_FREQ                 30
+HYD_FREQ                 30
+MAP_TYPE                 1
+ELEVATION                "us_test.ele"
+DEPTH                    "us_test.dep"
+OVERTYPE                 ADE
+MAPPING_TABLE            "us_test.cmt"
+SUMMARY                  "us_test.sum"
+OUTLET_HYDRO             "us_test.otl"
+QUIET
+PRECIP_UNIF
+RAIN_INTENSITY           0.000000
+RAIN_DURATION            0
+START_DATE               2016 09 15
+START_TIME               11 58
