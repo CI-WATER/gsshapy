@@ -75,7 +75,7 @@ The source code is available on GitHub::
 	$ git clone https://github.com/CI-WATER/gsshapy.git
 
 Authors
-======
+=======
 
 Nathan Swain & Alan D. Snow
 
