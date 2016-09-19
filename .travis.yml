@@ -26,13 +26,6 @@ notifications:
 before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -y gcc gfortran g++ build-essential
-#install cmake 3.* on Ubuntu 14.04
-- wget https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.sh
-- tar xf cmake-3.6.2.tar.gz
-- cd cmake-3.6.2
-- ./configure
-- make
-- sudo checkinstall
 
 #-------------------------------------------------------------------------------
 #Add miniconda - from https://gist.github.com/dan-blanchard/7045057
