@@ -51,7 +51,7 @@ before_install:
 - cd $TRAVIS_BUILD_DIR 
 - mkdir ../installz
 - cd ../installz
-- wget -o grib_api-1.17.0.tar.gz https://software.ecmwf.int/wiki/download/attachments/3473437/grib_api-1.17.0-Source.tar.gz?api=v2
+- wget -O grib_api-1.17.0.tar.gz https://software.ecmwf.int/wiki/download/attachments/3473437/grib_api-1.17.0-Source.tar.gz?api=v2
 - tar xf grib_api-1.17.0.tar.gz
 - mkdir grib_api-build
 - mkdir grib_api-install
