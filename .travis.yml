@@ -25,9 +25,9 @@ notifications:
 #*******************************************************************************
 before_install:
 - sudo apt-get update -qq
-- sudo apt-get install -y gcc gfortran g++ build-essential checkinstall
+- sudo apt-get install -y gcc gfortran g++ build-essential
 #install cmake 3.* on Ubuntu 14.04
-- wget https://cmake.org/files/v3.6/cmake-3.6.2.tar.gz
+- wget https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.sh
 - tar xf cmake-3.6.2.tar.gz
 - cd cmake-3.6.2
 - ./configure
@@ -58,6 +58,15 @@ before_install:
 - cd $TRAVIS_BUILD_DIR 
 - mkdir ../installz
 - cd ../installz
+#install cmake 3.6.2 on Ubuntu 14.04
+- mkdir cmake_install
+- cd cmake_install
+- wget https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.sh
+- sudo chmod u+x cmake-3.6.2-Linux-x86_64.sh
+- ./cmake-3.6.2-Linux-x86_64.sh --skip-license
+- export PATH=$PWD/bin:$PATH
+- cd ..
+#install grib
 - wget -O grib_api-1.17.0-Source.tar.gz https://software.ecmwf.int/wiki/download/attachments/3473437/grib_api-1.17.0-Source.tar.gz?api=v2
 - tar xf grib_api-1.17.0-Source.tar.gz
 - mkdir grib_api-build
