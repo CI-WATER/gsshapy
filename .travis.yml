@@ -25,7 +25,7 @@ notifications:
 #*******************************************************************************
 before_install:
 - sudo apt-get update -qq
-- sudo apt-get install -y gcc gfortran g++ build-essential libgrib-api-dev
+- sudo apt-get install -y gcc gfortran g++ cmake
 
 #-------------------------------------------------------------------------------
 #Add miniconda - from https://gist.github.com/dan-blanchard/7045057
@@ -43,8 +43,34 @@ before_install:
 # Install required python packages
 #-----------------------------------------------------------------------------
 - conda install --yes python=$TRAVIS_PYTHON_VERSION nose numpy netCDF4 gdal pyproj
-- export GDAL_DATA=$HOME/miniconda2/share/gdal
-- pip install pygrib
+
+
+#-------------------------------------------------------------------------------
+# Install GRIB API
+#-------------------------------------------------------------------------------
+- cd $TRAVIS_BUILD_DIR 
+- mkdir ../installz
+- cd ../installz
+- wget -o grib_api-1.17.0.tar.gz https://software.ecmwf.int/wiki/download/attachments/3473437/grib_api-1.17.0-Source.tar.gz?api=v2
+- tar xf grib_api-1.17.0.tar.gz
+- mkdir grib_api-build
+- mkdir grib_api-install
+- cd grib_api-build
+- cmake ../grib_api-1.17.0 -DCMAKE_INSTALL_PREFIX=$TRAVIS_BUILD_DIR/../installz/grib_api-install
+- make
+- make install
+
+
+#-------------------------------------------------------------------------------
+# Install pygrib
+#-------------------------------------------------------------------------------
+- cd ../installz 
+- git clone https://github.com/jswhit/pygrib.git
+- cd pygrib
+- cp setup.cfg.template setup.cfg
+- echo "grib_api_dir=$TRAVIS_BUILD_DIR/../installz/grib_api-install" >> setup.cfg
+- python setup.py build
+- python setup.py install
 
 #*******************************************************************************
 #Installing GSSHApy
