@@ -363,8 +363,9 @@ class TestWriteMethods(unittest.TestCase):
         fileList = os.listdir(self.writeDirectory)
         
         for afile in fileList:
-            path = os.path.join(self.writeDirectory, afile)
-            os.remove(path)
+	    if afile != ".gitignore":
+            	path = os.path.join(self.writeDirectory, afile)
+            	os.remove(path)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestWriteMethods)
     
