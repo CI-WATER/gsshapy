@@ -25,8 +25,8 @@ notifications:
 #*******************************************************************************
 before_install:
 - sudo apt-get update -qq
-- sudo apt-get install -y gcc gfortran g++ cmake
-
+- sudo apt-get install -y gcc gfortran g++
+- sudo apt-get install -y --upgrade cmake
 #-------------------------------------------------------------------------------
 #Add miniconda - from https://gist.github.com/dan-blanchard/7045057
 #-----------------------------------------------------------------------------
