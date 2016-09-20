@@ -303,6 +303,46 @@ class GRIDtoGSSHA(object):
                                                                     'netcdf' : 1,
                                                                 },
                                         },
+                                    'direct_radiation_cc' :
+                                        #DIRECT/BEAM/SOLAR RADIATION
+                                        #NOTE: LSM
+                                        #DIFFUSIVE_FRACTION = cloud_cover_pc/100
+                                        #WRF: global_radiation * (1-DIFFUSIVE_FRACTION)
+                                        #units = "W m-2" ;
+                                        {
+                                          'units' : {
+                                                        'ascii': 'W hr m-2',
+                                                        'netcdf': 'W hr m-2',
+                                                    },
+                                          'standard_name' : 'surface_direct_downward_shortwave_flux',
+                                          'long_name' : 'Direct short wave radiation flux',
+                                          'gssha_name' : 'direct_radiation',
+                                          'hmet_name' : 'DRad',
+                                          'conversion_factor' : {
+                                                                    'ascii' : 1,
+                                                                    'netcdf' : 1,
+                                                                },
+                                        },
+                                    'diffusive_radiation_cc' :
+                                        #DIFFUSIVE RADIATION
+                                        #NOTE: LSM
+                                        #DIFFUSIVE_FRACTION = cloud_cover_pc/100
+                                        #WRF: global_radiation * DIFFUSIVE_FRACTION
+                                        #units = "W m-2" ;
+                                        {
+                                          'units' : {
+                                                        'ascii': 'W hr m-2',
+                                                        'netcdf': 'W hr m-2',
+                                                    },
+                                          'standard_name' : 'surface_diffusive_downward_shortwave_flux',
+                                          'long_name' : 'Diffusive short wave radiation flux',
+                                          'gssha_name' : 'diffusive_radiation',
+                                          'hmet_name' : 'GRad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
+                                          'conversion_factor' : {
+                                                                    'ascii' : 1,
+                                                                    'netcdf' : 1,
+                                                                },
+                                        },
                                     'cloud_cover' :
                                         #NOTE: LSM
                                         #Between 0-1 (0=No Clouds; 1=Clouds) ;
@@ -512,21 +552,25 @@ class GRIDtoGSSHA(object):
         This function loads data from LSM and converts to GSSHA format
         """
         if 'radiation' in gssha_var:
-            if gssha_var == 'direct_radiation' and not isinstance(lsm_var, basestring):
+            if gssha_var.startswith('direct_radiation') and not isinstance(lsm_var, basestring):
                 #direct_radiation = (1-DIFFUSIVE_FRACION)*global_radiation
                 global_radiation_var, diffusive_fraction_var = lsm_var
                 self._load_lsm_data(global_radiation_var)
                 global_radiation = self.data_np_array
                 self._load_lsm_data(diffusive_fraction_var)
                 diffusive_fraction = self.data_np_array
+                if gssha_var.endswith("cc"):
+                    diffusive_fraction /= 100
                 self.data_np_array = (1-diffusive_fraction)*global_radiation*self.time_step_seconds/3600.0
-            elif gssha_var == 'diffusive_radiation' and not isinstance(lsm_var, basestring):
+            elif gssha_var.startswith('diffusive_radiation') and not isinstance(lsm_var, basestring):
                 #diffusive_radiation = DIFFUSIVE_FRACION*global_radiation
                 global_radiation_var, diffusive_fraction_var = lsm_var
                 self._load_lsm_data(global_radiation_var)
                 global_radiation = self.data_np_array
                 self._load_lsm_data(diffusive_fraction_var)
                 diffusive_fraction = self.data_np_array
+                if gssha_var.endswith("cc"):
+                    diffusive_fraction /= 100
                 self.data_np_array = diffusive_fraction*global_radiation*self.time_step_seconds/3600.0
             elif isinstance(lsm_var, basestring):
                 self._load_lsm_data(lsm_var, self.netcdf_attributes[gssha_var]['conversion_factor'][load_type])
@@ -913,8 +957,8 @@ class GRIDtoGSSHA(object):
                                   ['pressure', 'sp'], 
                                   ['relative_humidity', '2r'], 
                                   ['wind_speed', ['10u', '10v']], 
-                                  ['direct_radiation', ['dswrf', 'tcc']],
-                                  ['diffusive_radiation', ['dswrf', 'tcc']],
+                                  ['direct_radiation_cc', ['dswrf', 'tcc']],
+                                  ['diffusive_radiation_cc', ['dswrf', 'tcc']],
                                   ['temperature', 't'],
                                   ['cloud_cover_pc' , 'tcc'],
                                  ]
@@ -991,8 +1035,8 @@ class GRIDtoGSSHA(object):
                                   ['pressure', 'sp'], 
                                   ['relative_humidity', '2r'], 
                                   ['wind_speed', ['10u', '10v']], 
-                                  ['direct_radiation', ['dswrf', 'tcc']],
-                                  ['diffusive_radiation', ['dswrf', 'tcc']],
+                                  ['direct_radiation_cc', ['dswrf', 'tcc']],
+                                  ['diffusive_radiation_cc', ['dswrf', 'tcc']],
                                   ['temperature', 't'],
                                   ['cloud_cover_pc' , 'tcc'],
                                  ]

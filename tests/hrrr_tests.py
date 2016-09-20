@@ -66,8 +66,8 @@ class TestHRRRtoGSSHA(unittest.TestCase):
                                    ['pressure', 'sp'], 
                                    ['relative_humidity', '2r'], 
                                    ['wind_speed', ['10u', '10v']], 
-                                   ['direct_radiation', ['dswrf', 'tcc']],
-                                   ['diffusive_radiation', ['dswrf', 'tcc']],
+                                   ['direct_radiation_cc', ['dswrf', 'tcc']],
+                                   ['diffusive_radiation_cc', ['dswrf', 'tcc']],
                                    ['temperature', 't'],
                                    ['cloud_cover_pc' , 'tcc'],
                                   ]
@@ -102,11 +102,11 @@ class TestHRRRtoGSSHA(unittest.TestCase):
                           lsm_search_card=self.search_card, 
                           )
         
-        netcdf_file_path = os.path.join(self.writeDirectory, 'gssha_dynamic_wrf.nc')
+        netcdf_file_path = os.path.join(self.writeDirectory, 'gssha_dynamic_hrrr.nc')
         h2g.lsm_data_to_subset_netcdf(netcdf_file_path, self.data_var_map_array)        
 
         #compare netcdf files
-        self._compare_netcdf_files("gssha_dynamic_wrf", "gssha_dynamic_wrf", "nc")
+        self._compare_netcdf_files("gssha_dynamic_hrrr", "gssha_dynamic_hrrr", "nc")
 
     def test_hrrr_ascii_file_write(self):
         '''
@@ -200,19 +200,19 @@ class TestHRRRtoGSSHA(unittest.TestCase):
         for one, two in itertools.izip(listone, listtwo):
             self.assertEqual(one, two)
 
-    def tearDown(self):
-        os.chdir(SCRIPT_DIR)
-
-        # Clear out directory
-        fileList = os.listdir(self.writeDirectory)
-        
-        for afile in fileList:
-            if afile != '.gitignote':
-                path = os.path.join(self.writeDirectory, afile)
-                if os.path.isdir(path):
-                    rmtree(path)
-                else:
-                    os.remove(path)
+#    def tearDown(self):
+#        os.chdir(SCRIPT_DIR)
+#
+#        # Clear out directory
+#        fileList = os.listdir(self.writeDirectory)
+#        
+#        for afile in fileList:
+#            if afile != '.gitignote':
+#                path = os.path.join(self.writeDirectory, afile)
+#                if os.path.isdir(path):
+#                    rmtree(path)
+#                else:
+#                    os.remove(path)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestHRRRtoGSSHA)
     

@@ -1,19 +1,19 @@
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091401
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091402
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091403
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091404
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091405
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091406
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091407
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091408
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091409
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091410
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091411
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091412
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091413
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091414
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091415
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091416
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091417
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091418
-/Volumes/Seagate Backup Plus Drive/GSSHA/US_TEST/hrrr_hmet_data/2016091419
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091401
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091402
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091403
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091404
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091405
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091406
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091407
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091408
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091409
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091410
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091411
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091412
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091413
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091414
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091415
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091416
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091417
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091418
+/home/alan/scripts/gsshapy/tests/out/hrrr_hmet_data/2016091419
