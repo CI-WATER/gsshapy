@@ -200,19 +200,19 @@ class TestHRRRtoGSSHA(unittest.TestCase):
         for one, two in itertools.izip(listone, listtwo):
             self.assertEqual(one, two)
 
-#    def tearDown(self):
-#        os.chdir(SCRIPT_DIR)
-#
-#        # Clear out directory
-#        fileList = os.listdir(self.writeDirectory)
-#        
-#        for afile in fileList:
-#            if afile != '.gitignote':
-#                path = os.path.join(self.writeDirectory, afile)
-#                if os.path.isdir(path):
-#                    rmtree(path)
-#                else:
-#                    os.remove(path)
+    def tearDown(self):
+        os.chdir(SCRIPT_DIR)
+
+        # Clear out directory
+        fileList = os.listdir(self.writeDirectory)
+        
+        for afile in fileList:
+            if afile != '.gitignote':
+                path = os.path.join(self.writeDirectory, afile)
+                if os.path.isdir(path):
+                    rmtree(path)
+                else:
+                    os.remove(path)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestHRRRtoGSSHA)
     
