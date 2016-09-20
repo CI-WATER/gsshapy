@@ -9,7 +9,7 @@ requires = [
     ]
 
 setup(name='gsshapy',
-      version='2.0.0',
+      version='2.1.0',
       description='An SQLAlchemy ORM for GSSHA model files and a toolkit to convert gridded input into GSSHA input.',
       long_description='',
       author='Nathan Swain and Alan D. Snow',
