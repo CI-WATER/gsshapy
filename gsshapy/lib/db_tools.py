@@ -50,6 +50,7 @@ def init_sqlite_memory(initTime=False):
         engine(str): The path to use when creating a session
 
     Example::
+    
         from gsshapy.lib.db_tools import init_sqlite_memory, create_session
         
         sqlite_db_path = '/home/username/my_sqlite.db'   
@@ -83,6 +84,7 @@ def init_sqlite_db(path, initTime=False):
         initTime(Optional[bool]): If True, it will print the amount of time to generate database.
 
     Example::
+    
         from gsshapy.lib.db_tools import init_sqlite_db, create_session
         
         sqlite_db_path = '/home/username/my_sqlite.db'   
