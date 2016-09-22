@@ -113,7 +113,7 @@ def init_postgresql_db(username, host, database, port='', password='', initTime=
     '''
     Initialize PostgreSQL Database
     
-    ..note: psycopg2 or similar driver required
+    .. note:: psycopg2 or similar driver required
     
     Args:
         username(str): Database username.
@@ -124,6 +124,7 @@ def init_postgresql_db(username, host, database, port='', password='', initTime=
         initTime(Optional[bool]): If True, it will print the amount of time to generate database.
 
     Example::
+    
         from gsshapy.lib.db_tools import init_postgresql_db, create_session
         
         sqlalchemy_url = init_postgresql_db(username='gsshapy', 
@@ -166,7 +167,7 @@ def init_mysql_db(username, host, database, port='', password='', initTime=False
     '''
     Initialize MySQL Database
     
-    ..note: mysql-python or similar driver required
+    .. note:: mysql-python or similar driver required
     
     Args:
         username(str): Database username.
@@ -177,6 +178,7 @@ def init_mysql_db(username, host, database, port='', password='', initTime=False
         initTime(Optional[bool]): If True, it will print the amount of time to generate database.
 
     Example::
+    
         from gsshapy.lib.db_tools import init_mysql_db, create_session
         
         sqlalchemy_url = init_mysql_db(username='gsshapy', 
