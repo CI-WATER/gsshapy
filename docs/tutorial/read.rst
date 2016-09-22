@@ -11,9 +11,7 @@ Initiate GsshaPy Database
 =========================
 
 The first step is to create a database and populate it with all of the GsshaPy tables. 
-Here is where to find more information about the API for creating databases:
-
-:doc:`../api/lib/db-tools`
+The database tools API for creating databases is located here: :doc:`../api/lib/db-tools`
    
 For this tutorial you will need to create a new database in a PostgreSQL database and
 enable the PostGIS extension. This can be done by following the instructions on the
