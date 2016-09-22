@@ -94,9 +94,7 @@ install:
 #*******************************************************************************
 - cd $TRAVIS_BUILD_DIR/tests
 script: 
-- coverage run --source=gsshapy read_tests.py
-- coverage run --source=gsshapy read_tests.py
-- coverage run --source=gridtogssha hrrr_tests.py
+- nosetests --with-coverage --cover-package=gsshapy,gridtogssha
 ##ADD Coveralls stats for code coverage
 after_success:
   - coveralls
