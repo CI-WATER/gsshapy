@@ -20,10 +20,13 @@ from gsshapy.orm import metadata
 
 
 def del_sqlite_db(path):
+    """
+    Delete sqlite database
+    """
     try:
         os.remove(path)
     except:
-        print 'Error: No DB at this location to delete.'
+        print('Error: No DB at this location to delete.')
 
 
 def init_db(sqlalchemy_url):
@@ -38,6 +41,26 @@ def init_db(sqlalchemy_url):
 def init_sqlite_memory(initTime=False):
     '''
     Initialize SQLite in Memory Only Database
+    
+    Args:
+        initTime(Optional[bool]): If True, it will print the amount of time to generate database.
+
+    Returns:
+        sqlachemy_url(str): The path to use when creating a session
+        engine(str): The path to use when creating a session
+
+    Example::
+        from gsshapy.lib.db_tools import init_sqlite_memory, create_session
+        
+        sqlite_db_path = '/home/username/my_sqlite.db'   
+        
+        sqlalchemy_url, engine = init_postgresql_db(path=sqlite_db_path)
+        
+        db_work_session = create_session(sqlalchemy_url, engine)
+        
+        ##DO WORK
+        
+        db_work_session.close()
     '''
     sqlalchemy_url = 'sqlite://'
     engine = create_engine(sqlalchemy_url,
@@ -46,7 +69,7 @@ def init_sqlite_memory(initTime=False):
     metadata.create_all(engine)
     
     if initTime:
-        print 'TIME:', time.time() - start, 'seconds'
+        print('TIME: {0} seconds'.format(time.time() - start))
         
     return sqlalchemy_url, engine
     
@@ -54,6 +77,25 @@ def init_sqlite_memory(initTime=False):
 def init_sqlite_db(path, initTime=False):
     '''
     Initialize SQLite Database
+    
+    Args:
+        path(str): Path to database (Ex. '/home/username/my_sqlite.db').
+        initTime(Optional[bool]): If True, it will print the amount of time to generate database.
+
+    Example::
+        from gsshapy.lib.db_tools import init_sqlite_db, create_session
+        
+        sqlite_db_path = '/home/username/my_sqlite.db'   
+        
+        init_postgresql_db(path=sqlite_db_path)
+        
+        sqlalchemy_url = init_postgresql_db(path=sqlite_db_path)
+        
+        db_work_session = create_session(sqlalchemy_url)
+        
+        ##DO WORK
+        
+        db_work_session.close()
     '''
     sqlite_base_url = 'sqlite:///'
     
@@ -62,7 +104,7 @@ def init_sqlite_db(path, initTime=False):
     init_time = init_db(sqlalchemy_url)
     
     if initTime:
-        print 'TIME:', init_time, 'seconds'
+        print('TIME: {0} seconds'.format(init_time))
         
     return sqlalchemy_url
     
@@ -70,9 +112,32 @@ def init_sqlite_db(path, initTime=False):
 def init_postgresql_db(username, host, database, port='', password='', initTime=False):
     '''
     Initialize PostgreSQL Database
-    '''
-    ## NOTE: psycopg2 or similar driver required
     
+    ..note: psycopg2 or similar driver required
+    
+    Args:
+        username(str): Database username.
+        host(str): Database host URL.
+        database(str): Database name.
+        port(Optional[int,str]): Database port.
+        password(Optional[str]): Database password.
+        initTime(Optional[bool]): If True, it will print the amount of time to generate database.
+
+    Example::
+        from gsshapy.lib.db_tools import init_postgresql_db, create_session
+        
+        sqlalchemy_url = init_postgresql_db(username='gsshapy', 
+                                            host='localhost', 
+                                            database='gsshapy_mysql_tutorial', 
+                                            port='5432', 
+                                            password='pass')
+
+        db_work_session = create_session(sqlalchemy_url)
+        
+        ##DO WORK
+        
+        db_work_session.close()
+    '''
     postgresql_base_url = 'postgresql://'
     
     if password != '':
@@ -93,15 +158,39 @@ def init_postgresql_db(username, host, database, port='', password='', initTime=
     init_time = init_db(sqlalchemy_url)
     
     if initTime:
-        print 'TIME:', init_time, 'seconds'
+        print('TIME: {0} seconds'.format(init_time))
     
     return sqlalchemy_url
         
 def init_mysql_db(username, host, database, port='', password='', initTime=False):
     '''
     Initialize MySQL Database
+    
+    ..note: mysql-python or similar driver required
+    
+    Args:
+        username(str): Database username.
+        host(str): Database host URL.
+        database(str): Database name.
+        port(Optional[int,str]): Database port.
+        password(Optional[str]): Database password.
+        initTime(Optional[bool]): If True, it will print the amount of time to generate database.
+
+    Example::
+        from gsshapy.lib.db_tools import init_mysql_db, create_session
+        
+        sqlalchemy_url = init_mysql_db(username='gsshapy', 
+                                       host='localhost', 
+                                       database='gsshapy_mysql_tutorial', 
+                                       port='5432', 
+                                       password='pass')
+                                       
+        db_work_session = create_session(sqlalchemy_url)
+        
+        ##DO WORK
+        
+        db_work_session.close()
     '''
-    ## NOTE: mysql-python or similar driver required
     
     mysql_base_url = 'mysql://'
     
@@ -123,11 +212,14 @@ def init_mysql_db(username, host, database, port='', password='', initTime=False
     init_time = init_db(sqlalchemy_url)
     
     if initTime:
-        print 'TIME:', init_time, 'seconds'
+        print('TIME: {0} seconds'.format(init_time))
     
     return sqlalchemy_url
 
 def create_session(sqlalchemy_url, engine=None):
+    '''
+    Create session with database to work in
+    '''
     if engine is None:
         engine = create_engine(sqlalchemy_url)
     maker = sessionmaker(bind=engine)
