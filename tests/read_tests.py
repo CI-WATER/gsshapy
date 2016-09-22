@@ -11,7 +11,6 @@
 import unittest
 import itertools
 import os
-import uuid
 
 from gsshapy.orm.file_io import *
 from gsshapy.orm import ProjectFile
@@ -23,15 +22,12 @@ class TestReadMethods(unittest.TestCase):
         # Find db directory path
         here = os.path.abspath(os.path.dirname(__file__))
         
-        dbName = '%s.db' % uuid.uuid4()
-        self.db_path = os.path.join(here, 'db', 'standard.db')
-
         # Create Test DB
-        sqlalchemy_url = dbt.init_sqlite_db(self.db_path)
+        sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
         
         # Create DB Sessions
-        self.readSession = dbt.create_session(sqlalchemy_url)
-        self.querySession = dbt.create_session(sqlalchemy_url)
+        self.readSession = dbt.create_session(sqlalchemy_url, sql_engine)
+        self.querySession = dbt.create_session(sqlalchemy_url, sql_engine)
         
         # Define directory of test files to read
         self.directory = os.path.join(here, 'standard')
@@ -416,7 +412,6 @@ class TestReadMethods(unittest.TestCase):
     def tearDown(self):
         self.readSession.close()
         self.querySession.close()
-        dbt.del_sqlite_db(self.db_path)
         
 suite = unittest.TestLoader().loadTestsFromTestCase(TestReadMethods)
 
