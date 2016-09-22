@@ -10,9 +10,14 @@ will read in the project file from the Park City model that you downloaded on th
 Initiate GsshaPy Database
 =========================
 
-The first step is to create a database and populate it with all of the GsshaPy tables. For this tutorial you will need
-to create a new database in a PostgreSQL database and enable the PostGIS extension. This can be done by following
-the instructions on the PostGIS website: http://postgis.net/docs/manual-2.1/postgis_installation.html#create_new_db_extensions .
+The first step is to create a database and populate it with all of the GsshaPy tables. 
+Here is where to find more information about the API for creating databases:
+
+:doc:`../api/lib/db-tools`
+   
+For this tutorial you will need to create a new database in a PostgreSQL database and
+enable the PostGIS extension. This can be done by following the instructions on the
+PostGIS website: http://postgis.net/docs/manual-2.1/postgis_installation.html#create_new_db_extensions .
 
 Create a database user with password and a PostGIS enabled database with the following credentials:
 
