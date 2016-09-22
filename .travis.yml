@@ -43,6 +43,7 @@ before_install:
 # Install required python packages
 #-----------------------------------------------------------------------------
 - conda install --yes python=$TRAVIS_PYTHON_VERSION nose numpy netCDF4 gdal pyproj
+- pip install coveralls
 
 
 #-------------------------------------------------------------------------------
@@ -93,7 +94,9 @@ install:
 #*******************************************************************************
 - cd $TRAVIS_BUILD_DIR/tests
 script: 
-- nosetests
+- coverage run --source=gsshapy read_tests.py
+- coverage run --source=gsshapy read_tests.py
+- coverage run --source=gridtogssha hrrr_tests.py
 ##ADD Coveralls stats for code coverage
 after_success:
   - coveralls
