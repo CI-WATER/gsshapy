@@ -94,3 +94,7 @@ install:
 - cd $TRAVIS_BUILD_DIR/tests
 script: 
 - nosetests
+##ADD Coveralls stats for code coverage
+after_success:
+  - coveralls
+
