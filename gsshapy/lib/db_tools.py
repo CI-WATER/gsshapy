@@ -46,8 +46,8 @@ def init_sqlite_memory(initTime=False):
         initTime(Optional[bool]): If True, it will print the amount of time to generate database.
 
     Returns:
-        sqlachemy_url(str): The path to use when creating a session
-        engine(str): The path to use when creating a session
+        sqlachemy_url(str): The path to use when creating a session.
+        engine(str): The path to use when creating a session.
 
     Example::
     
