@@ -3,6 +3,8 @@ Object Relational Model for GSSHA model files.
 
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-yellow.svg)](https://github.com/ci-water/gsshapy/blob/master/LICENSE)
 
+[![PyPI version](https://badge.fury.io/py/gsshapy.svg)](https://badge.fury.io/py/gsshapy)
+
 [![Build Status](https://travis-ci.org/CI-WATER/gsshapy.svg)](https://travis-ci.org/CI-WATER/gsshapy)
 
 [![Coverage Status](https://coveralls.io/repos/github/CI-WATER/gsshapy/badge.svg?branch=master)](https://coveralls.io/github/CI-WATER/gsshapy?branch=master)
