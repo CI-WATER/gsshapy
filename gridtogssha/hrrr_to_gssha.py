@@ -12,12 +12,17 @@ from os import mkdir, path, remove
 #extra dependencies
 try:
     import numpy as np
-    import pygrib
     from pyproj import Proj
     import requests
 except ImportError:
-    print("To use HRRRtoGSSHA, you must have the numpy, pygrib, pyproj, and requests packages installed.")
+    print("To use HRRRtoGSSHA, you must have the numpy, pyproj, and requests packages installed.")
     raise
+
+try:
+    import pygrib
+except ImportError:
+    print("WARNING: HRRRtoGSSHA will not work as pygrib is not installed properly ...")
+    pass
 
 from .grid_to_gssha import GRIDtoGSSHA
     
