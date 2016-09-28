@@ -403,8 +403,8 @@ class LSMtoGSSHA(GRIDtoGSSHA):
         """
         #GET TIME STEP
         if self.time_step_seconds is None:
+            lsm_nc = Dataset(self.lsm_nc_list[0])
             try:
-                lsm_nc = Dataset(self.lsm_nc_list[0])
                 lsm_time = lsm_nc.variables[self.lsm_time_var]
                 self.time_step_seconds = int(lsm_time.getncattr("time_increment")) * convert_to_seconds
                 lsm_nc.close()
