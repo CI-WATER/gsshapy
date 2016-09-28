@@ -475,6 +475,10 @@ class GRIDtoGSSHA(object):
         Loads in the sorted lsm list and sorted time
         """
         self.lsm_nc_list = np.array(glob(path.join(self.lsm_input_folder_path, self.lsm_search_card)), dtype=str)
+
+        if len(self.lsm_nc_list)<=0:
+            raise IndexError("No input HMET grid files found ...")
+        
         self.time_array = np.zeros(len(self.lsm_nc_list))
 
         #LOAD IN TIME FROM DATA
