@@ -34,24 +34,139 @@ spatial data in GsshaPy you will need to use a PostgreSQL database with PostGIS 
 GsshaPy relies on a Python module called mapkit to generate visualizations. This will automatically be installed when
 you install GsshaPy.
 
+It is recommended to use Anaconda to install GsshaPy (See: https://www.continuum.io/downloads).
+
+
 Installation
 ============
+
+Prerequisites
+-------------
+
+Linux/Mac
+^^^^^^^^^
+
+See: https://github.com/CI-WATER/gsshapy/blob/master/.travis.yml
+
+Download & Install Miniconda
+''''''''''''''''''''''''''''
+
+Linux
+     
+
+::
+
+    $ wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+
+Mac
+   
+
+::
+
+    $ curl -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh
+
+Install Python packages with all dependencies
+'''''''''''''''''''''''''''''''''''''''''''''
+
+::
+
+    $ chmod +x miniconda.sh
+    $ ./miniconda.sh -b
+    $ export PATH=$HOME/miniconda2/bin:$PATH
+    $ conda update --yes conda python
+    $ conda create --name gssha python=2
+    $ source activate gssha
+    $ conda install --yes nose numpy netCDF4 gdal pyproj
+    $ source deactivate gssha
+    $ source activate gssha
+
+
+
+Install GRIB-API
+''''''''''''''''
+.. warning:: The GRIB-API installation is optional. Only install if you need :func:`~gridtogssha.hrrr_to_gssha.HRRRtoGSSHA`.
+
+See: https://software.ecmwf.int/wiki/display/GRIB/GRIB+API+installation
+
+::
+
+    $ cd $HOME 
+    $ mkdir ../installz
+    $ cd ../installz
+    $ wget -O grib_api-1.17.0-Source.tar.gz https://software.ecmwf.int/wiki/download/attachments/3473437/grib_api-1.17.0-Source.tar.gz?api=v2
+    $ tar xf grib_api-1.17.0-Source.tar.gz
+    $ mkdir grib_api-build
+    $ mkdir grib_api-install
+    $ cd grib_api-build
+    $ cmake ../grib_api-1.17.0-Source -DCMAKE_INSTALL_PREFIX=$HOME/installz/grib_api-install
+    $ make
+    $ make install
+    
+    
+Install pygrib
+''''''''''''''
+.. warning:: The pygrib installation is optional. Only install if you need :func:`~gridtogssha.hrrr_to_gssha.HRRRtoGSSHA`.
+
+See: https://github.com/jswhit/pygrib
+
+::
+
+    $ cd .. 
+    $ git clone https://github.com/jswhit/pygrib.git
+    $ cd pygrib
+    $ echo "[directories]" > setup.cfg
+    $ echo "grib_api_dir = $HOME/installz/grib_api-install" >> setup.cfg
+    $ source activate gssha
+    (gssha)$ python setup.py build
+    (gssha)$ python setup.py install
+
+
+Windows
+^^^^^^^
+
+Download & Install Miniconda
+''''''''''''''''''''''''''''
+
+-  Go to: http://conda.pydata.org/miniconda.html
+-  Download and run Windows Python 2 version installer
+-  Install at
+   C:\\Users\\YOUR_USERNAME\\Miniconda2
+   or wherever you want
+-  Make default python and export to path
+
+Install all dependencies
+''''''''''''''''''''''''
+
+.. note:: pygrib is currently not available on Windows, so HRRRtoGSSHA will not work.
+
+Open CMD terminal:
+
+::
+
+    > conda update --yes conda python
+    > conda create --name rapid python=2
+    > activate gssha
+    (gssha)> conda install --yes nose numpy netCDF4 gdal pyproj python-dateutil psycopg2
+    (gssha)> deactivate 
+    > activate gssha
+
+
+
+
+Main Installation
+-----------------
 
 To install GsshaPy use ``easy_install`` as follows::
 	
 	$ easy_install gsshapy
 	
-Alternatively, the source code is available on bit bucket and can be 
+Alternatively, the source code is available on GitHub and can be 
 downloaded and installed as follows::
 
 	$ git clone https://github.com/CI-WATER/gsshapy.git
-	$ cd gsshapy 
-	$ python setup.py install
-	
-For Windows users, a Windows installer has been created. It can be
-downloaded here_.
-
-.. _here: https://bitbucket.org/swainn/gsshapy/src/48944590dcc5957d6e97bd80a95f03e0857a734f/GSSHAPY/dist/gsshapy-1.0.0.win-amd64.exe?at=master
+	$ cd gsshapy
+     $ source activate gssha  
+	(gssha)$ python setup.py install
 	
 
 License
@@ -70,9 +185,7 @@ GsshaPy is released under the `BSD 3-Clause license`_.
 Source
 ======
 
-The source code is available on GitHub::
-	
-	$ git clone https://github.com/CI-WATER/gsshapy.git
+The source code is available on GitHub: https://github.com/CI-WATER/gsshapy.git
 
 Authors
 =======
