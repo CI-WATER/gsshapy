@@ -8,8 +8,7 @@
 ********************************************************************************
 """
 
-from gsshapy.lib import parsetools as pt
-
+import parsetools as pt
 
 def datasetHeaderChunk(key, lines):
     """

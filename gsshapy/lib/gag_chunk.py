@@ -9,7 +9,7 @@
 '''
 from datetime import datetime
 
-from gsshapy.lib import parsetools as pt
+import parsetools as pt
 
 def eventChunk(key, lines):
     '''

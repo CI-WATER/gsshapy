@@ -16,7 +16,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import SingletonThreadPool
 
-from gsshapy.orm import metadata
+from ..orm import metadata
 
 
 def del_sqlite_db(path):

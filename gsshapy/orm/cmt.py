@@ -20,12 +20,12 @@ from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
 
-from gsshapy.orm import DeclarativeBase
-from gsshapy.orm.lnd import LinkNodeDatasetFile
-from gsshapy.base.file_base import GsshaPyFileObjectBase
-from gsshapy.orm.idx import IndexMap
-from gsshapy.lib import parsetools as pt, cmt_chunk as mtc
-from gsshapy.lib.parsetools import valueReadPreprocessor as vrp, valueWritePreprocessor as vwp
+from . import DeclarativeBase
+from .lnd import LinkNodeDatasetFile
+from ..base.file_base import GsshaPyFileObjectBase
+from .idx import IndexMap
+from ..lib import parsetools as pt, cmt_chunk as mtc
+from ..lib.parsetools import valueReadPreprocessor as vrp, valueWritePreprocessor as vwp
 
 
 class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
@@ -261,9 +261,9 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self._createValueObjects(mt['valueList'], mt['varList'], mapTable, indexMap, None, replaceParamFile)
 
             except KeyError:
-                print ('INFO: Index Map "%s" for Mapping Table "%s" not found in list of index maps in the mapping '
+                print(('INFO: Index Map "%s" for Mapping Table "%s" not found in list of index maps in the mapping '
                        'table file. The Mapping Table was not read into the database.') % (
-                    mt['indexMapName'], mt['name'])
+                       mt['indexMapName'], mt['name']))
 
     def _createValueObjects(self, valueList, varList, mapTable, indexMap, contaminant, replaceParamFile):
         """
@@ -318,7 +318,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                                          spatial=spatial,
                                          spatialReferenceID=spatialReferenceID)
             except:
-                print 'WARNING: Attempted to read Contaminant Transport Output file {0}, but failed.'.format(chanFile)
+                print('WARNING: Attempted to read Contaminant Transport Output file {0}, but failed.'.format(chanFile))
 
     def _writeMapTable(self, session, fileObject, mapTable, replaceParamFile):
         """

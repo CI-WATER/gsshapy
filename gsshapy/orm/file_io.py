@@ -9,20 +9,20 @@
 """
 
 # This file is purely for convenience
-from gsshapy.orm.cmt import MapTableFile
-from gsshapy.orm.gag import PrecipFile
-from gsshapy.orm.cif import ChannelInputFile
-from gsshapy.orm.spn import StormPipeNetworkFile
-from gsshapy.orm.hmet import HmetFile
-from gsshapy.orm.snw import NwsrfsFile, OrographicGageFile
-from gsshapy.orm.gpi import GridPipeFile
-from gsshapy.orm.gst import GridStreamFile
-from gsshapy.orm.tim import TimeSeriesFile
-from gsshapy.orm.loc import OutputLocationFile
-from gsshapy.orm.map import RasterMapFile
-from gsshapy.orm.pro import ProjectionFile
-from gsshapy.orm.rep import ReplaceParamFile, ReplaceValFile
-from gsshapy.orm.lnd import LinkNodeDatasetFile
-from gsshapy.orm.idx import IndexMap
-from gsshapy.orm.generic import GenericFile
-from gsshapy.orm.wms_dataset import WMSDatasetFile
+from .cmt import MapTableFile
+from .gag import PrecipFile
+from .cif import ChannelInputFile
+from .spn import StormPipeNetworkFile
+from .hmet import HmetFile
+from .snw import NwsrfsFile, OrographicGageFile
+from .gpi import GridPipeFile
+from .gst import GridStreamFile
+from .tim import TimeSeriesFile
+from .loc import OutputLocationFile
+from .map import RasterMapFile
+from .pro import ProjectionFile
+from .rep import ReplaceParamFile, ReplaceValFile
+from .lnd import LinkNodeDatasetFile
+from .idx import IndexMap
+from .generic import GenericFile
+from .wms_dataset import WMSDatasetFile

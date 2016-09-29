@@ -8,7 +8,7 @@
 ********************************************************************************
 '''
 
-import datetime, time
+import time
 
 def convertOtlFile(otlFile, convertedOtlFile):
     #Convert .otl file into an ODM uploadable foramt
@@ -21,6 +21,7 @@ def convertOtlFile(otlFile, convertedOtlFile):
     fileNew.close()
 
 def convertDateTime(gsshaDateTime):
+    #TODO: WHAT DOES THIS DO???????? it returns itself...
     year,frac = gsshaDateTime.split(".")
     daysInYear = 365
     d = float("0." + frac)

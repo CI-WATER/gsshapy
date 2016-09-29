@@ -23,9 +23,9 @@ from sqlalchemy.orm import relationship
 from mapkit.GeometryConverter import GeometryConverter
 from mapkit.ColorRampGenerator import ColorRampEnum, ColorRampGenerator
 
-from gsshapy.orm import DeclarativeBase
-from gsshapy.base.file_base import GsshaPyFileObjectBase
-from gsshapy.lib import parsetools as pt
+from . import DeclarativeBase
+from ..base.file_base import GsshaPyFileObjectBase
+from ..lib import parsetools as pt
 
 
 class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
@@ -172,7 +172,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 zScale = styles['zScale']
 
             except ValueError:
-                print 'WARNING: zScale must be a valid number representing z dimension multiplier.'
+                print('WARNING: zScale must be a valid number representing z dimension multiplier.')
 
         if 'radius' in styles:
             try:
@@ -180,7 +180,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 radiusMeters = styles['radius'] * DECMIAL_DEGREE_METER
 
             except ValueError:
-                print 'WARNING: radius must be a number representing the radius of the value cylinders in meters.'
+                print('WARNING: radius must be a number representing the radius of the value cylinders in meters.')
 
         if 'colorRampEnum' in styles:
             colorRampEnum = styles['colorRampEnum']

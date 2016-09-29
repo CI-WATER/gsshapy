@@ -19,23 +19,23 @@ DeclarativeBase = declarative_base()
 metadata = DeclarativeBase.metadata
 
 # Import GSSHAPY Model Classes/Tables
-from prj import *
-from idx import *
-from cmt import *
-from tim import *
-from gag import *
-from cif import *
-from hmet import *
-from gst import *
-from spn import *
-from gpi import *
-from snw import *
-from loc import *
-from map import *
-from pro import *
-from rep import *
-from lnd import *
-from generic import *
-from wms_dataset import *
+from .prj import *
+from .idx import *
+from .cmt import *
+from .tim import *
+from .gag import *
+from .cif import *
+from .hmet import *
+from .gst import *
+from .spn import *
+from .gpi import *
+from .snw import *
+from .loc import *
+from .map import *
+from .pro import *
+from .rep import *
+from .lnd import *
+from .generic import *
+from .wms_dataset import *
 
 

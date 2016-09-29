@@ -18,8 +18,8 @@ from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
 
-from gsshapy.orm import DeclarativeBase
-from gsshapy.base.file_base import GsshaPyFileObjectBase
+from . import DeclarativeBase
+from ..base.file_base import GsshaPyFileObjectBase
 
 
 class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):

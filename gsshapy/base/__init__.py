@@ -8,6 +8,6 @@
 ********************************************************************************
 """
 
-from rast import *
-from geom import *
-from file_base import *
+from .rast import *
+from .geom import *
+from .file_base import *

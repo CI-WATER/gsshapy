@@ -30,11 +30,11 @@ from sqlalchemy.types import Integer, String, Float, Boolean
 from sqlalchemy.orm import relationship
 from mapkit.sqlatypes import Geometry
 
-from gsshapy.orm import DeclarativeBase
-from gsshapy.base.geom import GeometricObjectBase
-from gsshapy.base.file_base import GsshaPyFileObjectBase
-from gsshapy.lib import parsetools as pt, cif_chunk as cic
-from gsshapy.lib.parsetools import valueReadPreprocessor as vrp, valueWritePreprocessor as vwp
+from . import DeclarativeBase
+from ..base.geom import GeometricObjectBase
+from ..base.file_base import GsshaPyFileObjectBase
+from ..lib import parsetools as pt, cif_chunk as cic
+from ..lib.parsetools import valueReadPreprocessor as vrp, valueWritePreprocessor as vwp
 
 class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
@@ -156,7 +156,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         if 'lineColor' in styles:
             if len(styles['lineColor']) < 4:
-                print 'WARNING: lineColor style must be a list or a tuple of four elements containing integer RGBA values.'
+                print('WARNING: lineColor style must be a list or a tuple of four elements containing integer RGBA values.')
             else:
                 userLineColor = styles['lineColor']
                 lineColorValue = (userLineColor[3], userLineColor[2], userLineColor[1], userLineColor[0])
@@ -167,7 +167,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 lineWidthValue = styles['lineWidth']
 
             except ValueError:
-                print 'WARNING: lineWidth must be a valid number containing the width of the line in pixels.'
+                print('WARNING: lineWidth must be a valid number containing the width of the line in pixels.')
 
         if 'nodeIconHref' in styles:
             nodeIconHrefValue = styles['nodeIconHref']
@@ -178,7 +178,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 nodeIconScaleValue = styles['nodeIconScale']
 
             except ValueError:
-                print 'WARNING: nodeIconScaleValue must be a valid number containing the width of the line in pixels.'
+                print('WARNING: nodeIconScaleValue must be a valid number containing the width of the line in pixels.')
 
 
         # Initialize KML Document
@@ -208,7 +208,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 lineString = ET.fromstring(linkKML)
                 placemark.append(lineString)
             else:
-                print "WARNING: No geometry found for link with id {0}".format(link.id)
+                print("WARNING: No geometry found for link with id {0}".format(link.id))
 
             if withNodes:
                 # Create the node styles
@@ -784,7 +784,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 self._writeReservoirLink(link, fileObject, replaceParamFile)
 
             else:
-                print 'OOPS: CIF LINE 417'  # THIS SHOULDN'T HAPPEN
+                print('OOPS: CIF LINE 417')  # THIS SHOULDN'T HAPPEN
 
             fileObject.write('\n')
 
@@ -1077,7 +1077,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                     for bp in xSec.breakpoints:
                         fileObject.write('X1   %.6f %.6f\n' % (bp.x, bp.y))
                 else:
-                    print 'OOPS: MISSED A CROSS SECTION TYPE. CIF LINE 580.', linkType
+                    print('OOPS: MISSED A CROSS SECTION TYPE. CIF LINE 580. {0}'.format(linkType))
 
     def _writeOptionalXsecCards(self, fileObject, xSec, replaceParamFile):
         """

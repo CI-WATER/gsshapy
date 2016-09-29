@@ -17,9 +17,9 @@ from sqlalchemy import ForeignKey, Column, Table
 from sqlalchemy.types import Integer, DateTime, String, Float
 from sqlalchemy.orm import relationship
 
-from gsshapy.orm import DeclarativeBase
-from gsshapy.base.file_base import GsshaPyFileObjectBase
-from gsshapy.lib import pivot, parsetools as pt, gag_chunk as gak
+from . import DeclarativeBase
+from ..base.file_base import GsshaPyFileObjectBase
+from ..lib import pivot, parsetools as pt, gag_chunk as gak
 
 
 gag_assoc_event_gage = Table('gag_assoc_event_gage', DeclarativeBase.metadata,
@@ -132,7 +132,7 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                     # String all of the values together into valString
                     for key in keys:
-                        if key <> 'DateTime' and key <> 'ValueType':
+                        if key != 'DateTime' and key != 'ValueType':
                             valString = '%s %.3f' % (valString, row[key])
 
                     # Write value line to file with appropriate formatting

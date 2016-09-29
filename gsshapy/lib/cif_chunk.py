@@ -8,7 +8,7 @@
 ********************************************************************************
 '''
 
-from gsshapy.lib import parsetools as pt
+import parsetools as pt
 
 def cardChunk(key, chunk):
     '''

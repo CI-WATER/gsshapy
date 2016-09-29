@@ -9,6 +9,7 @@
 NOTE: This script was found at code.activestate.com/recipes/334695
 '''
 
+from past.builtins import xrange
 
 def pivot(table, left, top, value):
     """
@@ -108,4 +109,4 @@ if __name__ == "__main__":
     #cell in the new table.
     t = pivot(d,["Employee"],["Year"],"Value")
     for row in t:
-        print row
+        print(row)
