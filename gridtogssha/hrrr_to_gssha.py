@@ -74,13 +74,16 @@ def download_hrrr_for_gssha(main_directory,
         downloaded_file_list(list): List of paths to downloaded files.
 
     Example::
+    
+        from gridtogssha.hrrr_to_gssha import download_hrrr_for_gssha
 
         hrrr_folder = '/HRRR'
         leftlon = -95
         rightlon = -75
         toplat = 35
         bottomlat = 30
-        downloaded_file_list = download_hrrr_for_gssha(hrrr_folder,'20160914','01',leftlon,rightlon,toplat,bottomlat)
+        downloaded_file_list = download_hrrr_for_gssha(hrrr_folder,'20160914','01',
+                                                       leftlon,rightlon,toplat,bottomlat)
 
     """
     out_directory = path.join(main_directory, forecast_start_date_string)
@@ -159,6 +162,8 @@ class HRRRtoGSSHA(GRIDtoGSSHA):
                                         Otherwise, it will output in "dos" (Windows) format. Default is False. 
 
     Example::
+    
+        from gridtogssha import HRRRtoGSSHA
 
         l2g = HRRRtoGSSHA(gssha_project_folder='E:\\GSSHA',
                           gssha_grid_file_name='gssha.ele',

@@ -88,7 +88,9 @@ class LSMtoGSSHA(GRIDtoGSSHA):
                                         Otherwise, it will output in "dos" (Windows) format. Default is False. 
 
     Example::
-
+    
+        from gridtogssha import LSMtoGSSHA
+        
         l2g = LSMtoGSSHA(gssha_project_folder='E:\\GSSHA',
                          gssha_grid_file_name='gssha.ele',
                          lsm_input_folder_path='E:\\GSSHA\\wrf-data',
