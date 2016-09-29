@@ -363,7 +363,7 @@ class TestWriteMethods(unittest.TestCase):
         fileList = os.listdir(self.writeDirectory)
         
         for afile in fileList:
-	    if afile != ".gitignore":
+            if afile != ".gitignore":
             	path = os.path.join(self.writeDirectory, afile)
             	os.remove(path)
 
