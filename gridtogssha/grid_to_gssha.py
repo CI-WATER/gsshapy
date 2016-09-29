@@ -6,11 +6,13 @@
 ##  Created by Alan D Snow, 2016.
 ##  License BSD 3-Clause
 
+from builtins import range
 from csv import writer as csv_writer
 from datetime import datetime
 from glob import glob
 from io import open as io_open
 from os import mkdir, path
+from past.builtins import basestring
 import time
 
 #extra dependencies
@@ -582,7 +584,7 @@ class GRIDtoGSSHA(object):
             else:
                 raise IndexError("Invalid LSM variable ({0}) for GSSHA variable {1}".format(lsm_var, gssha_var))
                 
-        elif gssha_var == 'relative_humidity' and not isinstance(lsm_var, basestring):
+        elif gssha_var == 'relative_humidity' and not isinstance(lsm_var, str):
             ##CONVERSION ASSUMPTIONS:
             ##1) These equations are for liquid water and are less accurate below 0 deg C
             ##2) Not adjusting the pressure for the fact that the temperature
@@ -614,7 +616,7 @@ class GRIDtoGSSHA(object):
             #pressure in Pa, temperature in K
             ##self.data_np_array = 0.263*pressure_array*specific_humidity_array/np.exp(17.67*(temperature_array-273.16)/(temperature_array-29.65))
             
-        elif gssha_var == 'wind_speed' and not isinstance(lsm_var, basestring):
+        elif gssha_var == 'wind_speed' and not isinstance(lsm_var, str):
             # WRF:  http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
             u_vector_var, v_vector_var = lsm_var
             conversion_factor = self.netcdf_attributes[gssha_var]['conversion_factor'][load_type]
@@ -623,7 +625,7 @@ class GRIDtoGSSHA(object):
             self._load_lsm_data(v_vector_var, conversion_factor)
             v_vector_array = self.data_np_array
             self.data_np_array = np.sqrt(u_vector_array**2 + v_vector_array**2)
-        elif 'precipitation' in gssha_var and not isinstance(lsm_var, basestring):
+        elif 'precipitation' in gssha_var and not isinstance(lsm_var, str):
             # WRF:  http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
             rain_c_var, rain_nc_var = lsm_var
             conversion_factor = self.netcdf_attributes[gssha_var]['conversion_factor'][load_type]
@@ -710,8 +712,8 @@ class GRIDtoGSSHA(object):
         hourly_3d_array = np.zeros((self.len_hourly_time_index_array*int(self.num_generated_files_per_timestep), len(self.lsm_lat_indices), len(self.lsm_lon_indices)))
         calc_function = self._get_calc_function(gssha_data_var)
         
-        for hourly_index in xrange(self.len_hourly_time_index_array):
-            for i in xrange(int(self.num_generated_files_per_timestep)):
+        for hourly_index in range(self.len_hourly_time_index_array):
+            for i in range(int(self.num_generated_files_per_timestep)):
                 hourly_3d_array[hourly_index*int(self.num_generated_files_per_timestep)+i,:,:] = self._get_hourly_data(hourly_index, calc_function)
         
         self.data_np_array = hourly_3d_array

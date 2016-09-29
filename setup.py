@@ -6,6 +6,7 @@ requires = [
     'python-dateutil',
     'requests',
     'psycopg2',
+    'futures',
     ]
 
 setup(name='gsshapy',
