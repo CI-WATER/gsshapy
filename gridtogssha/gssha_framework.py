@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ##
-##  gssha_forecast_framework.py
+##  gssha_framework.py
 ##  GSSHApy
 ##
 ##  Created by Alan D Snow, 2016.
@@ -15,7 +15,6 @@ from RAPIDpy import RAPIDDataset
 from subprocess import Popen, PIPE
 
 class GSSHAFramework(object):
-    
     def __init__(self, gssha_executable, gssha_directory, project_filename):
         """
         Initializer
@@ -156,7 +155,7 @@ class GSSHAFramework(object):
                                    directory=self.gssha_directory, 
                                    name=self.project_name)
         
-        #TODO: RUN SIMULATION
+        #RUN SIMULATION
         print("RUNNING GSSHA SIMULATION ...")
         run_gssha_command = [self.gssha_executable, 
                              os.path.join(self.gssha_directory, self.project_filename)]
