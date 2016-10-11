@@ -6,7 +6,7 @@
 ##  Created by Alan D Snow, 2016.
 ##  BSD 3-Clause
 
-from datetime import datetime
+from datetime import datetime #TODO: Add date filter for GSSHA
 from pyproj import Proj, transform
 import os
 from RAPIDpy import RAPIDDataset
@@ -209,10 +209,12 @@ class GSSHAFramework(object):
             self._update_card("HMET_ASCII", os.path.join('hmet_ascii_data', 'hmet_file_list.txt'), True)
             self._delete_card("HMET_NETCDF")
     
-        # update cards
+        #UPDATE GSSHA CARDS
+        #make sure long term added as it is required for reading in HMET
         self._update_card('LONG_TERM', '')
-        self._update_card('PRECIP_FILE', out_gage_file, True)
         
+        #precip file read in
+        self._update_card('PRECIP_FILE', out_gage_file, True)
         if precip_interpolation_type.upper() == "INV_DISTANCE":
             self._update_card('RAIN_INV_DISTANCE ', '')
             self._delete_card("RAIN_THIESSEN")
@@ -222,6 +224,7 @@ class GSSHAFramework(object):
         
         #assume UTC time zone
         self._update_card('GMT', str(0))
+        
         #update centroid
         center_lon, center_lat = transform(l2g.gssha_proj4,
                                            Proj(init='epsg:4326'),
