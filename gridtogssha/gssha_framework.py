@@ -78,6 +78,7 @@ class GSSHAFramework(object):
                   lsm_file_date_naming_convention,
                   lsm_time_var='time',                
                   lsm_search_card="*.nc",
+                  precip_interpolation_type="THIESSEN",
                   output_netcdf=False
                   ):
         
@@ -96,6 +97,7 @@ class GSSHAFramework(object):
             lsm_file_date_naming_convention(str): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.LSMtoGSSHA`.
             lsm_time_var(str): Name of the time variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
             lsm_search_card(str): Glob search pattern for LSM files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
+            precip_interpolation_type(str): Type of interpolation for LSM precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
             output_netcdf(bool): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Default is False.
             
         Example::
@@ -175,7 +177,7 @@ class GSSHAFramework(object):
         self._update_card("START_DATE", start_datetime.strftime("%Y %m %d"))
         self._update_card("START_TIME", start_datetime.strftime("%H %M"))
         self._update_card("END_TIME", end_datetime.strftime("%Y %m %d %H %M"))
-        self._update_card("CHAN_POINT_INPUT", ihg_filename)
+        self._update_card("CHAN_POINT_INPUT", ihg_filename, True)
 
 
         #----------------------------------------------------------------------
@@ -200,16 +202,24 @@ class GSSHAFramework(object):
         if output_netcdf:
             netcdf_file_path = os.path.join('{0}_hmet.nc'.format(self.project_name))
             l2g.lsm_data_to_subset_netcdf(netcdf_file_path, lsm_data_var_map_array)
-            self._update_card("HMET_NETCDF", netcdf_file_path)
+            self._update_card("HMET_NETCDF", netcdf_file_path, True)
             self._delete_card("HMET_ASCII")
         else:
             l2g.lsm_data_to_arc_ascii(lsm_data_var_map_array)
-            self._update_card("HMET_ASCII", os.path.join('hmet_ascii_data', 'hmet_file_list.txt'))
+            self._update_card("HMET_ASCII", os.path.join('hmet_ascii_data', 'hmet_file_list.txt'), True)
             self._delete_card("HMET_NETCDF")
     
         # update cards
         self._update_card('LONG_TERM', '')
-        self._update_card('PRECIP_FILE', out_gage_file)
+        self._update_card('PRECIP_FILE', out_gage_file, True)
+        
+        if precip_interpolation_type.upper() == "INV_DISTANCE":
+            self._update_card('RAIN_INV_DISTANCE ', '')
+            self._delete_card("RAIN_THIESSEN")
+        else:
+            self._update_card('RAIN_THIESSEN ', '')
+            self._delete_card("RAIN_INV_DISTANCE")
+        
         #assume UTC time zone
         self._update_card('GMT', str(0))
         #update centroid
