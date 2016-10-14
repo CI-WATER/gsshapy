@@ -85,6 +85,8 @@ class GSSHAFramework(object):
         """
         Updates card & runs for RAPID to GSSHA & LSM to GSSHA
         
+        .. warning:: This code assumes the time zone is UTC or GMT 0.
+        
         Args:
             path_to_rapid_qout(str): Path to the RAPID Qout file.
             connection_list(list): List connecting GSSHA rivers to RAPID river network.
@@ -162,6 +164,7 @@ class GSSHAFramework(object):
         ihg_filename = os.path.join('{0}.ihg'.format(self.project_name))
         
         #write out IHG file
+        #TODO: Filter by date
         start_datetime = None
         end_datetime = None
         with RAPIDDataset(path_to_rapid_qout) as qout_nc:
