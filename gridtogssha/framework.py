@@ -168,18 +168,25 @@ class GSSHAFramework(object):
         #TODO: Filter by date
         start_datetime = None
         end_datetime = None
+        time_delta = 3600 #1 hr
         with RAPIDDataset(path_to_rapid_qout) as qout_nc:
             time_array = qout_nc.get_time_array(return_datetime=True)
             start_datetime = time_array[0]
             end_datetime = time_array[-1]
+            #GSSHA CODE SKIPS FIRST TIME STEP, SO HAVE TO MOVE TIME BACK TO CATCH IT ALL
+            try:
+                time_delta = time_array[1] - start_datetime
+            except IndexError:
+                pass
+                
             qout_nc.write_flows_to_gssha_time_series_ihg(ihg_filename,
                                                          self.connection_list,
                                                          mode="max"
                                                          )
     
         # update cards
-        self._update_card("START_DATE", start_datetime.strftime("%Y %m %d"))
-        self._update_card("START_TIME", start_datetime.strftime("%H %M"))
+        self._update_card("START_DATE", (start_datetime-time_delta).strftime("%Y %m %d"))
+        self._update_card("START_TIME", (start_datetime-time_delta).strftime("%H %M"))
         self._update_card("END_TIME", end_datetime.strftime("%Y %m %d %H %M"))
         self._update_card("CHAN_POINT_INPUT", ihg_filename, True)
         
