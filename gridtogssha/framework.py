@@ -39,6 +39,8 @@ class GSSHAFramework(object):
         gssha_executable(str): Path to GSSHA executable. 
         gssha_directory(str): Path to directory for GSSHA project.
         project_filename(str): Name of GSSHA project file.
+        gssha_simulation_start(Optional[datetime]): Datetime object with date of start of GSSHA simulation.
+        gssha_simulation_end(Optional[datetime]): Datetime object with date of end of GSSHA simulation.
         spt_watershed_name(Optional[str]): Streamflow Prediction Tool watershed name.
         spt_subbasin_name(Optional[str]): Streamflow Prediction Tool subbasin name.
         spt_forecast_date_string(Optional[str]): Streamflow Prediction Tool forecast date string.
@@ -124,6 +126,8 @@ class GSSHAFramework(object):
                  gssha_executable, 
                  gssha_directory, 
                  project_filename,
+                 gssha_simulation_start=None,
+                 gssha_simulation_end=None,
                  spt_watershed_name=None,
                  spt_subbasin_name=None,
                  spt_forecast_date_string=None,
@@ -150,6 +154,8 @@ class GSSHAFramework(object):
         self.gssha_directory = gssha_directory
         self.project_filename = project_filename
         self.project_name = os.path.splitext(project_filename)[0]
+        self.gssha_simulation_start = gssha_simulation_start
+        self.gssha_simulation_end = gssha_simulation_end
         self.spt_watershed_name = spt_watershed_name
         self.spt_subbasin_name = spt_subbasin_name
         self.spt_forecast_date_string = spt_forecast_date_string
@@ -233,11 +239,12 @@ class GSSHAFramework(object):
             er_manager = ECMWFRAPIDDatasetManager(self.ckan_engine_url, 
                                                   self.ckan_api_key,
                                                   self.ckan_owner_organization)
-        
+            #TODO: Modify to only download one of the forecasts in the ensemble
             er_manager.download_prediction_dataset(watershed=self.spt_watershed_name, 
                                                    subbasin=self.spt_subbasin_name, 
                                                    date_string=self.spt_forecast_date_string, #'20160711.1200' 
                                                    extract_directory=extract_directory)
+                                                   
             return glob(os.path.join(extract_directory, self.spt_forecast_date_string, "Qout*52.nc"))[0]
             
         elif needed_vars.count(None) == len(needed_vars):
@@ -266,30 +273,57 @@ class GSSHAFramework(object):
         ihg_filename = os.path.join('{0}.ihg'.format(self.project_name))
         
         #write out IHG file
-        #TODO: Filter by date
         start_datetime = None
-        end_datetime = None
         time_delta = 3600 #1 hr
+        time_index_range = []
         with RAPIDDataset(path_to_rapid_qout) as qout_nc:
-            time_array = qout_nc.get_time_array(return_datetime=True)
-            start_datetime = time_array[0]
-            end_datetime = time_array[-1]
-            #GSSHA CODE SKIPS FIRST TIME STEP, SO HAVE TO MOVE TIME BACK TO CATCH IT ALL
-            try:
-                time_delta = time_array[1] - start_datetime
-            except IndexError:
-                pass
-                
-            qout_nc.write_flows_to_gssha_time_series_ihg(ihg_filename,
-                                                         self.connection_list,
-                                                         mode="max"
-                                                         )
+        
+            time_index_range = qout_nc.get_time_index_range(date_search_start=self.gssha_simulation_start,
+                                                            date_search_end=self.gssha_simulation_end)
+                                                            
+            if len(time_index_range)>0:                                                
+                time_array = qout_nc.get_time_array(return_datetime=True,
+                                                    time_index_array=time_index_range)
+                start_datetime = time_array[0]
+                try:
+                    time_delta = time_array[1] - start_datetime
+                except IndexError:
+                    pass
+                    
+                qout_nc.write_flows_to_gssha_time_series_ihg(ihg_filename,
+                                                             self.connection_list,
+                                                             date_search_start=self.gssha_simulation_start,
+                                                             date_search_end=self.gssha_simulation_end,
+                                                             mode="max",
+                                                             )
+            else:
+                print("WARNING: No streamflow values found in time range ...")
     
-        # update cards
-        self._update_card("START_DATE", (start_datetime-time_delta).strftime("%Y %m %d"))
-        self._update_card("START_TIME", (start_datetime-time_delta).strftime("%H %M"))
-        self._update_card("END_TIME", end_datetime.strftime("%Y %m %d %H %M"))
-        self._update_card("CHAN_POINT_INPUT", ihg_filename, True)
+        if len(time_index_range)>0:                                                
+            # update cards
+            if self.gssha_simulation_start is not None:
+                #GSSHA CODE SKIPS FIRST TIME STEP, SO HAVE TO MOVE TIME BACK TO CATCH IT ALL
+                if (start_datetime-time_delta) <= self.gssha_simulation_start:
+                    print("WARNING: GSSHA simulation start time changed from "
+                          "{0} to {1} in order to capture the streamflow.".format(self.gssha_simulation_start,
+                                                                                  start_datetime-time_delta)
+                         )
+                         
+                    self.gssha_simulation_start = start_datetime-time_delta
+            
+                self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
+                self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
+                
+            else:
+                self._update_card("START_DATE", (start_datetime-time_delta).strftime("%Y %m %d"))
+                self._update_card("START_TIME", (start_datetime-time_delta).strftime("%H %M"))
+            
+            if self.gssha_simulation_end is not None:
+                self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
+            else:
+                self._delete_card("END_TIME")
+                
+            self._update_card("CHAN_POINT_INPUT", ihg_filename, True)
         
     def prepare_wrf_data(self):
         """
@@ -483,6 +517,11 @@ class GSSHAFramework(object):
                                 )
  
         """
+        original_working_directory = os.getcwd()
+        #self._update_card("PROJECT_PATH", self.gssha_directory)
+        self._update_card("PROJECT_PATH", "", True)
+        os.chdir(self.gssha_directory)
+        
         self._update_class_var('connection_list', connection_list)
         self._update_class_var('lsm_folder', lsm_folder)
         self._update_class_var('lsm_data_var_map_array', lsm_data_var_map_array)
@@ -496,8 +535,6 @@ class GSSHAFramework(object):
         self._update_class_var('precip_interpolation_type', precip_interpolation_type)
         self._update_class_var('output_netcdf', output_netcdf)
 
-        self._update_card("PROJECT_PATH", self.gssha_directory)
-        #ANOTHER OPTION: USE PYTHON TO CHANGE WORKING DIRECTORY
         
         #----------------------------------------------------------------------
         #RAPID to GSSHA
@@ -526,3 +563,5 @@ class GSSHAFramework(object):
         #----------------------------------------------------------------------
         self.run()
         
+        
+        os.chdir(original_working_directory)
