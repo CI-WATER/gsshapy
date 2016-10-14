@@ -295,57 +295,77 @@ class GSSHAFramework(object):
         """
         Prepares WRF forecast for GSSHA simulation
         """
-        l2g = LSMtoGSSHA(gssha_project_folder=self.gssha_directory,
-                         gssha_grid_file_name='{0}.ele'.format(self.project_name),
-                         lsm_input_folder_path=self.lsm_folder,
-                         lsm_search_card=self.lsm_search_card, 
-                         lsm_lat_var=self.lsm_lat_var,
-                         lsm_lon_var=self.lsm_lon_var,
-                         lsm_time_var=self.lsm_time_var,
-                         lsm_file_date_naming_convention=self.lsm_file_date_naming_convention,
-                         )
-        
-        out_gage_file = os.path.join('{0}.gag'.format(self.project_name))
-        l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
-                                            lsm_data_var=self.lsm_precip_data_var,
-                                            precip_type=self.lsm_precip_type)
-        
+        needed_vars = [self.lsm_folder, 
+                       self.lsm_data_var_map_array,
+                       self.lsm_precip_data_var,
+                       self.lsm_precip_type,
+                       self.lsm_lat_var,
+                       self.lsm_lon_var,
+                       self.lsm_file_date_naming_convention]
 
-        if self.output_netcdf:
-            netcdf_file_path = os.path.join('{0}_hmet.nc'.format(self.project_name))
-            l2g.lsm_data_to_subset_netcdf(netcdf_file_path, self.lsm_data_var_map_array)
-            self._update_card("HMET_NETCDF", netcdf_file_path, True)
-            self._delete_card("HMET_ASCII")
+        if None not in needed_vars:
+            l2g = LSMtoGSSHA(gssha_project_folder=self.gssha_directory,
+                             gssha_grid_file_name='{0}.ele'.format(self.project_name),
+                             lsm_input_folder_path=self.lsm_folder,
+                             lsm_search_card=self.lsm_search_card, 
+                             lsm_lat_var=self.lsm_lat_var,
+                             lsm_lon_var=self.lsm_lon_var,
+                             lsm_time_var=self.lsm_time_var,
+                             lsm_file_date_naming_convention=self.lsm_file_date_naming_convention,
+                             )
+            
+            out_gage_file = os.path.join('{0}.gag'.format(self.project_name))
+            l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
+                                                lsm_data_var=self.lsm_precip_data_var,
+                                                precip_type=self.lsm_precip_type)
+            
+
+            if self.output_netcdf:
+                netcdf_file_path = os.path.join('{0}_hmet.nc'.format(self.project_name))
+                l2g.lsm_data_to_subset_netcdf(netcdf_file_path, self.lsm_data_var_map_array)
+                self._update_card("HMET_NETCDF", netcdf_file_path, True)
+                self._delete_card("HMET_ASCII")
+            else:
+                l2g.lsm_data_to_arc_ascii(self.lsm_data_var_map_array)
+                self._update_card("HMET_ASCII", os.path.join('hmet_ascii_data', 'hmet_file_list.txt'), True)
+                self._delete_card("HMET_NETCDF")
+        
+            #UPDATE GSSHA CARDS
+            #make sure long term added as it is required for reading in HMET
+            self._update_card('LONG_TERM', '')
+            
+            #precip file read in
+            self._update_card('PRECIP_FILE', out_gage_file, True)
+            if self.precip_interpolation_type.upper() == "INV_DISTANCE":
+                self._update_card('RAIN_INV_DISTANCE', '')
+                self._delete_card('RAIN_THIESSEN')
+            else:
+                self._update_card('RAIN_THIESSEN', '')
+                self._delete_card('RAIN_INV_DISTANCE')
+            
+            #assume UTC time zone
+            self._update_card('GMT', str(0))
+            
+            #update centroid
+            center_lon, center_lat = transform(l2g.gssha_proj4,
+                                               Proj(init='epsg:4326'),
+                                               [(l2g.east_bound+l2g.west_bound)/2.0],
+                                               [(l2g.north_bound+l2g.south_bound)/2.0], 
+                                               )
+            
+            self._update_card('LATITUDE', str(center_lat[0]))
+            self._update_card('LONGITUDE', str(center_lon[0]))
+            
+        elif needed_vars.count(None) == len(needed_vars):
+            print("Skipping WRF process ...")
+            return
+            
         else:
-            l2g.lsm_data_to_arc_ascii(self.lsm_data_var_map_array)
-            self._update_card("HMET_ASCII", os.path.join('hmet_ascii_data', 'hmet_file_list.txt'), True)
-            self._delete_card("HMET_NETCDF")
-    
-        #UPDATE GSSHA CARDS
-        #make sure long term added as it is required for reading in HMET
-        self._update_card('LONG_TERM', '')
-        
-        #precip file read in
-        self._update_card('PRECIP_FILE', out_gage_file, True)
-        if self.precip_interpolation_type.upper() == "INV_DISTANCE":
-            self._update_card('RAIN_INV_DISTANCE ', '')
-            self._delete_card("RAIN_THIESSEN")
-        else:
-            self._update_card('RAIN_THIESSEN ', '')
-            self._delete_card("RAIN_INV_DISTANCE")
-        
-        #assume UTC time zone
-        self._update_card('GMT', str(0))
-        
-        #update centroid
-        center_lon, center_lat = transform(l2g.gssha_proj4,
-                                           Proj(init='epsg:4326'),
-                                           [(l2g.east_bound+l2g.west_bound)/2.0],
-                                           [(l2g.north_bound+l2g.south_bound)/2.0], 
-                                           )
-        
-        self._update_card('LATITUDE', str(center_lat[0]))
-        self._update_card('LONGITUDE', str(center_lon[0]))
+            raise ValueError("To download the forecasts, you need to set: \n"
+                             "lsm_folder, lsm_data_var_map_array, lsm_precip_data_var \n"
+                             "lsm_precip_type, lsm_lat_var, lsm_lon_var, \n"
+                             "and lsm_file_date_naming_convention."                             
+                             )
         
     def run(self):
         """
@@ -477,6 +497,7 @@ class GSSHAFramework(object):
         self._update_class_var('output_netcdf', output_netcdf)
 
         self._update_card("PROJECT_PATH", self.gssha_directory)
+        #ANOTHER OPTION: USE PYTHON TO CHANGE WORKING DIRECTORY
         
         #----------------------------------------------------------------------
         #RAPID to GSSHA
@@ -505,57 +526,3 @@ class GSSHAFramework(object):
         #----------------------------------------------------------------------
         self.run()
         
-        
-if __name__ == "__main__":
-    gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
-    gssha_directory = "C:/Users/RDCHLADS/Documents/GSSHA"
-    project_filename = "my_project.prj"
-    
-    #RAPID
-    path_to_rapid_qout = 'C:/Users/RDCHLADS/Documents/GSSHA/Qout_52.nc'
-    #list to connect the RAPID rivers to GSSHA rivers
-    connection_list = [
-                       {
-                         'link_id': 599,
-                         'node_id': 1,
-                         'baseflow': 0.0,
-                         'rapid_rivid': 80968,
-                       },
-                     ]
-    
-    #LSM
-    lsm_folder = 'F:/GSSHA/wrf-sample-data-v1.0'
-    lsm_lat_var = 'XLAT'
-    lsm_lon_var = 'XLONG'
-    search_card = '*.nc'
-    precip_data_var = ['RAINC', 'RAINNC']
-    precip_type = 'ACCUM'
-    lsm_file_date_naming_convention='gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
-    
-    ##CONVERT FROM RAW WRF DATA
-    data_var_map_array = [
-                          ['precipitation_acc', ['RAINC', 'RAINNC']], 
-                          ['pressure', 'PSFC'], 
-                          ['relative_humidity', ['Q2', 'PSFC', 'T2']], 
-                          ['wind_speed', ['U10', 'V10']], 
-                          ['direct_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
-                          ['diffusive_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
-                          ['temperature', 'T2'],
-                          ['cloud_cover' , 'CLDFRA'],
-                         ]
-    
-    gr = GSSHAFramework(gssha_executable,
-                        gssha_directory, 
-                        project_filename,
-                        )
-    
-    gr.run_forecast(path_to_rapid_qout, 
-                    connection_list,
-                    lsm_folder,
-                    data_var_map_array,
-                    precip_data_var,
-                    precip_type,
-                    lsm_lat_var,
-                    lsm_lon_var,
-                    lsm_file_date_naming_convention,
-                    )
