@@ -19,6 +19,107 @@ from gsshapy.lib import db_tools as dbt
 from gsshapy.orm import ProjectCard, ProjectFile
 
 class GSSHAFramework(object):
+    """
+    This class is for automating the connection between RAPID to GSSHA and LSM to GSSHA.
+    There are several different configurations depending upon what you choose.
+    
+    There are three options for RAPID to GSSHA:
+    
+    1. Download and run using forecast from the Streamflow Prediction Tool (See: https://streamflow-prediction-tool.readthedocs.io)
+    2. Run from RAPID Qout file
+    3. Don't run using RAPID to GSSHA
+    
+    There are two options for LSM to GSSHA:
+    
+    1. Run from LSM to GSSHA
+    2. Don't run using LSM to GSSHA
+    
+    
+    Parameters:
+        gssha_executable(str): Path to GSSHA executable. 
+        gssha_directory(str): Path to directory for GSSHA project.
+        project_filename(str): Name of GSSHA project file.
+        spt_watershed_name(Optional[str]): Streamflow Prediction Tool watershed name.
+        spt_subbasin_name(Optional[str]): Streamflow Prediction Tool subbasin name.
+        spt_forecast_date_string(Optional[str]): Streamflow Prediction Tool forecast date string.
+        ckan_engine_url(Optional[str]): CKAN engine API url.
+        ckan_api_key(Optional[str]): CKAN api key.
+        ckan_owner_organization(Optional[str]): CKAN owner organization.
+        connection_list(Optional[str]): List connecting GSSHA rivers to RAPID river network. See: http://rapidpy.readthedocs.io/en/latest/rapid_to_gssha.html
+        lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
+        lsm_data_var_map_array(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.`
+        lsm_precip_data_var(Optional[list or str]): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+        lsm_precip_type(Optional[str]): Type of precipitation. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+        lsm_lat_var(Optional[str]): Name of the latitude variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
+        lsm_lon_var(Optional[str]): Name of the longitude variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
+        lsm_file_date_naming_convention(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.LSMtoGSSHA`.
+        lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
+        lsm_search_card(Optional[str]): Glob search pattern for LSM files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
+        precip_interpolation_type(Optional[str]): Type of interpolation for LSM precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
+        output_netcdf(Optional[bool]): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Default is False.
+
+    Example modifying parameters during class initialization:
+    
+    .. code:: python
+        
+            gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
+            gssha_directory = "C:/Users/{username}/Documents/GSSHA"
+            project_filename = "gssha_project.prj"
+            
+            #RAPID INPUTS
+            #list to connect the RAPID rivers to GSSHA rivers
+            connection_list = [
+                               {
+                                 'link_id': 599,
+                                 'node_id': 1,
+                                 'baseflow': 0.0,
+                                 'rapid_rivid': 80968,
+                               },
+                             ]
+            
+            #WRF INPUTS
+            lsm_folder = '"C:/Users/{username}/Documents/GSSHA/wrf-sample-data-v1.0'
+            lsm_lat_var = 'XLAT'
+            lsm_lon_var = 'XLONG'
+            search_card = '*.nc'
+            precip_data_var = ['RAINC', 'RAINNC']
+            precip_type = 'ACCUM'
+            lsm_file_date_naming_convention='gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
+            
+            data_var_map_array = [
+                                  ['precipitation_acc', ['RAINC', 'RAINNC']], 
+                                  ['pressure', 'PSFC'], 
+                                  ['relative_humidity', ['Q2', 'PSFC', 'T2']], 
+                                  ['wind_speed', ['U10', 'V10']], 
+                                  ['direct_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
+                                  ['diffusive_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
+                                  ['temperature', 'T2'],
+                                  ['cloud_cover' , 'CLDFRA'],
+                                 ]
+            
+            #INITIALIZE CLASS AND RUN
+            gr = GSSHAFramework(gssha_executable,
+                                gssha_directory, 
+                                project_filename,
+                                ckan_engine_url='http://ckan/api/3/action',
+                                ckan_api_key='your-api-key',
+                                ckan_owner_organization='your_organization',
+                                spt_watershed_name='watershed_name',
+                                spt_subbasin_name='subbasin_name',
+                                spt_forecast_date_string='20160721.1200'
+                                lsm_folder=lsm_folder,
+                                lsm_data_var_map_array=data_var_map_array,
+                                lsm_precip_data_var=precip_data_var,
+                                lsm_precip_type=precip_type,
+                                lsm_lat_var=lsm_lat_var,
+                                lsm_lon_var=lsm_lon_var,
+                                lsm_file_date_naming_convention=lsm_file_date_naming_convention,
+                                connection_list=connection_list,                                    
+                                )
+            
+            gr.run_forecast()
+    """
+    
     def __init__(self, 
                  gssha_executable, 
                  gssha_directory, 
@@ -291,21 +392,23 @@ class GSSHAFramework(object):
         .. warning:: This code assumes the time zone is UTC or GMT 0.
        
         Args:
+            lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
+            lsm_data_var_map_array(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.`
+            lsm_precip_data_var(Optional[list or str]): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+            lsm_precip_type(Optional[str]): Type of precipitation. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+            lsm_lat_var(Optional[str]): Name of the latitude variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
+            lsm_lon_var(Optional[str]): Name of the longitude variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
+            lsm_file_date_naming_convention(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.LSMtoGSSHA`.
+            lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
+            lsm_search_card(Optional[str]): Glob search pattern for LSM files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
+            connection_list(Optional[list]): List connecting GSSHA rivers to RAPID river network.
             path_to_rapid_qout(Optional[str]): Path to the RAPID Qout file. Use this if you do NOT want to download the forecast and you want to use RAPID streamflows.
-            connection_list(list): List connecting GSSHA rivers to RAPID river network.
-            lsm_folder(str): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
-            lsm_data_var_map_array(str): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.`
-            lsm_precip_data_var(list or str): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
-            lsm_precip_type(str): Type of precipitation. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
-            lsm_lat_var(str): Name of the latitude variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
-            lsm_lon_var(str): Name of the longitude variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
-            lsm_file_date_naming_convention(str): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.LSMtoGSSHA`.
-            lsm_time_var(str): Name of the time variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
-            lsm_search_card(str): Glob search pattern for LSM files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
-            precip_interpolation_type(str): Type of interpolation for LSM precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
-            output_netcdf(bool): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Default is False.
+            precip_interpolation_type(Optional[str]): Type of interpolation for LSM precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
+            output_netcdf(Optional[bool]): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Default is False.
             
-        Example::
+        Example modifying parameters after class initialization:
+        
+        .. code:: python
             
                 gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
                 gssha_directory = "C:/Users/{username}/Documents/GSSHA"
@@ -348,16 +451,17 @@ class GSSHAFramework(object):
                                     gssha_directory, 
                                     project_filename)
                 
-                gr.run_forecast(path_to_rapid_qout, 
-                                connection_list,
-                                lsm_folder,
-                                data_var_map_array,
-                                precip_data_var,
-                                precip_type,
-                                lsm_lat_var,
-                                lsm_lon_var,
-                                lsm_file_date_naming_convention,
+                gr.run_forecast(lsm_folder=lsm_folder,
+                                lsm_data_var_map_array=data_var_map_array,
+                                lsm_precip_data_var=precip_data_var,
+                                lsm_precip_type=precip_type,
+                                lsm_lat_var=lsm_lat_var,
+                                lsm_lon_var=lsm_lon_var,
+                                lsm_file_date_naming_convention=lsm_file_date_naming_convention,
+                                path_to_rapid_qout=path_to_rapid_qout, 
+                                connection_list=connection_list,
                                 )
+ 
         """
         self._update_class_var('connection_list', connection_list)
         self._update_class_var('lsm_folder', lsm_folder)
@@ -404,11 +508,11 @@ class GSSHAFramework(object):
         
 if __name__ == "__main__":
     gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
-    gssha_directory = "C:/Users/RDCHLADS/Documents/GSSHA/AF_GSSHA/NK_Hawaii/GSSHA"
-    project_filename = "nk_arb2.prj"
+    gssha_directory = "C:/Users/RDCHLADS/Documents/GSSHA"
+    project_filename = "my_project.prj"
     
     #RAPID
-    path_to_rapid_qout = 'C:/Users/RDCHLADS/Documents/GSSHA/AF_GSSHA/Qout_korean_peninsula_48k_52.nc'
+    path_to_rapid_qout = 'C:/Users/RDCHLADS/Documents/GSSHA/Qout_52.nc'
     #list to connect the RAPID rivers to GSSHA rivers
     connection_list = [
                        {
@@ -442,7 +546,8 @@ if __name__ == "__main__":
     
     gr = GSSHAFramework(gssha_executable,
                         gssha_directory, 
-                        project_filename)
+                        project_filename,
+                        )
     
     gr.run_forecast(path_to_rapid_qout, 
                     connection_list,
