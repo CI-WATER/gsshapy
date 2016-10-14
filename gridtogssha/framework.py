@@ -418,11 +418,11 @@ class GSSHAFramework(object):
         process = Popen(run_gssha_command, 
                         stdout=PIPE, stderr=PIPE, shell=False)
         out, err = process.communicate()
-        if err:
-            raise Exception(err)
-        else:
+        if out:
             for line in out.split(b'\n'):
                 print(line)
+        if err:
+            print("ERROR: {0}".format(err))
 
     def run_forecast(self, 
                      path_to_rapid_qout=None,
