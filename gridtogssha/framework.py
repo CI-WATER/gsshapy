@@ -47,7 +47,7 @@ class GSSHAFramework(object):
         ckan_engine_url(Optional[str]): CKAN engine API url.
         ckan_api_key(Optional[str]): CKAN api key.
         ckan_owner_organization(Optional[str]): CKAN owner organization.
-        connection_list(Optional[str]): List connecting GSSHA rivers to RAPID river network. See: http://rapidpy.readthedocs.io/en/latest/rapid_to_gssha.html
+        connection_list_file(Optional[str]): CSV file with list connecting GSSHA rivers to RAPID river network. See: http://rapidpy.readthedocs.io/en/latest/rapid_to_gssha.html
         lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
         lsm_data_var_map_array(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.`
         lsm_precip_data_var(Optional[list or str]): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
@@ -67,17 +67,7 @@ class GSSHAFramework(object):
             gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
             gssha_directory = "C:/Users/{username}/Documents/GSSHA"
             project_filename = "gssha_project.prj"
-            
-            #RAPID INPUTS
-            #list to connect the RAPID rivers to GSSHA rivers
-            connection_list = [
-                               {
-                                 'link_id': 599,
-                                 'node_id': 1,
-                                 'baseflow': 0.0,
-                                 'rapid_rivid': 80968,
-                               },
-                             ]
+            connection_list_file = "C:/Users/{username}/Documents/GSSHA/rapid_to_gssha_connect.csv"
             
             #WRF INPUTS
             lsm_folder = '"C:/Users/{username}/Documents/GSSHA/wrf-sample-data-v1.0'
@@ -116,7 +106,7 @@ class GSSHAFramework(object):
                                 lsm_lat_var=lsm_lat_var,
                                 lsm_lon_var=lsm_lon_var,
                                 lsm_file_date_naming_convention=lsm_file_date_naming_convention,
-                                connection_list=connection_list,                                    
+                                connection_list_file=connection_list_file,                                    
                                 )
             
             gr.run_forecast()
@@ -134,7 +124,7 @@ class GSSHAFramework(object):
                  ckan_engine_url=None,
                  ckan_api_key=None,
                  ckan_owner_organization=None,
-                 connection_list=None,
+                 connection_list_file=None,
                  lsm_folder=None,
                  lsm_data_var_map_array=None,
                  lsm_precip_data_var=None,
@@ -162,7 +152,7 @@ class GSSHAFramework(object):
         self.ckan_engine_url = ckan_engine_url
         self.ckan_api_key = ckan_api_key
         self.ckan_owner_organization = ckan_owner_organization
-        self.connection_list = connection_list
+        self.connection_list_file = connection_list_file
         self.lsm_folder = lsm_folder
         self.lsm_data_var_map_array = lsm_data_var_map_array
         self.lsm_precip_data_var = lsm_precip_data_var
@@ -293,7 +283,7 @@ class GSSHAFramework(object):
                     self.gssha_simulation_end = time_array[-1]
                     
                 qout_nc.write_flows_to_gssha_time_series_ihg(ihg_filename,
-                                                             self.connection_list,
+                                                             self.connection_list_file,
                                                              date_search_start=self.gssha_simulation_start,
                                                              date_search_end=self.gssha_simulation_end,
                                                              mode="max",
@@ -424,7 +414,7 @@ class GSSHAFramework(object):
 
     def run_forecast(self, 
                      path_to_rapid_qout=None,
-                     connection_list=None,
+                     connection_list_file=None,
                      lsm_folder=None,
                      lsm_data_var_map_array=None,
                      lsm_precip_data_var=None,
@@ -453,7 +443,7 @@ class GSSHAFramework(object):
             lsm_file_date_naming_convention(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.LSMtoGSSHA`.
             lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
             lsm_search_card(Optional[str]): Glob search pattern for LSM files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
-            connection_list(Optional[list]): List connecting GSSHA rivers to RAPID river network.
+            connection_list_file(Optional[list]): List connecting GSSHA rivers to RAPID river network.
             path_to_rapid_qout(Optional[str]): Path to the RAPID Qout file. Use this if you do NOT want to download the forecast and you want to use RAPID streamflows.
             precip_interpolation_type(Optional[str]): Type of interpolation for LSM precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
             output_netcdf(Optional[bool]): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Default is False.
@@ -469,15 +459,8 @@ class GSSHAFramework(object):
                 #RAPID INPUTS
                 path_to_rapid_qout = 'C:/Users/{username}/Documents/GSSHA/Qout_rapid_watershed.nc'
                 #list to connect the RAPID rivers to GSSHA rivers
-                connection_list = [
-                                   {
-                                     'link_id': 599,
-                                     'node_id': 1,
-                                     'baseflow': 0.0,
-                                     'rapid_rivid': 80968,
-                                   },
-                                 ]
-                
+                connection_list_file = "C:/Users/{username}/Documents/GSSHA/rapid_to_gssha_connect.csv"
+
                 #WRF INPUTS
                 lsm_folder = '"C:/Users/{username}/Documents/GSSHA/wrf-sample-data-v1.0'
                 lsm_lat_var = 'XLAT'
@@ -511,7 +494,7 @@ class GSSHAFramework(object):
                                 lsm_lon_var=lsm_lon_var,
                                 lsm_file_date_naming_convention=lsm_file_date_naming_convention,
                                 path_to_rapid_qout=path_to_rapid_qout, 
-                                connection_list=connection_list,
+                                connection_list_file=connection_list_file,
                                 )
  
         """
@@ -520,7 +503,7 @@ class GSSHAFramework(object):
         self._update_card("PROJECT_PATH", "", True)
         os.chdir(self.gssha_directory)
         
-        self._update_class_var('connection_list', connection_list)
+        self._update_class_var('connection_list_file', connection_list_file)
         self._update_class_var('lsm_folder', lsm_folder)
         self._update_class_var('lsm_data_var_map_array', lsm_data_var_map_array)
         self._update_class_var('lsm_precip_data_var', lsm_precip_data_var)
@@ -594,7 +577,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
         ckan_engine_url(Optional[str]): CKAN engine API url.
         ckan_api_key(Optional[str]): CKAN api key.
         ckan_owner_organization(Optional[str]): CKAN owner organization.
-        connection_list(Optional[str]): List connecting GSSHA rivers to RAPID river network. See: http://rapidpy.readthedocs.io/en/latest/rapid_to_gssha.html
+        connection_list_file(Optional[str]): CSV file with list connecting GSSHA rivers to RAPID river network. See: http://rapidpy.readthedocs.io/en/latest/rapid_to_gssha.html
         lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
         lsm_data_var_map_array(Optional[str]): Array with connections for WRF output and GSSHA input. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.`
         lsm_precip_data_var(Optional[list or str]): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
@@ -641,7 +624,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                                 spt_subbasin_name='subbasin_name',
                                 spt_forecast_date_string='20160721.1200'
                                 lsm_file_date_naming_convention=lsm_file_date_naming_convention,
-                                connection_list=connection_list,                                    
+                                connection_list_file=connection_list_file,                                    
                                 )
             
             gr.run_forecast()
@@ -659,7 +642,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                  ckan_engine_url=None,
                  ckan_api_key=None,
                  ckan_owner_organization=None,
-                 connection_list=None,
+                 connection_list_file=None,
                  lsm_folder=None,
                  lsm_data_var_map_array=None,
                  lsm_precip_data_var= ['RAINC', 'RAINNC'],
@@ -690,7 +673,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
         super(GSSHA_WRF_Framework, self).__init__(gssha_executable, gssha_directory, project_filename,
                                                   gssha_simulation_start, gssha_simulation_end, spt_watershed_name,
                                                   spt_subbasin_name, spt_forecast_date_string, ckan_engine_url,
-                                                  ckan_api_key, ckan_owner_organization, connection_list,
+                                                  ckan_api_key, ckan_owner_organization, connection_list_file,
                                                   lsm_folder, lsm_data_var_map_array, lsm_precip_data_var,
                                                   lsm_precip_type, lsm_lat_var, lsm_lon_var,
                                                   lsm_file_date_naming_convention, lsm_time_var,                
