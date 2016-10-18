@@ -289,6 +289,8 @@ class GSSHAFramework(object):
                     time_delta = time_array[1] - start_datetime
                 except IndexError:
                     pass
+                if self.gssha_simulation_end is None:
+                    self.gssha_simulation_end = time_array[-1]
                     
                 qout_nc.write_flows_to_gssha_time_series_ihg(ihg_filename,
                                                              self.connection_list,
@@ -318,11 +320,7 @@ class GSSHAFramework(object):
                 self._update_card("START_DATE", (start_datetime-time_delta).strftime("%Y %m %d"))
                 self._update_card("START_TIME", (start_datetime-time_delta).strftime("%H %M"))
             
-            if self.gssha_simulation_end is not None:
-                self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
-            else:
-                self._delete_card("END_TIME")
-                
+            self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
             self._update_card("CHAN_POINT_INPUT", ihg_filename, True)
         
     def prepare_wrf_data(self):
@@ -565,3 +563,137 @@ class GSSHAFramework(object):
         
         
         os.chdir(original_working_directory)
+        
+        
+class GSSHA_WRF_Framework(GSSHAFramework):
+    """
+    This class is for automating the connection between RAPID to GSSHA and WRF to GSSHA.
+    There are several different configurations depending upon what you choose.
+    
+    There are three options for RAPID to GSSHA:
+    
+    1. Download and run using forecast from the Streamflow Prediction Tool (See: https://streamflow-prediction-tool.readthedocs.io)
+    2. Run from RAPID Qout file
+    3. Don't run using RAPID to GSSHA
+    
+    There are two options for WRF to GSSHA:
+    
+    1. Run from WRF to GSSHA
+    2. Don't run using WRF to GSSHA
+    
+    
+    Parameters:
+        gssha_executable(str): Path to GSSHA executable. 
+        gssha_directory(str): Path to directory for GSSHA project.
+        project_filename(str): Name of GSSHA project file.
+        gssha_simulation_start(Optional[datetime]): Datetime object with date of start of GSSHA simulation.
+        gssha_simulation_end(Optional[datetime]): Datetime object with date of end of GSSHA simulation.
+        spt_watershed_name(Optional[str]): Streamflow Prediction Tool watershed name.
+        spt_subbasin_name(Optional[str]): Streamflow Prediction Tool subbasin name.
+        spt_forecast_date_string(Optional[str]): Streamflow Prediction Tool forecast date string.
+        ckan_engine_url(Optional[str]): CKAN engine API url.
+        ckan_api_key(Optional[str]): CKAN api key.
+        ckan_owner_organization(Optional[str]): CKAN owner organization.
+        connection_list(Optional[str]): List connecting GSSHA rivers to RAPID river network. See: http://rapidpy.readthedocs.io/en/latest/rapid_to_gssha.html
+        lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
+        lsm_data_var_map_array(Optional[str]): Array with connections for WRF output and GSSHA input. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.`
+        lsm_precip_data_var(Optional[list or str]): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+        lsm_precip_type(Optional[str]): Type of precipitation. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+        lsm_lat_var(Optional[str]): Name of the latitude variable in the WRF netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
+        lsm_lon_var(Optional[str]): Name of the longitude variable in the WRF netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
+        lsm_file_date_naming_convention(Optional[str]): Array with connections for WRF output and GSSHA input. See: :func:`~gridtogssha.LSMtoGSSHA`.
+        lsm_time_var(Optional[str]): Name of the time variable in the WRF netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
+        lsm_search_card(Optional[str]): Glob search pattern for WRF files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
+        precip_interpolation_type(Optional[str]): Type of interpolation for WRF precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
+        output_netcdf(Optional[bool]): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Default is False.
+
+    Example modifying parameters during class initialization:
+    
+    .. code:: python
+        
+            gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
+            gssha_directory = "C:/Users/{username}/Documents/GSSHA"
+            project_filename = "gssha_project.prj"
+            lsm_folder = '"C:/Users/{username}/Documents/GSSHA/wrf-sample-data-v1.0'
+            lsm_file_date_naming_convention = 'gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
+
+            #RAPID INPUTS
+            #list to connect the RAPID rivers to GSSHA rivers
+            connection_list = [
+                               {
+                                 'link_id': 599,
+                                 'node_id': 1,
+                                 'baseflow': 0.0,
+                                 'rapid_rivid': 80968,
+                               },
+                             ]
+            
+            #WRF INPUTS
+            
+            #INITIALIZE CLASS AND RUN
+            gr = GSSHAFramework(gssha_executable,
+                                gssha_directory, 
+                                project_filename,
+                                ckan_engine_url='http://ckan/api/3/action',
+                                ckan_api_key='your-api-key',
+                                ckan_owner_organization='your_organization',
+                                spt_watershed_name='watershed_name',
+                                spt_subbasin_name='subbasin_name',
+                                spt_forecast_date_string='20160721.1200'
+                                lsm_file_date_naming_convention=lsm_file_date_naming_convention,
+                                connection_list=connection_list,                                    
+                                )
+            
+            gr.run_forecast()
+    """
+    
+    def __init__(self, 
+                 gssha_executable, 
+                 gssha_directory, 
+                 project_filename,
+                 gssha_simulation_start=None,
+                 gssha_simulation_end=None,
+                 spt_watershed_name=None,
+                 spt_subbasin_name=None,
+                 spt_forecast_date_string=None,
+                 ckan_engine_url=None,
+                 ckan_api_key=None,
+                 ckan_owner_organization=None,
+                 connection_list=None,
+                 lsm_folder=None,
+                 lsm_data_var_map_array=None,
+                 lsm_precip_data_var= ['RAINC', 'RAINNC'],
+                 lsm_precip_type='ACCUM',
+                 lsm_lat_var='XLAT',
+                 lsm_lon_var='XLONG',
+                 lsm_file_date_naming_convention=None,
+                 lsm_time_var='time',                
+                 lsm_search_card="*.nc",
+                 precip_interpolation_type="THIESSEN",
+                 output_netcdf=False
+                 ):
+        """
+        Initializer
+        """
+        if lsm_data_var_map_array is None:
+            lsm_data_var_map_array = [
+                                      ['precipitation_acc', ['RAINC', 'RAINNC']], 
+                                      ['pressure', 'PSFC'], 
+                                      ['relative_humidity', ['Q2', 'PSFC', 'T2']], 
+                                      ['wind_speed', ['U10', 'V10']], 
+                                      ['direct_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
+                                      ['diffusive_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
+                                      ['temperature', 'T2'],
+                                      ['cloud_cover' , 'CLDFRA'],
+                                     ]
+
+        super(GSSHA_WRF_Framework, self).__init__(gssha_executable, gssha_directory, project_filename,
+                                                  gssha_simulation_start, gssha_simulation_end, spt_watershed_name,
+                                                  spt_subbasin_name, spt_forecast_date_string, ckan_engine_url,
+                                                  ckan_api_key, ckan_owner_organization, connection_list,
+                                                  lsm_folder, lsm_data_var_map_array, lsm_precip_data_var,
+                                                  lsm_precip_type, lsm_lat_var, lsm_lon_var,
+                                                  lsm_file_date_naming_convention, lsm_time_var,                
+                                                  lsm_search_card, precip_interpolation_type, output_netcdf)
+
+        
