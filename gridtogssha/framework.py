@@ -47,6 +47,7 @@ class GSSHAFramework(object):
         ckan_engine_url(Optional[str]): CKAN engine API url.
         ckan_api_key(Optional[str]): CKAN api key.
         ckan_owner_organization(Optional[str]): CKAN owner organization.
+        path_to_rapid_qout(Optional[str]): Path to the RAPID Qout file. Use this if you do NOT want to download the forecast and you want to use RAPID streamflows.
         connection_list_file(Optional[str]): CSV file with list connecting GSSHA rivers to RAPID river network. See: http://rapidpy.readthedocs.io/en/latest/rapid_to_gssha.html
         lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
         lsm_data_var_map_array(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.`
@@ -64,6 +65,8 @@ class GSSHAFramework(object):
     
     .. code:: python
         
+            from gridtogssha.framework import GSSHAFramework
+
             gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
             gssha_directory = "C:/Users/{username}/Documents/GSSHA"
             project_filename = "gssha_project.prj"
@@ -124,6 +127,7 @@ class GSSHAFramework(object):
                  ckan_engine_url=None,
                  ckan_api_key=None,
                  ckan_owner_organization=None,
+                 path_to_rapid_qout=None,
                  connection_list_file=None,
                  lsm_folder=None,
                  lsm_data_var_map_array=None,
@@ -152,6 +156,7 @@ class GSSHAFramework(object):
         self.ckan_engine_url = ckan_engine_url
         self.ckan_api_key = ckan_api_key
         self.ckan_owner_organization = ckan_owner_organization
+        self.path_to_rapid_qout = path_to_rapid_qout
         self.connection_list_file = connection_list_file
         self.lsm_folder = lsm_folder
         self.lsm_data_var_map_array = lsm_data_var_map_array
@@ -434,6 +439,8 @@ class GSSHAFramework(object):
         .. warning:: This code assumes the time zone is UTC or GMT 0.
        
         Args:
+            path_to_rapid_qout(Optional[str]): Path to the RAPID Qout file. Use this if you do NOT want to download the forecast and you want to use RAPID streamflows.
+            connection_list_file(Optional[list]): List connecting GSSHA rivers to RAPID river network.
             lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
             lsm_data_var_map_array(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.`
             lsm_precip_data_var(Optional[list or str]): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
@@ -443,8 +450,6 @@ class GSSHAFramework(object):
             lsm_file_date_naming_convention(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.LSMtoGSSHA`.
             lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
             lsm_search_card(Optional[str]): Glob search pattern for LSM files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
-            connection_list_file(Optional[list]): List connecting GSSHA rivers to RAPID river network.
-            path_to_rapid_qout(Optional[str]): Path to the RAPID Qout file. Use this if you do NOT want to download the forecast and you want to use RAPID streamflows.
             precip_interpolation_type(Optional[str]): Type of interpolation for LSM precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
             output_netcdf(Optional[bool]): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Default is False.
             
@@ -452,6 +457,8 @@ class GSSHAFramework(object):
         
         .. code:: python
             
+                from gridtogssha.framework import GSSHAFramework
+                
                 gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
                 gssha_directory = "C:/Users/{username}/Documents/GSSHA"
                 project_filename = "gssha_project.prj"
@@ -577,6 +584,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
         ckan_engine_url(Optional[str]): CKAN engine API url.
         ckan_api_key(Optional[str]): CKAN api key.
         ckan_owner_organization(Optional[str]): CKAN owner organization.
+        path_to_rapid_qout(Optional[str]): Path to the RAPID Qout file. Use this if you do NOT want to download the forecast and you want to use RAPID streamflows.
         connection_list_file(Optional[str]): CSV file with list connecting GSSHA rivers to RAPID river network. See: http://rapidpy.readthedocs.io/en/latest/rapid_to_gssha.html
         lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
         lsm_data_var_map_array(Optional[str]): Array with connections for WRF output and GSSHA input. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.`
@@ -594,38 +602,30 @@ class GSSHA_WRF_Framework(GSSHAFramework):
     
     .. code:: python
         
+            from gridtogssha.framework import GSSHA_WRF_Framework
+
             gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
             gssha_directory = "C:/Users/{username}/Documents/GSSHA"
             project_filename = "gssha_project.prj"
             lsm_folder = '"C:/Users/{username}/Documents/GSSHA/wrf-sample-data-v1.0'
             lsm_file_date_naming_convention = 'gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
 
-            #RAPID INPUTS
             #list to connect the RAPID rivers to GSSHA rivers
-            connection_list = [
-                               {
-                                 'link_id': 599,
-                                 'node_id': 1,
-                                 'baseflow': 0.0,
-                                 'rapid_rivid': 80968,
-                               },
-                             ]
-            
-            #WRF INPUTS
+            connection_list_file = "C:/Users/{username}/Documents/GSSHA/rapid_to_gssha_connect.csv"
             
             #INITIALIZE CLASS AND RUN
-            gr = GSSHAFramework(gssha_executable,
-                                gssha_directory, 
-                                project_filename,
-                                ckan_engine_url='http://ckan/api/3/action',
-                                ckan_api_key='your-api-key',
-                                ckan_owner_organization='your_organization',
-                                spt_watershed_name='watershed_name',
-                                spt_subbasin_name='subbasin_name',
-                                spt_forecast_date_string='20160721.1200'
-                                lsm_file_date_naming_convention=lsm_file_date_naming_convention,
-                                connection_list_file=connection_list_file,                                    
-                                )
+            gr = GSSHA_WRF_Framework(gssha_executable,
+                                     gssha_directory, 
+                                     project_filename,
+                                     ckan_engine_url='http://ckan/api/3/action',
+                                     ckan_api_key='your-api-key',
+                                     ckan_owner_organization='your_organization',
+                                     spt_watershed_name='watershed_name',
+                                     spt_subbasin_name='subbasin_name',
+                                     spt_forecast_date_string='20160721.1200'
+                                     lsm_file_date_naming_convention=lsm_file_date_naming_convention,
+                                     connection_list_file=connection_list_file,                                    
+                                    )
             
             gr.run_forecast()
     """
@@ -642,6 +642,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                  ckan_engine_url=None,
                  ckan_api_key=None,
                  ckan_owner_organization=None,
+                 path_to_rapid_qout=None,
                  connection_list_file=None,
                  lsm_folder=None,
                  lsm_data_var_map_array=None,
@@ -673,9 +674,9 @@ class GSSHA_WRF_Framework(GSSHAFramework):
         super(GSSHA_WRF_Framework, self).__init__(gssha_executable, gssha_directory, project_filename,
                                                   gssha_simulation_start, gssha_simulation_end, spt_watershed_name,
                                                   spt_subbasin_name, spt_forecast_date_string, ckan_engine_url,
-                                                  ckan_api_key, ckan_owner_organization, connection_list_file,
-                                                  lsm_folder, lsm_data_var_map_array, lsm_precip_data_var,
-                                                  lsm_precip_type, lsm_lat_var, lsm_lon_var,
+                                                  ckan_api_key, ckan_owner_organization, path_to_rapid_qout, 
+                                                  connection_list_file, lsm_folder, lsm_data_var_map_array, 
+                                                  lsm_precip_data_var, lsm_precip_type, lsm_lat_var, lsm_lon_var,
                                                   lsm_file_date_naming_convention, lsm_time_var,                
                                                   lsm_search_card, precip_interpolation_type, output_netcdf)
 
