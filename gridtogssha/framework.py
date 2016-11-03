@@ -8,11 +8,15 @@
 
 from glob import glob
 from datetime import datetime #TODO: Add date filter for GSSHA
-from pyproj import Proj, transform
+from numpy import mean
 import os
+from osgeo import gdal, osr
+from pyproj import Proj, transform
+from pytz import timezone, utc
 from RAPIDpy import RAPIDDataset
 from spt_dataset_manager import ECMWFRAPIDDatasetManager
 from subprocess import Popen, PIPE
+from timezonefinder import TimezoneFinder
 
 from gridtogssha import LSMtoGSSHA
 from gsshapy.lib import db_tools as dbt
@@ -170,6 +174,8 @@ class GSSHAFramework(object):
         self.precip_interpolation_type = precip_interpolation_type
         self.output_netcdf = output_netcdf
         
+        os.chdir(self.gssha_directory)
+        
         # Create Test DB
         sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
         
@@ -183,6 +189,9 @@ class GSSHAFramework(object):
         self.project_manager.read(directory=self.gssha_directory,
                                   filename=self.project_filename,
                                   session=self.db_session)
+    
+        #update centroid and timezone
+        self._update_centroid_timezone()
     
     def _update_class_var(self, var_name, new_value):
         """
@@ -217,6 +226,64 @@ class GSSHAFramework(object):
         if gssha_card is not None:
             self.db_session.delete(gssha_card)
             self.db_session.commit()
+
+    def _update_centroid_timezone(self):
+        """
+        This function updates the centroid and timezone
+        based of off GSSHA elevation grid
+        """
+        gssha_ele_card = self.project_manager.getCard("ELEVATION")
+        if gssha_ele_card is None:
+            raise Exception("ERROR: ELEVATION card not found ...")
+
+        gssha_pro_card = self.project_manager.getCard("#PROJECTION_FILE")
+        if gssha_pro_card is None:
+            raise Exception("ERROR: #PROJECTION_FILE card not found ...")
+            
+        #GET CENTROID FROM GSSHA GRID
+        gssha_grid = gdal.Open(gssha_ele_card.value.strip('"'))
+        gssha_srs=osr.SpatialReference()
+        with open(gssha_pro_card.value.strip('"')) as pro_file:
+            self.gssha_prj_str = pro_file.read()
+            gssha_srs.ImportFromWkt(self.gssha_prj_str)
+            self.gssha_proj4 = Proj(gssha_srs.ExportToProj4())
+        
+        min_x, xres, xskew, max_y, yskew, yres  = gssha_grid.GetGeoTransform()
+        max_x = min_x + (gssha_grid.RasterXSize * xres)
+        min_y = max_y + (gssha_grid.RasterYSize * yres)
+        
+        x_ext, y_ext = transform(self.gssha_proj4,
+                                 Proj(init='epsg:4326'),
+                                 [min_x, max_x, min_x, max_x],
+                                 [min_y, max_y, max_y, min_y], 
+                                 )
+        
+        self.center_lat = mean(y_ext)
+        self.center_lon = mean(x_ext)
+        
+        #update time zone
+        tf = TimezoneFinder()
+        tz_name = tf.timezone_at(lng=self.center_lon, lat=self.center_lat)
+        
+        self.tz = timezone(tz_name)
+        
+    def _update_gmt(self):
+        """
+        Based on timzone and start date, the GMT card is updated
+        """
+        if self.gssha_simulation_start is not None:
+            #NOTE: Because of daylight savings time, 
+            #offset result depends on time of the year
+            offset_string = self.gssha_simulation_start.astimezone(tz=self.tz).strftime('%z')
+            if not offset_string:
+                offset_string = '0' #assume UTC 
+            else:
+                sign = offset_string[0]
+                hr_offset = int(offset_string[1:3]) + int(offset_string[-2:])/60.0
+                offset_string = "{0}{1:.1f}".format(sign, hr_offset)
+
+            self._update_card('GMT', offset_string)
+
             
     def download_spt_forecast(self, extract_directory):
         """
@@ -296,7 +363,7 @@ class GSSHAFramework(object):
             else:
                 print("WARNING: No streamflow values found in time range ...")
     
-        if len(time_index_range)>0:                                                
+        if len(time_index_range)>0:
             # update cards
             if self.gssha_simulation_start is not None:
                 #GSSHA CODE SKIPS FIRST TIME STEP, SO HAVE TO MOVE TIME BACK TO CATCH IT ALL
@@ -305,18 +372,21 @@ class GSSHAFramework(object):
                           "{0} to {1} in order to capture the streamflow.".format(self.gssha_simulation_start,
                                                                                   start_datetime-time_delta)
                          )
+                    self.gssha_simulation_start = (start_datetime-time_delta)
                          
-                    self.gssha_simulation_start = start_datetime-time_delta
-            
-                self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
-                self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
-                
             else:
-                self._update_card("START_DATE", (start_datetime-time_delta).strftime("%Y %m %d"))
-                self._update_card("START_TIME", (start_datetime-time_delta).strftime("%H %M"))
-            
+                self.gssha_simulation_start = (start_datetime-time_delta)
+ 
+            self.gssha_simulation_start = self.gssha_simulation_start.replace(tzinfo=utc)
+            self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
+            self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
+
+            self.gssha_simulation_end = self.gssha_simulation_end.replace(tzinfo=utc)
             self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
             self._update_card("CHAN_POINT_INPUT", ihg_filename, True)
+
+            #UPDATE GMT CARD
+            self._update_gmt()
         
     def prepare_wrf_data(self):
         """
@@ -339,6 +409,7 @@ class GSSHAFramework(object):
                              lsm_lon_var=self.lsm_lon_var,
                              lsm_time_var=self.lsm_time_var,
                              lsm_file_date_naming_convention=self.lsm_file_date_naming_convention,
+                             output_timezone=self.tz,
                              )
             
             out_gage_file = os.path.join('{0}.gag'.format(self.project_name))
@@ -370,18 +441,19 @@ class GSSHAFramework(object):
                 self._update_card('RAIN_THIESSEN', '')
                 self._delete_card('RAIN_INV_DISTANCE')
             
-            #assume UTC time zone
-            self._update_card('GMT', str(0))
+            if self.gssha_simulation_start is None:
+                self.gssha_simulation_start = datetime.utcfromtimestamp(l2g.hourly_time_array[0]).replace(tzinfo=utc).astimezone(tz=self.tz)
             
-            #update centroid
-            center_lon, center_lat = transform(l2g.gssha_proj4,
-                                               Proj(init='epsg:4326'),
-                                               [(l2g.east_bound+l2g.west_bound)/2.0],
-                                               [(l2g.north_bound+l2g.south_bound)/2.0], 
-                                               )
-            
-            self._update_card('LATITUDE', str(center_lat[0]))
-            self._update_card('LONGITUDE', str(center_lon[0]))
+                self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
+                self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
+                
+            if self.gssha_simulation_end is None:
+                self.gssha_simulation_end = datetime.utcfromtimestamp(l2g.hourly_time_array[-1]).replace(tzinfo=utc).astimezone(tz=self.tz)
+                self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
+
+            #UPDATE GMT CARD
+            self._update_gmt()
+
             
         elif needed_vars.count(None) == len(needed_vars):
             print("Skipping WRF process ...")
@@ -505,10 +577,8 @@ class GSSHAFramework(object):
                                 )
  
         """
-        original_working_directory = os.getcwd()
         #self._update_card("PROJECT_PATH", self.gssha_directory)
         self._update_card("PROJECT_PATH", "", True)
-        os.chdir(self.gssha_directory)
         
         self._update_class_var('connection_list_file', connection_list_file)
         self._update_class_var('lsm_folder', lsm_folder)
@@ -523,7 +593,6 @@ class GSSHAFramework(object):
         self._update_class_var('precip_interpolation_type', precip_interpolation_type)
         self._update_class_var('output_netcdf', output_netcdf)
 
-        
         #----------------------------------------------------------------------
         #RAPID to GSSHA
         #----------------------------------------------------------------------
@@ -550,9 +619,6 @@ class GSSHAFramework(object):
         #Run GSSHA
         #----------------------------------------------------------------------
         self.run()
-        
-        
-        os.chdir(original_working_directory)
         
         
 class GSSHA_WRF_Framework(GSSHAFramework):

@@ -13,6 +13,7 @@ from glob import glob
 from io import open as io_open
 from os import mkdir, path
 from past.builtins import basestring
+from pytz import utc
 import time
 
 #extra dependencies
@@ -43,6 +44,8 @@ class GRIDtoGSSHA(object):
                                 this parameter defines the time step in seconds for the LSM files.
         output_unix_format(Optional[bool]): If True, it will output to "unix" format. 
                                         Otherwise, it will output in "dos" (Windows) format. Default is False. 
+        output_timezone(Optional[tzinfo]): This is the timezone to output the dates for the data. Default is UTC. 
+                                           This option does NOT currently work for NetCDF output.
 
     Example::
     
@@ -64,6 +67,7 @@ class GRIDtoGSSHA(object):
                  lsm_file_date_naming_convention=None,
                  time_step_seconds=None,
                  output_unix_format=False,
+                 output_timezone=None
                  ):
         """
         Initializer function for the LSMtoGSSHA class
@@ -75,6 +79,7 @@ class GRIDtoGSSHA(object):
         self.lsm_file_date_naming_convention = lsm_file_date_naming_convention
         self.time_step_seconds = time_step_seconds
         self.output_unix_format = output_unix_format
+        self.output_timezone = output_timezone
         
         self.default_line_ending = '\r\n'
         if output_unix_format:
@@ -543,6 +548,12 @@ class GRIDtoGSSHA(object):
         """
         This converts a UTC time integer to a string
         """
+        if self.output_timezone is not None:
+            return datetime.utcfromtimestamp(time_int) \
+                           .replace(tzinfo=utc) \
+                           .astimezone(self.output_timezone) \
+                           .strftime(conversion_string)
+        
         return time.strftime(conversion_string, time.gmtime(time_int))
         
     def _load_lsm_data(self, data_var, conversion_factor=1, four_dim_var_calc_method=None):
@@ -1002,6 +1013,8 @@ class GRIDtoGSSHA(object):
     def lsm_data_to_subset_netcdf(self, netcdf_file_path, data_var_map_array):
         """Writes extracted data to the NetCDF file format 
         
+        .. todo:: NetCDF output data time is always in UTC time. Need to convert to local timezone for GSSHA.
+        
         .. warning:: The NetCDF GSSHA file is only supported in GSSHA 7 or greater.
 
         .. note::
@@ -1085,6 +1098,7 @@ class GRIDtoGSSHA(object):
         subset_nc.createDimension('lon', len(self.lsm_lon_indices))
 
         #time
+        #TODO: Convert to local time
         time_var = subset_nc.createVariable('time', 'i4',
                                             ('time',))
         time_var.long_name = 'time'
@@ -1101,7 +1115,7 @@ class GRIDtoGSSHA(object):
         """
         #longitude
         lon_2d_var = subset_nc.createVariable('longitude', 'f8', ('lat','lon'),
-                                            fill_value=-9999.0)
+                                              fill_value=-9999.0)
         lon_2d_var.long_name = 'longitude'
         lon_2d_var.standard_name = 'longitude'
         lon_2d_var.units = 'degrees_east'
@@ -1126,7 +1140,7 @@ class GRIDtoGSSHA(object):
         ##1D GRID - Able to display in ArcMap/QGIS, but loose information
         #longitude
         lon_var = subset_nc.createVariable('lon', 'f8', ('lon'),
-                                            fill_value=-9999.0)
+                                           fill_value=-9999.0)
         lon_var.long_name = 'longitude'
         lon_var.standard_name = 'longitude'
         lon_var.units = 'degrees_east'
@@ -1134,7 +1148,7 @@ class GRIDtoGSSHA(object):
         
         #latitude
         lat_var = subset_nc.createVariable('lat', 'f8', ('lat'),
-                                            fill_value=-9999.0)
+                                           fill_value=-9999.0)
         lat_var.long_name = 'latitude'
         lat_var.standard_name = 'latitude'
         lat_var.units = 'degrees_north'

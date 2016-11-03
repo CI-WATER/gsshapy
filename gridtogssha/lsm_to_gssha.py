@@ -86,6 +86,7 @@ class LSMtoGSSHA(GRIDtoGSSHA):
                                 this parameter defines the time step in seconds for the LSM files.
         output_unix_format(Optional[bool]): If True, it will output to "unix" format. 
                                         Otherwise, it will output in "dos" (Windows) format. Default is False. 
+        output_timezone(Optional[tzinfo]): This is the timezone to output the dates for the data. Default is UTC.
 
     Example::
     
@@ -113,6 +114,7 @@ class LSMtoGSSHA(GRIDtoGSSHA):
                  lsm_file_date_naming_convention=None,
                  time_step_seconds=None,
                  output_unix_format=False,
+                 output_timezone=None,
                  ):
         """
         Initializer function for the LSMtoGSSHA class
@@ -128,7 +130,8 @@ class LSMtoGSSHA(GRIDtoGSSHA):
                                          lsm_search_card, 
                                          lsm_file_date_naming_convention,
                                          time_step_seconds,
-                                         output_unix_format)    
+                                         output_unix_format,
+                                         output_timezone)    
     def _load_lsm_projection(self):
         """
         Loads the LSM projection in Proj4
