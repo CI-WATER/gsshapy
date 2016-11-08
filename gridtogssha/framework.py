@@ -578,6 +578,7 @@ class GSSHAFramework(object):
         #self._update_card("PROJECT_PATH", self.gssha_directory)
         self._update_card("PROJECT_PATH", "", True)
         
+        self._update_class_var('path_to_rapid_qout', path_to_rapid_qout)
         self._update_class_var('connection_list_file', connection_list_file)
         self._update_class_var('lsm_folder', lsm_folder)
         self._update_class_var('lsm_data_var_map_array', lsm_data_var_map_array)
@@ -595,17 +596,17 @@ class GSSHAFramework(object):
         #RAPID to GSSHA
         #----------------------------------------------------------------------
         #if no streamflow given, download forecast
-        if path_to_rapid_qout is None:
+        if self.path_to_rapid_qout is None:
             rapid_qout_directory = os.path.join(self.gssha_directory, 'rapid_streamflow')
             try:
                 os.mkdir(rapid_qout_directory)
             except OSError:
                 pass
-            path_to_rapid_qout = self.download_spt_forecast(rapid_qout_directory)
+            self.path_to_rapid_qout = self.download_spt_forecast(rapid_qout_directory)
             
         #prepare input for GSSHA if user wants
         if path_to_rapid_qout is not None:
-            self.prepare_rapid_streamflow(path_to_rapid_qout)
+            self.prepare_rapid_streamflow(self.path_to_rapid_qout)
 
         #----------------------------------------------------------------------
         #LSM to GSSHA
