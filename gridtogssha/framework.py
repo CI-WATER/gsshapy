@@ -605,7 +605,7 @@ class GSSHAFramework(object):
             self.path_to_rapid_qout = self.download_spt_forecast(rapid_qout_directory)
             
         #prepare input for GSSHA if user wants
-        if path_to_rapid_qout is not None:
+        if self.path_to_rapid_qout is not None:
             self.prepare_rapid_streamflow(self.path_to_rapid_qout)
 
         #----------------------------------------------------------------------
