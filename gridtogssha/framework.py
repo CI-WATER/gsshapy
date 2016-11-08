@@ -274,7 +274,7 @@ class GSSHAFramework(object):
         if self.gssha_simulation_start is not None:
             #NOTE: Because of daylight savings time, 
             #offset result depends on time of the year
-            offset_string = self.gssha_simulation_start.astimezone(tz=self.tz).strftime('%z')
+            offset_string = self.gssha_simulation_start.replace(tzinfo=self.tz).strftime('%z')
             if not offset_string:
                 offset_string = '0' #assume UTC 
             else:
@@ -338,7 +338,7 @@ class GSSHAFramework(object):
         start_datetime = None
         time_delta = 3600 #1 hr
         time_index_range = []
-        with RAPIDDataset(path_to_rapid_qout) as qout_nc:
+        with RAPIDDataset(path_to_rapid_qout, out_tzinfo=self.tz) as qout_nc:
         
             time_index_range = qout_nc.get_time_index_range(date_search_start=self.gssha_simulation_start,
                                                             date_search_end=self.gssha_simulation_end)
@@ -358,7 +358,6 @@ class GSSHAFramework(object):
                                                              self.connection_list_file,
                                                              date_search_start=self.gssha_simulation_start,
                                                              date_search_end=self.gssha_simulation_end,
-                                                             mode="max",
                                                              )
             else:
                 print("WARNING: No streamflow values found in time range ...")
@@ -377,11 +376,9 @@ class GSSHAFramework(object):
             else:
                 self.gssha_simulation_start = (start_datetime-time_delta)
  
-            self.gssha_simulation_start = self.gssha_simulation_start.replace(tzinfo=utc)
             self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
             self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
 
-            self.gssha_simulation_end = self.gssha_simulation_end.replace(tzinfo=utc)
             self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
             self._update_card("CHAN_POINT_INPUT", ihg_filename, True)
 
@@ -431,6 +428,7 @@ class GSSHAFramework(object):
             #UPDATE GSSHA CARDS
             #make sure long term added as it is required for reading in HMET
             self._update_card('LONG_TERM', '')
+            self._update_card('SEASONAL_RS', '')
             
             #precip file read in
             self._update_card('PRECIP_FILE', out_gage_file, True)
@@ -442,13 +440,13 @@ class GSSHAFramework(object):
                 self._delete_card('RAIN_INV_DISTANCE')
             
             if self.gssha_simulation_start is None:
-                self.gssha_simulation_start = datetime.utcfromtimestamp(l2g.hourly_time_array[0]).replace(tzinfo=utc).astimezone(tz=self.tz)
+                self.gssha_simulation_start = datetime.utcfromtimestamp(l2g.hourly_time_array[0]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None)
             
                 self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
                 self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
                 
             if self.gssha_simulation_end is None:
-                self.gssha_simulation_end = datetime.utcfromtimestamp(l2g.hourly_time_array[-1]).replace(tzinfo=utc).astimezone(tz=self.tz)
+                self.gssha_simulation_end = datetime.utcfromtimestamp(l2g.hourly_time_array[-1]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None)
                 self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
 
             #UPDATE GMT CARD
