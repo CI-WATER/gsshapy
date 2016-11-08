@@ -1,12 +1,14 @@
 from setuptools import setup, find_packages
 
 requires = [
-    'sqlalchemy>=0.7',
-    'mapkit>=1.1.0',
-    'python-dateutil',
-    'requests',
-    'psycopg2',
     'future',
+    'mapkit>=1.1.0',
+    'psycopg2',
+    'python-dateutil',
+    'pytz',
+    'requests',
+    'sqlalchemy>=0.7',
+    'timezonefinder',
     ]
 
 setup(name='gsshapy',
