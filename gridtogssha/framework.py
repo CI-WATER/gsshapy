@@ -64,6 +64,8 @@ class GSSHAFramework(object):
         lsm_search_card(Optional[str]): Glob search pattern for LSM files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
         precip_interpolation_type(Optional[str]): Type of interpolation for LSM precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
         output_netcdf(Optional[bool]): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Default is False.
+        write_hotstart(Optional[bool]): If you want to automatically generate all hotstart files, set to True. Default is False.
+        read_hotstart(Optional[bool]): If you want to automatically search for and read in hotstart files, set to True. Default is False.
 
     Example modifying parameters during class initialization:
     
@@ -143,7 +145,9 @@ class GSSHAFramework(object):
                  lsm_time_var='time',                
                  lsm_search_card="*.nc",
                  precip_interpolation_type="THIESSEN",
-                 output_netcdf=False
+                 output_netcdf=False,
+                 write_hotstart=False,
+                 read_hotstart=False,
                  ):
         """
         Initializer
@@ -173,6 +177,8 @@ class GSSHAFramework(object):
         self.lsm_search_card = lsm_search_card
         self.precip_interpolation_type = precip_interpolation_type
         self.output_netcdf = output_netcdf
+        self.write_hotstart = write_hotstart
+        self.read_hotstart = read_hotstart
         
         os.chdir(self.gssha_directory)
         
@@ -615,7 +621,43 @@ class GSSHAFramework(object):
         #----------------------------------------------------------------------
         self.download_wrf_forecast()
         self.prepare_wrf_data()
-                               
+
+        #----------------------------------------------------------------------
+        #HOTSTART
+        #----------------------------------------------------------------------
+        if self.write_hotstart:
+            hotstart_time_str = self.gssha_simulation_end.strftime("%Y%m%d_%H%M")
+
+            self._update_card("WRITE_OV_HOTSTART", os.path.join('{0}_ov_hotstart_{1}.ovh'.format(self.project_name, hotstart_time_str)))
+            self._update_card("WRITE_CHAN_HOTSTART", os.path.join('{0}_chan_hotstart_{1}'.format(self.project_name, hotstart_time_str)))
+            self._update_card("WRITE_SM_HOTSTART", os.path.join('{0}_sm_hotstart_{1}.smh'.format(self.project_name, hotstart_time_str)))
+
+        if self.read_hotstart:
+            hotstart_time_str = self.gssha_simulation_start.strftime("%Y%m%d_%H%M")
+            #OVERLAND
+            expected_ov_hotstart =  os.path.join('{0}_ov_hotstart_{1}.ovh'.format(self.project_name, hotstart_time_str))
+            if os.path.exists(expected_ov_hotstart):
+                self._update_card("READ_OV_HOTSTART", expected_ov_hotstart)
+            else:
+                self._delete_card("READ_OV_HOTSTART")
+                print("WARNING: READ_OV_HOTSTART not included as {} does not exist ...".format(expected_ov_hotstart))
+                
+            #CHANNEL
+            expected_chan_hotstart =  os.path.join('{0}_chan_hotstart_{1}'.format(self.project_name, hotstart_time_str))
+            if os.path.exists("{0}.qht".format(expected_chan_hotstart)) and os.path.exists("{0}.dht".format(expected_chan_hotstart)):
+                self._update_card("READ_CHAN_HOTSTART", expected_chan_hotstart)
+            else:
+                self._delete_card("READ_CHAN_HOTSTART")
+                print("WARNING: READ_CHAN_HOTSTART not included as {0}.qht and/or {0}.dht does not exist ...".format(expected_chan_hotstart))
+                
+            #INFILTRATION
+            expected_sm_hotstart =  os.path.join('{0}_sm_hotstart_{1}.smh'.format(self.project_name, hotstart_time_str))
+            if os.path.exists(expected_sm_hotstart):
+                self._update_card("READ_SM_HOTSTART", expected_sm_hotstart)
+            else:
+                self._delete_card("READ_SM_HOTSTART")
+                print("WARNING: READ_SM_HOTSTART not included as {} does not exist ...".format(expected_sm_hotstart))
+            
         #----------------------------------------------------------------------
         #Run GSSHA
         #----------------------------------------------------------------------
@@ -664,6 +706,8 @@ class GSSHA_WRF_Framework(GSSHAFramework):
         lsm_search_card(Optional[str]): Glob search pattern for WRF files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
         precip_interpolation_type(Optional[str]): Type of interpolation for WRF precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
         output_netcdf(Optional[bool]): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Default is False.
+        write_hotstart(Optional[bool]): If you want to automatically generate all hotstart files, set to True. Default is False.
+        read_hotstart(Optional[bool]): If you want to automatically search for and read in hotstart files, set to True. Default is False.
 
     Example running full framework with RAPID and LSM locally stored:
     
@@ -762,7 +806,9 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                  lsm_time_var='time',                
                  lsm_search_card="*.nc",
                  precip_interpolation_type="THIESSEN",
-                 output_netcdf=False
+                 output_netcdf=False,
+                 write_hotstart=False,
+                 read_hotstart=False,
                  ):
         """
         Initializer
@@ -786,6 +832,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                                                   connection_list_file, lsm_folder, lsm_data_var_map_array, 
                                                   lsm_precip_data_var, lsm_precip_type, lsm_lat_var, lsm_lon_var,
                                                   lsm_file_date_naming_convention, lsm_time_var,                
-                                                  lsm_search_card, precip_interpolation_type, output_netcdf)
+                                                  lsm_search_card, precip_interpolation_type, output_netcdf,
+                                                  write_hotstart, read_hotstart)
 
         
