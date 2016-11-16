@@ -429,8 +429,8 @@ class GSSHAFramework(object):
             #make sure long term added as it is required for reading in HMET
             self._update_card('LONG_TERM', '')
             self._update_card('SEASONAL_RS', '')
-            self._update_card('LATITUDE', self.center_lat)
-            self._update_card('LONGITUDE', self.center_lon)
+            self._update_card('LATITUDE', str(self.center_lat))
+            self._update_card('LONGITUDE', str(self.center_lon))
             
             #precip file read in
             self._update_card('PRECIP_FILE', out_gage_file, True)
