@@ -45,6 +45,7 @@ class GSSHAFramework(object):
         project_filename(str): Name of GSSHA project file.
         gssha_simulation_start(Optional[datetime]): Datetime object with date of start of GSSHA simulation.
         gssha_simulation_end(Optional[datetime]): Datetime object with date of end of GSSHA simulation.
+        gssha_simulation_duration(Optional[timedelta]): Datetime timedelta object with duration of GSSHA simulation.
         spt_watershed_name(Optional[str]): Streamflow Prediction Tool watershed name.
         spt_subbasin_name(Optional[str]): Streamflow Prediction Tool subbasin name.
         spt_forecast_date_string(Optional[str]): Streamflow Prediction Tool forecast date string.
@@ -127,6 +128,7 @@ class GSSHAFramework(object):
                  project_filename,
                  gssha_simulation_start=None,
                  gssha_simulation_end=None,
+                 gssha_simulation_duration=None,
                  spt_watershed_name=None,
                  spt_subbasin_name=None,
                  spt_forecast_date_string=None,
@@ -156,7 +158,8 @@ class GSSHAFramework(object):
         self.gssha_directory = gssha_directory
         self.project_filename = project_filename
         self.project_name = os.path.splitext(project_filename)[0]
-        self.gssha_simulation_start = gssha_simulation_start
+        self.gssha_simulation_duration = gssha_simulation_duration
+        self._update_simulation_start(gssha_simulation_start)
         self.gssha_simulation_end = gssha_simulation_end
         self.spt_watershed_name = spt_watershed_name
         self.spt_subbasin_name = spt_subbasin_name
@@ -273,6 +276,14 @@ class GSSHAFramework(object):
         
         self.tz = timezone(tz_name)
         
+    def _update_simulation_start(self, gssha_simulation_start):
+        """
+        Update GSSHA simulation start time 
+        """
+        self.gssha_simulation_start = gssha_simulation_start
+        if self.gssha_simulation_duration is not None and self.gssha_simulation_start is not None:
+            self.gssha_simulation_end = self.gssha_simulation_start+self.gssha_simulation_duration
+            
     def _update_gmt(self):
         """
         Based on timzone and start date, the GMT card is updated
@@ -349,20 +360,31 @@ class GSSHAFramework(object):
             time_index_range = qout_nc.get_time_index_range(date_search_start=self.gssha_simulation_start,
                                                             date_search_end=self.gssha_simulation_end)
                                                             
-            if len(time_index_range)>0:                                                
+            if len(time_index_range)>0:
                 time_array = qout_nc.get_time_array(return_datetime=True,
                                                     time_index_array=time_index_range)
+                
+                #GSSHA STARTS INGESTING STREAMFLOW AT SECOND TIME STEP
+                if self.gssha_simulation_start is not None:
+                    if self.gssha_simulation_start == time_array[0]:
+                        print("WARNING: First timestep of streamflow skipped "
+                              "in order for GSSHA to capture the streamflow.")
+                        time_index_range = time_index_range[1:]
+                        time_array = time_array[1:]
+
+            if len(time_index_range)>0:
                 start_datetime = time_array[0]
                 try:
                     time_delta = time_array[1] - start_datetime
                 except IndexError:
                     pass
+                    
                 if self.gssha_simulation_end is None:
                     self.gssha_simulation_end = time_array[-1]
                     
                 qout_nc.write_flows_to_gssha_time_series_ihg(ihg_filename,
                                                              self.connection_list_file,
-                                                             date_search_start=self.gssha_simulation_start,
+                                                             date_search_start=start_datetime,
                                                              date_search_end=self.gssha_simulation_end,
                                                              )
             else:
@@ -370,17 +392,8 @@ class GSSHAFramework(object):
     
         if len(time_index_range)>0:
             # update cards
-            if self.gssha_simulation_start is not None:
-                #GSSHA CODE SKIPS FIRST TIME STEP, SO HAVE TO MOVE TIME BACK TO CATCH IT ALL
-                if (start_datetime-time_delta) <= self.gssha_simulation_start:
-                    print("WARNING: GSSHA simulation start time changed from "
-                          "{0} to {1} in order to capture the streamflow.".format(self.gssha_simulation_start,
-                                                                                  start_datetime-time_delta)
-                         )
-                    self.gssha_simulation_start = (start_datetime-time_delta)
-                         
-            else:
-                self.gssha_simulation_start = (start_datetime-time_delta)
+            if self.gssha_simulation_start is None:
+               self._update_simulation_start(start_datetime-time_delta)
  
             self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
             self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
@@ -448,14 +461,18 @@ class GSSHAFramework(object):
                 self._delete_card('RAIN_INV_DISTANCE')
             
             if self.gssha_simulation_start is None:
-                self.gssha_simulation_start = datetime.utcfromtimestamp(l2g.hourly_time_array[0]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None)
-            
+                self._update_simulation_start(datetime.utcfromtimestamp(l2g.hourly_time_array[0]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None))
+            else: 
                 self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
                 self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
-                
+               
+            #GSSHA simulation does not work after HMET data is finished
+            wrf_simulation_end = datetime.utcfromtimestamp(l2g.hourly_time_array[-1]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None)
             if self.gssha_simulation_end is None:
-                self.gssha_simulation_end = datetime.utcfromtimestamp(l2g.hourly_time_array[-1]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None)
-                self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
+                self.gssha_simulation_end = wrf_simulation_end
+            elif self.gssha_simulation_end > wrf_simulation_end:
+                self.gssha_simulation_end = wrf_simulation_end
+            self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
 
             #UPDATE GMT CARD
             self._update_gmt()
@@ -601,6 +618,12 @@ class GSSHAFramework(object):
         self._update_class_var('output_netcdf', output_netcdf)
 
         #----------------------------------------------------------------------
+        #LSM to GSSHA
+        #----------------------------------------------------------------------
+        self.download_wrf_forecast()
+        self.prepare_wrf_data()
+
+        #----------------------------------------------------------------------
         #RAPID to GSSHA
         #----------------------------------------------------------------------
         #if no streamflow given, download forecast
@@ -616,11 +639,6 @@ class GSSHAFramework(object):
         if self.path_to_rapid_qout is not None:
             self.prepare_rapid_streamflow(self.path_to_rapid_qout)
 
-        #----------------------------------------------------------------------
-        #LSM to GSSHA
-        #----------------------------------------------------------------------
-        self.download_wrf_forecast()
-        self.prepare_wrf_data()
 
         #----------------------------------------------------------------------
         #HOTSTART
@@ -687,6 +705,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
         project_filename(str): Name of GSSHA project file.
         gssha_simulation_start(Optional[datetime]): Datetime object with date of start of GSSHA simulation.
         gssha_simulation_end(Optional[datetime]): Datetime object with date of end of GSSHA simulation.
+        gssha_simulation_duration(Optional[timedelta]): Datetime timedelta object with duration of GSSHA simulation.
         spt_watershed_name(Optional[str]): Streamflow Prediction Tool watershed name.
         spt_subbasin_name(Optional[str]): Streamflow Prediction Tool subbasin name.
         spt_forecast_date_string(Optional[str]): Streamflow Prediction Tool forecast date string.
@@ -788,6 +807,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                  project_filename,
                  gssha_simulation_start=None,
                  gssha_simulation_end=None,
+                 gssha_simulation_duration=None,
                  spt_watershed_name=None,
                  spt_subbasin_name=None,
                  spt_forecast_date_string=None,
@@ -826,8 +846,9 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                                      ]
 
         super(GSSHA_WRF_Framework, self).__init__(gssha_executable, gssha_directory, project_filename,
-                                                  gssha_simulation_start, gssha_simulation_end, spt_watershed_name,
-                                                  spt_subbasin_name, spt_forecast_date_string, ckan_engine_url,
+                                                  gssha_simulation_start, gssha_simulation_end, gssha_simulation_duration,
+                                                  spt_watershed_name, spt_subbasin_name,
+                                                  spt_forecast_date_string, ckan_engine_url,
                                                   ckan_api_key, ckan_owner_organization, path_to_rapid_qout, 
                                                   connection_list_file, lsm_folder, lsm_data_var_map_array, 
                                                   lsm_precip_data_var, lsm_precip_type, lsm_lat_var, lsm_lon_var,
