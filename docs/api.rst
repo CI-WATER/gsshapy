@@ -59,5 +59,6 @@ GRID to GSSHA
 .. toctree::
     :maxdepth: 1
 
-    api/gridtogssha/lsm_tools.rst
-    api/gridtogssha/hrrr_tools.rst
+    api/gridtogssha/lsm_tools
+    api/gridtogssha/hrrr_tools
+    api/gridtogssha/framework

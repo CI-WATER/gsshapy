@@ -36,37 +36,39 @@ you install GsshaPy.
 
 It is recommended to use Anaconda to install GsshaPy (See: https://www.continuum.io/downloads).
 
+.. _gsshapy-installation:
 
 Installation
 ============
 
-Prerequisites
--------------
-
 Linux/Mac
-^^^^^^^^^
+---------
+
+Prerequisites
+~~~~~~~~~~~~~
 
 See: https://github.com/CI-WATER/gsshapy/blob/master/.travis.yml
 
-Download & Install Miniconda
-''''''''''''''''''''''''''''
+Download Miniconda
+^^^^^^^^^^^^^^^^^^
 
 Linux
-     
+'''''     
 
 ::
 
     $ wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
 
 Mac
-   
+'''   
 
 ::
 
     $ curl -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh
 
-Install Python packages with all dependencies
-'''''''''''''''''''''''''''''''''''''''''''''
+
+Install Miniconda
+^^^^^^^^^^^^^^^^^
 
 ::
 
@@ -74,16 +76,26 @@ Install Python packages with all dependencies
     $ ./miniconda.sh -b
     $ export PATH=$HOME/miniconda2/bin:$PATH
     $ conda update --yes conda python
-    $ conda create --name gssha python=2
+
+Create gssha conda environment from the gsshapy-conda-env.yml file:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    $ git clone https://github.com/CI-WATER/gsshapy.git
+    $ cd gsshapy
+    $ conda env create -f gsshapy-conda-env.yml
+
+Install gsshapy:
+^^^^^^^^^^^^^^^^
+
+::
+
     $ source activate gssha
-    $ conda install --yes nose numpy netCDF4 gdal pyproj
-    $ source deactivate gssha
-    $ source activate gssha
+    (gssha) $ python setup.py install    
 
-
-
-Install GRIB-API
-''''''''''''''''
+(Optional) Install GRIB-API
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. warning:: The GRIB-API installation is optional. Only install if you need :func:`~gridtogssha.hrrr_to_gssha.HRRRtoGSSHA`.
 
 See: https://software.ecmwf.int/wiki/display/GRIB/GRIB+API+installation
@@ -103,8 +115,8 @@ See: https://software.ecmwf.int/wiki/display/GRIB/GRIB+API+installation
     $ make install
     
     
-Install pygrib
-''''''''''''''
+(Optional) Install pygrib
+^^^^^^^^^^^^^^^^^^^^^^^^^
 .. warning:: The pygrib installation is optional. Only install if you need :func:`~gridtogssha.hrrr_to_gssha.HRRRtoGSSHA`.
 
 See: https://github.com/jswhit/pygrib
@@ -121,53 +133,56 @@ See: https://github.com/jswhit/pygrib
     (gssha)$ python setup.py install
 
 
+
 Windows
-^^^^^^^
+-------
+
+.. note:: pygrib is currently not available on Windows, so HRRRtoGSSHA will not work.
 
 Download & Install Miniconda
-''''''''''''''''''''''''''''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  Go to: http://conda.pydata.org/miniconda.html
 -  Download and run Windows Python 2 version installer
 -  Install at
    C:\\Users\\YOUR_USERNAME\\Miniconda2
    or wherever you want
--  Make default python and export to path
+-  During installation, make Miniconda the default python and export to path
 
-Install all dependencies
-''''''''''''''''''''''''
+Create gssha conda environment from the gsshapy-conda-env.yml file:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note:: pygrib is currently not available on Windows, so HRRRtoGSSHA will not work.
+Download the code for gsshapy from https://github.com/CI-WATER/gsshapy
+or clone it using a git program.
 
-Open CMD terminal:
+Open up the CMD program. Then, enter each line separately.
 
 ::
 
     > conda update --yes conda python
-    > conda create --name rapid python=2
+    > cd gsshapy
+    > conda env create -f gsshapy-conda-env.yml
+
+Install gsshapy:
+~~~~~~~~~~~~~~~~
+
+Open up the CMD program. Then, enter each line separately.
+
+::
+
+
     > activate gssha
-    (gssha)> conda install --yes nose numpy netCDF4 gdal pyproj python-dateutil psycopg2
-    (gssha)> deactivate 
-    > activate gssha
+    > python setup.py install
 
 
+Installation Via easy_install
+=============================
 
-
-Main Installation
------------------
+.. warning:: The dependencies will likely not be resolved installing this method.
 
 To install GsshaPy use ``easy_install`` as follows::
 	
-	$ easy_install gsshapy
-	
-Alternatively, the source code is available on GitHub and can be 
-downloaded and installed as follows::
-
-	$ git clone https://github.com/CI-WATER/gsshapy.git
-	$ cd gsshapy
-     $ source activate gssha  
-	(gssha)$ python setup.py install
-	
+    $ easy_install gsshapy	
 
 License
 =======

@@ -1,8 +1,0 @@
-gsshapy>=2.0.0
-sphinxcontrib-napoleon
-sqlalchemy
-numpy
-netCDF4
-pyproj
-gdal
-mapkit>=1.1.0
