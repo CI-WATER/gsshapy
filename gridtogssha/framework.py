@@ -790,7 +790,11 @@ class GSSHAFramework(object):
             self._update_card("WRITE_OV_HOTSTART", os.path.join('{0}_ov_hotstart_{1}.ovh'.format(self.project_name, hotstart_time_str)), True)
             self._update_card("WRITE_CHAN_HOTSTART", os.path.join('{0}_chan_hotstart_{1}'.format(self.project_name, hotstart_time_str)), True)
             self._update_card("WRITE_SM_HOTSTART", os.path.join('{0}_sm_hotstart_{1}.smh'.format(self.project_name, hotstart_time_str)), True)
-
+        else:
+            self._delete_card("WRITE_OV_HOTSTART")
+            self._delete_card("WRITE_CHAN_HOTSTART")
+            self._delete_card("WRITE_SM_HOTSTART")
+        
         if self.read_hotstart:
             hotstart_time_str = self.gssha_simulation_start.strftime("%Y%m%d_%H%M")
             #OVERLAND
