@@ -15,7 +15,11 @@ from pyproj import Proj, transform
 from pytz import timezone, utc
 from RAPIDpy import RAPIDDataset
 from shutil import copy
-from spt_dataset_manager import ECMWFRAPIDDatasetManager
+try:
+    from spt_dataset_manager import ECMWFRAPIDDatasetManager
+except ImportError:
+    print("WARNING: spt_dataset_manager is not installed. The SPT functionality will not work.")
+    pass
 from subprocess import Popen, PIPE
 from timezonefinder import TimezoneFinder
 
