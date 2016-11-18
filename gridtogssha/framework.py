@@ -14,6 +14,7 @@ from osgeo import gdal, osr
 from pyproj import Proj, transform
 from pytz import timezone, utc
 from RAPIDpy import RAPIDDataset
+from shutil import copy
 from spt_dataset_manager import ECMWFRAPIDDatasetManager
 from subprocess import Popen, PIPE
 from timezonefinder import TimezoneFinder
@@ -21,6 +22,16 @@ from timezonefinder import TimezoneFinder
 from gridtogssha import LSMtoGSSHA
 from gsshapy.lib import db_tools as dbt
 from gsshapy.orm import ProjectCard, ProjectFile
+
+def replace_file(from_file, to_file):
+    """
+    Replaces to_file with from_file 
+    """
+    try:
+        os.remove(to_file)
+    except OSError:
+        pass
+    copy(from_file, to_file)
 
 class GSSHAFramework(object):
     """
@@ -64,9 +75,13 @@ class GSSHAFramework(object):
         lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
         lsm_search_card(Optional[str]): Glob search pattern for LSM files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
         precip_interpolation_type(Optional[str]): Type of interpolation for LSM precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
+        event_min_q(Optional[double]): Threshold discharge for continuing runoff events in m3/s. Default is 60.0.
+        et_calc_mode(Optional[str]): Type of evapo-transpitation calculation for GSSHA. Can be "PENMAN" or "DEARDORFF". Default is "PENMAN".
+        soil_moisture_depth(Optional[double]): Depth of the active soil moisture layer from which ET occurs (m). Default is 0.0.
         output_netcdf(Optional[bool]): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Default is False.
         write_hotstart(Optional[bool]): If you want to automatically generate all hotstart files, set to True. Default is False.
         read_hotstart(Optional[bool]): If you want to automatically search for and read in hotstart files, set to True. Default is False.
+        hotstart_minimal_mode(Optional[bool]): If you want to turn off all outputs to only generate the hotstart file, set to True. Default is False.
 
     Example modifying parameters during class initialization:
     
@@ -122,6 +137,30 @@ class GSSHAFramework(object):
             gr.run_forecast()
     """
     
+    PRECIP_INTERP_TYPES = ("THIESSEN", "INV_DISTANCE")
+    ET_CALC_MODES = ("PENMAN", "DEARDORFF")
+    GSSHA_OPTIONAL_OUTPUT_CARDS = (
+                                  "IN_THETA_LOCATION", "OUT_THETA_LOCATION",
+                                  "IN_HYD_LOCATION", "OUT_HYD_LOCATION", "OUT_DEP_LOCATION",
+                                  "IN_SED_LOC", "OUT_SED_LOC", "OUTLET_SED_FLUX",
+                                  "OUTLET_SED_TSS", "OUT_TSS_LOC",
+                                  "OVERLAND_DEPTH_LOCATION", "OVERLAND_DEPTHS",
+                                  "OVERLAND_WSE_LOCATION", "OVERLAND_WSE",
+                                  "IN_THETA_LOCATION", "OUT_THETA_LOCATION",
+                                  "OUT_WELL_LOCATION", "GW_WELL_LEVEL",
+                                  "IN_GWFLUX_LOCATION", "OUT_GWFLUX_LOCATION",
+                                  "OUT_MASS_LOCATION", "STRICT_JULIAN_DATE",
+                                  "OPTIMIZE", "OPTIMIZE_SED",
+                                  "CHAN_DEPTH", "CHAN_STAGE", "CHAN_DISCHARGE", 
+                                  "CHAN_VELOCITY", "LAKE_OUTPUT",
+                                  "DISCHARGE", "DEPTH", "INF_DEPTH", "QOUT_CFS",
+                                  "SURF_MOIST", "RATE_OF_INFIL", "DIS_RAIN",
+                                  "MAX_SED_FLUX", "NET_SED_VOLUME", 
+                                  "GW_OUTPUT", "GW_RECHARGE_CUM", "GW_RECHARGE_INC",
+                                  "FLOOD_GRID", "FLOOD_STREAM",
+                                  "OPTIMIZE",
+                                  )
+    
     def __init__(self, 
                  gssha_executable, 
                  gssha_directory, 
@@ -146,10 +185,14 @@ class GSSHAFramework(object):
                  lsm_file_date_naming_convention=None,
                  lsm_time_var='time',                
                  lsm_search_card="*.nc",
-                 precip_interpolation_type="THIESSEN",
+                 precip_interpolation_type=None,
+                 event_min_q=None,
+                 et_calc_mode=None,
+                 soil_moisture_depth=None,
                  output_netcdf=False,
                  write_hotstart=False,
                  read_hotstart=False,
+                 hotstart_minimal_mode=False,
                  ):
         """
         Initializer
@@ -178,10 +221,22 @@ class GSSHAFramework(object):
         self.lsm_file_date_naming_convention = lsm_file_date_naming_convention
         self.lsm_time_var = lsm_time_var
         self.lsm_search_card = lsm_search_card
+        if precip_interpolation_type is not None:
+            if precip_interpolation_type.upper() not in self.PRECIP_INTERP_TYPES:
+                raise IndexError("Invalid precip_interpolation_type {}".format(precip_interpolation_type))
+            self.precip_interpolation_type = precip_interpolation_type.upper()
         self.precip_interpolation_type = precip_interpolation_type
+        self.event_min_q = event_min_q
+        if et_calc_mode is not None:
+            if et_calc_mode.upper() not in self.ET_CALC_MODES:
+                raise IndexError("Invalid et_calc_mode {}".format(et_calc_mode))
+            self.et_calc_mode = et_calc_mode.upper()
+        self.et_calc_mode = et_calc_mode
+        self.soil_moisture_depth = soil_moisture_depth
         self.output_netcdf = output_netcdf
         self.write_hotstart = write_hotstart
         self.read_hotstart = read_hotstart
+        self.hotstart_minimal_mode = hotstart_minimal_mode
         
         os.chdir(self.gssha_directory)
         
@@ -451,15 +506,56 @@ class GSSHAFramework(object):
             self._update_card('LATITUDE', str(self.center_lat))
             self._update_card('LONGITUDE', str(self.center_lon))
             
+            #EVENT_MIN_Q
+            if self.event_min_q is None:
+                #check if card exists already in card
+                if not self.project_manager.getCard('EVENT_MIN_Q'):
+                    #if no type exists, then make it 0.0
+                    self._update_card('EVENT_MIN_Q', '0.0')
+            else:
+                self._update_card('EVENT_MIN_Q', str(self.event_min_q))
+            
+            #SOIL_MOIST_DEPTH
+            if self.soil_moisture_depth is None:
+                #check if card exists already in card
+                if not self.project_manager.getCard('SOIL_MOIST_DEPTH'):
+                    #if no type exists, then make it 0.0
+                    self._update_card('SOIL_MOIST_DEPTH', '0.0')
+            else:
+                self._update_card('SOIL_MOIST_DEPTH', str(self.soil_moisture_depth))
+            
             #precip file read in
             self._update_card('PRECIP_FILE', out_gage_file, True)
-            if self.precip_interpolation_type.upper() == "INV_DISTANCE":
+            
+            #PRECIP
+            if self.precip_interpolation_type is None:
+                #check if precip type exists already in card
+                if not self.project_manager.getCard('RAIN_INV_DISTANCE') \
+                    and not self.project_manager.getCard('RAIN_THIESSEN'):
+                    #if no type exists, then make it theissen
+                    self._update_card('RAIN_THIESSEN', '')
+            elif self.precip_interpolation_type == "INV_DISTANCE":
                 self._update_card('RAIN_INV_DISTANCE', '')
                 self._delete_card('RAIN_THIESSEN')
             else:
                 self._update_card('RAIN_THIESSEN', '')
                 self._delete_card('RAIN_INV_DISTANCE')
             
+            #ET CALC
+            if self.et_calc_mode is None:
+                #check if ET calc mode exists already in card
+                if not self.project_manager.getCard('ET_CALC_PENMAN') \
+                    and not self.project_manager.getCard('ET_CALC_DEARDORFF'):
+                    #if no type exists, then make it penman
+                    self._update_card('ET_CALC_PENMAN', '')
+                    
+            elif self.et_calc_mode == "PENMAN":
+                self._update_card('ET_CALC_PENMAN', '')
+                self._delete_card('ET_CALC_DEARDORFF')
+            else:
+                self._update_card('ET_CALC_DEARDORFF', '')
+                self._delete_card('ET_CALC_PENMAN')
+                
             if self.gssha_simulation_start is None:
                 self._update_simulation_start(datetime.utcfromtimestamp(l2g.hourly_time_array[0]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None))
             else: 
@@ -488,20 +584,38 @@ class GSSHAFramework(object):
                              "lsm_precip_type, lsm_lat_var, lsm_lon_var, \n"
                              "and lsm_file_date_naming_convention."                             
                              )
-        
+
     def run(self):
         """
         Write out project file and run GSSHA simulation
         """
+        if self.hotstart_minimal_mode:
+            #remove all optional output cards
+            for gssha_optional_output_card in self.GSSHA_OPTIONAL_OUTPUT_CARDS:
+                self._delete_card(gssha_optional_output_card)
+            #make sure running in SUPER_QUIET mode
+            self._update_card('SUPER_QUIET', '')
+            #generate backup card
+            project_file_backup_name = "{0}.prj_backup".format(self.project_filename)
+            replace_file(self.project_filename, project_file_backup_name)
+
         #WRITE OUT UPDATED GSSHA PROJECT FILE
         self.project_manager.write(session=self.db_session, 
                                    directory=self.gssha_directory, 
                                    name=self.project_name)
         
+            
+        project_filename = self.project_filename
+        if self.hotstart_minimal_mode:
+            #write hotstart project to new file name
+            project_filename = "{0}_minimal_hotstart.prj".format(self.project_name)
+            replace_file(self.project_filename, project_filename)
+            replace_file(project_file_backup_name, self.project_filename)
+        
         #RUN SIMULATION
         print("RUNNING GSSHA SIMULATION ...")
         run_gssha_command = [self.gssha_executable, 
-                             os.path.join(self.gssha_directory, self.project_filename)]
+                             os.path.join(self.gssha_directory, project_filename)]
 
         process = Popen(run_gssha_command, 
                         stdout=PIPE, stderr=PIPE, shell=False)
@@ -724,9 +838,13 @@ class GSSHA_WRF_Framework(GSSHAFramework):
         lsm_time_var(Optional[str]): Name of the time variable in the WRF netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
         lsm_search_card(Optional[str]): Glob search pattern for WRF files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
         precip_interpolation_type(Optional[str]): Type of interpolation for WRF precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
+        event_min_q(Optional[double]): Threshold discharge for continuing runoff events in m3/s. Default is 60.0.
+        et_calc_mode(Optional[str]): Type of evapo-transpitation calculation for GSSHA. Can be "PENMAN" or "DEARDORFF". Default is "PENMAN".
+        soil_moisture_depth(Optional[double]): Depth of the active soil moisture layer from which ET occurs (m). Default is 0.0.
         output_netcdf(Optional[bool]): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Default is False.
         write_hotstart(Optional[bool]): If you want to automatically generate all hotstart files, set to True. Default is False.
         read_hotstart(Optional[bool]): If you want to automatically search for and read in hotstart files, set to True. Default is False.
+        hotstart_minimal_mode(Optional[bool]): If you want to turn off all outputs to only generate the hotstart file, set to True. Default is False.
 
     Example running full framework with RAPID and LSM locally stored:
     
@@ -825,10 +943,14 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                  lsm_file_date_naming_convention=None,
                  lsm_time_var='time',                
                  lsm_search_card="*.nc",
-                 precip_interpolation_type="THIESSEN",
+                 precip_interpolation_type=None,
+                 event_min_q=None,
+                 et_calc_mode=None,
+                 soil_moisture_depth=None,
                  output_netcdf=False,
                  write_hotstart=False,
                  read_hotstart=False,
+                 hotstart_minimal_mode=False,
                  ):
         """
         Initializer
@@ -853,7 +975,8 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                                                   connection_list_file, lsm_folder, lsm_data_var_map_array, 
                                                   lsm_precip_data_var, lsm_precip_type, lsm_lat_var, lsm_lon_var,
                                                   lsm_file_date_naming_convention, lsm_time_var,                
-                                                  lsm_search_card, precip_interpolation_type, output_netcdf,
-                                                  write_hotstart, read_hotstart)
+                                                  lsm_search_card, precip_interpolation_type, event_min_q, 
+                                                  et_calc_mode, soil_moisture_depth, output_netcdf,
+                                                  write_hotstart, read_hotstart, hotstart_minimal_mode)
 
         
