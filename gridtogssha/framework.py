@@ -139,27 +139,41 @@ class GSSHAFramework(object):
     
     PRECIP_INTERP_TYPES = ("THIESSEN", "INV_DISTANCE")
     ET_CALC_MODES = ("PENMAN", "DEARDORFF")
+    GSSHA_REQUIRED_OUTPUT_PATH_CARDS = (
+                                        "SUMMARY",
+                                        "OUTLET_HYDRO",
+                                        "OUTLET_SED_FLUX", 
+                                        "OUTLET_SED_TSS",
+                                        "SUPERLINK_JUNC_FLOW",
+                                        "SUPERLINK_NODE_FLOW",
+                                        )
+                                        
+    GSSHA_OPTIONAL_OUTPUT_PATH_CARDS = ( 
+                                        "OUT_THETA_LOCATION",
+                                        "OUT_HYD_LOCATION", "OUT_DEP_LOCATION",
+                                        "OUT_SED_LOC", "OUT_TSS_LOC", "MAX_SED_FLUX",
+                                        "CHAN_DEPTH", "CHAN_STAGE", "CHAN_DISCHARGE", 
+                                        "CHAN_VELOCITY", "LAKE_OUTPUT",
+                                        "GW_OUTPUT", "OUT_GWFLUX_LOCATION",
+                                        "GW_RECHARGE_CUM", "GW_RECHARGE_INC",
+                                        "GW_WELL_LEVEL", 
+                                        "OUT_CON_LOCATION", "OUT_MASS_LOCATION", 
+                                        "NET_SED_VOLUME", "VOL_SED_SUSP",
+                                        "OVERLAND_DEPTHS", "OVERLAND_WSE",
+                                        "DISCHARGE", "DEPTH", "INF_DEPTH",
+                                        "SURF_MOIST", "RATE_OF_INFIL", "DIS_RAIN",
+                                        "FLOOD_GRID", "FLOOD_STREAM",
+                                        )
     GSSHA_OPTIONAL_OUTPUT_CARDS = (
-                                  "IN_THETA_LOCATION", "OUT_THETA_LOCATION",
-                                  "IN_HYD_LOCATION", "OUT_HYD_LOCATION", "OUT_DEP_LOCATION",
-                                  "IN_SED_LOC", "OUT_SED_LOC", "OUTLET_SED_FLUX",
-                                  "OUTLET_SED_TSS", "OUT_TSS_LOC",
-                                  "OVERLAND_DEPTH_LOCATION", "OVERLAND_DEPTHS",
-                                  "OVERLAND_WSE_LOCATION", "OVERLAND_WSE",
-                                  "IN_THETA_LOCATION", "OUT_THETA_LOCATION",
-                                  "OUT_WELL_LOCATION", "GW_WELL_LEVEL",
-                                  "IN_GWFLUX_LOCATION", "OUT_GWFLUX_LOCATION",
-                                  "OUT_MASS_LOCATION", "STRICT_JULIAN_DATE",
+                                  "IN_THETA_LOCATION", 
+                                  "IN_HYD_LOCATION", "IN_SED_LOC", 
+                                  "OVERLAND_DEPTH_LOCATION", 
+                                  "OVERLAND_WSE_LOCATION", 
+                                  "IN_GWFLUX_LOCATION", "OUT_WELL_LOCATION", 
+                                  "STRICT_JULIAN_DATE",
                                   "OPTIMIZE", "OPTIMIZE_SED",
-                                  "CHAN_DEPTH", "CHAN_STAGE", "CHAN_DISCHARGE", 
-                                  "CHAN_VELOCITY", "LAKE_OUTPUT",
-                                  "DISCHARGE", "DEPTH", "INF_DEPTH", "QOUT_CFS",
-                                  "SURF_MOIST", "RATE_OF_INFIL", "DIS_RAIN",
-                                  "MAX_SED_FLUX", "NET_SED_VOLUME", 
-                                  "GW_OUTPUT", "GW_RECHARGE_CUM", "GW_RECHARGE_INC",
-                                  "FLOOD_GRID", "FLOOD_STREAM",
-                                  "OPTIMIZE",
-                                  )
+                                  ) + GSSHA_OPTIONAL_OUTPUT_PATH_CARDS
+    
     
     def __init__(self, 
                  gssha_executable, 
@@ -598,7 +612,20 @@ class GSSHAFramework(object):
             #generate backup card
             project_file_backup_name = "{0}.prj_backup".format(self.project_filename)
             replace_file(self.project_filename, project_file_backup_name)
-
+        else:
+            timestamp_out_dir_name = self.gssha_simulation_end.strftime("output_%Y%m%d_%H%M")
+            try:
+                os.mkdir(timestamp_out_dir_name)
+            except OSError:
+                pass
+            #move output to new folder with timestamp
+            for out_path_card in self.GSSHA_REQUIRED_OUTPUT_PATH_CARDS + \
+                                 self.GSSHA_OPTIONAL_OUTPUT_PATH_CARDS:
+            
+                gssha_card = self.project_manager.getCard(out_path_card)
+                if gssha_card is not None:
+                    gssha_card.value = "\"{0}\"".format(os.path.join(timestamp_out_dir_name, gssha_card.value.replace('"','')))
+                
         #WRITE OUT UPDATED GSSHA PROJECT FILE
         self.project_manager.write(session=self.db_session, 
                                    directory=self.gssha_directory, 
