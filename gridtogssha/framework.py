@@ -952,6 +952,59 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                                     )
             
             gr.run_forecast()
+            
+    Example with Hotstart:
+    
+    .. code:: python
+            
+            from datetime import datetime, timedelta
+            from gridtogssha.framework import GSSHA_WRF_Framework
+            
+            gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
+            gssha_directory = "C:/Users/{username}/Documents/GSSHA"
+            project_filename = "gssha_project.prj"
+            full_gssha_simulation_duration = timedelta(days=5, seconds=0)
+            gssha_hotstart_offset_duration = timedelta(days=1, seconds=0)
+        
+            #LSM
+            lsm_folder = '"C:/Users/{username}/Documents/GSSHA/wrf-sample-data-v1.0'
+            lsm_file_date_naming_convention = 'gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
+        
+            #RAPID
+            path_to_rapid_qout = "C:/Users/{username}/Documents/GSSHA/Qout.nc"
+            connection_list_file = "C:/Users/{username}/Documents/GSSHA/rapid_to_gssha_connect.csv"
+            
+            #--------------------------------------------------------------------------
+            # MAIN RUN
+            #--------------------------------------------------------------------------
+            mr = GSSHA_WRF_Framework(gssha_executable,
+                                     gssha_directory, 
+                                     project_filename,
+                                     lsm_folder=lsm_folder,
+                                     lsm_file_date_naming_convention=lsm_file_date_naming_convention,
+                                     path_to_rapid_qout=path_to_rapid_qout, 
+                                     connection_list_file=connection_list_file,
+                                     gssha_simulation_duration=full_gssha_simulation_duration,
+                                     read_hotstart=True,
+                                    )
+            
+            mr.run_forecast()
+            #--------------------------------------------------------------------------
+            # GENERATE HOTSTART FOR NEXT RUN
+            #--------------------------------------------------------------------------
+            hr = GSSHA_WRF_Framework(gssha_executable,
+                                     gssha_directory, 
+                                     project_filename,
+                                     lsm_folder=lsm_folder,
+                                     lsm_file_date_naming_convention=lsm_file_date_naming_convention,
+                                     path_to_rapid_qout=path_to_rapid_qout, 
+                                     connection_list_file=connection_list_file,
+                                     gssha_simulation_duration=gssha_hotstart_offset_duration,
+                                     write_hotstart=True,
+                                     read_hotstart=True,
+                                     hotstart_minimal_mode=True,
+                                    )
+            hr.run_forecast()
     """
     
     def __init__(self, 
