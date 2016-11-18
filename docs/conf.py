@@ -22,7 +22,7 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return Mock()
 
-MOCK_MODULES = ['pygrib']
+MOCK_MODULES = ['pygrib', 'RAPIDpy']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 ##END TEMP SECTION UNTIL PYGRIB WORKS IN CONDA WITH NETCDF4
 
