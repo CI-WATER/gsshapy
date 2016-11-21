@@ -77,14 +77,30 @@ Install Miniconda
     $ export PATH=$HOME/miniconda2/bin:$PATH
     $ conda update --yes conda python
 
-Create gssha conda environment from the gsshapy-conda-env.yml file:
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Create gssha conda environment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ::
 
     $ git clone https://github.com/CI-WATER/gsshapy.git
     $ cd gsshapy
+
+Option 1: From the gsshapy-conda-env.yml file
+'''''''''''''''''''''''''''''''''''''''''''''
+
+::
+
     $ conda env create -f gsshapy-conda-env.yml
+
+Option 2: Step-by-step
+''''''''''''''''''''''
+
+::
+
+    $ conda create --name gssha python=2
+    $ source activate gssha
+    (gssha)$ conda install --yes nose numpy netCDF4 gdal pyproj
+    (gssha)$ source deactivate gssha
 
 Install gsshapy:
 ^^^^^^^^^^^^^^^^
@@ -149,8 +165,8 @@ Download & Install Miniconda
    or wherever you want
 -  During installation, make Miniconda the default python and export to path
 
-Create gssha conda environment from the gsshapy-conda-env.yml file:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Create gssha conda environment:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Download the code for gsshapy from https://github.com/CI-WATER/gsshapy
 or clone it using a git program.
@@ -160,8 +176,10 @@ Open up the CMD program. Then, enter each line separately.
 ::
 
     > conda update --yes conda python
-    > cd gsshapy
-    > conda env create -f gsshapy-conda-env.yml
+    > conda create --name gssha python=2
+    > activate gssha
+    (gssha)> conda install --yes nose numpy netCDF4 gdal pyproj python-dateutil psycopg2
+    (gssha)> deactivate
 
 Install gsshapy:
 ~~~~~~~~~~~~~~~~
@@ -171,8 +189,9 @@ Open up the CMD program. Then, enter each line separately.
 ::
 
 
+    > cd gsshapy
     > activate gssha
-    > python setup.py install
+    (gssha)> python setup.py install
 
 
 Installation Via easy_install
