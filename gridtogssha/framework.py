@@ -323,9 +323,9 @@ class GSSHAFramework(object):
             raise Exception("ERROR: #PROJECTION_FILE card not found ...")
             
         #GET CENTROID FROM GSSHA GRID
-        gssha_grid = gdal.Open(gssha_ele_card.value.strip('"'))
+        gssha_grid = gdal.Open(gssha_ele_card.value.strip('"').strip("'"))
         gssha_srs=osr.SpatialReference()
-        with open(gssha_pro_card.value.strip('"')) as pro_file:
+        with open(gssha_pro_card.value.strip('"').strip("'")) as pro_file:
             self.gssha_prj_str = pro_file.read()
             gssha_srs.ImportFromWkt(self.gssha_prj_str)
             self.gssha_proj4 = Proj(gssha_srs.ExportToProj4())
@@ -423,6 +423,8 @@ class GSSHAFramework(object):
         self._update_class_var('connection_list', connection_list)
 
         ihg_filename = os.path.join('{0}.ihg'.format(self.project_name))
+        if self.hotstart_minimal_mode:
+            ihg_filename = os.path.join('{0}_hotstart.ihg'.format(self.project_name))
         
         #write out IHG file
         start_datetime = None
@@ -490,8 +492,12 @@ class GSSHAFramework(object):
                        self.lsm_file_date_naming_convention]
 
         if None not in needed_vars:
+            gssha_ele_card = self.project_manager.getCard("ELEVATION")
+            if gssha_ele_card is None:
+                raise Exception("ERROR: ELEVATION card not found ...")
+
             l2g = LSMtoGSSHA(gssha_project_folder=self.gssha_directory,
-                             gssha_grid_file_name='{0}.ele'.format(self.project_name),
+                             gssha_grid_file_name=gssha_ele_card.value.strip('"').strip("'"),
                              lsm_input_folder_path=self.lsm_folder,
                              lsm_search_card=self.lsm_search_card, 
                              lsm_lat_var=self.lsm_lat_var,
@@ -502,6 +508,8 @@ class GSSHAFramework(object):
                              )
             
             out_gage_file = os.path.join('{0}.gag'.format(self.project_name))
+            if self.hotstart_minimal_mode:
+                out_gage_file = os.path.join('{0}_hotstart.gag'.format(self.project_name))
             l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
                                                 lsm_data_var=self.lsm_precip_data_var,
                                                 precip_type=self.lsm_precip_type)
@@ -509,12 +517,17 @@ class GSSHAFramework(object):
 
             if self.output_netcdf:
                 netcdf_file_path = os.path.join('{0}_hmet.nc'.format(self.project_name))
+                if self.hotstart_minimal_mode:
+                    netcdf_file_path = os.path.join('{0}_hmet_hotstart.nc'.format(self.project_name))
                 l2g.lsm_data_to_subset_netcdf(netcdf_file_path, self.lsm_data_var_map_array)
                 self._update_card("HMET_NETCDF", netcdf_file_path, True)
                 self._delete_card("HMET_ASCII")
             else:
-                l2g.lsm_data_to_arc_ascii(self.lsm_data_var_map_array)
-                self._update_card("HMET_ASCII", os.path.join('hmet_ascii_data', 'hmet_file_list.txt'), True)
+                hmet_ascii_output_folder = 'hmet_ascii_data'
+                if self.hotstart_minimal_mode:
+                    hmet_ascii_output_folder += "_hotstart"
+                l2g.lsm_data_to_arc_ascii(self.lsm_data_var_map_array,main_output_folder=hmet_ascii_output_folder)
+                self._update_card("HMET_ASCII", os.path.join(hmet_ascii_output_folder, 'hmet_file_list.txt'), True)
                 self._delete_card("HMET_NETCDF")
         
             #UPDATE GSSHA CARDS
