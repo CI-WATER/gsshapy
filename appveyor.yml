@@ -1,0 +1,32 @@
+#FROM: http://tjelvarolsson.com/blog/how-to-continuously-test-your-python-code-on-windows-using-appveyor/
+# and on: https://github.com/DynamicDevices/mono/blob/master/appveyor.yml
+environment:
+  global:
+    PYTHON_VERSION: "2.7"
+    MINICONDA: "C:\\Miniconda-x64"
+
+install:
+  - 'SET PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%'
+  #create environment in conda
+  - conda config --set always_yes yes
+  - conda update -q conda python
+  - "conda create --name gssha python=%PYTHON_VERSION%"
+  - activate gssha
+  # Install required python packages
+  - conda install nose numpy pandas scipy netCDF4 gdal pyproj pytz python-dateutil psycopg2
+  - conda install -c conda-forge rtree
+  - conda install -c scitools shapely
+  - pip install coveralls nose-cov
+  - deactivate gssha
+  #Installing GSSHApy
+  - activate gssha
+  - 'cd %APPVEYOR_BUILD_FOLDER%'
+  - python setup.py install
+  - 'cd %APPVEYOR_BUILD_FOLDER%\tests'
+   
+build: false
+
+test_script:
+  - nosetests --with-coverage --cover-package=gsshapy,gridtogssha
+on_success:
+ - coveralls
