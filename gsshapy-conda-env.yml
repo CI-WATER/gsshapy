@@ -1,6 +1,7 @@
 # gsshapy-conda-env.yml
-# Configuration file for creating a Conda Environment with dependencies needed for Tethys Platform.
+# Configuration file for creating a Conda Environment with dependencies needed for GSSHApy.
 # Create the environment by running the following command (after installing Miniconda):
+# os: linux
 #   $ conda env create -f gsshapy-conda-env.yml
 
 name: gssha
@@ -30,4 +31,3 @@ dependencies:
   - sphinxcontrib-napoleon
   - sqlalchemy
   - timezonefinder
-
