@@ -15,6 +15,9 @@ Full instructions for installation are here: http://rapidpy.readthedocs.io/en/la
 
 .. warning:: The latest version of RAPIDpy is the version you should install. Do not install via pip!
 
+.. note:: Make sure you use the gssha environment to install RAPIDpy dependencies into. You should not
+          create a separate environment for the RAPIDpy dependencies.
+
 If Mac/Linux::
 
     $ git clone https://github.com/erdc-cm/RAPIDpy.git
