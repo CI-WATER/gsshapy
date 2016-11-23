@@ -256,6 +256,7 @@ class GSSHAFramework(object):
         self.read_hotstart = read_hotstart
         self.hotstart_minimal_mode = hotstart_minimal_mode
         
+        #make sure execting from GSSHA project directory
         os.chdir(self.gssha_directory)
         
         # Create Test DB
@@ -449,11 +450,10 @@ class GSSHAFramework(object):
 
             if len(time_index_range)>0:
                 start_datetime = time_array[0]
-                try:
-                    time_delta = time_array[1] - start_datetime
-                except IndexError:
-                    pass
-                    
+
+                if self.gssha_simulation_start is None:
+                   self._update_simulation_start(start_datetime)
+                   
                 if self.gssha_simulation_end is None:
                     self.gssha_simulation_end = time_array[-1]
                     
@@ -467,9 +467,6 @@ class GSSHAFramework(object):
     
         if len(time_index_range)>0:
             # update cards
-            if self.gssha_simulation_start is None:
-               self._update_simulation_start(start_datetime-time_delta)
- 
             self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
             self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
 
@@ -483,13 +480,13 @@ class GSSHAFramework(object):
         """
         Prepares WRF forecast for GSSHA simulation
         """
-        needed_vars = [self.lsm_folder, 
+        needed_vars = (self.lsm_folder, 
                        self.lsm_data_var_map_array,
                        self.lsm_precip_data_var,
                        self.lsm_precip_type,
                        self.lsm_lat_var,
                        self.lsm_lon_var,
-                       self.lsm_file_date_naming_convention]
+                       self.lsm_file_date_naming_convention)
 
         if None not in needed_vars:
             gssha_ele_card = self.project_manager.getCard("ELEVATION")
@@ -606,10 +603,9 @@ class GSSHAFramework(object):
             self._update_gmt()
 
             
-        elif needed_vars.count(None) == len(needed_vars):
+        elif self.lsm_folder is None and self.lsm_file_date_naming_convention is None:
             print("Skipping WRF process ...")
             return
-            
         else:
             raise ValueError("To download the forecasts, you need to set: \n"
                              "lsm_folder, lsm_data_var_map_array, lsm_precip_data_var \n"
@@ -657,20 +653,27 @@ class GSSHAFramework(object):
             project_filename = "{0}_minimal_hotstart.prj".format(self.project_name)
             replace_file(self.project_filename, project_filename)
             replace_file(project_file_backup_name, self.project_filename)
-        
+            try:
+                os.remove(project_file_backup_name)
+            except OSError:
+                pass
         #RUN SIMULATION
-        print("RUNNING GSSHA SIMULATION ...")
-        run_gssha_command = [self.gssha_executable, 
-                             os.path.join(self.gssha_directory, project_filename)]
+        if self.gssha_executable and os.path.exists(self.gssha_executable):
+            print("RUNNING GSSHA SIMULATION ...")
+            
+            run_gssha_command = [self.gssha_executable, 
+                                 os.path.join(self.gssha_directory, project_filename)]
 
-        process = Popen(run_gssha_command, 
-                        stdout=PIPE, stderr=PIPE, shell=False)
-        out, err = process.communicate()
-        if out:
-            for line in out.split(b'\n'):
-                print(line)
-        if err:
-            print("ERROR: {0}".format(err))
+            process = Popen(run_gssha_command, 
+                            stdout=PIPE, stderr=PIPE, shell=False)
+            out, err = process.communicate()
+            if out:
+                for line in out.split(b'\n'):
+                    print(line)
+            if err:
+                print("GSSHA POTENTIAL ERROR: {0}".format(err))
+        else:
+            print("GSSHA EXECTUABLE NOT FOUND. SKIPPING GSSHA SIMULATION RUN ...")
 
     def run_forecast(self):
         
