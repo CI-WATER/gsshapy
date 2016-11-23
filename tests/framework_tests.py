@@ -25,7 +25,11 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
         #define global variables
         self.gssha_project_directory = os.path.join(self.writeDirectory, 'gssha_project')
         self.gssha_project_file = 'grid_standard.prj'
-
+        
+        self.os_name = os.name
+        if os.name != 'nt':
+            self.os_name == 'unix'
+        
         #copy gssha project & HRRR data
         try:
             copytree(os.path.join(self.readDirectory, "gssha_project"),
@@ -55,7 +59,7 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
         #grid_standard.prj
         generated_prj_file = os.path.join(self.gssha_project_directory,'grid_standard.prj')
         compare_prj_file = os.path.join(self.readDirectory, 'framework',
-                                        'grid_standard_rapid_200208291800to200208311800.prj')
+                                        'grid_standard_rapid_200208291800to200208311800_{0}.prj'.format(self.os_name))
         self._compare_files(generated_prj_file, compare_prj_file)
         #grid_standard.ihg
         generated_igh_file = os.path.join(self.gssha_project_directory, "grid_standard.ihg")
@@ -89,7 +93,7 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
         #grid_standard.prj
         generated_prj_file = os.path.join(self.gssha_project_directory,'grid_standard.prj')
         compare_prj_file = os.path.join(self.readDirectory, 'framework',
-                                        'grid_standard_rapid_200208300000to200208302359.prj')
+                                        'grid_standard_rapid_200208300000to200208302359_{0}.prj'.format(self.os_name))
         self._compare_files(generated_prj_file, compare_prj_file)
         #grid_standard.ihg
         generated_igh_file = os.path.join(self.gssha_project_directory, "grid_standard.ihg")
@@ -123,7 +127,7 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
         #grid_standard.prj
         generated_prj_file = os.path.join(self.gssha_project_directory,'grid_standard_minimal_hotstart.prj')
         compare_prj_file = os.path.join(self.readDirectory, 'framework',
-                                        'grid_standard_minimal_hotstart_rapid_200208291800to2002083000.prj')
+                                        'grid_standard_minimal_hotstart_rapid_200208291800to2002083000_{0}.prj'.format(self.os_name))
         self._compare_files(generated_prj_file, compare_prj_file)
         #grid_standard.ihg
         generated_igh_file = os.path.join(self.gssha_project_directory, "grid_standard_hotstart.ihg")
