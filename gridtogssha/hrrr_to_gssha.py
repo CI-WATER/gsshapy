@@ -185,7 +185,7 @@ class HRRRtoGSSHA(GRIDtoGSSHA):
                  output_timezone=None,
                  ):
         """
-        Initializer function for the LSMtoGSSHA class
+        Initializer function for the HRRRtoGSSHA class
         """
         super(HRRRtoGSSHA, self).__init__(gssha_project_folder,
                                           gssha_grid_file_name,
