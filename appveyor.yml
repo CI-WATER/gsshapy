@@ -57,5 +57,5 @@ build: false
 
 test_script:
   - nosetests --with-coverage --cover-package=gsshapy,gridtogssha
-on_success:
-  - coveralls
+#on_success:
+#  - coveralls
