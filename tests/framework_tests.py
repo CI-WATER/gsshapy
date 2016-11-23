@@ -28,7 +28,7 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
         
         self.os_name = os.name
         if os.name != 'nt':
-            self.os_name == 'unix'
+            self.os_name = 'unix'
         
         #copy gssha project & HRRR data
         try:
