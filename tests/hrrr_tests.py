@@ -77,54 +77,60 @@ class TestHRRRtoGSSHA(unittest.TestCase):
         Test HRRR lsm_precip_to_gssha_precip_gage write method
         '''
         os.chdir(self.gssha_project_folder)
-        h2g = HRRRtoGSSHA(gssha_project_folder=self.gssha_project_folder,
-                          gssha_grid_file_name=self.gssha_grid_name,
-                          lsm_input_folder_path=self.hrrr_folder,
-                          lsm_search_card=self.search_card, 
-                          )
-        
-        out_gage_file = os.path.join(self.writeDirectory, 'gage_test_hrrr.gag')
-        h2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
-                                            lsm_data_var='prate',
-                                            precip_type='RADAR')
 
-        # Test
-        self._compare_files('gage_test_hrrr', 'gage_test_hrrr', 'gag')
+        if os.name != "nt":
+            h2g = HRRRtoGSSHA(gssha_project_folder=self.gssha_project_folder,
+                              gssha_grid_file_name=self.gssha_grid_name,
+                              lsm_input_folder_path=self.hrrr_folder,
+                              lsm_search_card=self.search_card, 
+                              )
+            
+            out_gage_file = os.path.join(self.writeDirectory, 'gage_test_hrrr.gag')
+            h2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
+                                                lsm_data_var='prate',
+                                                precip_type='RADAR')
+
+            # Test
+            self._compare_files('gage_test_hrrr', 'gage_test_hrrr', 'gag')
 
     def test_hrrr_netcdf_file_write(self):
         '''
         Test HRRR lsm_data_to_subset_netcdf write method
         '''
         os.chdir(self.gssha_project_folder)
-        h2g = HRRRtoGSSHA(gssha_project_folder=self.gssha_project_folder,
-                          gssha_grid_file_name=self.gssha_grid_name,
-                          lsm_input_folder_path=self.hrrr_folder,
-                          lsm_search_card=self.search_card, 
-                          )
-        
-        netcdf_file_path = os.path.join(self.writeDirectory, 'gssha_dynamic_hrrr.nc')
-        h2g.lsm_data_to_subset_netcdf(netcdf_file_path, self.data_var_map_array)        
 
-        #compare netcdf files
-        self._compare_netcdf_files("gssha_dynamic_hrrr", "gssha_dynamic_hrrr", "nc")
+        if os.name != "nt":
+            h2g = HRRRtoGSSHA(gssha_project_folder=self.gssha_project_folder,
+                              gssha_grid_file_name=self.gssha_grid_name,
+                              lsm_input_folder_path=self.hrrr_folder,
+                              lsm_search_card=self.search_card, 
+                              )
+            
+            netcdf_file_path = os.path.join(self.writeDirectory, 'gssha_dynamic_hrrr.nc')
+            h2g.lsm_data_to_subset_netcdf(netcdf_file_path, self.data_var_map_array)        
+
+            #compare netcdf files
+            self._compare_netcdf_files("gssha_dynamic_hrrr", "gssha_dynamic_hrrr", "nc")
 
     def test_hrrr_ascii_file_write(self):
         '''
         Test HRRR lsm_data_to_arc_ascii write method
         '''
         os.chdir(self.gssha_project_folder)
-        h2g = HRRRtoGSSHA(gssha_project_folder=self.gssha_project_folder,
-                          gssha_grid_file_name=self.gssha_grid_name,
-                          lsm_input_folder_path=self.hrrr_folder,
-                          lsm_search_card=self.search_card, 
-                          )
-        
-        h2g.lsm_data_to_arc_ascii(self.data_var_map_array, self.hmet_write_directory)
-        
-        # Compare all files
-        self._compare_directories("hrrr_hmet_data",
-                                  "hrrr_hmet_data",
-                                  ignore_file="hmet_file_list.txt")
+
+        if os.name != "nt":
+            h2g = HRRRtoGSSHA(gssha_project_folder=self.gssha_project_folder,
+                              gssha_grid_file_name=self.gssha_grid_name,
+                              lsm_input_folder_path=self.hrrr_folder,
+                              lsm_search_card=self.search_card, 
+                              )
+            
+            h2g.lsm_data_to_arc_ascii(self.data_var_map_array, self.hmet_write_directory)
+            
+            # Compare all files
+            self._compare_directories("hrrr_hmet_data",
+                                      "hrrr_hmet_data",
+                                      ignore_file="hmet_file_list.txt")
 
     def _compare_netcdf_files(self, original, new, ext):
         '''
@@ -213,9 +219,6 @@ class TestHRRRtoGSSHA(unittest.TestCase):
                     rmtree(path)
                 else:
                     os.remove(path)
-
-suite = unittest.TestLoader().loadTestsFromTestCase(TestHRRRtoGSSHA)
-    
 
 if __name__ == '__main__':
     unittest.main()
