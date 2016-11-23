@@ -523,7 +523,8 @@ class GSSHAFramework(object):
                 self._update_card("HMET_NETCDF", netcdf_file_path, True)
                 self._delete_card("HMET_ASCII")
             else:
-                hmet_ascii_output_folder = 'hmet_data'
+                hmet_ascii_output_folder = 'hmet_data_{0}to{1}'.format(self.gssha_simulation_start.strftime("%Y%m%d%H%M"),
+                                                                       self.gssha_simulation_end.strftime("%Y%m%d%H%M"))
                 if self.hotstart_minimal_mode:
                     hmet_ascii_output_folder += "_hotstart"
                 l2g.lsm_data_to_arc_ascii(self.lsm_data_var_map_array,main_output_folder=hmet_ascii_output_folder)
