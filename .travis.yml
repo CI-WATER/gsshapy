@@ -1,41 +1,50 @@
-#*******************************************************************************
+#-------------------------------------------------------------------------------
 #.travis.yml
-#*******************************************************************************
+#-------------------------------------------------------------------------------
+#Authors: Alan D. Snow, 2016
+#based on .travis.yml by Cedric H. David
 
-#Purpose:
-#Travis CI is a hosted continuous integration service, that is, it allows 
-#running code directly from a repository and checking that the code acts as 
-#expected. The purpose of the .travis.yml file is to give instructions to Travis 
-#CI on how to do the work.
-#Authors:
-#Alan D. Snow, 2016
-
-
-#*******************************************************************************
+#-------------------------------------------------------------------------------
 #System specifications for Travis CI
-#*******************************************************************************
-language: python
-python:
-  - "2.7"
-  - "3.5"
-notifications:
-  email: false
+#-------------------------------------------------------------------------------
+language: c
+os:
+  - linux
+  - osx
+env:
+  - TRAVIS_PYTHON_VERSION="2.7"
+#DON'T BUILD PYTHON 3 Until Mapkit updated to Python 3
+#  - TRAVIS_PYTHON_VERSION="3.5"
 matrix:
   fast_finish: true
   allow_failures:
-    - python: "3.5"
+    - os: osx
+#    - env: TRAVIS_PYTHON_VERSION="3.5"
+notifications:
+  email: false
 
-#*******************************************************************************
+#-------------------------------------------------------------------------------
 #Before installing RAPIDpy
-#*******************************************************************************
+#-------------------------------------------------------------------------------
 before_install:
-- sudo apt-get update -qq
-- sudo apt-get install -y gcc gfortran g++ build-essential
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+    sudo apt-get update -qq; 
+    sudo apt-get install -y gcc g++ gfortran build-essential;
+  fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+    brew update;
+    brew install cmake gcc; 
+  fi
 
 #-------------------------------------------------------------------------------
 #Add miniconda - from https://gist.github.com/dan-blanchard/7045057
 #-----------------------------------------------------------------------------
-- wget http://repo.continuum.io/miniconda/Miniconda${TRAVIS_PYTHON_VERSION:0:1}-latest-Linux-x86_64.sh -O miniconda.sh
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then 
+    wget -O miniconda.sh http://repo.continuum.io/miniconda/Miniconda${TRAVIS_PYTHON_VERSION:0:1}-latest-Linux-x86_64.sh; 
+  fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+    curl -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda${TRAVIS_PYTHON_VERSION:0:1}-latest-MacOSX-x86_64.sh;
+  fi
 - chmod +x miniconda.sh
 - ./miniconda.sh -b -p $HOME/miniconda
 - export PATH=$HOME/miniconda/bin:$PATH
@@ -47,25 +56,40 @@ before_install:
 #-------------------------------------------------------------------------------
 # Install required python packages
 #-----------------------------------------------------------------------------
-- conda install --yes python=$TRAVIS_PYTHON_VERSION nose numpy netCDF4 gdal pyproj
+- conda install --yes python=$TRAVIS_PYTHON_VERSION nose numpy pandas netCDF4 gdal pyproj
 - pip install coveralls
+
+#-------------------------------------------------------------------------------
+#Creating directory for installation of libraries used by GSSHApy
+#-------------------------------------------------------------------------------
+- export INSTALLZ_DIR=$TRAVIS_BUILD_DIR/installz
+- mkdir $INSTALLZ_DIR
+
+#-------------------------------------------------------------------------------
+# Install RAPIDpy
+#-------------------------------------------------------------------------------
+- cd $INSTALLZ_DIR
+- git clone https://github.com/erdc-cm/RAPIDpy.git
+- cd RAPIDpy
+- python setup.py install
 
 #-------------------------------------------------------------------------------
 # Install GRIB API
 #-------------------------------------------------------------------------------
-- cd $TRAVIS_BUILD_DIR 
-- mkdir ../installz
-- cd ../installz
+- cd $INSTALLZ_DIR
 #install cmake 3.6.2 on Ubuntu 14.04
-- mkdir cmake_install
-- cd cmake_install
-- wget https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.sh
-- sudo chmod u+x cmake-3.6.2-Linux-x86_64.sh
-- ./cmake-3.6.2-Linux-x86_64.sh --skip-license
-- export PATH=$PWD/bin:$PATH
-- cd ..
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+    mkdir cmake_install;
+    cd cmake_install;
+    wget https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.sh; 
+    chmod u+x cmake-3.6.2-Linux-x86_64.sh;
+    ./cmake-3.6.2-Linux-x86_64.sh --skip-license;
+    export PATH=$PWD/bin:$PATH;  
+  fi
 #install grib
-- wget -O grib_api-1.17.0-Source.tar.gz https://software.ecmwf.int/wiki/download/attachments/3473437/grib_api-1.17.0-Source.tar.gz?api=v2
+- cd $INSTALLZ_DIR
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget -O grib_api-1.17.0-Source.tar.gz https://software.ecmwf.int/wiki/download/attachments/3473437/grib_api-1.17.0-Source.tar.gz?api=v2 ; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then curl -o grib_api-1.17.0-Source.tar.gz https://software.ecmwf.int/wiki/download/attachments/3473437/grib_api-1.17.0-Source.tar.gz?api=v2 ; fi
 - tar xf grib_api-1.17.0-Source.tar.gz
 - mkdir grib_api-build
 - mkdir grib_api-install
@@ -74,11 +98,10 @@ before_install:
 - make
 - make install
 
-
 #-------------------------------------------------------------------------------
 # Install pygrib
 #-------------------------------------------------------------------------------
-- cd .. 
+- cd $INSTALLZ_DIR
 - git clone https://github.com/jswhit/pygrib.git
 - cd pygrib
 - echo "[directories]" > setup.cfg
@@ -86,16 +109,16 @@ before_install:
 - python setup.py build
 - python setup.py install
 
-#*******************************************************************************
+#-------------------------------------------------------------------------------
 #Installing GSSHApy
-#*******************************************************************************
+#-------------------------------------------------------------------------------
 install:
 - cd $TRAVIS_BUILD_DIR
 - python setup.py install
 
-#*******************************************************************************
+#-------------------------------------------------------------------------------
 #Testing GSSHApy
-#*******************************************************************************
+#-------------------------------------------------------------------------------
 - cd $TRAVIS_BUILD_DIR/tests
 script: 
 - nosetests --with-coverage --cover-package=gsshapy,gridtogssha
