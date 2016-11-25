@@ -99,8 +99,7 @@ Option 2: Step-by-step
 
     $ conda create --name gssha python=2
     $ source activate gssha
-    (gssha)$ conda install --yes nose numpy netCDF4 gdal pyproj
-    (gssha)$ conda install --yes -c conda-forge jpeg pygrib
+    (gssha)$ conda install --yes -c conda-forge nose numpy netCDF4 gdal pyproj pygrib psycopg2
 
 Install gsshapy:
 ^^^^^^^^^^^^^^^^
