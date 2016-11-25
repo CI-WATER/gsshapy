@@ -37,3 +37,6 @@ START_TIME               18 00
 END_TIME                 2002 08 31 18 00
 CHAN_POINT_INPUT         "grid_standard.ihg"
 GMT                      -7.0
+READ_OV_HOTSTART         "hotstart\grid_standard_ov_hotstart_20020829_1800.ovh"
+READ_CHAN_HOTSTART       "hotstart\grid_standard_chan_hotstart_20020829_1800"
+READ_SM_HOTSTART         "hotstart\grid_standard_sm_hotstart_20020829_1800.smh"

@@ -17,6 +17,7 @@ OUTSLOPE                 0.001000
 MAP_FREQ                 30
 HYD_FREQ                 30
 MAP_TYPE                 1
+MANNING_N                0.12
 ELEVATION                "grid_standard.ele"
 DEPTH                    "output_200208300000to200208302359/grid_standard.dep"
 DIFFUSIVE_WAVE
