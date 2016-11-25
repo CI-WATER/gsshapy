@@ -19,6 +19,7 @@ dependencies:
 - gdal
 - shapely
 - psycopg2
+- pygrib
 - pyproj
 - python-dateutil
 - rtree
