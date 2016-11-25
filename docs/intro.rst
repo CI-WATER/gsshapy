@@ -100,16 +100,17 @@ Option 2: Step-by-step
     $ conda create --name gssha python=2
     $ source activate gssha
     (gssha)$ conda install --yes nose numpy netCDF4 gdal pyproj
-    (gssha)$ conda install -c conda-forge jpeg pygrib
-    (gssha)$ source deactivate gssha
+    (gssha)$ conda install --yes -c conda-forge jpeg pygrib
 
 Install gsshapy:
 ^^^^^^^^^^^^^^^^
 
 ::
-
-    $ source activate gssha
+    
     (gssha) $ python setup.py install    
+
+    
+.. note:: When using a new terminal, always type *source activate gssha* before using GsshaPy.
 
 Windows
 -------
@@ -154,6 +155,7 @@ Open up the CMD program. Then, enter each line separately.
     > activate gssha
     (gssha)> python setup.py install
 
+.. note:: When using a new CMD terminal, always type *activate gssha* before using GsshaPy.
 
 Installation Via easy_install
 =============================
