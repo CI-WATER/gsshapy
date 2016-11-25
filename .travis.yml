@@ -33,7 +33,7 @@ before_install:
   fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
     brew update;
-    brew install cmake gcc; 
+    #brew install cmake gcc; 
   fi
 
 #-------------------------------------------------------------------------------
