@@ -100,6 +100,7 @@ Option 2: Step-by-step
     $ conda create --name gssha python=2
     $ source activate gssha
     (gssha)$ conda install --yes nose numpy netCDF4 gdal pyproj
+    (gssha)$ conda install -c conda-forge jpeg pygrib
     (gssha)$ source deactivate gssha
 
 Install gsshapy:
@@ -110,50 +111,10 @@ Install gsshapy:
     $ source activate gssha
     (gssha) $ python setup.py install    
 
-(Optional) Install GRIB-API
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. warning:: The GRIB-API installation is optional. Only install if you need :func:`~gridtogssha.hrrr_to_gssha.HRRRtoGSSHA`.
-
-See: https://software.ecmwf.int/wiki/display/GRIB/GRIB+API+installation
-
-::
-
-    $ cd $HOME 
-    $ mkdir ../installz
-    $ cd ../installz
-    $ wget -O grib_api-1.17.0-Source.tar.gz https://software.ecmwf.int/wiki/download/attachments/3473437/grib_api-1.17.0-Source.tar.gz?api=v2
-    $ tar xf grib_api-1.17.0-Source.tar.gz
-    $ mkdir grib_api-build
-    $ mkdir grib_api-install
-    $ cd grib_api-build
-    $ cmake ../grib_api-1.17.0-Source -DCMAKE_INSTALL_PREFIX=$HOME/installz/grib_api-install
-    $ make
-    $ make install
-    
-    
-(Optional) Install pygrib
-^^^^^^^^^^^^^^^^^^^^^^^^^
-.. warning:: The pygrib installation is optional. Only install if you need :func:`~gridtogssha.hrrr_to_gssha.HRRRtoGSSHA`.
-
-See: https://github.com/jswhit/pygrib
-
-::
-
-    $ cd .. 
-    $ git clone https://github.com/jswhit/pygrib.git
-    $ cd pygrib
-    $ echo "[directories]" > setup.cfg
-    $ echo "grib_api_dir = $HOME/installz/grib_api-install" >> setup.cfg
-    $ source activate gssha
-    (gssha)$ python setup.py build
-    (gssha)$ python setup.py install
-
-
-
 Windows
 -------
 
-.. note:: pygrib is currently not available on Windows, so HRRRtoGSSHA will not work.
+.. note:: pygrib instructions are not provided for Windows, so :func:`~gridtogssha.hrrr_to_gssha.HRRRtoGSSHA` will not work.
 
 Download & Install Miniconda
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
