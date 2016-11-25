@@ -47,8 +47,7 @@ before_install:
 #-------------------------------------------------------------------------------
 # Install required python packages
 #-----------------------------------------------------------------------------
-- conda install --yes nose numpy pandas netCDF4 gdal pyproj
-- conda install --yes -c conda-forge jpeg pygrib
+- conda install --yes -c conda-forge nose numpy pandas netCDF4 gdal pygrib pyproj
 - pip install coveralls
 
 #-------------------------------------------------------------------------------
