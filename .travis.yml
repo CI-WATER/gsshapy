@@ -33,7 +33,7 @@ before_install:
   fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; 
     then brew update;
-    brew install gcc; #for gfortran
+    brew install gcc;
   fi
 
 #-------------------------------------------------------------------------------
