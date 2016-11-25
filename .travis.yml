@@ -27,15 +27,6 @@ notifications:
 #Before installing RAPIDpy
 #-------------------------------------------------------------------------------
 before_install:
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-    sudo apt-get update -qq; 
-    sudo apt-get install -y gcc g++ gfortran build-essential;
-  fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; 
-    then brew update;
-    brew install gcc;
-  fi
-
 #-------------------------------------------------------------------------------
 #Add miniconda - from https://gist.github.com/dan-blanchard/7045057
 #-----------------------------------------------------------------------------
