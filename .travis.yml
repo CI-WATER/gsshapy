@@ -31,7 +31,10 @@ before_install:
     sudo apt-get update -qq; 
     sudo apt-get install -y gcc g++ gfortran build-essential;
   fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; 
+    then brew update;
+    brew install gcc; #for gfortran
+  fi
 
 #-------------------------------------------------------------------------------
 #Add miniconda - from https://gist.github.com/dan-blanchard/7045057
