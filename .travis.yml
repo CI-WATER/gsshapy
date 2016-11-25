@@ -56,7 +56,8 @@ before_install:
 #-------------------------------------------------------------------------------
 # Install required python packages
 #-----------------------------------------------------------------------------
-- conda install --yes python=$TRAVIS_PYTHON_VERSION nose numpy pandas netCDF4 gdal pyproj
+- conda install --yes nose numpy pandas netCDF4 gdal pyproj
+- conda install --yes -c conda-forge pygrib
 - pip install coveralls
 
 #-------------------------------------------------------------------------------
@@ -71,42 +72,6 @@ before_install:
 - cd $INSTALLZ_DIR
 - git clone https://github.com/erdc-cm/RAPIDpy.git
 - cd RAPIDpy
-- python setup.py install
-
-#-------------------------------------------------------------------------------
-# Install GRIB API
-#-------------------------------------------------------------------------------
-- cd $INSTALLZ_DIR
-#install cmake 3.6.2 on Ubuntu 14.04
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-    mkdir cmake_install;
-    cd cmake_install;
-    wget https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.sh; 
-    chmod u+x cmake-3.6.2-Linux-x86_64.sh;
-    ./cmake-3.6.2-Linux-x86_64.sh --skip-license;
-    export PATH=$PWD/bin:$PATH;  
-  fi
-#install grib
-- cd $INSTALLZ_DIR
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget -O grib_api-1.17.0-Source.tar.gz https://software.ecmwf.int/wiki/download/attachments/3473437/grib_api-1.17.0-Source.tar.gz?api=v2 ; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then curl -o grib_api-1.17.0-Source.tar.gz https://software.ecmwf.int/wiki/download/attachments/3473437/grib_api-1.17.0-Source.tar.gz?api=v2 ; fi
-- tar xf grib_api-1.17.0-Source.tar.gz
-- mkdir grib_api-build
-- mkdir grib_api-install
-- cd grib_api-build
-- cmake ../grib_api-1.17.0-Source -DCMAKE_INSTALL_PREFIX=$TRAVIS_BUILD_DIR/../installz/grib_api-install
-- make
-- make install
-
-#-------------------------------------------------------------------------------
-# Install pygrib
-#-------------------------------------------------------------------------------
-- cd $INSTALLZ_DIR
-- git clone https://github.com/jswhit/pygrib.git
-- cd pygrib
-- echo "[directories]" > setup.cfg
-- echo "grib_api_dir = $TRAVIS_BUILD_DIR/../installz/grib_api-install" >> setup.cfg
-- python setup.py build
 - python setup.py install
 
 #-------------------------------------------------------------------------------
