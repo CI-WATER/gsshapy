@@ -504,6 +504,22 @@ class GSSHAFramework(object):
                              output_timezone=self.tz,
                              )
             
+            #SIMULATION TIME CARDS
+            if self.gssha_simulation_start is None:
+                self._update_simulation_start(datetime.utcfromtimestamp(l2g.hourly_time_array[0]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None))
+            else: 
+                self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
+                self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
+               
+            #GSSHA simulation does not work after HMET data is finished
+            wrf_simulation_end = datetime.utcfromtimestamp(l2g.hourly_time_array[-1]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None)
+            if self.gssha_simulation_end is None:
+                self.gssha_simulation_end = wrf_simulation_end
+            elif self.gssha_simulation_end > wrf_simulation_end:
+                self.gssha_simulation_end = wrf_simulation_end
+            self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
+
+            #PRECIPITATION CARDS
             out_gage_file = os.path.join('{0}.gag'.format(self.project_name))
             if self.hotstart_minimal_mode:
                 out_gage_file = os.path.join('{0}_hotstart.gag'.format(self.project_name))
@@ -512,6 +528,24 @@ class GSSHAFramework(object):
                                                 precip_type=self.lsm_precip_type)
             
 
+            #precip file read in
+            self._update_card('PRECIP_FILE', out_gage_file, True)
+
+            if self.precip_interpolation_type is None:
+                #check if precip type exists already in card
+                if not self.project_manager.getCard('RAIN_INV_DISTANCE') \
+                    and not self.project_manager.getCard('RAIN_THIESSEN'):
+                    #if no type exists, then make it theissen
+                    self._update_card('RAIN_THIESSEN', '')
+            elif self.precip_interpolation_type == "INV_DISTANCE":
+                self._update_card('RAIN_INV_DISTANCE', '')
+                self._delete_card('RAIN_THIESSEN')
+            else:
+                self._update_card('RAIN_THIESSEN', '')
+                self._delete_card('RAIN_INV_DISTANCE')
+
+
+            #HMET CARDS
             if self.output_netcdf:
                 netcdf_file_path = os.path.join('{0}_hmet.nc'.format(self.project_name))
                 if self.hotstart_minimal_mode:
@@ -528,7 +562,8 @@ class GSSHAFramework(object):
                 self._update_card("HMET_ASCII", os.path.join(hmet_ascii_output_folder, 'hmet_file_list.txt'), True)
                 self._delete_card("HMET_NETCDF")
         
-            #UPDATE GSSHA CARDS
+
+            #UPDATE GSSHA LONG TERM CARDS
             #make sure long term added as it is required for reading in HMET
             self._update_card('LONG_TERM', '')
             self._update_card('SEASONAL_RS', '')
@@ -553,22 +588,6 @@ class GSSHAFramework(object):
             else:
                 self._update_card('SOIL_MOIST_DEPTH', str(self.soil_moisture_depth))
             
-            #precip file read in
-            self._update_card('PRECIP_FILE', out_gage_file, True)
-            
-            #PRECIP
-            if self.precip_interpolation_type is None:
-                #check if precip type exists already in card
-                if not self.project_manager.getCard('RAIN_INV_DISTANCE') \
-                    and not self.project_manager.getCard('RAIN_THIESSEN'):
-                    #if no type exists, then make it theissen
-                    self._update_card('RAIN_THIESSEN', '')
-            elif self.precip_interpolation_type == "INV_DISTANCE":
-                self._update_card('RAIN_INV_DISTANCE', '')
-                self._delete_card('RAIN_THIESSEN')
-            else:
-                self._update_card('RAIN_THIESSEN', '')
-                self._delete_card('RAIN_INV_DISTANCE')
             
             #ET CALC
             if self.et_calc_mode is None:
@@ -585,20 +604,6 @@ class GSSHAFramework(object):
                 self._update_card('ET_CALC_DEARDORFF', '')
                 self._delete_card('ET_CALC_PENMAN')
                 
-            if self.gssha_simulation_start is None:
-                self._update_simulation_start(datetime.utcfromtimestamp(l2g.hourly_time_array[0]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None))
-            else: 
-                self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
-                self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
-               
-            #GSSHA simulation does not work after HMET data is finished
-            wrf_simulation_end = datetime.utcfromtimestamp(l2g.hourly_time_array[-1]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None)
-            if self.gssha_simulation_end is None:
-                self.gssha_simulation_end = wrf_simulation_end
-            elif self.gssha_simulation_end > wrf_simulation_end:
-                self.gssha_simulation_end = wrf_simulation_end
-            self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
-
             #UPDATE GMT CARD
             self._update_gmt()
 
