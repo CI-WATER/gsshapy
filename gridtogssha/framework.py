@@ -507,9 +507,9 @@ class GSSHAFramework(object):
             #SIMULATION TIME CARDS
             if self.gssha_simulation_start is None:
                 self._update_simulation_start(datetime.utcfromtimestamp(l2g.hourly_time_array[0]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None))
-            else: 
-                self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
-                self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
+
+            self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
+            self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
                
             #GSSHA simulation does not work after HMET data is finished
             wrf_simulation_end = datetime.utcfromtimestamp(l2g.hourly_time_array[-1]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None)
