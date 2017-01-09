@@ -671,7 +671,7 @@ class GSSHAFramework(object):
                                  os.path.join(self.gssha_directory, project_filename)]
 
             process = Popen(run_gssha_command,
-                            stdout=PIPE, stderr=PIPE, shell=True)
+                            stdout=PIPE, stderr=PIPE, shell=False)
             out, err = process.communicate()
             if out:
                 for line in out.split(b'\n'):
