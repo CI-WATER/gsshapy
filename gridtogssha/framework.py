@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-##
-##  framework.py
-##  GSSHApy
-##
-##  Created by Alan D Snow, 2016.
-##  BSD 3-Clause
+#
+#  framework.py
+#  GSSHApy
+#
+#  Created by Alan D Snow, 2016.
+#  BSD 3-Clause
 
 from glob import glob
 from datetime import datetime #TODO: Add date filter for GSSHA
@@ -27,6 +27,7 @@ from gridtogssha import LSMtoGSSHA
 from gsshapy.lib import db_tools as dbt
 from gsshapy.orm import ProjectCard, ProjectFile
 
+
 def replace_file(from_file, to_file):
     """
     Replaces to_file with from_file 
@@ -36,6 +37,7 @@ def replace_file(from_file, to_file):
     except OSError:
         pass
     copy(from_file, to_file)
+
 
 class GSSHAFramework(object):
     """
@@ -177,8 +179,7 @@ class GSSHAFramework(object):
                                   "STRICT_JULIAN_DATE",
                                   "OPTIMIZE", "OPTIMIZE_SED",
                                   ) + GSSHA_OPTIONAL_OUTPUT_PATH_CARDS
-    
-    
+
     def __init__(self, 
                  gssha_executable, 
                  gssha_directory, 
@@ -256,7 +257,7 @@ class GSSHAFramework(object):
         self.read_hotstart = read_hotstart
         self.hotstart_minimal_mode = hotstart_minimal_mode
         
-        #make sure execting from GSSHA project directory
+        # make sure execting from GSSHA project directory
         os.chdir(self.gssha_directory)
         
         # Create Test DB
@@ -273,7 +274,7 @@ class GSSHAFramework(object):
                                   filename=self.project_filename,
                                   session=self.db_session)
     
-        #update centroid and timezone
+        # update centroid and timezone
         self._update_centroid_timezone()
     
     def _update_class_var(self, var_name, new_value):
@@ -294,7 +295,7 @@ class GSSHAFramework(object):
             new_value = "\"{0}\"".format(new_value)
             
         if gssha_card is None:
-            #add new card
+            # add new card
             new_card = ProjectCard(name=card_name, value=new_value)
             self.project_manager.projectCards.append(new_card)
         else:
@@ -323,7 +324,7 @@ class GSSHAFramework(object):
         if gssha_pro_card is None:
             raise Exception("ERROR: #PROJECTION_FILE card not found ...")
             
-        #GET CENTROID FROM GSSHA GRID
+        # GET CENTROID FROM GSSHA GRID
         gssha_grid = gdal.Open(gssha_ele_card.value.strip('"').strip("'"))
         gssha_srs=osr.SpatialReference()
         with open(gssha_pro_card.value.strip('"').strip("'")) as pro_file:
@@ -331,7 +332,7 @@ class GSSHAFramework(object):
             gssha_srs.ImportFromWkt(self.gssha_prj_str)
             self.gssha_proj4 = Proj(gssha_srs.ExportToProj4())
         
-        min_x, xres, xskew, max_y, yskew, yres  = gssha_grid.GetGeoTransform()
+        min_x, xres, xskew, max_y, yskew, yres = gssha_grid.GetGeoTransform()
         max_x = min_x + (gssha_grid.RasterXSize * xres)
         min_y = max_y + (gssha_grid.RasterYSize * yres)
         
@@ -344,7 +345,7 @@ class GSSHAFramework(object):
         self.center_lat = mean(y_ext)
         self.center_lon = mean(x_ext)
         
-        #update time zone
+        # update time zone
         tf = TimezoneFinder()
         tz_name = tf.timezone_at(lng=self.center_lon, lat=self.center_lat)
         
@@ -363,11 +364,11 @@ class GSSHAFramework(object):
         Based on timzone and start date, the GMT card is updated
         """
         if self.gssha_simulation_start is not None:
-            #NOTE: Because of daylight savings time, 
-            #offset result depends on time of the year
+            # NOTE: Because of daylight savings time,
+            # offset result depends on time of the year
             offset_string = self.gssha_simulation_start.replace(tzinfo=self.tz).strftime('%z')
             if not offset_string:
-                offset_string = '0' #assume UTC 
+                offset_string = '0' # assume UTC
             else:
                 sign = offset_string[0]
                 hr_offset = int(offset_string[1:3]) + int(offset_string[-2:])/60.0
@@ -375,7 +376,6 @@ class GSSHAFramework(object):
 
             self._update_card('GMT', offset_string)
 
-            
     def download_spt_forecast(self, extract_directory):
         """
         Downloads Streamflow Prediction Tool forecast data
@@ -387,15 +387,15 @@ class GSSHAFramework(object):
                        self.ckan_api_key,
                        self.ckan_owner_organization]
                        
-        if not None in needed_vars:
+        if None not in needed_vars:
 
             er_manager = ECMWFRAPIDDatasetManager(self.ckan_engine_url, 
                                                   self.ckan_api_key,
                                                   self.ckan_owner_organization)
-            #TODO: Modify to only download one of the forecasts in the ensemble
+            # TODO: Modify to only download one of the forecasts in the ensemble
             er_manager.download_prediction_dataset(watershed=self.spt_watershed_name, 
                                                    subbasin=self.spt_subbasin_name, 
-                                                   date_string=self.spt_forecast_date_string, #'20160711.1200' 
+                                                   date_string=self.spt_forecast_date_string,  # '20160711.1200'
                                                    extract_directory=extract_directory)
                                                    
             return glob(os.path.join(extract_directory, self.spt_forecast_date_string, "Qout*52.nc"))[0]
@@ -413,10 +413,9 @@ class GSSHAFramework(object):
         """
         Downloads WRF forecast data
         """
-        #TODO: Download WRF Forecasts
+        # TODO: Download WRF Forecasts
         return        
-        
-        
+
     def prepare_rapid_streamflow(self, path_to_rapid_qout, connection_list=None):
         """
         Prepares RAPID streamflow for GSSHA simulation
@@ -427,20 +426,18 @@ class GSSHAFramework(object):
         if self.hotstart_minimal_mode:
             ihg_filename = os.path.join('{0}_hotstart.ihg'.format(self.project_name))
         
-        #write out IHG file
-        start_datetime = None
-        time_delta = 3600 #1 hr
+        # write out IHG file
         time_index_range = []
         with RAPIDDataset(path_to_rapid_qout, out_tzinfo=self.tz) as qout_nc:
         
             time_index_range = qout_nc.get_time_index_range(date_search_start=self.gssha_simulation_start,
                                                             date_search_end=self.gssha_simulation_end)
                                                             
-            if len(time_index_range)>0:
+            if len(time_index_range) > 0:
                 time_array = qout_nc.get_time_array(return_datetime=True,
                                                     time_index_array=time_index_range)
                 
-                #GSSHA STARTS INGESTING STREAMFLOW AT SECOND TIME STEP
+                # GSSHA STARTS INGESTING STREAMFLOW AT SECOND TIME STEP
                 if self.gssha_simulation_start is not None:
                     if self.gssha_simulation_start == time_array[0]:
                         print("WARNING: First timestep of streamflow skipped "
@@ -448,7 +445,7 @@ class GSSHAFramework(object):
                         time_index_range = time_index_range[1:]
                         time_array = time_array[1:]
 
-            if len(time_index_range)>0:
+            if len(time_index_range) > 0:
                 start_datetime = time_array[0]
 
                 if self.gssha_simulation_start is None:
@@ -465,7 +462,7 @@ class GSSHAFramework(object):
             else:
                 print("WARNING: No streamflow values found in time range ...")
     
-        if len(time_index_range)>0:
+        if len(time_index_range) > 0:
             # update cards
             self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
             self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
@@ -473,7 +470,7 @@ class GSSHAFramework(object):
             self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
             self._update_card("CHAN_POINT_INPUT", ihg_filename, True)
 
-            #UPDATE GMT CARD
+            # UPDATE GMT CARD
             self._update_gmt()
         
     def prepare_wrf_data(self):
@@ -504,38 +501,40 @@ class GSSHAFramework(object):
                              output_timezone=self.tz,
                              )
             
-            #SIMULATION TIME CARDS
+            # SIMULATION TIME CARDS
             if self.gssha_simulation_start is None:
-                self._update_simulation_start(datetime.utcfromtimestamp(l2g.hourly_time_array[0]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None))
+                self._update_simulation_start(datetime.utcfromtimestamp(l2g.hourly_time_array[0])
+                                              .replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None))
 
             self._update_card("START_DATE", self.gssha_simulation_start.strftime("%Y %m %d"))
             self._update_card("START_TIME", self.gssha_simulation_start.strftime("%H %M"))
                
-            #GSSHA simulation does not work after HMET data is finished
-            wrf_simulation_end = datetime.utcfromtimestamp(l2g.hourly_time_array[-1]).replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None)
+            # GSSHA simulation does not work after HMET data is finished
+            wrf_simulation_end = datetime.utcfromtimestamp(l2g.hourly_time_array[-1]) \
+                .replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None)
+
             if self.gssha_simulation_end is None:
                 self.gssha_simulation_end = wrf_simulation_end
             elif self.gssha_simulation_end > wrf_simulation_end:
                 self.gssha_simulation_end = wrf_simulation_end
             self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
 
-            #PRECIPITATION CARDS
+            # PRECIPITATION CARDS
             out_gage_file = os.path.join('{0}.gag'.format(self.project_name))
             if self.hotstart_minimal_mode:
                 out_gage_file = os.path.join('{0}_hotstart.gag'.format(self.project_name))
             l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
                                                 lsm_data_var=self.lsm_precip_data_var,
                                                 precip_type=self.lsm_precip_type)
-            
 
-            #precip file read in
+            # precip file read in
             self._update_card('PRECIP_FILE', out_gage_file, True)
 
             if self.precip_interpolation_type is None:
-                #check if precip type exists already in card
+                # check if precip type exists already in card
                 if not self.project_manager.getCard('RAIN_INV_DISTANCE') \
-                    and not self.project_manager.getCard('RAIN_THIESSEN'):
-                    #if no type exists, then make it theissen
+                        and not self.project_manager.getCard('RAIN_THIESSEN'):
+                    # if no type exists, then make it theissen
                     self._update_card('RAIN_THIESSEN', '')
             elif self.precip_interpolation_type == "INV_DISTANCE":
                 self._update_card('RAIN_INV_DISTANCE', '')
@@ -544,8 +543,7 @@ class GSSHAFramework(object):
                 self._update_card('RAIN_THIESSEN', '')
                 self._delete_card('RAIN_INV_DISTANCE')
 
-
-            #HMET CARDS
+            # HMET CARDS
             if self.output_netcdf:
                 netcdf_file_path = os.path.join('{0}_hmet.nc'.format(self.project_name))
                 if self.hotstart_minimal_mode:
@@ -558,43 +556,41 @@ class GSSHAFramework(object):
                                                                        self.gssha_simulation_end.strftime("%Y%m%d%H%M"))
                 if self.hotstart_minimal_mode:
                     hmet_ascii_output_folder += "_hotstart"
-                l2g.lsm_data_to_arc_ascii(self.lsm_data_var_map_array,main_output_folder=hmet_ascii_output_folder)
+                l2g.lsm_data_to_arc_ascii(self.lsm_data_var_map_array, main_output_folder=hmet_ascii_output_folder)
                 self._update_card("HMET_ASCII", os.path.join(hmet_ascii_output_folder, 'hmet_file_list.txt'), True)
                 self._delete_card("HMET_NETCDF")
-        
 
-            #UPDATE GSSHA LONG TERM CARDS
-            #make sure long term added as it is required for reading in HMET
+            # UPDATE GSSHA LONG TERM CARDS
+            # make sure long term added as it is required for reading in HMET
             self._update_card('LONG_TERM', '')
             self._update_card('SEASONAL_RS', '')
             self._update_card('LATITUDE', str(self.center_lat))
             self._update_card('LONGITUDE', str(self.center_lon))
             
-            #EVENT_MIN_Q
+            # EVENT_MIN_Q
             if self.event_min_q is None:
-                #check if card exists already in card
+                # check if card exists already in card
                 if not self.project_manager.getCard('EVENT_MIN_Q'):
-                    #if no type exists, then make it 0.0
+                    # if no type exists, then make it 0.0
                     self._update_card('EVENT_MIN_Q', '0.0')
             else:
                 self._update_card('EVENT_MIN_Q', str(self.event_min_q))
             
-            #SOIL_MOIST_DEPTH
+            # SOIL_MOIST_DEPTH
             if self.soil_moisture_depth is None:
-                #check if card exists already in card
+                # check if card exists already in card
                 if not self.project_manager.getCard('SOIL_MOIST_DEPTH'):
-                    #if no type exists, then make it 0.0
+                    # if no type exists, then make it 0.0
                     self._update_card('SOIL_MOIST_DEPTH', '0.0')
             else:
                 self._update_card('SOIL_MOIST_DEPTH', str(self.soil_moisture_depth))
-            
-            
-            #ET CALC
+
+            # ET CALC
             if self.et_calc_mode is None:
-                #check if ET calc mode exists already in card
+                # check if ET calc mode exists already in card
                 if not self.project_manager.getCard('ET_CALC_PENMAN') \
-                    and not self.project_manager.getCard('ET_CALC_DEARDORFF'):
-                    #if no type exists, then make it penman
+                        and not self.project_manager.getCard('ET_CALC_DEARDORFF'):
+                    # if no type exists, then make it penman
                     self._update_card('ET_CALC_PENMAN', '')
                     
             elif self.et_calc_mode == "PENMAN":
@@ -604,10 +600,9 @@ class GSSHAFramework(object):
                 self._update_card('ET_CALC_DEARDORFF', '')
                 self._delete_card('ET_CALC_PENMAN')
                 
-            #UPDATE GMT CARD
+            # UPDATE GMT CARD
             self._update_gmt()
 
-            
         elif self.lsm_folder is None and self.lsm_file_date_naming_convention is None:
             print("Skipping WRF process ...")
             return
@@ -623,38 +618,38 @@ class GSSHAFramework(object):
         Write out project file and run GSSHA simulation
         """
         if self.hotstart_minimal_mode:
-            #remove all optional output cards
+            # remove all optional output cards
             for gssha_optional_output_card in self.GSSHA_OPTIONAL_OUTPUT_CARDS:
                 self._delete_card(gssha_optional_output_card)
-            #make sure running in SUPER_QUIET mode
+            # make sure running in SUPER_QUIET mode
             self._update_card('SUPER_QUIET', '')
-            #generate backup card
+            # generate backup card
             project_file_backup_name = "{0}.prj_backup".format(self.project_filename)
             replace_file(self.project_filename, project_file_backup_name)
         else:
             timestamp_out_dir_name = "output_{0}to{1}".format(self.gssha_simulation_start.strftime("%Y%m%d%H%M"),
-                                                                self.gssha_simulation_end.strftime("%Y%m%d%H%M"))
+                                                              self.gssha_simulation_end.strftime("%Y%m%d%H%M"))
             try:
                 os.mkdir(timestamp_out_dir_name)
             except OSError:
                 pass
-            #move output to new folder with timestamp
+            # move output to new folder with timestamp
             for out_path_card in self.GSSHA_REQUIRED_OUTPUT_PATH_CARDS + \
                                  self.GSSHA_OPTIONAL_OUTPUT_PATH_CARDS:
             
                 gssha_card = self.project_manager.getCard(out_path_card)
                 if gssha_card is not None:
-                    gssha_card.value = "\"{0}\"".format(os.path.join(timestamp_out_dir_name, gssha_card.value.replace('"','')))
+                    gssha_card.value = "\"{0}\"".format(os.path.join(timestamp_out_dir_name,
+                                                                     gssha_card.value.replace('"', '')))
                 
-        #WRITE OUT UPDATED GSSHA PROJECT FILE
+        # WRITE OUT UPDATED GSSHA PROJECT FILE
         self.project_manager.write(session=self.db_session, 
                                    directory=self.gssha_directory, 
                                    name=self.project_name)
-        
-            
+
         project_filename = self.project_filename
         if self.hotstart_minimal_mode:
-            #write hotstart project to new file name
+            # write hotstart project to new file name
             project_filename = "{0}_minimal_hotstart.prj".format(self.project_name)
             replace_file(self.project_filename, project_filename)
             replace_file(project_file_backup_name, self.project_filename)
@@ -662,7 +657,7 @@ class GSSHAFramework(object):
                 os.remove(project_file_backup_name)
             except OSError:
                 pass
-        #RUN SIMULATION
+        # RUN SIMULATION
         if self.gssha_executable and os.path.exists(self.gssha_executable):
             print("RUNNING GSSHA SIMULATION ...")
             
@@ -685,19 +680,19 @@ class GSSHAFramework(object):
         """
         Updates card & runs for RAPID to GSSHA & LSM to GSSHA
         """
-        #self._update_card("PROJECT_PATH", self.gssha_directory)
+        # self._update_card("PROJECT_PATH", self.gssha_directory)
         self._update_card("PROJECT_PATH", "", True)
         
-        #----------------------------------------------------------------------
-        #LSM to GSSHA
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
+        # LSM to GSSHA
+        # ----------------------------------------------------------------------
         self.download_wrf_forecast()
         self.prepare_wrf_data()
 
-        #----------------------------------------------------------------------
-        #RAPID to GSSHA
-        #----------------------------------------------------------------------
-        #if no streamflow given, download forecast
+        # ----------------------------------------------------------------------
+        # RAPID to GSSHA
+        # ----------------------------------------------------------------------
+        # if no streamflow given, download forecast
         if self.path_to_rapid_qout is None:
             rapid_qout_directory = os.path.join(self.gssha_directory, 'rapid_streamflow')
             try:
@@ -706,23 +701,31 @@ class GSSHAFramework(object):
                 pass
             self.path_to_rapid_qout = self.download_spt_forecast(rapid_qout_directory)
             
-        #prepare input for GSSHA if user wants
+        # prepare input for GSSHA if user wants
         if self.path_to_rapid_qout is not None:
             self.prepare_rapid_streamflow(self.path_to_rapid_qout)
 
-
-        #----------------------------------------------------------------------
-        #HOTSTART
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
+        # HOTSTART
+        # ----------------------------------------------------------------------
         if self.write_hotstart:
             hotstart_time_str = self.gssha_simulation_end.strftime("%Y%m%d_%H%M")
             try:
                 os.mkdir('hotstart')
             except OSError:
                 pass
-            self._update_card("WRITE_OV_HOTSTART", os.path.join('hotstart','{0}_ov_hotstart_{1}.ovh'.format(self.project_name, hotstart_time_str)), True)
-            self._update_card("WRITE_CHAN_HOTSTART", os.path.join('hotstart','{0}_chan_hotstart_{1}'.format(self.project_name, hotstart_time_str)), True)
-            self._update_card("WRITE_SM_HOTSTART", os.path.join('hotstart','{0}_sm_hotstart_{1}.smh'.format(self.project_name, hotstart_time_str)), True)
+            self._update_card("WRITE_OV_HOTSTART",
+                              os.path.join('hotstart',
+                                           '{0}_ov_hotstart_{1}.ovh'.format(self.project_name, hotstart_time_str)),
+                              True)
+            self._update_card("WRITE_CHAN_HOTSTART",
+                              os.path.join('hotstart',
+                                           '{0}_chan_hotstart_{1}'.format(self.project_name, hotstart_time_str)),
+                              True)
+            self._update_card("WRITE_SM_HOTSTART",
+                              os.path.join('hotstart',
+                                           '{0}_sm_hotstart_{1}.smh'.format(self.project_name, hotstart_time_str)),
+                              True)
         else:
             self._delete_card("WRITE_OV_HOTSTART")
             self._delete_card("WRITE_CHAN_HOTSTART")
@@ -730,33 +733,38 @@ class GSSHAFramework(object):
         
         if self.read_hotstart:
             hotstart_time_str = self.gssha_simulation_start.strftime("%Y%m%d_%H%M")
-            #OVERLAND
-            expected_ov_hotstart =  os.path.join('hotstart','{0}_ov_hotstart_{1}.ovh'.format(self.project_name, hotstart_time_str))
+            # OVERLAND
+            expected_ov_hotstart =  os.path.join('hotstart',
+                                                 '{0}_ov_hotstart_{1}.ovh'.format(self.project_name, hotstart_time_str))
             if os.path.exists(expected_ov_hotstart):
                 self._update_card("READ_OV_HOTSTART", expected_ov_hotstart, True)
             else:
                 self._delete_card("READ_OV_HOTSTART")
-                print("WARNING: READ_OV_HOTSTART not included as {} does not exist ...".format(expected_ov_hotstart))
+                print("WARNING: READ_OV_HOTSTART not included as {0} does not exist ...".format(expected_ov_hotstart))
                 
-            #CHANNEL
-            expected_chan_hotstart =  os.path.join('hotstart','{0}_chan_hotstart_{1}'.format(self.project_name, hotstart_time_str))
-            if os.path.exists("{0}.qht".format(expected_chan_hotstart)) and os.path.exists("{0}.dht".format(expected_chan_hotstart)):
+            # CHANNEL
+            expected_chan_hotstart =  os.path.join('hotstart',
+                                                   '{0}_chan_hotstart_{1}'.format(self.project_name, hotstart_time_str))
+            if os.path.exists("{0}.qht".format(expected_chan_hotstart)) \
+                    and os.path.exists("{0}.dht".format(expected_chan_hotstart)):
                 self._update_card("READ_CHAN_HOTSTART", expected_chan_hotstart, True)
             else:
                 self._delete_card("READ_CHAN_HOTSTART")
-                print("WARNING: READ_CHAN_HOTSTART not included as {0}.qht and/or {0}.dht does not exist ...".format(expected_chan_hotstart))
+                print("WARNING: READ_CHAN_HOTSTART not included as "
+                      "{0}.qht and/or {0}.dht does not exist ...".format(expected_chan_hotstart))
                 
-            #INFILTRATION
-            expected_sm_hotstart =  os.path.join('hotstart','{0}_sm_hotstart_{1}.smh'.format(self.project_name, hotstart_time_str))
+            # INFILTRATION
+            expected_sm_hotstart =  os.path.join('hotstart',
+                                                 '{0}_sm_hotstart_{1}.smh'.format(self.project_name, hotstart_time_str))
             if os.path.exists(expected_sm_hotstart):
                 self._update_card("READ_SM_HOTSTART", expected_sm_hotstart, True)
             else:
                 self._delete_card("READ_SM_HOTSTART")
                 print("WARNING: READ_SM_HOTSTART not included as {} does not exist ...".format(expected_sm_hotstart))
             
-        #----------------------------------------------------------------------
-        #Run GSSHA
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
+        # Run GSSHA
+        # ----------------------------------------------------------------------
         self.run()
         
         
@@ -996,4 +1004,3 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                                                   et_calc_mode, soil_moisture_depth, output_netcdf,
                                                   write_hotstart, read_hotstart, hotstart_minimal_mode)
 
-        
