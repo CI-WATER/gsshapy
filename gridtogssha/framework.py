@@ -7,7 +7,7 @@
 #  BSD 3-Clause
 
 from glob import glob
-from datetime import datetime #TODO: Add date filter for GSSHA
+from datetime import datetime
 from numpy import mean
 import os
 from osgeo import gdal, osr
