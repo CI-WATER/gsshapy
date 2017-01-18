@@ -25,45 +25,45 @@ try:
 except ImportError:
     print("To use GRIDtoGSSHA, you must have the numpy, pyproj, gdal, and netCDF4 packages installed.")
     raise
-    
+
 
 #------------------------------------------------------------------------------
 # MAIN CLASS
 #------------------------------------------------------------------------------
 class GRIDtoGSSHA(object):
     """This class converts the LSM output data to GSSHA formatted input.
-    
+
     Attributes:
         gssha_project_folder(str): Path to the GSSHA project folder
         gssha_grid_file_name(str): Name of the GSSHA elevation grid file.
         lsm_input_folder_path(str): Path to the input folder for the LSM files.
         lsm_search_card(str): Glob search pattern for LSM files. Ex. "*.nc".
-        lsm_file_date_naming_convention(Optional[str]): Use Pythons datetime conventions to find file. 
+        lsm_file_date_naming_convention(Optional[str]): Use Pythons datetime conventions to find file.
                                               Ex. "gssha_ddd_%Y_%m_%d_%H_%M_%S.nc".
-        time_step_seconds(Optional[int]): If the time step is not able to be determined automatically, 
+        time_step_seconds(Optional[int]): If the time step is not able to be determined automatically,
                                 this parameter defines the time step in seconds for the LSM files.
-        output_unix_format(Optional[bool]): If True, it will output to "unix" format. 
-                                        Otherwise, it will output in "dos" (Windows) format. Default is False. 
-        output_timezone(Optional[tzinfo]): This is the timezone to output the dates for the data. Default is UTC. 
+        output_unix_format(Optional[bool]): If True, it will output to "unix" format.
+                                        Otherwise, it will output in "dos" (Windows) format. Default is False.
+        output_timezone(Optional[tzinfo]): This is the timezone to output the dates for the data. Default is UTC.
                                            This option does NOT currently work for NetCDF output.
 
     Example::
-    
+
         from gridtogssha.grid_to_gssha import GRIDtoGSSHA
-        
+
         l2g = GRIDtoGSSHA(gssha_project_folder='E:/GSSHA',
                           gssha_grid_file_name='gssha.ele',
                           lsm_input_folder_path='E:/GSSHA/wrf-data',
-                          lsm_search_card="*.nc", 
+                          lsm_search_card="*.nc",
                           lsm_file_date_naming_convention='gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
                          )
-                         
+
     """
     def __init__(self,
                  gssha_project_folder,
                  gssha_grid_file_name,
                  lsm_input_folder_path,
-                 lsm_search_card, 
+                 lsm_search_card,
                  lsm_file_date_naming_convention=None,
                  time_step_seconds=None,
                  output_unix_format=False,
@@ -80,21 +80,21 @@ class GRIDtoGSSHA(object):
         self.time_step_seconds = time_step_seconds
         self.output_unix_format = output_unix_format
         self.output_timezone = output_timezone
-        
+
         self.default_line_ending = '\r\n'
         if output_unix_format:
             self.default_line_ending = ''
-            
+
         ##INIT FUNCTIONS
         self._load_sorted_lsm_list_and_time()
         self._load_gssha_and_lsm_extent()
-       
+
         ##DEFAULT GSSHA NetCDF Attributes
-        self.netcdf_attributes = { 
-                                    'precipitation_rate' : 
+        self.netcdf_attributes = {
+                                    'precipitation_rate' :
                                         #NOTE: LSM INFO
                                         #units = "kg m-2 s-1" ; i.e. mm s-1
-                                        { 
+                                        {
                                           'units' : {
                                                         'gage': 'mm hr-1',
                                                         'ascii': 'mm hr-1',
@@ -111,7 +111,7 @@ class GRIDtoGSSHA(object):
                                                                     'netcdf' : 3600,
                                                                 },
                                         },
-                                    'precipitation_acc' : 
+                                    'precipitation_acc' :
                                         #NOTE: LSM INFO
                                         #units = "kg m-2" ; i.e. mm
                                         {
@@ -131,7 +131,7 @@ class GRIDtoGSSHA(object):
                                                                     'netcdf' : 1,
                                                                 },
                                         },
-                                    'precipitation_inc' : 
+                                    'precipitation_inc' :
                                         #NOTE: LSM INFO
                                         #units = "kg m-2" ; i.e. mm
                                         {
@@ -151,7 +151,7 @@ class GRIDtoGSSHA(object):
                                                                     'netcdf' : 1,
                                                                 },
                                         },
-                                    'pressure' : 
+                                    'pressure' :
                                         #NOTE: LSM INFO
                                         #units = "Pa" ;
                                         {
@@ -168,7 +168,7 @@ class GRIDtoGSSHA(object):
                                                                     'netcdf' : 0.01,
                                                                 },
                                         },
-                                    'pressure_hg' : 
+                                    'pressure_hg' :
                                         {
                                           'units' : {
                                                         'ascii': 'in. Hg',
@@ -183,7 +183,7 @@ class GRIDtoGSSHA(object):
                                                                     'netcdf' : 33.863886667,
                                                                 },
                                         },
-                                    'relative_humidity' : 
+                                    'relative_humidity' :
                                         #NOTE: LSM Usually Specific Humidity
                                         #units = "kg kg-1" ;
                                         #standard_name = "specific_humidity" ;
@@ -202,7 +202,7 @@ class GRIDtoGSSHA(object):
                                                                     'netcdf' : 1,
                                                                 },
                                         },
-                                    'wind_speed' : 
+                                    'wind_speed' :
                                         #NOTE: LSM
                                         #units = "m s-1" ;
                                         {
@@ -219,7 +219,7 @@ class GRIDtoGSSHA(object):
                                                                     'netcdf' : 1.94,
                                                                 },
                                         },
-                                    'wind_speed_kts' : 
+                                    'wind_speed_kts' :
                                         {
                                           'units' : {
                                                         'ascii': 'kts',
@@ -287,7 +287,7 @@ class GRIDtoGSSHA(object):
                                           'standard_name' : 'surface_direct_downward_shortwave_flux',
                                           'long_name' : 'Direct short wave radiation flux',
                                           'gssha_name' : 'direct_radiation',
-                                          'hmet_name' : 'DRad',
+                                          'hmet_name' : 'Drad',
                                           'conversion_factor' : {
                                                                     'ascii' : 1,
                                                                     'netcdf' : 1,
@@ -306,7 +306,7 @@ class GRIDtoGSSHA(object):
                                           'standard_name' : 'surface_diffusive_downward_shortwave_flux',
                                           'long_name' : 'Diffusive short wave radiation flux',
                                           'gssha_name' : 'diffusive_radiation',
-                                          'hmet_name' : 'GRad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
+                                          'hmet_name' : 'Grad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
                                           'conversion_factor' : {
                                                                     'ascii' : 1,
                                                                     'netcdf' : 1,
@@ -326,7 +326,7 @@ class GRIDtoGSSHA(object):
                                           'standard_name' : 'surface_direct_downward_shortwave_flux',
                                           'long_name' : 'Direct short wave radiation flux',
                                           'gssha_name' : 'direct_radiation',
-                                          'hmet_name' : 'DRad',
+                                          'hmet_name' : 'Drad',
                                           'conversion_factor' : {
                                                                     'ascii' : 1,
                                                                     'netcdf' : 1,
@@ -346,7 +346,7 @@ class GRIDtoGSSHA(object):
                                           'standard_name' : 'surface_diffusive_downward_shortwave_flux',
                                           'long_name' : 'Diffusive short wave radiation flux',
                                           'gssha_name' : 'diffusive_radiation',
-                                          'hmet_name' : 'GRad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
+                                          'hmet_name' : 'Grad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
                                           'conversion_factor' : {
                                                                     'ascii' : 1,
                                                                     'netcdf' : 1,
@@ -387,11 +387,11 @@ class GRIDtoGSSHA(object):
                                         },
 
                                 }
-    
+
     def _load_lsm_projection(self):
         """
         Loads the LSM projection in Proj4
-        
+
         Default is geographic
         """
         self.lsm_proj4 = Proj(init='epsg:4326')
@@ -405,9 +405,9 @@ class GRIDtoGSSHA(object):
         self.lsm_lon_indices = []
         lsm_lat_list = []
         lsm_lon_list = []
-        
+
         return lsm_lat_list, lsm_lon_list
-        
+
     def _load_gssha_and_lsm_extent(self):
         """
         #Get extent from GSSHA Grid in Geographic coordinates
@@ -418,7 +418,7 @@ class GRIDtoGSSHA(object):
         ####
         gssha_grid_path = path.join(self.gssha_project_folder,
                                     self.gssha_grid_file_name)
-                                    
+
         gssha_grid = gdal.Open(gssha_grid_path)
         gssha_srs=osr.SpatialReference()
         #The projection file is named DIFFERENT as it is stored in the .PRO
@@ -435,12 +435,12 @@ class GRIDtoGSSHA(object):
                           "Using: {}".format(gssha_projection_file_path))
             else:
                 raise IndexError("GSSHA .pro file not found ...")
-                
+
         with open(gssha_projection_file_path) as pro_file:
             self.gssha_prj_str = pro_file.read()
             gssha_srs.ImportFromWkt(self.gssha_prj_str)
             self.gssha_proj4 = Proj(gssha_srs.ExportToProj4())
-        
+
         #get projection from LSM file (ASSUME GEOGRAPHIC IF LAT/LON)
         self._load_lsm_projection()
         min_x, xres, xskew, max_y, yskew, yres  = gssha_grid.GetGeoTransform()
@@ -449,30 +449,30 @@ class GRIDtoGSSHA(object):
         x_ext, y_ext = transform(self.gssha_proj4,
                                  self.lsm_proj4,
                                  [min_x, max_x, min_x, max_x],
-                                 [min_y, max_y, max_y, min_y], 
+                                 [min_y, max_y, max_y, min_y],
                                  )
-        
+
         gssha_y_min = min(y_ext)
         gssha_y_max = max(y_ext)
         gssha_x_min = min(x_ext)
         gssha_x_max = max(x_ext)
 
-        lsm_lat_list, lsm_lon_list = self._get_subset_lat_lon(gssha_y_min, gssha_y_max, 
+        lsm_lat_list, lsm_lon_list = self._get_subset_lat_lon(gssha_y_min, gssha_y_max,
                                                               gssha_x_min, gssha_x_max)
-        
+
         self.proj_lon_list, self.proj_lat_list = transform(self.lsm_proj4,
                                                            self.gssha_proj4,
                                                            lsm_lon_list,
-                                                           lsm_lat_list, 
+                                                           lsm_lat_list,
                                                            )
-                                                 
+
         #GET BOUNDS BASED ON AVERAGE (NOTE: LAT IS REVERSED)
         #https://grass.osgeo.org/grass64/manuals/r.in.ascii.html
         dy_n_avg = np.mean(np.absolute(self.proj_lat_list[-1] - self.proj_lat_list[-2]))
         dy_s_avg = np.mean(np.absolute(self.proj_lat_list[1] - self.proj_lat_list[0]))
         dx_e_avg = np.mean(np.absolute(self.proj_lon_list[:,-2] - self.proj_lon_list[:,-1]))
         dx_w_avg = np.mean(np.absolute(self.proj_lon_list[:,0] - self.proj_lon_list[:,1]))
-                                          
+
         self.north_bound = np.mean(self.proj_lat_list[-1])+dy_n_avg/2.0
         self.south_bound = np.mean(self.proj_lat_list[0])-dy_s_avg/2.0
         self.east_bound = np.mean(self.proj_lon_list[:,-1])+dx_e_avg/2.0
@@ -487,7 +487,7 @@ class GRIDtoGSSHA(object):
 
         if len(self.lsm_nc_list)<=0:
             raise IndexError("No input HMET grid files found ...")
-        
+
         self.time_array = np.zeros(len(self.lsm_nc_list))
 
         #LOAD IN TIME FROM DATA
@@ -497,13 +497,13 @@ class GRIDtoGSSHA(object):
         sorted_indices = np.argsort(self.time_array)
         self.time_array = self.time_array[sorted_indices]
         self.lsm_nc_list = self.lsm_nc_list[sorted_indices]
-        
+
         #GET TIME STEP
         self._load_time_step(convert_to_seconds)
-        
+
         #GET HOURLY TIME STEPS
         self._load_hourly_time_steps()
- 
+
     def _load_time_from_files(self):
         """
         Loads in the time from the grid files
@@ -532,11 +532,11 @@ class GRIDtoGSSHA(object):
                  self.hourly_time_index_array.append(idx)
             current_datetime = var_datetime
             idx += 1
-            
+
         self.num_generated_files_per_timestep = 1
         if self.time_step_seconds > 3600:
             self.num_generated_files_per_timestep = self.time_step_seconds/3600.0
-        
+
         self.len_hourly_time_index_array = len(self.hourly_time_index_array)
         self.hourly_time_array = np.zeros(self.len_hourly_time_index_array*int(self.num_generated_files_per_timestep))
         for hourly_index, time_index in enumerate(self.hourly_time_index_array):
@@ -553,19 +553,19 @@ class GRIDtoGSSHA(object):
                            .replace(tzinfo=utc) \
                            .astimezone(self.output_timezone) \
                            .strftime(conversion_string)
-        
+
         return time.strftime(conversion_string, time.gmtime(time_int))
-        
+
     def _load_lsm_data(self, data_var, conversion_factor=1, four_dim_var_calc_method=None):
         """
         This extracts the data into a 3d array
         """
         self.data_np_array = np.zeros((len(self.lsm_nc_list),
-                                       len(self.lsm_lat_indices), 
+                                       len(self.lsm_lat_indices),
                                        len(self.lsm_lon_indices)))
-        
 
-    
+
+
     def _load_converted_gssha_data_from_lsm(self, gssha_var, lsm_var, load_type):
         """
         This function loads data from LSM and converts to GSSHA format
@@ -596,13 +596,13 @@ class GRIDtoGSSHA(object):
                 self.data_np_array = self.data_np_array*self.time_step_seconds/3600.0
             else:
                 raise IndexError("Invalid LSM variable ({0}) for GSSHA variable {1}".format(lsm_var, gssha_var))
-                
+
         elif gssha_var == 'relative_humidity' and not isinstance(lsm_var, str):
             ##CONVERSION ASSUMPTIONS:
             ##1) These equations are for liquid water and are less accurate below 0 deg C
             ##2) Not adjusting the pressure for the fact that the temperature
             ##   and moisture measurements are given at 2 m AGL.
-            
+
             ##Neither of these should have a significant impact on RH values
             ##given the uncertainty in the model values themselves.
 
@@ -623,12 +623,12 @@ class GRIDtoGSSHA(object):
 
             es_array = 611.2*np.exp(17.62*(temperature_array-273.16)/(243.12+temperature_array-273.16))
             self.data_np_array = 100 * specific_humidity_array/((0.622*es_array)/(pressure_array-es_array))
-            
+
             ##METHOD 2:
             ##http://earthscience.stackexchange.com/questions/2360/how-do-i-convert-specific-humidity-to-relative-humidity
             #pressure in Pa, temperature in K
             ##self.data_np_array = 0.263*pressure_array*specific_humidity_array/np.exp(17.67*(temperature_array-273.16)/(temperature_array-29.65))
-            
+
         elif gssha_var == 'wind_speed' and not isinstance(lsm_var, str):
             # WRF:  http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
             u_vector_var, v_vector_var = lsm_var
@@ -648,10 +648,10 @@ class GRIDtoGSSHA(object):
             rain_nc_array = self.data_np_array
             self.data_np_array = rain_c_array + rain_nc_array
         else:
-            self._load_lsm_data(lsm_var, 
+            self._load_lsm_data(lsm_var,
                                 self.netcdf_attributes[gssha_var]['conversion_factor'][load_type],
                                 self.netcdf_attributes[gssha_var].get('four_dim_var_calc_method'))
-                                
+
             conversion_function = self.netcdf_attributes[gssha_var].get('conversion_function')
             if conversion_function:
                 self.data_np_array = self.netcdf_attributes[gssha_var]['conversion_function'][load_type](self.data_np_array)
@@ -661,21 +661,21 @@ class GRIDtoGSSHA(object):
             if gssha_var == 'precipitation_acc':
                 self.data_np_array = np.lib.pad(np.diff(self.data_np_array, axis=0),
                                                 ((1,0),(0,0),(0,0)),'constant',constant_values=0)
-                
+
             #CONVERT PRECIP TO RADAR (mm/hr) IN FILE
             if gssha_var == 'precipitation_inc' or gssha_var == 'precipitation_acc':
                 #convert to mm/hr from mm
                 self.data_np_array = self.data_np_array*3600/float(self.time_step_seconds)
 
-                
-                
+
+
     def _check_lsm_input(self, data_var_map_array):
         """
         This function checks the input var map array
         to ensure the required input variables exist
         """
-        REQUIRED_HMET_VAR_LIST = ['Prcp', 'Pres', 'Temp', 'Clod', 'RlHm', 'DRad', 'GRad', 'WndS']
-        
+        REQUIRED_HMET_VAR_LIST = ['Prcp', 'Pres', 'Temp', 'Clod', 'RlHm', 'Drad', 'Grad', 'WndS']
+
         #make sure all required variables exist
         given_hmet_var_list = []
         for data_var_map in data_var_map_array:
@@ -690,7 +690,7 @@ class GRIDtoGSSHA(object):
         for REQUIRED_HMET_VAR in REQUIRED_HMET_VAR_LIST:
             if REQUIRED_HMET_VAR not in given_hmet_var_list:
                 raise Exception("ERROR: HMET param is required to continue {0} ...".format(REQUIRED_HMET_VAR))
-            
+
     def _get_calc_function(self, gssha_data_var):
         """
         This retrives the calc function to convert
@@ -699,9 +699,9 @@ class GRIDtoGSSHA(object):
         calc_function = np.mean
         if gssha_data_var == 'precipitation_inc' or gssha_data_var == 'precipitation_acc':
             calc_function = np.sum
-            
+
         return calc_function
-       
+
     def _get_hourly_data(self, hourly_index, calc_function):
         """
         This function gets the data converted into
@@ -716,7 +716,7 @@ class GRIDtoGSSHA(object):
                 return calc_function(self.data_np_array[time_index_start:,::-1,:], axis=0)
             else:
                 return self.data_np_array[time_index_start,::-1,:]
-                
+
     def _convert_data_to_hourly(self, gssha_data_var):
         """
         This function converts the data to hourly data
@@ -724,58 +724,58 @@ class GRIDtoGSSHA(object):
         """
         hourly_3d_array = np.zeros((self.len_hourly_time_index_array*int(self.num_generated_files_per_timestep), len(self.lsm_lat_indices), len(self.lsm_lon_indices)))
         calc_function = self._get_calc_function(gssha_data_var)
-        
+
         for hourly_index in range(self.len_hourly_time_index_array):
             for i in range(int(self.num_generated_files_per_timestep)):
                 hourly_3d_array[hourly_index*int(self.num_generated_files_per_timestep)+i,:,:] = self._get_hourly_data(hourly_index, calc_function)
-        
+
         self.data_np_array = hourly_3d_array
-        
+
     def lsm_precip_to_gssha_precip_gage(self, out_gage_file, lsm_data_var, precip_type="RADAR"):
         """This function takes array data and writes out a GSSHA precip gage file.
         See: http://www.gsshawiki.com/Precipitation:Spatially_and_Temporally_Varied_Precipitation
-        
+
         .. note::
-            GSSHA CARDS: 
-                * PRECIP_FILE card with path to gage file 
+            GSSHA CARDS:
+                * PRECIP_FILE card with path to gage file
                 * RAIN_INV_DISTANCE or RAIN_THIESSEN
-        
+
         Parameters:
             out_gage_file(str): Location of gage file to generate.
             lsm_data_var(str or list): This is the variable name for precipitation in the LSM files.
                                           If there is a string, it assumes a single variable. If it is a
                                           list, then it assumes the first element is the variable name for
-                                          RAINC and the second is for RAINNC 
+                                          RAINC and the second is for RAINNC
                                           (see: http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables).
             precip_type(Optional[str]): This tells if the data is the ACCUM, RADAR, or GAGES data type. Default is 'RADAR'.
-            
+
         LSMtoGSSHA Example:
-        
+
         .. code:: python
 
             from gridtogssha import LSMtoGSSHA
-            
+
             #STEP 1: Initialize class
             l2g = LSMtoGSSHA(
                              #YOUR INIT PARAMETERS HERE
                             )
-    
+
             #STEP 2: Generate GAGE data (from WRF)
             l2g.lsm_precip_to_gssha_precip_gage(out_gage_file="E:/GSSHA/wrf_gage_1.gag",
                                                 lsm_data_var=['RAINC', 'RAINNC'],
                                                 precip_type='ACCUM')
 
         HRRRtoGSSHA Example:
-        
+
         .. code:: python
 
             from gridtogssha import HRRRtoGSSHA
-            
+
             #STEP 1: Initialize class
             h2g = HRRRtoGSSHA(
                               #YOUR INIT PARAMETERS HERE
                              )
-    
+
             #STEP 2: Generate GAGE data
             l2g.lsm_precip_to_gssha_precip_gage(out_gage_file="E:/GSSHA/hrrr_gage_1.gag",
                                                 lsm_data_var='prate',
@@ -791,9 +791,9 @@ class GRIDtoGSSHA(object):
             gssha_precip_type = "precipitation_acc"
         elif precip_type == "RADAR":
             gssha_precip_type = "precipitation_rate"
-        
+
         self._load_converted_gssha_data_from_lsm(gssha_precip_type, lsm_data_var, 'gage')
-        
+
         if len(self.data_np_array.shape) > 2:
             #LOOP THROUGH TIME
             with io_open(out_gage_file, 'w', newline=self.default_line_ending ) as gage_file:
@@ -809,13 +809,13 @@ class GRIDtoGSSHA(object):
                     for lon_idx in range(len(self.lsm_lon_indices)):
                         coord_idx = lat_idx*len(self.lsm_lon_indices) + lon_idx
                         gage_file.write(u"COORD {0} {1} \"center of pixel #{2}\"\n".format(self.proj_lon_list[lat_idx,lon_idx],
-                                                                                          self.proj_lat_list[lat_idx,lon_idx], 
+                                                                                          self.proj_lat_list[lat_idx,lon_idx],
                                                                                           coord_idx))
                 for time_idx, time_step_array in enumerate(self.data_np_array):
                     date_str = self._time_to_string(self.time_array[time_idx])
                     data_str = " ".join(time_step_array.ravel().astype(str))
                     gage_file.write(u"{0} {1} {2}\n".format(precip_type, date_str, data_str))
-                    
+
         elif len(self.data_np_array.shape) == 2:
             with io_open(out_gage_file, 'w', newline=self.default_line_ending ) as gage_file:
                 date_str = self._time_to_string(self.time_array[0])
@@ -826,25 +826,25 @@ class GRIDtoGSSHA(object):
                     for lon_idx in range(len(self.lsm_lon_indices)):
                         coord_idx = lat_idx*len(self.lsm_lon_indices) + lon_idx
                         gage_file.write(u"COORD {0} {1} \"center of pixel #{2}\"\n".format(self.proj_lon_list[lat_idx,lon_idx],
-                                                                                          self.proj_lat_list[lat_idx,lon_idx], 
+                                                                                          self.proj_lat_list[lat_idx,lon_idx],
                                                                                           coord_idx))
                 data_str = " ".join(time_step_array.ravel().astype(str))
                 gage_file.write(u"{0} {1} {2}\n".format(precip_type, date_str, data_str))
         else:
             raise Exception("Invalid data array ...")
-            
+
     def _write_hmet_card_file(self, hmet_card_file_path, main_output_folder):
         """
-        This function writes the HMET_ASCII card file 
+        This function writes the HMET_ASCII card file
         with ASCII file list for input to GSSHA
         """
         with io_open(hmet_card_file_path, 'w', newline=self.default_line_ending ) as out_hmet_list_file:
             for hour_time in self.hourly_time_array:
                 date_str = self._time_to_string(hour_time, "%Y%m%d%H")
                 out_hmet_list_file.write(u"{0}\n".format(path.join(main_output_folder, date_str)))
- 
+
     def _lsm_data_to_ascii(self, header_string,
-                                 data_var_map_array, 
+                                 data_var_map_array,
                                  main_output_folder="",
                                  hmet_card_file=""):
         """
@@ -853,25 +853,25 @@ class GRIDtoGSSHA(object):
         GSSHA CARD: HMET_ASCII
         NOTE: MUST HAVE LONG_TERM GSSHA CARD TO WORK
         See: http://www.gsshawiki.com/Long-term_Simulations:Global_parameters
-        
+
         """
         self._check_lsm_input(data_var_map_array)
-        
+
         if not main_output_folder:
             main_output_folder = path.join(self.gssha_project_folder, "hmet_ascii_data")
-            
+
         try:
             mkdir(main_output_folder)
         except OSError:
             pass
-        
+
         print("Outputting HMET data to {0}".format(main_output_folder))
-        
+
         #the csv module line ending behaves different than io.open in python 2.7 than 3
         csv_newline = '\n'
         if not self.output_unix_format:
             #this is the case where we want windows style line endings
-            csv_newline = '\r\n' 
+            csv_newline = '\r\n'
             header_string = header_string.replace('\n', '\r\n')
 
         #PART 2: DATA
@@ -881,14 +881,14 @@ class GRIDtoGSSHA(object):
             self._load_converted_gssha_data_from_lsm(gssha_data_var, lsm_data_var, 'ascii')
             if len(self.data_np_array.shape) == 3:
                 self._convert_data_to_hourly(gssha_data_var)
-                    
+
                 for hourly_index, hour_time in enumerate(self.hourly_time_array):
                     date_str = self._time_to_string(hour_time, "%Y%m%d%H")
                     ascii_file_path = path.join(main_output_folder,"{0}_{1}.asc".format(date_str, gssha_data_hmet_name))
                     with open(ascii_file_path, 'wb') as out_ascii_grid:
                         out_ascii_grid.write(header_string)
-                        grid_writer = csv_writer(out_ascii_grid, 
-                                                 delimiter=" ", 
+                        grid_writer = csv_writer(out_ascii_grid,
+                                                 delimiter=" ",
                                                  lineterminator=csv_newline)
                         grid_writer.writerows(self.data_np_array[hourly_index])
             else:
@@ -897,8 +897,8 @@ class GRIDtoGSSHA(object):
         #PART 3: HMET_ASCII card input file with ASCII file list
         hmet_card_file_path = path.join(main_output_folder, 'hmet_file_list.txt')
         self._write_hmet_card_file(hmet_card_file_path, main_output_folder)
-    
-    def lsm_data_to_grass_ascii(self, data_var_map_array, 
+
+    def lsm_data_to_grass_ascii(self, data_var_map_array,
                                       main_output_folder=""):
         """
         Writes extracted data to GRASS ASCII file format
@@ -916,48 +916,48 @@ class GRIDtoGSSHA(object):
 
         #PART 2: DATA
         self._lsm_data_to_ascii(header_string,
-                                data_var_map_array, 
+                                data_var_map_array,
                                 main_output_folder)
-            
-    def lsm_data_to_arc_ascii(self, data_var_map_array, 
+
+    def lsm_data_to_arc_ascii(self, data_var_map_array,
                                     main_output_folder=""):
         """Writes extracted data to Arc ASCII file format into folder
         to be read in by GSSHA. Also generates the HMET_ASCII card file
         for GSSHA in the folder named 'hmet_file_list.txt'.
-        
+
         .. warning:: For GSSHA 6 Versions, for GSSHA 7 or greater, use lsm_data_to_subset_netcdf.
 
         .. note::
             GSSHA CARDS:
                 * HMET_ASCII pointing to the hmet_file_list.txt
                 * LONG_TERM (see: http://www.gsshawiki.com/Long-term_Simulations:Global_parameters)
-       
+
         Parameters:
-            data_var_map_array(list): Array to map the variables in the LSM file to the 
+            data_var_map_array(list): Array to map the variables in the LSM file to the
                                       matching required GSSHA data.
-            main_output_folder(Optional[str]): This is the path to place the generated ASCII files. 
-                                        If not included, it defaults to 
+            main_output_folder(Optional[str]): This is the path to place the generated ASCII files.
+                                        If not included, it defaults to
                                         os.path.join(self.gssha_project_folder, "hmet_ascii_data").
-            
+
         LSMtoGSSHA Example:
-        
+
         .. code:: python
 
             from gridtogssha import LSMtoGSSHA
-            
+
             #STEP 1: Initialize class
             l2g = LSMtoGSSHA(
                              #YOUR INIT PARAMETERS HERE
                             )
-    
+
             #STEP 2: Generate ASCII DATA
-            
+
             #SEE: http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
-            
+
             #EXAMPLE DATA ARRAY 1: WRF GRID DATA BASED
             data_var_map_array = [
-                                  ['precipitation_acc', ['RAINC', 'RAINNC']], 
-                                  ['pressure', 'PSFC'], 
+                                  ['precipitation_acc', ['RAINC', 'RAINNC']],
+                                  ['pressure', 'PSFC'],
                                   ['relative_humidity', ['Q2', 'PSFC', 'T2']], #MUST BE IN ORDER: ['SPECIFIC HUMIDITY', 'PRESSURE', 'TEMPERATURE']
                                   ['wind_speed', ['U10', 'V10']], #['U_VELOCITY', 'V_VELOCITY']
                                   ['direct_radiation', ['SWDOWN', 'DIFFUSE_FRAC']], #MUST BE IN ORDER: ['GLOBAL RADIATION', 'DIFFUSIVE FRACTION']
@@ -965,11 +965,11 @@ class GRIDtoGSSHA(object):
                                   ['temperature', 'T2'],
                                   ['cloud_cover' , 'CLDFRA'], #'CLOUD_FRACTION'
                                  ]
-                                 
+
             l2g.lsm_data_to_arc_ascii(data_var_map_array)
-            
+
         HRRRtoGSSHA Example:
-        
+
         .. code:: python
 
             from gridtogssha import HRRRtoGSSHA
@@ -978,21 +978,21 @@ class GRIDtoGSSHA(object):
             h2g = HRRRtoGSSHA(
                               #YOUR INIT PARAMETERS HERE
                              )
-    
+
             #STEP 2: Generate ASCII DATA
 
             #EXAMPLE DATA ARRAY 1: HRRR GRID DATA BASED
             data_var_map_array = [
-                                  ['precipitation_rate', 'prate'], 
-                                  ['pressure', 'sp'], 
-                                  ['relative_humidity', '2r'], 
-                                  ['wind_speed', ['10u', '10v']], 
+                                  ['precipitation_rate', 'prate'],
+                                  ['pressure', 'sp'],
+                                  ['relative_humidity', '2r'],
+                                  ['wind_speed', ['10u', '10v']],
                                   ['direct_radiation_cc', ['dswrf', 'tcc']],
                                   ['diffusive_radiation_cc', ['dswrf', 'tcc']],
                                   ['temperature', 't'],
                                   ['cloud_cover_pc' , 'tcc'],
                                  ]
-                                 
+
             h2g.lsm_data_to_arc_ascii(data_var_map_array)
 
         """
@@ -1007,45 +1007,45 @@ class GRIDtoGSSHA(object):
 
         #PART 2: DATA
         self._lsm_data_to_ascii(header_string,
-                                data_var_map_array, 
+                                data_var_map_array,
                                 main_output_folder)
-    
+
     def lsm_data_to_subset_netcdf(self, netcdf_file_path, data_var_map_array):
-        """Writes extracted data to the NetCDF file format 
-        
+        """Writes extracted data to the NetCDF file format
+
         .. todo:: NetCDF output data time is always in UTC time. Need to convert to local timezone for GSSHA.
-        
+
         .. warning:: The NetCDF GSSHA file is only supported in GSSHA 7 or greater.
 
         .. note::
             GSSHA CARDS:
                 * HMET_NETCDF pointing to the netcdf_file_path
                 * LONG_TERM (see: http://www.gsshawiki.com/Long-term_Simulations:Global_parameters)
-        
+
         Parameters:
             netcdf_file_path(string): Path to output the NetCDF file for GSSHA.
-            data_var_map_array(list): Array to map the variables in the LSM file to the 
+            data_var_map_array(list): Array to map the variables in the LSM file to the
                                       matching required GSSHA data.
-            
+
         LSMtoGSSHA Example:
 
         .. code:: python
 
             from gridtogssha import LSMtoGSSHA
-            
+
             #STEP 1: Initialize class
             l2g = LSMtoGSSHA(
                              #YOUR INIT PARAMETERS HERE
                             )
-    
+
             #STEP 2: Generate NetCDF DATA
-            
+
             #EXAMPLE DATA ARRAY 1: WRF GRID DATA BASED
             #SEE: http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
-            
+
             data_var_map_array = [
-                                  ['precipitation_acc', ['RAINC', 'RAINNC']], 
-                                  ['pressure', 'PSFC'], 
+                                  ['precipitation_acc', ['RAINC', 'RAINNC']],
+                                  ['pressure', 'PSFC'],
                                   ['relative_humidity', ['Q2', 'PSFC', 'T2']], #MUST BE IN ORDER: ['SPECIFIC HUMIDITY', 'PRESSURE', 'TEMPERATURE']
                                   ['wind_speed', ['U10', 'V10']], #['U_VELOCITY', 'V_VELOCITY']
                                   ['direct_radiation', ['SWDOWN', 'DIFFUSE_FRAC']], #MUST BE IN ORDER: ['GLOBAL RADIATION', 'DIFFUSIVE FRACTION']
@@ -1053,42 +1053,42 @@ class GRIDtoGSSHA(object):
                                   ['temperature', 'T2'],
                                   ['cloud_cover' , 'CLDFRA'], #'CLOUD_FRACTION'
                                  ]
-                                 
-            l2g.lsm_data_to_subset_netcdf("E/GSSHA/gssha_wrf_data.nc", 
+
+            l2g.lsm_data_to_subset_netcdf("E/GSSHA/gssha_wrf_data.nc",
                                           data_var_map_array)
-                                          
+
         HRRRtoGSSHA Example:
 
         .. code:: python
-        
+
             from gridtogssha import HRRRtoGSSHA
 
             #STEP 1: Initialize class
             h2g = HRRRtoGSSHA(
                               #YOUR INIT PARAMETERS HERE
                              )
-    
+
             #STEP 2: Generate NetCDF DATA
 
             #EXAMPLE DATA ARRAY 2: HRRR GRID DATA BASED
             data_var_map_array = [
-                                  ['precipitation_rate', 'prate'], 
-                                  ['pressure', 'sp'], 
-                                  ['relative_humidity', '2r'], 
-                                  ['wind_speed', ['10u', '10v']], 
+                                  ['precipitation_rate', 'prate'],
+                                  ['pressure', 'sp'],
+                                  ['relative_humidity', '2r'],
+                                  ['wind_speed', ['10u', '10v']],
                                   ['direct_radiation_cc', ['dswrf', 'tcc']],
                                   ['diffusive_radiation_cc', ['dswrf', 'tcc']],
                                   ['temperature', 't'],
                                   ['cloud_cover_pc' , 'tcc'],
                                  ]
-                                 
-            h2g.lsm_data_to_subset_netcdf("E:/GSSHA/gssha_wrf_data.nc", 
+
+            h2g.lsm_data_to_subset_netcdf("E:/GSSHA/gssha_wrf_data.nc",
                                           data_var_map_array)
         """
         self._check_lsm_input(data_var_map_array)
-        
+
         subset_nc = Dataset(netcdf_file_path, 'w')
-        
+
         #dimensions
         #previously just added data, but needs to be hourly
         #BEFORE: subset_nc.createDimension('time', len(self.time_array))
@@ -1121,7 +1121,7 @@ class GRIDtoGSSHA(object):
         lon_2d_var.units = 'degrees_east'
         lon_2d_var.coordinates = 'lat lon'
         lon_2d_var.axis = 'X'
-        
+
         #latitude
         lat_2d_var = subset_nc.createVariable('latitude', 'f8', ('lat','lon'),
                                               fill_value=-9999.0)
@@ -1131,10 +1131,10 @@ class GRIDtoGSSHA(object):
         lat_2d_var.coordinates = 'lat lon'
         lat_2d_var.axis = 'Y'
 
-        lon_2d_var[:], lat_2d_var[:] = transform(self.gssha_proj4, 
+        lon_2d_var[:], lat_2d_var[:] = transform(self.gssha_proj4,
                                                  Proj(init='epsg:4326'),
                                                  self.proj_lon_list,
-                                                 self.proj_lat_list, 
+                                                 self.proj_lat_list,
                                                  )
         """
         ##1D GRID - Able to display in ArcMap/QGIS, but loose information
@@ -1145,7 +1145,7 @@ class GRIDtoGSSHA(object):
         lon_var.standard_name = 'longitude'
         lon_var.units = 'degrees_east'
         lon_var.axis = 'X'
-        
+
         #latitude
         lat_var = subset_nc.createVariable('lat', 'f8', ('lat'),
                                            fill_value=-9999.0)
@@ -1157,17 +1157,17 @@ class GRIDtoGSSHA(object):
         lon_2d, lat_2d = transform(self.gssha_proj4,
                                    Proj(init='epsg:4326'),
                                    self.proj_lon_list,
-                                   self.proj_lat_list, 
+                                   self.proj_lat_list,
                                    )
 
         lon_var[:] = lon_2d.mean(axis=0)
         lat_var[:] = lat_2d.mean(axis=1)
-        
+
         #DATA
         for gssha_var, lsm_var in data_var_map_array:
             if gssha_var in self.netcdf_attributes:
                 gssha_data_var_name = self.netcdf_attributes[gssha_var]['gssha_name']
-                net_var = subset_nc.createVariable(gssha_data_var_name, 'f4', 
+                net_var = subset_nc.createVariable(gssha_data_var_name, 'f4',
                                                    ('time', 'lat', 'lon'),
                                                    fill_value=-9999.0)
                 net_var.standard_name = self.netcdf_attributes[gssha_var]['standard_name']
@@ -1186,7 +1186,7 @@ class GRIDtoGSSHA(object):
         crs_var.epsg_code = 'EPSG:4326'  # WGS 84
         crs_var.semi_major_axis = 6378137.0
         crs_var.inverse_flattening = 298.257223563
-        
+
         #add global attributes
         subset_nc.Conventions = 'CF-1.6'
         subset_nc.title = 'GSSHA LSM Input'
