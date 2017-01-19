@@ -391,6 +391,15 @@ class GSSHAFramework(object):
                 offset_string = "{0}{1:.1f}".format(sign, hr_offset)
 
             self._update_card('GMT', offset_string)
+    
+    def _prepare_path(self, original_path):
+        """
+        Determines whether in hotstart_minimal_mode or not to modify path
+        """
+        if self.hotstart_minimal_mode:
+            return original_path
+        else:
+            return os.path.join("..", original_path)
 
     def download_spt_forecast(self, extract_directory):
         """
@@ -767,18 +776,21 @@ class GSSHAFramework(object):
                 os.mkdir('hotstart')
             except OSError:
                 pass
-            self._update_card("WRITE_OV_HOTSTART",
-                              os.path.join('hotstart',
-                                           '{0}_ov_hotstart_{1}.ovh'.format(self.project_name, hotstart_time_str)),
-                              True)
-            self._update_card("WRITE_CHAN_HOTSTART",
-                              os.path.join('hotstart',
-                                           '{0}_chan_hotstart_{1}'.format(self.project_name, hotstart_time_str)),
-                              True)
-            self._update_card("WRITE_SM_HOTSTART",
-                              os.path.join('hotstart',
-                                           '{0}_sm_hotstart_{1}.smh'.format(self.project_name, hotstart_time_str)),
-                              True)
+            
+            ov_hotstart_path = os.path.join('hotstart',
+                                            '{0}_ov_hotstart_{1}.ovh'.format(self.project_name, 
+                                                                             hotstart_time_str)
+                                            )
+            self._update_card("WRITE_OV_HOTSTART", self._prepare_path(ov_hotstart_path), True)
+            chan_hotstart_path = os.path.join('hotstart',
+                                              '{0}_chan_hotstart_{1}'.format(self.project_name, 
+                                                                             hotstart_time_str)
+                                              )
+            self._update_card("WRITE_CHAN_HOTSTART", self._prepare_path(chan_hotstart_path), True)
+            sm_hotstart_path = os.path.join('hotstart',
+                                           '{0}_sm_hotstart_{1}.smh'.format(self.project_name, 
+                                                                            hotstart_time_str))
+            self._update_card("WRITE_SM_HOTSTART", self._prepare_path(sm_hotstart_path), True)
         else:
             self._delete_card("WRITE_OV_HOTSTART")
             self._delete_card("WRITE_CHAN_HOTSTART")
@@ -790,27 +802,27 @@ class GSSHAFramework(object):
             expected_ov_hotstart =  os.path.join('hotstart',
                                                  '{0}_ov_hotstart_{1}.ovh'.format(self.project_name, hotstart_time_str))
             if os.path.exists(expected_ov_hotstart):
-                self._update_card("READ_OV_HOTSTART", expected_ov_hotstart, True)
+                self._update_card("READ_OV_HOTSTART", self._prepare_path(expected_ov_hotstart), True)
             else:
                 self._delete_card("READ_OV_HOTSTART")
                 print("WARNING: READ_OV_HOTSTART not included as {0} does not exist ...".format(expected_ov_hotstart))
 
             # CHANNEL
-            expected_chan_hotstart =  os.path.join('hotstart',
-                                                   '{0}_chan_hotstart_{1}'.format(self.project_name, hotstart_time_str))
+            expected_chan_hotstart = os.path.join('hotstart',
+                                                  '{0}_chan_hotstart_{1}'.format(self.project_name, hotstart_time_str))
             if os.path.exists("{0}.qht".format(expected_chan_hotstart)) \
                     and os.path.exists("{0}.dht".format(expected_chan_hotstart)):
-                self._update_card("READ_CHAN_HOTSTART", expected_chan_hotstart, True)
+                self._update_card("READ_CHAN_HOTSTART",  self._prepare_path(expected_chan_hotstart), True)
             else:
                 self._delete_card("READ_CHAN_HOTSTART")
                 print("WARNING: READ_CHAN_HOTSTART not included as "
                       "{0}.qht and/or {0}.dht does not exist ...".format(expected_chan_hotstart))
 
             # INFILTRATION
-            expected_sm_hotstart =  os.path.join('hotstart',
-                                                 '{0}_sm_hotstart_{1}.smh'.format(self.project_name, hotstart_time_str))
+            expected_sm_hotstart = os.path.join('hotstart',
+                                                '{0}_sm_hotstart_{1}.smh'.format(self.project_name, hotstart_time_str))
             if os.path.exists(expected_sm_hotstart):
-                self._update_card("READ_SM_HOTSTART", expected_sm_hotstart, True)
+                self._update_card("READ_SM_HOTSTART", self._prepare_path(expected_sm_hotstart), True)
             else:
                 self._delete_card("READ_SM_HOTSTART")
                 print("WARNING: READ_SM_HOTSTART not included as {} does not exist ...".format(expected_sm_hotstart))
