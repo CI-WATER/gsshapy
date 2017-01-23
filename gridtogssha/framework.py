@@ -14,13 +14,13 @@ from osgeo import gdal, osr
 from pyproj import Proj, transform
 from pytz import timezone, utc
 from RAPIDpy import RAPIDDataset
-from shutil import copy
+from shutil import copy, move
 try:
     from spt_dataset_manager import ECMWFRAPIDDatasetManager
 except ImportError:
     print("WARNING: spt_dataset_manager is not installed. The SPT functionality will not work.")
     pass
-from subprocess import Popen, PIPE
+import subprocess
 from timezonefinder import TimezoneFinder
 
 from gridtogssha import LSMtoGSSHA
@@ -195,6 +195,13 @@ class GSSHAFramework(object):
                                   "STRICT_JULIAN_DATE",
                                   "OPTIMIZE", "OPTIMIZE_SED",
                                   ) + GSSHA_OPTIONAL_OUTPUT_PATH_CARDS
+                                  
+                                  
+    SIMULATION_RUN_GENERATED_INPUT_CARDS = ("HMET_ASCII",
+                                            "HMET_NETCDF",
+                                            "CHAN_POINT_INPUT",
+                                            "PRECIP_FILE",
+                                            )
 
     def __init__(self,
                  gssha_executable,
@@ -317,6 +324,22 @@ class GSSHAFramework(object):
         else:
             gssha_card.value = new_value
 
+    def _update_card_file_location(self, card_name, new_directory):
+        """
+        Adds/updates card for gssha project file
+        """
+        file_card = self.project_manager.getCard(card_name)
+        if file_card:
+            if file_card.value:
+                original_location = file_card.value.strip("'").strip('"')
+                new_location = os.path.join(new_directory, 
+                                            os.path.basename(original_location))
+                try:
+                    move(original_location, new_location)
+                except OSError as ex:
+                    print(ex)
+                    pass
+                
     def _delete_card(self, card_name):
         """
         Removes card from gssha project file
@@ -391,15 +414,6 @@ class GSSHAFramework(object):
                 offset_string = "{0}{1:.1f}".format(sign, hr_offset)
 
             self._update_card('GMT', offset_string)
-    
-    def _prepare_path(self, original_path):
-        """
-        Determines whether in hotstart_minimal_mode or not to modify path
-        """
-        if self.hotstart_minimal_mode:
-            return original_path
-        else:
-            return os.path.join("..", original_path)
 
     def download_spt_forecast(self, extract_directory):
         """
@@ -447,9 +461,7 @@ class GSSHAFramework(object):
         """
         self._update_class_var('connection_list', connection_list)
 
-        ihg_filename = os.path.join('{0}.ihg'.format(self.project_name))
-        if self.hotstart_minimal_mode:
-            ihg_filename = os.path.join('{0}_hotstart.ihg'.format(self.project_name))
+        ihg_filename = '{0}.ihg'.format(self.project_name)
 
         # write out IHG file
         time_index_range = []
@@ -497,6 +509,10 @@ class GSSHAFramework(object):
 
             # UPDATE GMT CARD
             self._update_gmt()
+        else:
+            # cleanup
+            os.remove(ihg_filename)
+            self._delete_card("CHAN_POINT_INPUT")
 
     def prepare_wrf_data(self):
         """
@@ -546,9 +562,9 @@ class GSSHAFramework(object):
             self._update_card("END_TIME", self.gssha_simulation_end.strftime("%Y %m %d %H %M"))
 
             # PRECIPITATION CARDS
-            out_gage_file = os.path.join('{0}.gag'.format(self.project_name))
+            out_gage_file = '{0}.gag'.format(self.project_name)
             if self.hotstart_minimal_mode:
-                out_gage_file = os.path.join('{0}_hotstart.gag'.format(self.project_name))
+                out_gage_file = '{0}_hotstart.gag'.format(self.project_name)
             l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
                                                 lsm_data_var=self.lsm_precip_data_var,
                                                 precip_type=self.lsm_precip_type)
@@ -644,96 +660,96 @@ class GSSHAFramework(object):
         """
         Write out project file and run GSSHA simulation
         """
-        working_directory = self.gssha_directory
         if self.hotstart_minimal_mode:
             # remove all optional output cards
             for gssha_optional_output_card in self.GSSHA_OPTIONAL_OUTPUT_CARDS:
                 self._delete_card(gssha_optional_output_card)
             # make sure running in SUPER_QUIET mode
             self._update_card('SUPER_QUIET', '')
-            # generate backup card
-            project_file_backup_name = "{0}.prj_backup".format(self.project_filename)
-            replace_file(self.project_filename, project_file_backup_name)
+            # give execute folder name
+            timestamp_out_dir_name = "minimal_hotstart_run_{0}to{1}".format(self.gssha_simulation_start.strftime("%Y%m%d%H%M"),
+                                                                        self.gssha_simulation_end.strftime("%Y%m%d%H%M"))
         else:
-            # connect index maps to main gssha directory
-            self.project_manager._readXput(fileCards={'MAPPING_TABLE': self.project_manager.INPUT_FILES['MAPPING_TABLE']},
-                                           directory=self.gssha_directory,
-                                           session=self.db_session)
+            # give execute folder name
+            timestamp_out_dir_name = "run_{0}to{1}".format(self.gssha_simulation_start.strftime("%Y%m%d%H%M"),
+                                                           self.gssha_simulation_end.strftime("%Y%m%d%H%M"))
 
-            for indexMap in self.project_manager.mapTableFile.indexMaps:
-                indexMap.filename = os.path.join("..", os.path.basename(indexMap.filename))
+        # make execute directory
+        try:
+            os.mkdir(timestamp_out_dir_name)
+        except OSError:
+            pass
 
-            self.project_manager._writeXput(session=self.db_session,
-                                            directory=self.gssha_directory,
-                                            fileCards={ 'MAPPING_TABLE': self.project_manager.INPUT_FILES['MAPPING_TABLE']},
-                                            name=self.project_name)
+        # move simulation generated files to input directory
+        # PRECIP_FILE, HMET_NETCDF, HMET_ASCII, CHAN_POINT_INPUT
+        # TODO: Move HMET_ASCII files
+        self._update_card_file_location("PRECIP_FILE", timestamp_out_dir_name)
+        self._update_card_file_location("CHAN_POINT_INPUT", timestamp_out_dir_name)
+        self._update_card_file_location("HMET_NETCDF", timestamp_out_dir_name)
+        self._update_card_file_location("HMET_ASCII", timestamp_out_dir_name)
+            
+        # connect index maps to main gssha directory
+        self.project_manager._readXput(fileCards={'MAPPING_TABLE': self.project_manager.INPUT_FILES['MAPPING_TABLE']},
+                                       directory=self.gssha_directory,
+                                       session=self.db_session)
 
-            # make output directory
-            timestamp_out_dir_name = "output_{0}to{1}".format(self.gssha_simulation_start.strftime("%Y%m%d%H%M"),
-                                                              self.gssha_simulation_end.strftime("%Y%m%d%H%M"))
-            try:
-                os.mkdir(timestamp_out_dir_name)
-            except OSError:
-                pass
+        for indexMap in self.project_manager.mapTableFile.indexMaps:
+            indexMap.filename = os.path.join("..", os.path.basename(indexMap.filename))
 
-            # make output directory main working directory
-            working_directory = os.path.join(self.gssha_directory, timestamp_out_dir_name)
-            os.chdir(working_directory)
-
-            # connect to other output files in main gssha directory
-            for gssha_card in self.project_manager.projectCards:
-                if gssha_card.name not in self.GSSHA_REQUIRED_OUTPUT_PATH_CARDS + \
-                                            self.GSSHA_OPTIONAL_OUTPUT_PATH_CARDS:
-                    if gssha_card.value:
-                        updated_value = gssha_card.value.replace('"', '')
-                        if updated_value:
-                            updated_path = os.path.join("..", updated_value)
-                            if os.path.exists(updated_path):
-                                gssha_card.value = '"{0}"'.format(updated_path)
-                            elif gssha_card.name == '#INDEXGRID_GUID':
-                                path_split = updated_value.split()
-                                new_path = os.path.join("..", path_split[0])
+        self.project_manager._writeXput(session=self.db_session,
+                                        directory=self.gssha_directory,
+                                        fileCards={ 'MAPPING_TABLE': self.project_manager.INPUT_FILES['MAPPING_TABLE']},
+                                        name=self.project_name)
+ 
+        # connect to other output files in main gssha directory
+        for gssha_card in self.project_manager.projectCards:
+            if gssha_card.name not in self.GSSHA_REQUIRED_OUTPUT_PATH_CARDS + \
+                                        self.GSSHA_OPTIONAL_OUTPUT_PATH_CARDS + \
+                                        self.SIMULATION_RUN_GENERATED_INPUT_CARDS:
+                if gssha_card.value:
+                    updated_value = gssha_card.value.strip('"').strip("'")
+                    if updated_value:
+                        if os.path.exists(updated_value):
+                            updated_path = os.path.join("..", os.path.basename(updated_value))
+                            gssha_card.value = '"{0}"'.format(updated_path)
+                        elif gssha_card.name == '#INDEXGRID_GUID':
+                            path_split = updated_value.split()
+                            if os.path.exists(path_split[0]):
+                                new_path = os.path.join("..", os.path.basename(path_split[0]))
                                 try:
                                     # Get WMS ID for Index Map as part of value
                                     gssha_card.value = '"{0}" "{1}"'.format(new_path, path_split[1])
                                 except:
                                     # Like normal if the ID isn't there
                                     gssha_card.value = '"{0}"'.format(new_path)
+                            else:
+                                print("WARNING: {0} {1} not found ...".format("#INDEXGRID_GUID", path_split[0]))
 
-            # make sure project path is blank
-            self._update_card("PROJECT_PATH", "", True)
+        # make sure project path is blank
+        self._update_card("PROJECT_PATH", "", True)
 
+        # make execute directory main working directory
+        working_directory = os.path.join(self.gssha_directory, timestamp_out_dir_name)
+        os.chdir(working_directory)
 
         # WRITE OUT UPDATED GSSHA PROJECT FILE
         self.project_manager.write(session=self.db_session,
                                    directory=working_directory,
                                    name=self.project_name)
 
-        project_filename = self.project_filename
-        if self.hotstart_minimal_mode:
-            # write hotstart project to new file name
-            project_filename = "{0}_minimal_hotstart.prj".format(self.project_name)
-            replace_file(self.project_filename, project_filename)
-            replace_file(project_file_backup_name, self.project_filename)
-            try:
-                os.remove(project_file_backup_name)
-            except OSError:
-                pass
         # RUN SIMULATION
         if self.gssha_executable and os.path.exists(self.gssha_executable):
             print("RUNNING GSSHA SIMULATION ...")
 
             run_gssha_command = [self.gssha_executable,
-                                 os.path.join(working_directory, project_filename)]
+                                 os.path.join(working_directory, self.project_filename)]
 
-            process = Popen(run_gssha_command,
-                            stdout=PIPE, stderr=PIPE, shell=False)
-            out, err = process.communicate()
-            if out:
+            try:
+                out = subprocess.check_output(run_gssha_command)
                 for line in out.split(b'\n'):
                     print(line)
-            if err:
-                print("GSSHA POTENTIAL ERROR: {0}".format(err))
+            except subprocess.CalledProcessError as ex:
+                print("ERROR {0}: {1}".format(ex.returncode, ex.output))
         else:
             print("GSSHA EXECTUABLE NOT FOUND. SKIPPING GSSHA SIMULATION RUN ...")
 
@@ -777,20 +793,18 @@ class GSSHAFramework(object):
             except OSError:
                 pass
             
-            ov_hotstart_path = os.path.join('hotstart',
+            ov_hotstart_path = os.path.join('..', 'hotstart',
                                             '{0}_ov_hotstart_{1}.ovh'.format(self.project_name, 
-                                                                             hotstart_time_str)
-                                            )
-            self._update_card("WRITE_OV_HOTSTART", self._prepare_path(ov_hotstart_path), True)
-            chan_hotstart_path = os.path.join('hotstart',
+                                                                             hotstart_time_str))
+            self._update_card("WRITE_OV_HOTSTART", ov_hotstart_path, True)
+            chan_hotstart_path = os.path.join('..', 'hotstart',
                                               '{0}_chan_hotstart_{1}'.format(self.project_name, 
-                                                                             hotstart_time_str)
-                                              )
-            self._update_card("WRITE_CHAN_HOTSTART", self._prepare_path(chan_hotstart_path), True)
-            sm_hotstart_path = os.path.join('hotstart',
+                                                                             hotstart_time_str))
+            self._update_card("WRITE_CHAN_HOTSTART", chan_hotstart_path, True)
+            sm_hotstart_path = os.path.join('..', 'hotstart',
                                            '{0}_sm_hotstart_{1}.smh'.format(self.project_name, 
                                                                             hotstart_time_str))
-            self._update_card("WRITE_SM_HOTSTART", self._prepare_path(sm_hotstart_path), True)
+            self._update_card("WRITE_SM_HOTSTART", sm_hotstart_path, True)
         else:
             self._delete_card("WRITE_OV_HOTSTART")
             self._delete_card("WRITE_CHAN_HOTSTART")
@@ -800,19 +814,22 @@ class GSSHAFramework(object):
             hotstart_time_str = self.gssha_simulation_start.strftime("%Y%m%d_%H%M")
             # OVERLAND
             expected_ov_hotstart =  os.path.join('hotstart',
-                                                 '{0}_ov_hotstart_{1}.ovh'.format(self.project_name, hotstart_time_str))
+                                                 '{0}_ov_hotstart_{1}.ovh'.format(self.project_name, 
+                                                                                  hotstart_time_str))
             if os.path.exists(expected_ov_hotstart):
-                self._update_card("READ_OV_HOTSTART", self._prepare_path(expected_ov_hotstart), True)
+                self._update_card("READ_OV_HOTSTART", os.path.join("..", expected_ov_hotstart), True)
             else:
                 self._delete_card("READ_OV_HOTSTART")
-                print("WARNING: READ_OV_HOTSTART not included as {0} does not exist ...".format(expected_ov_hotstart))
+                print("WARNING: READ_OV_HOTSTART not included as "
+                      "{0} does not exist ...".format(expected_ov_hotstart))
 
             # CHANNEL
             expected_chan_hotstart = os.path.join('hotstart',
-                                                  '{0}_chan_hotstart_{1}'.format(self.project_name, hotstart_time_str))
+                                                  '{0}_chan_hotstart_{1}'.format(self.project_name, 
+                                                                                 hotstart_time_str))
             if os.path.exists("{0}.qht".format(expected_chan_hotstart)) \
                     and os.path.exists("{0}.dht".format(expected_chan_hotstart)):
-                self._update_card("READ_CHAN_HOTSTART",  self._prepare_path(expected_chan_hotstart), True)
+                self._update_card("READ_CHAN_HOTSTART", os.path.join("..", expected_chan_hotstart), True)
             else:
                 self._delete_card("READ_CHAN_HOTSTART")
                 print("WARNING: READ_CHAN_HOTSTART not included as "
@@ -820,12 +837,14 @@ class GSSHAFramework(object):
 
             # INFILTRATION
             expected_sm_hotstart = os.path.join('hotstart',
-                                                '{0}_sm_hotstart_{1}.smh'.format(self.project_name, hotstart_time_str))
+                                                '{0}_sm_hotstart_{1}.smh'.format(self.project_name, 
+                                                                                 hotstart_time_str))
             if os.path.exists(expected_sm_hotstart):
-                self._update_card("READ_SM_HOTSTART", self._prepare_path(expected_sm_hotstart), True)
+                self._update_card("READ_SM_HOTSTART", os.path.join("..", expected_sm_hotstart), True)
             else:
                 self._delete_card("READ_SM_HOTSTART")
-                print("WARNING: READ_SM_HOTSTART not included as {} does not exist ...".format(expected_sm_hotstart))
+                print("WARNING: READ_SM_HOTSTART not included as"
+                      " {0} does not exist ...".format(expected_sm_hotstart))
 
         # ----------------------------------------------------------------------
         # Run GSSHA
