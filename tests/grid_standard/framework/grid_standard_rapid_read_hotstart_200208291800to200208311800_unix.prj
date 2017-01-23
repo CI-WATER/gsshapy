@@ -22,7 +22,7 @@ ELEVATION                "../grid_standard.ele"
 DEPTH                    "grid_standard.dep"
 DIFFUSIVE_WAVE
 CHANNEL_INPUT            "../grid_standard.cif"
-STREAM_CELL              ../"grid_standard.gst"
+STREAM_CELL              "../grid_standard.gst"
 OVERTYPE                 ADE
 MAPPING_TABLE            "../grid_standard.cmt"
 ST_MAPPING_TABLE         "../grid_standard.smt"
