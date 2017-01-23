@@ -334,7 +334,7 @@ class GSSHAFramework(object):
                 original_location = file_card.value.strip("'").strip('"')
                 new_location = os.path.join(new_directory,
                                             os.path.basename(original_location))
-                file_card.value = os.path.basename(original_location)
+                file_card.value = '"{0}"'.format(os.path.basename(original_location))
                 try:
                     move(original_location, new_location)
                 except OSError as ex:
