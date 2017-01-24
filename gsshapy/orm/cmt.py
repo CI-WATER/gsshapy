@@ -455,7 +455,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # All lines will be compiled into this list
         lines = []
-
+        values = {}
         for idx in indexes:
             # Retrieve values for the current index
             values = session.query(MTValue). \
