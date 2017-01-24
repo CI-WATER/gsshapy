@@ -66,7 +66,9 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         GsshaPyFileObjectBase.__init__(self)
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
+    def _read(self, directory, filename, session, path, name, extension,
+              spatial=False, spatialReferenceID=4236, replaceParamFile=None,
+              readIndexMaps=True):
         """
         Mapping Table Read from File Method
         """
@@ -120,10 +122,14 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                     # Associate IndexMap with MapTableFile 
                     indexMap.mapTableFile = self
-
-                    # Invoke IndexMap read method
-                    indexMap.read(directory=directory, filename=result['filename'], session=session, spatial=spatial,
-                                  spatialReferenceID=spatialReferenceID)
+                    
+                    if readIndexMaps:
+                        # Invoke IndexMap read method
+                        indexMap.read(directory=directory, filename=result['filename'], session=session, 
+                                      spatial=spatial, spatialReferenceID=spatialReferenceID)
+                    else:
+                        # add path to file
+                        indexMap.filename = result['filename']
 
                 # Map Table handler
                 else:
@@ -135,7 +141,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         # returned from the parser functions
         self._createGsshaPyObjects(mapTables, indexMaps, replaceParamFile, directory, session, spatial, spatialReferenceID)
 
-    def _write(self, session, openFile, replaceParamFile):
+    def _write(self, session, openFile, replaceParamFile=None, writeIndexMaps=True):
         """
         Map Table Write to File Method
         """
@@ -161,9 +167,10 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         for indexMap in indexMaps:
             # Write to map table file
             openFile.write('INDEX_MAP%s"%s" "%s"\n' % (' ' * 16, indexMap.filename, indexMap.name))
-
-            # Initiate index map write
-            indexMap.write(directory, session=session)
+            
+            if writeIndexMaps:
+                # Initiate index map write
+                indexMap.write(directory, session=session)
 
         for mapTable in self.mapTables:
             if mapTable.name == 'SEDIMENTS':

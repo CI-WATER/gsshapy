@@ -197,11 +197,12 @@ class GSSHAFramework(object):
                                   ) + GSSHA_OPTIONAL_OUTPUT_PATH_CARDS
 
 
-    SIMULATION_RUN_GENERATED_INPUT_CARDS = ("HMET_ASCII",
-                                            "HMET_NETCDF",
-                                            "CHAN_POINT_INPUT",
-                                            "PRECIP_FILE",
-                                            )
+    SIMULATION_RUN_MODIFIED_INPUT_CARDS = ("HMET_ASCII",
+                                           "HMET_NETCDF",
+                                           "CHAN_POINT_INPUT",
+                                           "PRECIP_FILE",
+                                           "MAPPING_TABLE",
+                                           )
 
     def __init__(self,
                  gssha_executable,
@@ -675,9 +676,10 @@ class GSSHAFramework(object):
             timestamp_out_dir_name = "run_{0}to{1}".format(self.gssha_simulation_start.strftime("%Y%m%d%H%M"),
                                                            self.gssha_simulation_end.strftime("%Y%m%d%H%M"))
 
-        # make execute directory
+        # make working directory
+        working_directory = os.path.join(self.gssha_directory, timestamp_out_dir_name)
         try:
-            os.mkdir(timestamp_out_dir_name)
+            os.mkdir(working_directory)
         except OSError:
             pass
 
@@ -689,24 +691,39 @@ class GSSHAFramework(object):
         self._update_card_file_location("HMET_NETCDF", timestamp_out_dir_name)
         self._update_card_file_location("HMET_ASCII", timestamp_out_dir_name)
 
-        # connect index maps to main gssha directory
-        self.project_manager._readXput(fileCards={'MAPPING_TABLE': self.project_manager.INPUT_FILES['MAPPING_TABLE']},
-                                       directory=self.gssha_directory,
-                                       session=self.db_session)
-
-        for indexMap in self.project_manager.mapTableFile.indexMaps:
-            indexMap.filename = os.path.join("..", os.path.basename(indexMap.filename))
-
-        self.project_manager._writeXput(session=self.db_session,
-                                        directory=self.gssha_directory,
-                                        fileCards={ 'MAPPING_TABLE': self.project_manager.INPUT_FILES['MAPPING_TABLE']},
-                                        name=self.project_name)
+        mapping_table_card = self.project_manager.getCard('MAPPING_TABLE')
+        if mapping_table_card:
+            # read in mapping table
+            map_table_filepath = mapping_table_card.value.strip('"').strip("'")
+            map_table_filename = os.path.basename(map_table_filepath)
+            map_table_root_name, map_table_extension = os.path.splitext(map_table_filename)
+            
+            map_table_object = self.project_manager.INPUT_FILES['MAPPING_TABLE']()
+            map_table_object.projectFile = self.project_manager
+            map_table_object._read(self.gssha_directory, 
+                                   map_table_filename, 
+                                   self.db_session, 
+                                   map_table_filepath, 
+                                   map_table_root_name, 
+                                   map_table_extension,
+                                   readIndexMaps=False)
+     
+            # connect index maps to main gssha directory
+            for indexMap in map_table_object.indexMaps:
+                indexMap.filename = os.path.join("..", os.path.basename(indexMap.filename))
+                
+            # write copy of mapping table to working directory
+            mapping_table_new_path = os.path.join(working_directory, map_table_filename)
+            with open(mapping_table_new_path, 'w') as mapping_table_open_file:
+                map_table_object._write(session=self.db_session,
+                                        openFile=mapping_table_open_file,
+                                        writeIndexMaps=False)
 
         # connect to other output files in main gssha directory
         for gssha_card in self.project_manager.projectCards:
             if gssha_card.name not in self.GSSHA_REQUIRED_OUTPUT_PATH_CARDS + \
                                         self.GSSHA_OPTIONAL_OUTPUT_PATH_CARDS + \
-                                        self.SIMULATION_RUN_GENERATED_INPUT_CARDS:
+                                        self.SIMULATION_RUN_MODIFIED_INPUT_CARDS:
                 if gssha_card.value:
                     updated_value = gssha_card.value.strip('"').strip("'")
                     if updated_value:
@@ -731,7 +748,6 @@ class GSSHAFramework(object):
         self._update_card("PROJECT_PATH", "", True)
 
         # make execute directory main working directory
-        working_directory = os.path.join(self.gssha_directory, timestamp_out_dir_name)
         os.chdir(working_directory)
 
         # WRITE OUT UPDATED GSSHA PROJECT FILE
