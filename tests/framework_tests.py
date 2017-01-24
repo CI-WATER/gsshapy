@@ -41,7 +41,6 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
         self.path_to_rapid_qout = os.path.join(self.readDirectory, 'framework', 'Qout_nasa_lis_3hr_20020830.nc')
         self.connection_list_file = os.path.join(self.gssha_project_directory, 'rapid_to_gssha_connect.csv')
 
-
     def test_rapid_to_gssha(self):
         '''
         Test RAPID to GSSHA functionality
@@ -67,8 +66,13 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
                                         "grid_standard_rapid_200208291800to200208311800.ihg")
         assert compare_csv_timeseries_files(self._generated_file_path('run_200208291800to200208311800', extension='ihg'), 
                                             compare_igh_file, header=False)
-        #check folder exists
-        assert os.path.exists(os.path.join(self.gssha_project_directory, "run_200208291800to200208311800"))
+        #grid_standard.cmt
+        # 1 file in main directory not modified
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
+                            os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
+        # 2 file in working directory exists
+        assert os.path.exists(self._generated_file_path('run_200208291800to200208311800', extension="cmt"))
+        # 3 TODO: Check to make sure generated correctly
 
     def test_rapid_to_gssha_write_hotstart(self):
         '''
@@ -84,6 +88,9 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
                                 )
         gr.run_forecast()
         
+        #check folders exist
+        assert os.path.exists(os.path.join(self.gssha_project_directory, "hotstart"))
+
         #COMPARE FILES
         #grid_standard.prj
         compare_prj_file = os.path.join(self.readDirectory, 'framework',
@@ -95,9 +102,14 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
         assert compare_csv_timeseries_files(self._generated_file_path('run_200208291800to200208311800', extension='ihg'), 
                                             compare_igh_file, header=False)
 
-        #check folders exist
-        assert os.path.exists(os.path.join(self.gssha_project_directory, "run_200208291800to200208311800"))
-        assert os.path.exists(os.path.join(self.gssha_project_directory, "hotstart"))
+        #grid_standard.cmt
+        # 1 file in main directory not modified
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
+                            os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
+        # 2 file in working directory exists
+        assert os.path.exists(self._generated_file_path('run_200208291800to200208311800', extension="cmt"))
+        # 3 TODO: Check to make sure generated correctly
+        
 
     def test_rapid_to_gssha_read_hotstart(self):
         '''
@@ -124,8 +136,13 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
         assert compare_csv_timeseries_files(self._generated_file_path('run_200208291800to200208311800', extension='ihg'), 
                                             compare_igh_file, header=False)
 
-        #check folders exist
-        assert os.path.exists(os.path.join(self.gssha_project_directory, "run_200208291800to200208311800"))
+        #grid_standard.cmt
+        # 1 file in main directory not modified
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
+                            os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
+        # 2 file in working directory exists
+        assert os.path.exists(self._generated_file_path('run_200208291800to200208311800', extension="cmt"))
+        # 3 TODO: Check to make sure generated correctly
 
     def test_rapid_to_gssha_date_range(self):
         '''
@@ -154,8 +171,13 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
                                         "grid_standard_rapid_200208300000to200208302359.ihg")
         assert compare_csv_timeseries_files(self._generated_file_path('run_200208300000to200208302359', extension='ihg'),
                                             compare_igh_file, header=False)
-        #check folder exists
-        assert os.path.exists(os.path.join(self.gssha_project_directory, "run_200208300000to200208302359"))
+        #grid_standard.cmt
+        # 1 file in main directory not modified
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
+                            os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
+        # 2 file in working directory exists
+        assert os.path.exists(self._generated_file_path('run_200208300000to200208302359', extension="cmt"))
+        # 3 TODO: Check to make sure generated correctly
  
     def test_rapid_to_gssha_date_range_hotstart(self):
         '''
@@ -175,6 +197,9 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
         
         gr.run_forecast()
         
+        #check folder exists
+        assert os.path.exists(os.path.join(self.gssha_project_directory, "hotstart"))
+
         #COMPARE FILES
         #grid_standard.prj
         compare_prj_file = os.path.join(self.readDirectory, 'framework',
@@ -186,10 +211,13 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
         assert compare_csv_timeseries_files(self._generated_file_path('run_200208300000to200208302359', extension='ihg'),
                                             compare_igh_file, header=False)
 
-        #check folder exists
-        assert os.path.exists(os.path.join(self.gssha_project_directory, "run_200208300000to200208302359"))
-        assert os.path.exists(os.path.join(self.gssha_project_directory, "hotstart"))
- 
+        #grid_standard.cmt
+        # 1 file in main directory not modified
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
+                            os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
+        # 2 file in working directory exists
+        assert os.path.exists(self._generated_file_path('run_200208300000to200208302359', extension="cmt"))
+        # 3 TODO: Check to make sure generated correctly
 
     def test_rapid_to_gssha_min_hotstart(self):
         '''
@@ -207,6 +235,9 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
                                 )
         gr.run_forecast()
         
+        #check folder exists
+        assert os.path.exists(os.path.join(self.gssha_project_directory, "hotstart"))
+
         #COMPARE FILES
         #grid_standard.prj
         compare_prj_file = os.path.join(self.readDirectory, 'framework',
@@ -218,8 +249,13 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
         assert compare_csv_timeseries_files(self._generated_file_path('minimal_hotstart_run_200208291800to200208300000', extension='ihg'),
                                             compare_igh_file, header=False)
         
-        #check folder exists
-        assert os.path.exists(os.path.join(self.gssha_project_directory, "hotstart"))
+        #grid_standard.cmt
+        # 1 file in main directory not modified
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
+                            os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
+        # 2 file in working directory exists
+        assert os.path.exists(self._generated_file_path('minimal_hotstart_run_200208291800to200208300000', extension="cmt"))
+        # 3 TODO: Check to make sure generated correctly
 
     def test_wrf_to_gssha(self):
         '''
@@ -227,7 +263,7 @@ class Test_GSSHA_WRF_Framework(unittest.TestCase):
         '''
         #TODO
         return
-
+    
     def _generated_file_path(self, output_directory="", extension="prj"):
         '''
         Returns path to generated file
