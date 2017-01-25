@@ -477,7 +477,9 @@ class GRIDtoGSSHA(object):
         self.south_bound = np.mean(self.proj_lat_list[0])-dy_s_avg/2.0
         self.east_bound = np.mean(self.proj_lon_list[:,-1])+dx_e_avg/2.0
         self.west_bound = np.mean(self.proj_lon_list[:,0])-dx_w_avg/2.0
-        self.cell_size = np.mean([dy_n_avg,dy_s_avg,dx_e_avg,dx_w_avg])
+        self.cell_size_ns = np.mean([dy_n_avg, dy_s_avg])
+        self.cell_size_ew = np.mean([dx_e_avg, dx_w_avg])
+        self.cell_size = np.mean([self.cell_size_ns, self.cell_size_ew])
 
     def _load_sorted_lsm_list_and_time(self):
         """
