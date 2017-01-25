@@ -366,16 +366,17 @@ class GSSHAFramework(object):
             raise Exception("ERROR: #PROJECTION_FILE card not found ...")
 
         # GET CENTROID FROM GSSHA GRID
-        gssha_grid = gdal.Open(gssha_ele_card.value.strip('"').strip("'"))
-        gssha_srs=osr.SpatialReference()
+        self.gssha_grid = gdal.Open(gssha_ele_card.value.strip('"').strip("'"))
+        gssha_srs = osr.SpatialReference()
         with open(gssha_pro_card.value.strip('"').strip("'")) as pro_file:
-            self.gssha_prj_str = pro_file.read()
-            gssha_srs.ImportFromWkt(self.gssha_prj_str)
+            gssha_prj_str = pro_file.read()
+            self.gssha_grid.SetProjection(gssha_prj_str)
+            gssha_srs.ImportFromWkt(gssha_prj_str)
             self.gssha_proj4 = Proj(gssha_srs.ExportToProj4())
 
-        min_x, xres, xskew, max_y, yskew, yres = gssha_grid.GetGeoTransform()
-        max_x = min_x + (gssha_grid.RasterXSize * xres)
-        min_y = max_y + (gssha_grid.RasterYSize * yres)
+        min_x, xres, xskew, max_y, yskew, yres = self.gssha_grid.GetGeoTransform()
+        max_x = min_x + (self.gssha_grid.RasterXSize * xres)
+        min_y = max_y + (self.gssha_grid.RasterYSize * yres)
 
         x_ext, y_ext = transform(self.gssha_proj4,
                                  Proj(init='epsg:4326'),
@@ -697,21 +698,21 @@ class GSSHAFramework(object):
             map_table_filepath = mapping_table_card.value.strip('"').strip("'")
             map_table_filename = os.path.basename(map_table_filepath)
             map_table_root_name, map_table_extension = os.path.splitext(map_table_filename)
-            
+
             map_table_object = self.project_manager.INPUT_FILES['MAPPING_TABLE']()
             map_table_object.projectFile = self.project_manager
-            map_table_object._read(self.gssha_directory, 
-                                   map_table_filename, 
-                                   self.db_session, 
-                                   map_table_filepath, 
-                                   map_table_root_name, 
+            map_table_object._read(self.gssha_directory,
+                                   map_table_filename,
+                                   self.db_session,
+                                   map_table_filepath,
+                                   map_table_root_name,
                                    map_table_extension,
                                    readIndexMaps=False)
-     
+
             # connect index maps to main gssha directory
             for indexMap in map_table_object.indexMaps:
                 indexMap.filename = os.path.join("..", os.path.basename(indexMap.filename))
-                
+
             # write copy of mapping table to working directory
             mapping_table_new_path = os.path.join(working_directory, map_table_filename)
             with open(mapping_table_new_path, 'w') as mapping_table_open_file:
@@ -744,8 +745,8 @@ class GSSHAFramework(object):
                             else:
                                 print("WARNING: {0} {1} not found in project directory ...".format("#INDEXGRID_GUID", updated_path))
 
-        # make sure project path is blank
-        self._update_card("PROJECT_PATH", "", True)
+        # make sure project path is set to main gssha directory for WMS
+        self._update_card("PROJECT_PATH", "..", True)
 
         # make execute directory main working directory
         os.chdir(working_directory)
@@ -776,9 +777,6 @@ class GSSHAFramework(object):
         """
         Updates card & runs for RAPID to GSSHA & LSM to GSSHA
         """
-        # self._update_card("PROJECT_PATH", self.gssha_directory)
-        self._update_card("PROJECT_PATH", "", True)
-
         # ----------------------------------------------------------------------
         # LSM to GSSHA
         # ----------------------------------------------------------------------
