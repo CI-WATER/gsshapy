@@ -684,13 +684,13 @@ class GSSHAFramework(object):
         except OSError:
             pass
 
-        # move simulation generated files to input directory
+        # move simulation generated files to working directory
         # PRECIP_FILE, HMET_NETCDF, HMET_ASCII, CHAN_POINT_INPUT
         # TODO: Move HMET_ASCII files
-        self._update_card_file_location("PRECIP_FILE", timestamp_out_dir_name)
-        self._update_card_file_location("CHAN_POINT_INPUT", timestamp_out_dir_name)
-        self._update_card_file_location("HMET_NETCDF", timestamp_out_dir_name)
-        self._update_card_file_location("HMET_ASCII", timestamp_out_dir_name)
+        self._update_card_file_location("PRECIP_FILE", working_directory)
+        self._update_card_file_location("CHAN_POINT_INPUT", working_directory)
+        self._update_card_file_location("HMET_NETCDF", working_directory)
+        self._update_card_file_location("HMET_ASCII", working_directory)
 
         mapping_table_card = self.project_manager.getCard('MAPPING_TABLE')
         if mapping_table_card:
@@ -746,7 +746,7 @@ class GSSHAFramework(object):
                                 print("WARNING: {0} {1} not found in project directory ...".format("#INDEXGRID_GUID", updated_path))
 
         # make sure project path is set to main gssha directory for WMS
-        self._update_card("PROJECT_PATH", "..", True)
+        self._update_card("PROJECT_PATH", ".." + os.path.sep, True)
 
         # make execute directory main working directory
         os.chdir(working_directory)
