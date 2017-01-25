@@ -1,7 +1,7 @@
 GSSHAPROJECT
 WMS WMS 10.1.10 (64-bit)
 WATERSHED_MASK           "..\grid_standard.msk"
-PROJECT_PATH             ""
+PROJECT_PATH             ".."
 #PROJECTION_FILE         "..\grid_standard_prj.pro"
 NON_ORTHO_CHANNELS
 FLINE                    "..\grid_standard.map"
@@ -39,4 +39,4 @@ GMT                      -7.0
 WRITE_OV_HOTSTART        "..\hotstart\grid_standard_ov_hotstart_20020830_0000.ovh"
 WRITE_CHAN_HOTSTART      "..\hotstart\grid_standard_chan_hotstart_20020830_0000"
 WRITE_SM_HOTSTART        "..\hotstart\grid_standard_sm_hotstart_20020830_0000.smh"
-SUPER_QUIET              
+SUPER_QUIET
