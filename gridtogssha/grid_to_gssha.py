@@ -271,7 +271,7 @@ class GRIDtoGSSHA(object):
                                                                 },
                                           'conversion_function' : {
                                                                     'ascii' : lambda temp_farenheight: temp_farenheight,
-                                                                    'netcdf' : lambda temp_farenheight: temp_farenheight * 5.0/9.0 - 32,
+                                                                    'netcdf' : lambda temp_farenheight: (temp_farenheight - 32) * 5.0/9.0,
                                                                 },
                                         },
                                     'direct_radiation' :

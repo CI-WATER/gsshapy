@@ -1,0 +1,16 @@
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082322
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082323
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082400
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082401
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082402
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082403
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082404
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082405
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082406
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082407
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082408
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082409
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082410
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082411
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082412
+C:\Users\RDCHLADS\Documents\scripts\gsshapy\tests\out\wrf_hmet_data\2016082413
