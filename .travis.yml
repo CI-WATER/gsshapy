@@ -13,13 +13,12 @@ os:
   - osx
 env:
   - TRAVIS_PYTHON_VERSION="2.7"
-#DON'T BUILD PYTHON 3 Until Mapkit updated to Python 3
-#  - TRAVIS_PYTHON_VERSION="3.5"
+  - TRAVIS_PYTHON_VERSION="3.5"
 matrix:
   fast_finish: true
   allow_failures:
     - os: osx
-#    - env: TRAVIS_PYTHON_VERSION="3.5"
+    - env: TRAVIS_PYTHON_VERSION="3.5"
 notifications:
   email: false
 
@@ -30,10 +29,10 @@ before_install:
 #-------------------------------------------------------------------------------
 #Add miniconda - from https://gist.github.com/dan-blanchard/7045057
 #-----------------------------------------------------------------------------
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then 
-    wget -O miniconda.sh http://repo.continuum.io/miniconda/Miniconda${TRAVIS_PYTHON_VERSION:0:1}-latest-Linux-x86_64.sh; 
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+    wget -O miniconda.sh http://repo.continuum.io/miniconda/Miniconda${TRAVIS_PYTHON_VERSION:0:1}-latest-Linux-x86_64.sh;
   fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     curl -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda${TRAVIS_PYTHON_VERSION:0:1}-latest-MacOSX-x86_64.sh;
   fi
 - chmod +x miniconda.sh
@@ -75,9 +74,8 @@ install:
 #Testing GSSHApy
 #-------------------------------------------------------------------------------
 - cd $TRAVIS_BUILD_DIR/tests
-script: 
+script:
 - nosetests --with-coverage --cover-package=gsshapy,gridtogssha
 ##ADD Coveralls stats for code coverage
 after_success:
   - coveralls
-
