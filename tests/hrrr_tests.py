@@ -80,8 +80,6 @@ class TestHRRRtoGSSHA(TestGridTemplate):
         '''
         Test HRRR lsm_precip_to_gssha_precip_gage write method
         '''
-        os.chdir(self.gssha_project_folder)
-
         if os.name != "nt":
             out_gage_file = os.path.join(self.writeDirectory,
                                          'gage_test_hrrr.gag')
@@ -90,14 +88,13 @@ class TestHRRRtoGSSHA(TestGridTemplate):
                                                      precip_type='RADAR')
 
             # Test
-            self._compare_files('gage_test_hrrr', 'gage_test_hrrr', 'gag')
+            compare_gag_file = os.path.join(self.readDirectory, 'gage_test_hrrr.gag')
+            self._compare_files(out_gage_file, compare_gag_file)
 
     def test_hrrr_netcdf_file_write(self):
         '''
         Test HRRR lsm_data_to_subset_netcdf write method
         '''
-        os.chdir(self.gssha_project_folder)
-
         if os.name != "nt":
             netcdf_file_path = os.path.join(self.writeDirectory,
                                             'gssha_dynamic_hrrr.nc')
@@ -112,15 +109,15 @@ class TestHRRRtoGSSHA(TestGridTemplate):
         '''
         Test HRRR lsm_data_to_arc_ascii write method
         '''
-        os.chdir(self.gssha_project_folder)
-
         if os.name != "nt":
             self.h2g.lsm_data_to_arc_ascii(self.data_var_map_array,
                                            self.hmet_write_directory)
 
             # Compare all files
-            self._compare_directories("hrrr_hmet_data",
-                                      "hrrr_hmet_data",
+            compare_directory = os.path.join(self.readDirectory,
+                                             "hrrr_hmet_data")
+            self._compare_directories(compare_directory,
+                                      self.hmet_write_directory,
                                       ignore_file="hmet_file_list.txt",
                                       raster=True)
 

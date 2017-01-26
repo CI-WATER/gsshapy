@@ -196,7 +196,6 @@ class GSSHAFramework(object):
                                   "OPTIMIZE", "OPTIMIZE_SED",
                                   ) + GSSHA_OPTIONAL_OUTPUT_PATH_CARDS
 
-
     SIMULATION_RUN_MODIFIED_INPUT_CARDS = ("HMET_ASCII",
                                            "HMET_NETCDF",
                                            "CHAN_POINT_INPUT",
@@ -566,8 +565,6 @@ class GSSHAFramework(object):
 
             # PRECIPITATION CARDS
             out_gage_file = '{0}.gag'.format(self.project_name)
-            if self.hotstart_minimal_mode:
-                out_gage_file = '{0}_hotstart.gag'.format(self.project_name)
             l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
                                                 lsm_data_var=self.lsm_precip_data_var,
                                                 precip_type=self.lsm_precip_type)
@@ -671,7 +668,7 @@ class GSSHAFramework(object):
             self._update_card('SUPER_QUIET', '')
             # give execute folder name
             timestamp_out_dir_name = "minimal_hotstart_run_{0}to{1}".format(self.gssha_simulation_start.strftime("%Y%m%d%H%M"),
-                                                                        self.gssha_simulation_end.strftime("%Y%m%d%H%M"))
+                                                                            self.gssha_simulation_end.strftime("%Y%m%d%H%M"))
         else:
             # give execute folder name
             timestamp_out_dir_name = "run_{0}to{1}".format(self.gssha_simulation_start.strftime("%Y%m%d%H%M"),
@@ -829,8 +826,8 @@ class GSSHAFramework(object):
         if self.read_hotstart:
             hotstart_time_str = self.gssha_simulation_start.strftime("%Y%m%d_%H%M")
             # OVERLAND
-            expected_ov_hotstart =  os.path.join('hotstart',
-                                                 '{0}_ov_hotstart_{1}.ovh'.format(self.project_name,
+            expected_ov_hotstart = os.path.join('hotstart',
+                                                '{0}_ov_hotstart_{1}.ovh'.format(self.project_name,
                                                                                   hotstart_time_str))
             if os.path.exists(expected_ov_hotstart):
                 self._update_card("READ_OV_HOTSTART", os.path.join("..", expected_ov_hotstart), True)

@@ -81,22 +81,19 @@ class TestLSMtoGSSHA(TestGridTemplate):
         '''
         Test WRF lsm_precip_to_gssha_precip_gage write method
         '''
-        os.chdir(self.gssha_project_folder)
-
         out_gage_file = os.path.join(self.writeDirectory, 'gage_test_wrf.gag')
         self.l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
                                                  lsm_data_var=['RAINC', 'RAINNC'],
                                                  precip_type='ACCUM')
 
         # Test
-        self._compare_files('gage_test_wrf', 'gage_test_wrf', 'gag')
+        compare_gag_file = os.path.join(self.readDirectory, 'gage_test_wrf.gag')
+        self._compare_files(out_gage_file, compare_gag_file)
 
     def test_wrf_netcdf_file_write(self):
         '''
         Test WRF lsm_data_to_subset_netcdf write method
         '''
-        os.chdir(self.gssha_project_folder)
-
         netcdf_file_path = os.path.join(self.writeDirectory,
                                         'gssha_dynamic_wrf.nc')
         self.l2g.lsm_data_to_subset_netcdf(netcdf_file_path,
@@ -109,14 +106,13 @@ class TestLSMtoGSSHA(TestGridTemplate):
         '''
         Test WRF lsm_data_to_arc_ascii write method
         '''
-        os.chdir(self.gssha_project_folder)
-
         self.l2g.lsm_data_to_arc_ascii(self.data_var_map_array,
                                        self.hmet_write_directory)
 
         # Compare all files
-        self._compare_directories("wrf_hmet_data",
-                                  "wrf_hmet_data",
+        compare_directory = os.path.join(self.readDirectory, "wrf_hmet_data")
+        self._compare_directories(self.hmet_write_directory,
+                                  compare_directory,
                                   ignore_file="hmet_file_list.txt",
                                   raster=True)
 

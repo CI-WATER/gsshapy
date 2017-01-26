@@ -56,18 +56,13 @@ class TestGridTemplate(unittest.TestCase):
         dO.close()
         dN.close()
 
-
-    def _compare_files(self, original, new, ext, raster=False):
+    def _compare_files(self, original, new, raster=False):
         '''
         Compare the contents of two files
         '''
-        filenameO = '%s.%s' % (original, ext)
-        filePathO = os.path.join(self.readDirectory, filenameO)
-        filenameN = '%s.%s' % (new, ext)
-        filePathN = os.path.join(self.writeDirectory, filenameN)
         if raster:
-            dsO = gdal.Open(filePathO)
-            dsN = gdal.Open(filePathN)
+            dsO = gdal.Open(original)
+            dsN = gdal.Open(new)
 
             # compare data
             rO = array(dsO.ReadAsArray())
@@ -77,11 +72,11 @@ class TestGridTemplate(unittest.TestCase):
             # compare geotransform
             assert dsO.GetGeoTransform() == dsN.GetGeoTransform()
         else:
-            with open(filePathO) as fileO:
+            with open(original) as fileO:
                 contentsO = fileO.read()
                 linesO = contentsO.strip().split()
 
-            with open(filePathN) as fileN:
+            with open(new) as fileN:
                 contentsN = fileN.read()
                 linesN = contentsN.strip().split()
             self.assertEqual(linesO, linesN)
@@ -90,20 +85,21 @@ class TestGridTemplate(unittest.TestCase):
         '''
         Compare the contents of the files of two directories
         '''
-        fileList2 = os.listdir(os.path.join(self.readDirectory, dir2))
 
-        for afile in fileList2:
+        for afile in os.listdir(dir2):
             if not os.path.basename(afile).startswith(".")\
-               and not afile==ignore_file:
-                name = afile.split('.')[0]
-                ext = afile.split('.')[1]
+               and not afile == ignore_file:
 
                 # Compare files with same name
-                self._compare_files(os.path.join(dir1, name),
-                                    os.path.join(dir2, name),
-                                    ext,
-                                    raster=raster)
-
+                try:
+                    self._compare_files(os.path.join(dir1, afile),
+                                        os.path.join(dir2, afile),
+                                        raster=raster)
+                except AssertionError:
+                    print(os.path.join(dir1, afile))
+                    print(os.path.join(dir2, afile))
+                    raise
+                    
     def _list_compare(self, listone, listtwo):
         for one, two in itertools.izip(listone, listtwo):
             self.assertEqual(one, two)
