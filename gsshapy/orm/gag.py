@@ -129,7 +129,7 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                     # Retreive a list of sorted keys. This assumes the values are
                     # read into the database in order
-                    keys = sorted(row)
+                    keys = sorted([key for key in row if key != 'DateTime' and key != 'ValueType'])
 
                     # String all of the values together into valString
                     for key in keys:

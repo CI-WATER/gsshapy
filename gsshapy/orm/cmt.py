@@ -155,9 +155,10 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             if mapTable.name == 'CONTAMINANT_TRANSPORT':
                 contaminantList = []
                 for mtValue in mapTable.values:
-                    contaminantList.append(mtValue.contaminant)
+                    if mtValue.contaminant not in contaminantList:
+                        contaminantList.append(mtValue.contaminant)
 
-                contaminants = sorted(set(contaminantList), key=lambda x: (x.indexMap.name, x.name))
+                contaminants = sorted(contaminantList, key=lambda x: (x.indexMap.name, x.name))
 
         # Derive a set of unique MTIndexMap objects
         indexMaps = self.indexMaps
