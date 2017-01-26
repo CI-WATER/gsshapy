@@ -8,6 +8,8 @@
 ********************************************************************************
 '''
 
+from future.utils import iteritems
+
 from . import parsetools as pt
 
 def connectChunk(key, chunk):
@@ -56,7 +58,7 @@ def slinkChunk(key, lines):
     chunks = pt.chunk(KEYWORDS, lines)
 
     # Parse chunks associated with each key
-    for card, chunkList in chunks.iteritems():
+    for card, chunkList in iteritems(chunks):
         # Parse each chunk in the chunk list
         for chunk in chunkList:
             schunk = chunk[0].strip().split()

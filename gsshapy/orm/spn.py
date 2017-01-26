@@ -15,6 +15,7 @@ __all__ = ['StormPipeNetworkFile',
            'SuperJunction',
            'Connection']
 
+from future.utils import iteritems
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
@@ -80,8 +81,8 @@ class StormPipeNetworkFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(path, 'r') as f:
             chunks = pt.chunk(KEYWORDS, f)
 
-        # Parse chunks associated with each key    
-        for key, chunkList in chunks.iteritems():
+        # Parse chunks associated with each key
+        for key, chunkList in iteritems(chunks):
             # Parse each chunk in the chunk list
             for chunk in chunkList:
                 # Call chunk specific parsers for each chunk

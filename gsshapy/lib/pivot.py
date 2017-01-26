@@ -3,7 +3,7 @@
 * Name: pivot
 * Author: S W
 * Created On: Nov 7, 2004
-* Copyright: 
+* Copyright:
 * License: PSF License
 ********************************************************************************
 NOTE: This script was found at code.activestate.com/recipes/334695
@@ -77,7 +77,7 @@ def pivot(table, left, top, value):
     headings.extend(xsort)
 
     t = []
-    
+
     """
     The lists 'sortedkeys' and 'sortedvalues' make sure that
      even if the field 'top' is unordered, data will be transposed correctly.
@@ -86,12 +86,11 @@ def pivot(table, left, top, value):
 
     for left in ysort:
         row = list(left)
-        sortedkeys = rs[left].keys()
-        sortedkeys.sort()
+        sortedkeys = sorted(rs[left].keys())
         sortedvalues = map(rs[left].get, sortedkeys)
         row.extend(sortedvalues)
         t.append(dict(zip(headings,row)))
-        
+
     return t
 
 

@@ -102,7 +102,7 @@ class TestReadMethods(unittest.TestCase):
             self.assertEqual(resR, resQ)
 
             # Check Reservoir Points
-            if resR != None and resQ != None:
+            if resR is not None and resQ is not None:
                 resPointsR = resR.reservoirPoints
                 resPointsQ = resQ.reservoirPoints
                 self._list_compare(resPointsR, resPointsQ)
@@ -120,7 +120,7 @@ class TestReadMethods(unittest.TestCase):
             self.assertEqual(breakR, breakQ)
 
             # Check Break Points
-            if breakR != None and breakQ != None:
+            if breakR is not None and breakQ is not None:
                 bpR = breakR.breakpoints
                 bpQ = breakQ.breakpoints
 
@@ -155,7 +155,7 @@ class TestReadMethods(unittest.TestCase):
             sedsR = mapTableR.sediments
             sedsQ = mapTableQ.sediments
 
-            if sedsR != None and sedsQ != None:
+            if sedsR is not None and sedsQ is not None:
                 self._list_compare(sedsR, sedsQ)
 
             # Check Values
@@ -170,7 +170,7 @@ class TestReadMethods(unittest.TestCase):
                 contamQ = valR.contaminant
 
 
-                if contamR != None and contamQ != None:
+                if contamR is not None and contamQ is not None:
                     self.assertEqual(contamR, contamQ)
 
                 # Check Index
