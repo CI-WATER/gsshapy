@@ -1,3 +1,3 @@
-prune docs/schema
-prune gsshapy/develop
+prune docs/
+prune tests/
 include *.txt
