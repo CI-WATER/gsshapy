@@ -7,8 +7,9 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
+from future.utils import iteritems
 
-import parsetools as pt
+from . import parsetools as pt
 
 def datasetHeaderChunk(key, lines):
     """
@@ -36,7 +37,7 @@ def datasetHeaderChunk(key, lines):
 
     chunks = pt.chunk(KEYWORDS, lines)
 
-    for key, chunkList in chunks.iteritems():
+    for key, chunkList in iteritems(chunks):
 
         for chunk in chunkList:
             schunk = pt.splitLine(chunk[0])

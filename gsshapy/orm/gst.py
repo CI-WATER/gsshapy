@@ -14,6 +14,7 @@ __all__ = ['GridStreamFile',
            'GridStreamCell',
            'GridStreamNode']
 
+from future.utils import iteritems
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
@@ -70,8 +71,8 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(path, 'r') as f:
             chunks = pt.chunk(KEYWORDS, f)
 
-        # Parse chunks associated with each key    
-        for key, chunkList in chunks.iteritems():
+        # Parse chunks associated with each key
+        for key, chunkList in iteritems(chunks):
             # Parse each chunk in the chunk list
             for chunk in chunkList:
 
@@ -144,8 +145,8 @@ class GridStreamFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         chunks = pt.chunk(KEYWORDS, lines)
 
-        # Parse chunks associated with each key    
-        for card, chunkList in chunks.iteritems():
+        # Parse chunks associated with each key
+        for card, chunkList in iteritems(chunks):
             # Parse each chunk in the chunk list
             for chunk in chunkList:
                 schunk = chunk[0].strip().split()

@@ -13,6 +13,7 @@ __all__ = ['PrecipFile',
            'PrecipValue',
            'PrecipGage']
 
+from future.utils import iteritems
 from sqlalchemy import ForeignKey, Column, Table
 from sqlalchemy.types import Integer, DateTime, String, Float
 from sqlalchemy.orm import relationship
@@ -71,8 +72,8 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(path, 'r') as f:
             chunks = pt.chunk(KEYWORDS, f)
 
-        # Parse chunks associated with each key    
-        for key, chunkList in chunks.iteritems():
+        # Parse chunks associated with each key
+        for key, chunkList in iteritems(chunks):
             # Parse each chunk in the chunk list
             for chunk in chunkList:
                 result = gak.eventChunk(key, chunk)
@@ -109,7 +110,7 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # code.activestate.com/recipes/334695
                 pivotedValues = pivot.pivot(valList, ('DateTime', 'ValueType'), ('Gage',), 'Value')
 
-                ## TODO: Create custom pivot function that can work with sqlalchemy 
+                ## TODO: Create custom pivot function that can work with sqlalchemy
                 ## objects explicitly without the costly conversion.
 
                 # Create an empty set for obtaining a list of unique gages
@@ -126,7 +127,7 @@ class PrecipFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Extract the PrecipValues
                     valString = ''
 
-                    # Retreive a list of sorted keys. This assumes the values are 
+                    # Retreive a list of sorted keys. This assumes the values are
                     # read into the database in order
                     keys = sorted(row)
 

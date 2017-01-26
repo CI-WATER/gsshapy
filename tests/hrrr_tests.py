@@ -10,7 +10,7 @@ import unittest
 import os
 from shutil import copytree
 
-from template import TestGridTemplate
+from .template import TestGridTemplate
 from gridtogssha import HRRRtoGSSHA
 ###### ----------
 ### HRRR INPUT

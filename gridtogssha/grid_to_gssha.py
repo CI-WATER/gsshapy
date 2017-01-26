@@ -885,7 +885,7 @@ class GRIDtoGSSHA(object):
                 for hourly_index, hour_time in enumerate(self.hourly_time_array):
                     date_str = self._time_to_string(hour_time, "%Y%m%d%H")
                     ascii_file_path = path.join(main_output_folder,"{0}_{1}.asc".format(date_str, gssha_data_hmet_name))
-                    with open(ascii_file_path, 'wb') as out_ascii_grid:
+                    with open(ascii_file_path, 'w') as out_ascii_grid:
                         out_ascii_grid.write(header_string)
                         grid_writer = csv_writer(out_ascii_grid,
                                                  delimiter=" ",
@@ -906,10 +906,10 @@ class GRIDtoGSSHA(object):
         """
         #PART 1: HEADER
         #get data extremes
-        header_string = "north: {0}\n".format(self.north_bound)
-        header_string += "south: {0}\n".format(self.south_bound)
-        header_string += "east: {0}\n".format(self.east_bound)
-        header_string += "west: {0}\n".format(self.west_bound)
+        header_string = u"north: {0:.9f}\n".format(self.north_bound)
+        header_string += "south: {0:.9f}\n".format(self.south_bound)
+        header_string += "east: {0:.9f}\n".format(self.east_bound)
+        header_string += "west: {0:.9f}\n".format(self.west_bound)
         header_string += "rows: {0}\n".format(len(self.lsm_lat_indices))
         header_string += "cols: {0}\n".format(len(self.lsm_lon_indices))
         header_string += "NODATA_value -9999\n"
@@ -998,7 +998,7 @@ class GRIDtoGSSHA(object):
         """
         #PART 1: HEADER
         #get data extremes
-        header_string = "ncols {0}\n".format(len(self.lsm_lon_indices))
+        header_string = u"ncols {0}\n".format(len(self.lsm_lon_indices))
         header_string += "nrows {0}\n".format(len(self.lsm_lat_indices))
         header_string += "xllcorner {0}\n".format(self.west_bound)
         header_string += "yllcorner {0}\n".format(self.south_bound)

@@ -10,21 +10,21 @@
 
 import shlex
 #local
-import parsetools as pt
+from . import parsetools as pt
 
 def indexMapChunk(key, chunk):
     # Create return/result object
     result = {'idxName': None,
               'filename': None}
-    
+
     # Extract info
     for line in chunk:
         sline = pt.splitLine(line)
         result['idxName'] = sline[2]
         result['filename'] = pt.relativePath(sline[1])
-        
+
     return result
-    
+
 def mapTableChunk(key, chunk):
     # Global variables
     numVars = {'NUM_IDS': None,
@@ -37,37 +37,37 @@ def mapTableChunk(key, chunk):
     # Extract MapTable Name and Index Map Name
     mtName = shlex.split(chunk[0])[0]
     idxName = shlex.split(chunk[0])[1]
-    
-    # Check if the mapping table is valid via the 
-    # index map name. If now index map name, stop 
+
+    # Check if the mapping table is valid via the
+    # index map name. If now index map name, stop
     # processing.
     if idxName == '':
         print(('INFO: No index map assigned to %s table. The table will '
                'not be read into the database.') % mtName)
         # No need to process if the index map is empty
         return None
-    
+
     # Parse the chunk into a datastructure
     for line in chunk:
         sline = line.strip().split()
         token = sline[0]
         valDict = {}
-        
+
         if token == key:
             '''
             DO NOTHING: The map table name and index map name
             has already been extracted above.
-            '''        
+            '''
         elif token in numVars:
             # Extract NUM type variables
             numVars[sline[0]] = sline[1]
-        
+
         elif token == 'ID':
             varList = _buildVarList(sline=sline, mapTableName=mtName, numVars=numVars)
         else:
             valDict = _extractValues(line)
             valueList.append(valDict)
-    
+
     # Create return/result object
     result = {'name': mtName,
               'indexMapName': idxName,
@@ -77,7 +77,7 @@ def mapTableChunk(key, chunk):
               'contaminants': None}
 
     return result
-    
+
 def contamChunk(key, chunk):
     # Global variables
     contamList = []
@@ -86,40 +86,40 @@ def contamChunk(key, chunk):
                'MAX_NUMBER_CELLS': None,
                'NUM_SED': None,
                'NUM_CONTAM': None}
-    
+
     # Extract the number of contaminants
     numVars['NUM_CONTAM'] = int(chunk[1].strip().split()[1])
-    
+
     # Check if there are any contaminants. No need
     # to process further if there are 0.
     if numVars['NUM_CONTAM'] == 0:
         print('INFO: No contaminants found in the CONTAMINANT_TRANSPORT TABLE (NUM_CONTAM = 0).'
               'This table will not be read into the database.')
         return None
-    
+
     # Parse the chunk into a data structure
     for line in chunk:
         sline = line.strip().split()
         token = sline[0]
-        
-        
+
+
         if token == key:
             mtName = sline[0]
-        
+
         elif token == 'NUM_CONTAM':
             '''DO NOTHING'''
-        
+
         elif '\"' in token:
             # Append currContam to contamList and extract
             # data from the current line.
-            
+
             # Initialize new contaminant dictionary and variables
             currContam = dict()
             valueList = []
             contamVars = {'NUM_IDS': None,
                           'PRECIP_CONC': None,
                           'PARTITION': None}
-            
+
             # Extract contam info and add variables to dictionary
             currContam['name'] = sline[0].strip('\"')
             currContam['indexMapName'] = sline[1].strip('\"')
@@ -127,21 +127,21 @@ def contamChunk(key, chunk):
             currContam['valueList'] = valueList
 
             contamList.append(currContam)
-            
+
         elif token in contamVars:
             # Extract NUM type variables
             contamVars[token] = sline[1]
-        
+
         elif token == 'ID':
             currContam['contamVars'] = contamVars
             varList = _buildVarList(sline=sline, mapTableName=mtName, numVars=numVars)
-            
+
             currContam['varList'] = varList
-            
+
         else:
             valDict = _extractValues(line)
             valueList.append(valDict)
-     
+
     # Create return/result object
     result = {'name': mtName,
               'indexMapName': None,
@@ -149,9 +149,9 @@ def contamChunk(key, chunk):
               'varList': None,
               'valueList': None,
               'contaminants': contamList}
-        
+
     return result
-    
+
 def sedimentChunk(key, chunk):
     # Global Variables
     valueList = []
@@ -159,11 +159,11 @@ def sedimentChunk(key, chunk):
                'MAX_NUMBER_CELLS': None,
                'NUM_SED': None,
                'NUM_CONTAM': None}
-    
+
     for line in chunk:
         sline = line.strip().split()
         token = sline[0]
-        
+
         if token == key:
             mtName = sline[0]
         elif token == 'NUM_SED':
@@ -175,13 +175,13 @@ def sedimentChunk(key, chunk):
             else:
                 # This is the test for an empty
                 # SEDIMENTS table
-                numVars['NUM_SED'] = int(sline[1]) 
-                
+                numVars['NUM_SED'] = int(sline[1])
+
         elif token == 'Sediment':
             '''DO NOTHING'''
         else:
             valueList.append(sline)
-                    
+
     # Create return/result object
     result = {'name': mtName,
               'indexMapName': None,
@@ -189,16 +189,16 @@ def sedimentChunk(key, chunk):
               'varList': None,
               'valueList': valueList,
               'contaminants': None}
-    
+
     return result
 
 def _buildVarList(sline, mapTableName, numVars):
     # Global constant
     IGNORE = ['ID', 'DESCRIPTION1', 'DESCRIPTION2']
     SOIL_EROSION = ['SPLASH_COEF', 'DETACH_COEF', 'DETACH_EXP', 'DETACH_CRIT', 'SED_COEF']
-    
+
     varList = []
-    # Extract variable names from the header line which 
+    # Extract variable names from the header line which
     # begins with the 'ID' token.
     if mapTableName =='SOIL_EROSION_PROPS':
         if numVars['NUM_SED']:
@@ -211,7 +211,7 @@ def _buildVarList(sline, mapTableName, numVars):
         for item in sline:
             if item not in IGNORE:
                 varList.append(item)
-    
+
     return varList
 
 def _extractValues(line):

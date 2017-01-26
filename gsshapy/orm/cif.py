@@ -22,6 +22,7 @@ __all__ = ['ChannelInputFile',
            'Breakpoint',
            'TrapezoidalCS']
 
+from future.utils import iteritems
 import xml.etree.ElementTree as ET
 import json
 
@@ -404,8 +405,8 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(path, 'r') as f:
             chunks = pt.chunk(KEYWORDS, f)
 
-        # Parse chunks associated with each key    
-        for key, chunkList in chunks.iteritems():
+        # Parse chunks associated with each key
+        for key, chunkList in iteritems(chunks):
             # Parse each chunk in the chunk list
             for chunk in chunkList:
                 # Call chunk specific parsers for each chunk

@@ -15,6 +15,7 @@ __all__ = ['LinkNodeDatasetFile',
 
 import xml.etree.ElementTree as ET
 from datetime import timedelta, datetime
+from future.utils import iteritems
 
 from sqlalchemy import Column, ForeignKey, func
 from sqlalchemy.types import Integer, String, Float
@@ -367,8 +368,8 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             self.name = f.readline().strip()
             chunks = pt.chunk(KEYWORDS, f)
 
-        # Parse chunks associated with each key    
-        for card, chunkList in chunks.iteritems():
+        # Parse chunks associated with each key
+        for card, chunkList in iteritems(chunks):
             # Parse each chunk in the chunk list
             for chunk in chunkList:
                 schunk = chunk[0].strip().split()
@@ -487,7 +488,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # Write new line character after each link dataset
                 openFile.write('\n')
 
-            # Insert empty line between time steps 
+            # Insert empty line between time steps
             openFile.write('\n')
 
 

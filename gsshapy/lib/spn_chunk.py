@@ -8,26 +8,26 @@
 ********************************************************************************
 '''
 
-import parsetools as pt
+from . import parsetools as pt
 
 def connectChunk(key, chunk):
     '''
     Parse Storm Pipe CONNECT Chunk Method
     '''
     schunk = chunk[0].strip().split()
-    
+
     result = {'slinkNumber': schunk[1],
               'upSjunc': schunk[2],
               'downSjunc': schunk[3]}
 
     return result
-    
+
 def sjuncChunk(key, chunk):
     '''
     Parse Super Junction (SJUNC) Chunk Method
     '''
     schunk = chunk[0].strip().split()
-    
+
     result = {'sjuncNumber': schunk[1],
               'groundSurfaceElev': schunk[2],
               'invertElev': schunk[3],
@@ -39,7 +39,7 @@ def sjuncChunk(key, chunk):
               'orificeDiameter': schunk[9]}
 
     return result
-    
+
 def slinkChunk(key, lines):
     '''
     Parse Super Link (SLINK) Chunk Method
@@ -47,26 +47,26 @@ def slinkChunk(key, lines):
     KEYWORDS = ('SLINK',
                 'NODE',
                 'PIPE')
-    
+
     result = {'slinkNumber':None,
               'numPipes':None,
               'nodes':[],
               'pipes':[]}
-    
+
     chunks = pt.chunk(KEYWORDS, lines)
-    
-    # Parse chunks associated with each key    
+
+    # Parse chunks associated with each key
     for card, chunkList in chunks.iteritems():
         # Parse each chunk in the chunk list
         for chunk in chunkList:
             schunk = chunk[0].strip().split()
-            
+
             # Cases
             if card == 'SLINK':
                 # SLINK handler
                 result['slinkNumber'] = schunk[1]
                 result['numPipes'] = schunk[2]
-                
+
             elif card == 'NODE':
                 # NODE handler
                 node = {'nodeNumber': schunk[1],
@@ -78,9 +78,9 @@ def slinkChunk(key, lines):
                         'cellJ': schunk[7],
                         'weirSideLength': schunk[8],
                         'orificeDiameter': schunk[9]}
-                
+
                 result['nodes'].append(node)
-            
+
             elif card == 'PIPE':
                 # PIPE handler
                 pipe = {'pipeNumber': schunk[1],
@@ -92,9 +92,7 @@ def slinkChunk(key, lines):
                         'length': schunk[7],
                         'conductance': schunk[8],
                         'drainSpacing': schunk[9]}
-                
+
                 result['pipes'].append(pipe)
-            
+
     return result
-    
-    

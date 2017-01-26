@@ -11,7 +11,7 @@ import os
 import unittest
 from shutil import copytree
 
-from template import TestGridTemplate
+from .template import TestGridTemplate
 from gridtogssha.framework import GSSHA_WRF_Framework
 from RAPIDpy.helper_functions import compare_csv_timeseries_files
 

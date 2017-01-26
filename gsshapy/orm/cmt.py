@@ -16,6 +16,7 @@ __all__ = ['MapTableFile',
            'MTSediment']
 import os
 
+from future.utils import iteritems
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
@@ -24,7 +25,8 @@ from . import DeclarativeBase
 from .lnd import LinkNodeDatasetFile
 from ..base.file_base import GsshaPyFileObjectBase
 from .idx import IndexMap
-from ..lib import parsetools as pt, cmt_chunk as mtc
+from ..lib import parsetools as pt
+from ..lib import cmt_chunk as mtc
 from ..lib.parsetools import valueReadPreprocessor as vrp, valueWritePreprocessor as vwp
 
 
@@ -104,8 +106,8 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(path, 'r') as f:
             chunks = pt.chunk(KEYWORDS, f)
 
-        # Parse chunks associated with each key    
-        for key, chunkList in chunks.iteritems():
+        # Parse chunks associated with each key
+        for key, chunkList in iteritems(chunks):
             # Parse each chunk in the chunk list
             for chunk in chunkList:
                 # Call chunk specific parsers for each chunk
@@ -120,12 +122,12 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Dictionary used to map index maps to mapping tables
                     indexMaps[result['idxName']] = indexMap
 
-                    # Associate IndexMap with MapTableFile 
+                    # Associate IndexMap with MapTableFile
                     indexMap.mapTableFile = self
-                    
+
                     if readIndexMaps:
                         # Invoke IndexMap read method
-                        indexMap.read(directory=directory, filename=result['filename'], session=session, 
+                        indexMap.read(directory=directory, filename=result['filename'], session=session,
                                       spatial=spatial, spatialReferenceID=spatialReferenceID)
                     else:
                         # add path to file
@@ -137,7 +139,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     if result:
                         mapTables.append(result)
 
-        # Create GSSHAPY ORM objects with the resulting objects that are 
+        # Create GSSHAPY ORM objects with the resulting objects that are
         # returned from the parser functions
         self._createGsshaPyObjects(mapTables, indexMaps, replaceParamFile, directory, session, spatial, spatialReferenceID)
 
@@ -157,7 +159,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 contaminants = sorted(set(contaminantList), key=lambda x: (x.indexMap.name, x.name))
 
-        # Derive a set of unique MTIndexMap objects    
+        # Derive a set of unique MTIndexMap objects
         indexMaps = self.indexMaps
 
         # Write first line to file
@@ -167,7 +169,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         for indexMap in indexMaps:
             # Write to map table file
             openFile.write('INDEX_MAP%s"%s" "%s"\n' % (' ' * 16, indexMap.filename, indexMap.name))
-            
+
             if writeIndexMaps:
                 # Initiate index map write
                 indexMap.write(directory, session=session)
@@ -203,7 +205,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         for mt in mapTables:
             # Create GSSHAPY MapTable object
             try:
-                # Make sure the index map name listed with the map table is in the list of 
+                # Make sure the index map name listed with the map table is in the list of
                 # index maps read from the top of the mapping table file (Note that the index maps for the sediment
                 # and contaminant tables will have names of None, so we skip these cases.
                 if mt['indexMapName'] is not None:
@@ -219,7 +221,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                 mapTable.mapTableFile = self
 
                 ## NOTE: Index maps are associated wth contaminants for CONTAMINANT_TRANSPORT map
-                ## tables. The SEDIMENTS map table are associated with index maps via the 
+                ## tables. The SEDIMENTS map table are associated with index maps via the
                 ## SOIL_EROSION_PROPS map table.
                 if mt['indexMapName']:
                     mapTable.indexMap = indexMaps[mt['indexMapName']]
@@ -339,7 +341,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         mapTable = The GSSHAPY MapTable object to write
         """
 
-        # Write mapping name          
+        # Write mapping name
         fileObject.write('%s "%s"\n' % (mapTable.name, mapTable.indexMap.name))
 
         # Write mapping table global variables
@@ -475,7 +477,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             #Value string
             valString = ''
 
-            # Define valString    
+            # Define valString
             for val in values:
                 # Format value with trailing zeros up to 6 digits
                 processedValue = vwp(val.value, replaceParaFile)
