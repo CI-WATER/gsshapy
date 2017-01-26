@@ -1,7 +1,7 @@
 GSSHAPROJECT
 WMS WMS 10.1.10 (64-bit)
 WATERSHED_MASK           "../grid_standard.msk"
-PROJECT_PATH             "../"
+PROJECT_PATH             ""
 #PROJECTION_FILE         "../grid_standard_prj.pro"
 NON_ORTHO_CHANNELS
 FLINE                    "../grid_standard.map"

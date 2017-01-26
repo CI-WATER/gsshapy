@@ -745,8 +745,8 @@ class GSSHAFramework(object):
                             else:
                                 print("WARNING: {0} {1} not found in project directory ...".format("#INDEXGRID_GUID", updated_path))
 
-        # make sure project path is set to main gssha directory for WMS
-        self._update_card("PROJECT_PATH", ".." + os.path.sep, True)
+        # make sure project path is ""
+        self._update_card("PROJECT_PATH", "", True)
 
         # make execute directory main working directory
         os.chdir(working_directory)
