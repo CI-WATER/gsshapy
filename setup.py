@@ -2,17 +2,17 @@ from setuptools import setup, find_packages
 
 requires = [
     'future',
-    'mapkit>=1.1.0',
+    'mapkit>=1.2.0',
     'psycopg2',
     'python-dateutil',
     'pytz',
     'requests',
-    'sqlalchemy>=0.7',
+    'sqlalchemy',
     'timezonefinder',
     ]
 
 setup(name='gsshapy',
-      version='2.1.0',
+      version='2.1.1',
       description='An SQLAlchemy ORM for GSSHA model files and a toolkit to convert gridded input into GSSHA input.',
       long_description='',
       author='Nathan Swain and Alan D. Snow',
