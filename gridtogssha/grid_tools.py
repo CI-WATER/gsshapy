@@ -1,18 +1,5 @@
-#!/usr/bin/env python
-# grid resample
-# http://stackoverflow.com/questions/10454316/how-to-project-and-resample-a-grid-to-match-another-grid-with-gdal-python
-
-from builtins import str # python 3 string
 from osgeo import gdal, gdalconst
 from os import path
-# TODO: http://geoexamples.blogspot.com/2013/09/reading-wrf-netcdf-files-with-gdal.html
-
-base_folder = 'C:/Users/RDCHLADS/Documents/scripts/gsshapy/tests/grid_standard'
-data_grid = path.join(base_folder, 'hrrr_hmet_data','2016091407_Pres.asc')
-gssha_grid = path.join(base_folder, 'gssha_project', 'grid_standard.ele')
-gssha_prj_file = path.join(base_folder, 'gssha_project', 'grid_standard_prj.pro')
-out_grid = path.join(base_folder, 'test_resample.tif')
-
 
 def gdal_memory_grid_from_nparray(in_array,
                                   x_min,
@@ -20,11 +7,11 @@ def gdal_memory_grid_from_nparray(in_array,
                                   y_max,
                                   y_size,
                                   wkt_projection,
-                                  name="tmp_ras", 
+                                  name="tmp_ras",
                                   gdal_dtype=gdalconst.GDT_Float32):
-    """
+    '''
     Creates a gdal in memory raster from nparray
-    """
+    '''
     dataset = gdal.GetDriverByName('MEM').Create(name,
                                                  in_array.shape[0],
                                                  in_array.shape[1],
@@ -32,49 +19,95 @@ def gdal_memory_grid_from_nparray(in_array,
                                                  gdal_dtype,
                                                  )
 
-    dataset.SetGeoTransform((x_min, x_size, 0, y_max, 0, -y_size))  
+    dataset.SetGeoTransform((x_min, x_size, 0, y_max, 0, -y_size))
     dataset.SetProjection(wkt_projection)
     dataset.GetRasterBand(1).WriteArray(array)
     return dataset
 
-def netcdf_variable_to_gdal_memory_grid(nc_filename, nc_variable, )    
-    
-    
-def resample_grid(raw_data_grid, gssha_ele_grid, gssha_prj_file, output_grid):
-    """
-    This function resamples a grid and outputs the result to a file
-    """
-    print(type(raw_data_grid))
-    
-    # Source of the data
-    if not isinstance(raw_data_grid, gdal.Dataset):
-        src = gdal.Open(raw_data_grid, gdalconst.GA_ReadOnly)
-        src_proj = src.GetProjection()
-        src_geotrans = src.GetGeoTransform()
-        print(type(src))
- 
-    # Grid to use to extract subset
-    match_ds = gdal.Open(gssha_grid, gdalconst.GA_ReadOnly)
+def gdal_from_gssha(gssha_ele_grid, gssha_prj_file):
+    '''
+    Creates a gdal in memory raster from gssha grid
+    '''
+    gssha_grid = gdal.Open(gssha_ele_grid, gdalconst.GA_ReadOnly)
     with open(gssha_prj_file) as pro_file:
-        match_proj = pro_file.read()
-    match_geotrans = match_ds.GetGeoTransform()
+        gssha_grid.SetProjection(pro_file.read())
+    return gssha_grid
 
-    # in memory raster
-    dst = gdal.GetDriverByName('MEM').Create("tmp_ras", match_ds.RasterXSize, 
-                                             match_ds.RasterYSize, 1, gdalconst.GDT_Float32)
+def resample_grid(original_grid, match_grid, to_file=False, output_datatype=None):
+    '''
+    This function resamples a grid and outputs the result to a file
+
+    original_grid (str|gdal.Dataset): If str, reads in path, otherwise assumes gdal.Dataset.
+    match_grid (str|gdal.Dataset): If str, reads in path, otherwise assumes gdal.Dataset.
+    to_file (str|bool): If False, returns in memory grid. If str, writes to file.
+    output_datatype (gdalconst): A valid datatype from gdalconst (ex. gdalconst.GDT_Float32).
+    '''
+    # http://stackoverflow.com/questions/10454316/how-to-project-and-resample-a-grid-to-match-another-grid-with-gdal-python
+
+    # Source of the data
+    if not isinstance(original_grid, gdal.Dataset):
+        src = gdal.Open(original_grid, gdalconst.GA_ReadOnly)
+    else:
+        src = original_grid
+
+    src_proj = src.GetProjection()
+    src_geotrans = src.GetGeoTransform()
+
+    # ensure output datatype is set
+    if output_datatype is None:
+        output_datatype = src.GetRasterBand(1).DataType
+
+    # Grid to use to extract subset and match
+    if not isinstance(match_grid, gdal.Dataset):
+        match_ds = gdal.Open(match_grid, gdalconst.GA_ReadOnly)
+    else:
+        match_ds = match_grid
+
+    match_geotrans = match_ds.GetGeoTransform()
+    match_proj = match_ds.GetProjection()
+
+    if not to_file:
+        # in memory raster
+        dst_driver = gdal.GetDriverByName('MEM')
+        dst_path = "tmp_ras"
+    else:
+        # geotiff
+        dst_driver = gdal.GetDriverByName('GTiff')
+        dst_path = to_file
+
+    dst = dst_driver.Create(dst_path,
+                            match_ds.RasterXSize,
+                            match_ds.RasterYSize,
+                            src.RasterCount,
+                            output_datatype)
+
     dst.SetGeoTransform(match_geotrans)
     dst.SetProjection(match_proj)
 
     # extract subset and resample grid
-    gdal.ReprojectImage(src, dst, 
-                        src_proj, 
-                        match_proj, 
+    gdal.ReprojectImage(src, dst,
+                        src_proj,
+                        match_proj,
                         gdalconst.GRA_Average)
-                        
-    if not isinstance(dst, gdal.Dataset):
-        print(dst.GetRasterBand(1).ReadAsArray())                    
-    
-resample_grid(data_grid, gssha_grid, gssha_prj_file, out_grid)
+    # if not isinstance(dst, gdal.Dataset):
+    print(dst.GetRasterBand(1).ReadAsArray())
+
+    if not to_file:
+        return dst
+    else:
+        del dst
+        return None
+
+# TODO: http://geoexamples.blogspot.com/2013/09/reading-wrf-netcdf-files-with-gdal.html
+
+# base_folder = 'C:/Users/RDCHLADS/Documents/scripts/gsshapy/tests/grid_standard'
+base_folder = '/home/rdchlads/scripts/gsshapy/tests/grid_standard'
+data_grid = path.join(base_folder, 'hrrr_hmet_data','2016091407_Pres.asc')
+gssha_grid = path.join(base_folder, 'gssha_project', 'grid_standard.ele')
+gssha_prj_file = path.join(base_folder, 'gssha_project', 'grid_standard_prj.pro')
+out_grid = path.join(base_folder, 'test_resample.tif')
+match_ds = gdal_from_gssha(gssha_grid, gssha_prj_file)
+resample_grid(data_grid, match_ds)
 
 """
 # https://mapbox.github.io/rasterio/topics/resampling.html
@@ -129,6 +162,6 @@ with rasterio.Env(CHECK_WITH_INVERT_PROJ=True):
                 print(dst_array)
 
                 dst.write(dst_array, i)
-                
-                
+
+
 """
