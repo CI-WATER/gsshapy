@@ -1,8 +1,8 @@
-# gsshapy-conda-env.yml
+# conda-env.yml
 # Configuration file for creating a Conda Environment with dependencies needed for GSSHApy.
 # Create the environment by running the following command (after installing Miniconda):
 # os: linux
-#   $ conda env create -f gsshapy-conda-env.yml
+#   $ conda env create -f conda-env.yml
 
 name: gssha
 channels:
@@ -10,25 +10,13 @@ channels:
 - defaults
 dependencies:
 - python=2
+- mapkit
 - mock
 - nose
-- numpy
-- pandas
-- scipy
-- netCDF4
-- gdal
-- shapely
 - psycopg2
 - pygrib
-- pyproj
-- python-dateutil
-- rtree
+- rapidpy
 - sphinx
 - pip:
-  - future
-  - mapkit
-  - requests
-  - six
   - sphinxcontrib-napoleon
-  - sqlalchemy
   - timezonefinder
