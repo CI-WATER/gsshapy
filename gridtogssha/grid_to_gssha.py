@@ -26,6 +26,7 @@ except ImportError:
     print("To use GRIDtoGSSHA, you must have the numpy, pyproj, gdal, and netCDF4 packages installed.")
     raise
 
+from .grid_tools import GSSHAGrid
 
 #------------------------------------------------------------------------------
 # MAIN CLASS
@@ -419,8 +420,6 @@ class GRIDtoGSSHA(object):
         gssha_grid_path = path.join(self.gssha_project_folder,
                                     self.gssha_grid_file_name)
 
-        gssha_grid = gdal.Open(gssha_grid_path)
-        gssha_srs=osr.SpatialReference()
         #The projection file is named DIFFERENT as it is stored in the .PRO
         #file in the GSSHA folder. This searched for the file.
         gssha_projection_file_path = "{0}.pro".format(path.splitext(gssha_grid_path)[0])
@@ -436,17 +435,12 @@ class GRIDtoGSSHA(object):
             else:
                 raise IndexError("GSSHA .pro file not found ...")
 
-        with open(gssha_projection_file_path) as pro_file:
-            self.gssha_prj_str = pro_file.read()
-            gssha_srs.ImportFromWkt(self.gssha_prj_str)
-            self.gssha_proj4 = Proj(gssha_srs.ExportToProj4())
+        self.gssha_grid = GSSHAGrid(gssha_grid_path, gssha_projection_file_path)
 
         #get projection from LSM file (ASSUME GEOGRAPHIC IF LAT/LON)
         self._load_lsm_projection()
-        min_x, xres, xskew, max_y, yskew, yres  = gssha_grid.GetGeoTransform()
-        max_x = min_x + (gssha_grid.RasterXSize * xres)
-        min_y = max_y + (gssha_grid.RasterYSize * yres)
-        x_ext, y_ext = transform(self.gssha_proj4,
+        min_x, max_x, min_y, max_y = self.gssha_grid.getBounds()
+        x_ext, y_ext = transform(self.gssha_grid.getProj(),
                                  self.lsm_proj4,
                                  [min_x, max_x, min_x, max_x],
                                  [min_y, max_y, max_y, min_y],
@@ -461,7 +455,7 @@ class GRIDtoGSSHA(object):
                                                               gssha_x_min, gssha_x_max)
 
         self.proj_lon_list, self.proj_lat_list = transform(self.lsm_proj4,
-                                                           self.gssha_proj4,
+                                                           self.gssha_grid.getProj(),
                                                            lsm_lon_list,
                                                            lsm_lat_list,
                                                            )
@@ -1133,7 +1127,7 @@ class GRIDtoGSSHA(object):
         lat_2d_var.coordinates = 'lat lon'
         lat_2d_var.axis = 'Y'
 
-        lon_2d_var[:], lat_2d_var[:] = transform(self.gssha_proj4,
+        lon_2d_var[:], lat_2d_var[:] = transform(self.gssha_grid.getProj(),
                                                  Proj(init='epsg:4326'),
                                                  self.proj_lon_list,
                                                  self.proj_lat_list,
@@ -1156,7 +1150,7 @@ class GRIDtoGSSHA(object):
         lat_var.units = 'degrees_north'
         lat_var.axis = 'Y'
 
-        lon_2d, lat_2d = transform(self.gssha_proj4,
+        lon_2d, lat_2d = transform(self.gssha_grid.getProj(),
                                    Proj(init='epsg:4326'),
                                    self.proj_lon_list,
                                    self.proj_lat_list,
@@ -1193,7 +1187,7 @@ class GRIDtoGSSHA(object):
         subset_nc.Conventions = 'CF-1.6'
         subset_nc.title = 'GSSHA LSM Input'
         subset_nc.history = 'date_created: {0}'.format(datetime.utcnow())
-        subset_nc.gssha_projection = self.gssha_prj_str
+        subset_nc.gssha_projection = self.gssha_grid.getWkt()
         subset_nc.north = self.north_bound
         subset_nc.south = self.south_bound
         subset_nc.east = self.east_bound

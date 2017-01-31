@@ -23,10 +23,10 @@ except ImportError:
 import subprocess
 from timezonefinder import TimezoneFinder
 
-from gridtogssha import LSMtoGSSHA
 from gsshapy.lib import db_tools as dbt
 from gsshapy.orm import ProjectCard, ProjectFile
-
+from .lsm_to_gssha import LSMtoGSSHA
+from .grid_tools import GSSHAGrid
 
 def replace_file(from_file, to_file):
     """
@@ -365,19 +365,11 @@ class GSSHAFramework(object):
             raise Exception("ERROR: #PROJECTION_FILE card not found ...")
 
         # GET CENTROID FROM GSSHA GRID
-        self.gssha_grid = gdal.Open(gssha_ele_card.value.strip('"').strip("'"))
-        gssha_srs = osr.SpatialReference()
-        with open(gssha_pro_card.value.strip('"').strip("'")) as pro_file:
-            gssha_prj_str = pro_file.read()
-            self.gssha_grid.SetProjection(gssha_prj_str)
-            gssha_srs.ImportFromWkt(gssha_prj_str)
-            self.gssha_proj4 = Proj(gssha_srs.ExportToProj4())
+        self.gssha_grid = GSSHAGrid(gssha_ele_card.value.strip('"').strip("'"),
+                                    gssha_pro_card.value.strip('"').strip("'"))
 
-        min_x, xres, xskew, max_y, yskew, yres = self.gssha_grid.GetGeoTransform()
-        max_x = min_x + (self.gssha_grid.RasterXSize * xres)
-        min_y = max_y + (self.gssha_grid.RasterYSize * yres)
-
-        x_ext, y_ext = transform(self.gssha_proj4,
+        min_x, max_x, min_y, max_y = self.gssha_grid.getBounds()
+        x_ext, y_ext = transform(self.gssha_grid.getProj(),
                                  Proj(init='epsg:4326'),
                                  [min_x, max_x, min_x, max_x],
                                  [min_y, max_y, max_y, min_y],
