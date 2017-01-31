@@ -107,6 +107,7 @@ Stable Release
 ''''''''''''''
 
 ::
+
     (gssha)$ pip install gsshapy
 
 Latest version
@@ -155,6 +156,7 @@ Stable Release
 ^^^^^^^^^^^^^^
 
 ::
+
     > activate gssha
     (gssha)> pip install gsshapy
 
@@ -167,7 +169,6 @@ or clone it using a git program.
 Open up the CMD program. Then, enter each line separately.
 
 ::
-
 
     > cd gsshapy
     > activate gssha
