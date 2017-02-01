@@ -7,7 +7,11 @@ class GDALGrid(object):
     Loads grid into gdal dataset with projection
     '''
     def __init__(self, grid_file):
-        self.dataset = gdal.Open(grid_file, gdalconst.GA_ReadOnly)
+        if isinstance(grid, gdal.Dataset):
+            self.dataset = grid_file
+        else:
+            self.dataset = gdal.Open(grid_file, gdalconst.GA_ReadOnly)
+            
         self.projection = osr.SpatialReference()
         self.projection.ImportFromWkt(self.dataset.GetProjection())
 
@@ -58,6 +62,13 @@ class GDALGrid(object):
 
         return lats, lons
 
+    def npArray(self, band=1):
+        '''
+        Returns the raster band as a numpy array
+        '''
+        return np.array(self.dataset.GetRasterBand(band).ReadAsArray())
+        
+        
 class GSSHAGrid(GDALGrid):
     '''
     Loads GSSHA grid into gdal dataset with projection
@@ -135,6 +146,7 @@ def resample_grid(original_grid,
     to_file (str|bool): If False, returns in memory grid. If str, writes to file.
     output_datatype (gdalconst): A valid datatype from gdalconst (ex. gdalconst.GDT_Float32).
     resample_method (gdalconst): A valid resample method from gdalconst. Default is gdalconst.GRA_Average.
+    as_gdal_grid(bool): If True, it will return as a GDALGrid object. Default is False.
     '''
     # http://stackoverflow.com/questions/10454316/how-to-project-and-resample-a-grid-to-match-another-grid-with-gdal-python
 
@@ -175,13 +187,15 @@ def resample_grid(original_grid,
                         resample_method)
 
     if not to_file:
-        print(dst.GetRasterBand(1).ReadAsArray())
-        return dst
-    if to_file:
+        if as_gdal_grid:
+            return GDALGrid(dst)
+        else:
+            print(dst.GetRasterBand(1).ReadAsArray())
+            return dst
+    else:
         del dst
         return None
-    elif as_gdal_grid:
-
+ 
 
 # TODO: http://geoexamples.blogspot.com/2013/09/reading-wrf-netcdf-files-with-gdal.html
 
