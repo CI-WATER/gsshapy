@@ -1,74 +1,133 @@
+import numpy as np
 from osgeo import gdal, gdalconst, osr
 from os import path
-from pyproj import Proj
+from pyproj import Proj, transform
+
+def geotransform_from_latlon(lats, lons, proj=None):
+    '''
+    get geotransform from arrays of latitude and longitude
+    '''
+    if lat.ndim < 2:
+        lons_2d, lats_2d = np.meshgrid(lons, lats)
+    else:
+        lons_2d = lons
+        lats_2d = lats
+
+    if proj:
+        # get projected transform
+        lons_2d, lats_2d = transform(Proj(init='epsg:4326'),
+                                     proj,
+                                     lons_2d,
+                                     lats_2d,
+                                     )
+
+    # get cell size
+    x_cell_size = np.max(np.absolute(np.diff(lons_2d, axis=1)))
+    y_cell_size = -np.max(np.absolute(np.diff(lats_2d, axis=0)))
+    # get top left corner
+    min_x_tl = lons_2d[0,0]
+    max_y_tl = lats_2d[0,0]
+    # get bottom rignt corner
+    max_x_br = lons_2d[-1,-1]
+    min_y_br = lats_2d[-1,-1]
+    # calculate size
+    x_size = lons_2d.shape[1]
+    y_size = lons_2d.shape[0]
+    # calculate skew
+    x_skew = (max_x_br - min_x_tl - (x_size-1) * x_cell_size)/(y_size-1)
+    y_skew = (min_y_br - max_y_tl - (y_size-1) * y_cell_size)/(x_size-1)
+
+    return (min_x_tl, x_cell_size, x_skew, max_y_tl, y_skew, y_cell_size)
 
 class GDALGrid(object):
     '''
     Loads grid into gdal dataset with projection
     '''
     def __init__(self, grid_file):
-        if isinstance(grid, gdal.Dataset):
+        if isinstance(grid_file, gdal.Dataset):
             self.dataset = grid_file
         else:
             self.dataset = gdal.Open(grid_file, gdalconst.GA_ReadOnly)
-            
+
         self.projection = osr.SpatialReference()
         self.projection.ImportFromWkt(self.dataset.GetProjection())
 
-    def getGeoTransform(self):
-        '''
-        returns GeoTransform
-        '''
+    def geotransform(self):
         return self.dataset.GetGeoTransform()
 
-    def getWkt(self):
+    def x_size(self):
+        return self.dataset.RasterXSize
+
+    def y_size(self):
+        return self.dataset.RasterYSize
+
+    def wkt(self):
         '''
         returns WKT projection string
         '''
         return self.projection.ExportToWkt()
 
-    def getProj(self):
+    def proj(self):
         '''
         returns pyproj object
         '''
         return Proj(self.projection.ExportToProj4())
 
-    def getBounds(self):
+    def bounds(self):
         '''
-        Returns bounding coordinated for raster
+        Returns bounding coordinates for raster
         Based on http://gis.stackexchange.com/questions/57834/how-to-get-raster-corner-coordinates-using-python-gdal-bindings
         '''
-        min_x, xres, xskew, max_y, yskew, yres = self.getGeoTransform()
+        min_x, xres, xskew, max_y, yskew, yres = self.geotransform()
         max_x = min_x + self.dataset.RasterXSize * xres + self.dataset.RasterYSize * xskew
         min_y = max_y + self.dataset.RasterYSize * yres + self.dataset.RasterXSize * yskew
 
         return (min_x, max_x, min_y, max_y)
 
-    def getLatLon(self, two_dimensional=False):
+    def pixel2coord(self, col, row):
+        """Returns global coordinates to pixel center using base-0 raster index
+           http://gis.stackexchange.com/questions/53617/how-to-find-lat-lon-values-for-every-pixel-in-a-geotiff-file
+        """
+        min_x, xres, xskew, max_y, yskew, yres = self.geotransform()
+        xp = xres * (col + 0.5) + xskew * (row + 0.5) + min_x
+        yp = yskew * (col + 0.5) + yres * (row + 0.5) + max_y
+        return (xp, yp)
+
+
+    def lat_lon(self, two_dimensional=False):
         '''
         Returns latitude and longitude lists
         '''
-        min_x, xres, xskew, max_y, yskew, yres = self.getGeoTransform()
-        lon1 = min_x + xres/2.0
-        lon2 = min_x + (self.dataset.RasterXSize-0.5) * xres + (self.dataset.RasterYSize-0.5) * xskew
-        lat2 = max_y + yres/2.0
-        lat1 = max_y + (self.dataset.RasterYSize-0.5) * yres + (self.dataset.RasterXSize-0.5) * yskew
+        lats_2d = np.zeros((self.y_size(), self.x_size()))
+        lons_2d = np.zeros((self.y_size(), self.x_size()))
+        for x in range(self.x_size()):
+            for y in range(self.y_size()):
+                lons_2d[y,x], lats_2d[y,x] = self.pixel2coord(x,y)
 
-        lats = np.linspace(lat1, lat2, self.dataset.RasterYSize)
-        lons = np.linspace(lon1, lon2, self.dataset.RasterXSize)
+        proj_lons, proj_lats = transform(self.proj(),
+                                         Proj(init='epsg:4326'),
+                                         lons_2d,
+                                         lats_2d,
+                                         )
+        if not two_dimensional:
+            return proj_lats.mean(axis=1), proj_lons.mean(axis=0)
 
-        if two_dimensional:
-            return np.meshgrid(lats, lons)
+        return proj_lats, proj_lons
 
-        return lats, lons
-
-    def npArray(self, band=1):
+    def np_array(self, band=1):
         '''
         Returns the raster band as a numpy array
         '''
-        return np.array(self.dataset.GetRasterBand(band).ReadAsArray())
-        
-        
+        if band == 'all' and self.dataset.RasterCount > 1:
+            grid_data = []
+            for band in range(1, self.dataset.RasterCount+1):
+                grid_data.append(self.dataset.GetRasterBand(band).ReadAsArray())
+        else:
+            grid_data = self.dataset.GetRasterBand(band).ReadAsArray()
+
+        return np.array(grid_data)
+
+
 class GSSHAGrid(GDALGrid):
     '''
     Loads GSSHA grid into gdal dataset with projection
@@ -87,8 +146,10 @@ class ArrayGrid(GDALGrid):
                  in_array,
                  wkt_projection,
                  x_min=0,
+                 x_pixel_size=0,
                  x_skew=0,
                  y_max=0,
+                 y_pixel_size=0,
                  y_skew=0,
                  geotransform=None,
                  name="tmp_ras",
@@ -96,23 +157,30 @@ class ArrayGrid(GDALGrid):
 
         num_bands = 1
         if in_array.ndim == 3:
-            num_bands = in_array.shape[2]
+            num_bands, y_size, x_size = in_array.shape
+        else:
+            y_size, x_size = in_array.shape
 
         self.dataset = gdal.GetDriverByName('MEM').Create(name,
-                                                          in_array.shape[0],
-                                                          in_array.shape[1],
+                                                          x_size,
+                                                          y_size,
                                                           num_bands,
                                                           gdal_dtype,
                                                           )
 
         if geotransform is None:
-            self.dataset.SetGeoTransform((x_min, in_array.shape[0], x_skew,
-                                          y_max, in_array.shape[1], y_skew))
+            self.dataset.SetGeoTransform((x_min, x_pixel_size, x_skew,
+                                          y_max, y_skew, -y_pixel_size))
         else:
             self.dataset.SetGeoTransform(geotransform)
 
-        self.dataset.dataset.SetProjection(wkt_projection)
-        self.dataset.dataset.GetRasterBand(1).WriteArray(array)
+        self.dataset.SetProjection(wkt_projection)
+        if in_array.ndim == 3:
+            for band in range(1, num_bands+1):
+                self.dataset.GetRasterBand(band).WriteArray(in_array[band-1])
+        else:
+            self.dataset.GetRasterBand(1).WriteArray(in_array)
+
         self.projection = osr.SpatialReference()
         self.projection.ImportFromWkt(wkt_projection)
 
@@ -125,7 +193,7 @@ def load_raster(grid):
         src_proj = src.GetProjection()
     elif isinstance(grid, GDALGrid):
         src = grid.dataset
-        src_proj = grid.getWkt()
+        src_proj = grid.wkt()
     else:
         src = gdal.Open(grid, gdalconst.GA_ReadOnly)
         src_proj = src.GetProjection()
@@ -195,7 +263,7 @@ def resample_grid(original_grid,
     else:
         del dst
         return None
- 
+
 
 # TODO: http://geoexamples.blogspot.com/2013/09/reading-wrf-netcdf-files-with-gdal.html
 
@@ -206,7 +274,10 @@ gssha_grid = path.join(base_folder, 'gssha_project', 'grid_standard.ele')
 gssha_prj_file = path.join(base_folder, 'gssha_project', 'grid_standard_prj.pro')
 out_grid = path.join(base_folder, 'test_resample.tif')
 match_ds = GSSHAGrid(gssha_grid, gssha_prj_file)
-resample_grid(data_grid, match_ds)
+# resample_grid(data_grid, match_ds)
+lat, lon = match_ds.lat_lon(two_dimensional=True)
+print(match_ds.geotransform())
+print(geotransform_from_latlon(lat, lon, proj=match_ds.proj()))
 
 '''
 # https://mapbox.github.io/rasterio/topics/resampling.html

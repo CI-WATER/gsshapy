@@ -26,7 +26,7 @@ except ImportError:
     print("To use GRIDtoGSSHA, you must have the numpy, pyproj, gdal, and netCDF4 packages installed.")
     raise
 
-from .grid_tools import GSSHAGrid
+from .grid_tools import ArrayGrid, GSSHAGrid, geotransform_from_latlon, resample_grid
 
 #------------------------------------------------------------------------------
 # MAIN CLASS
@@ -439,8 +439,8 @@ class GRIDtoGSSHA(object):
 
         #get projection from LSM file (ASSUME GEOGRAPHIC IF LAT/LON)
         self._load_lsm_projection()
-        min_x, max_x, min_y, max_y = self.gssha_grid.getBounds()
-        x_ext, y_ext = transform(self.gssha_grid.getProj(),
+        min_x, max_x, min_y, max_y = self.gssha_grid.bounds()
+        x_ext, y_ext = transform(self.gssha_grid.proj(),
                                  self.lsm_proj4,
                                  [min_x, max_x, min_x, max_x],
                                  [min_y, max_y, max_y, min_y],
@@ -454,11 +454,15 @@ class GRIDtoGSSHA(object):
         lsm_lat_list, lsm_lon_list = self._get_subset_lat_lon(gssha_y_min, gssha_y_max,
                                                               gssha_x_min, gssha_x_max)
 
+
+
         self.proj_lon_list, self.proj_lat_list = transform(self.lsm_proj4,
-                                                           self.gssha_grid.getProj(),
+                                                           self.gssha_grid.proj(),
                                                            lsm_lon_list,
                                                            lsm_lat_list,
                                                            )
+
+        self.geotransform = geotransform_from_latlon(lsm_lat_list, lsm_lon_list, self.lsm_proj4)
 
         #GET BOUNDS BASED ON AVERAGE (NOTE: LAT IS REVERSED)
         #https://grass.osgeo.org/grass64/manuals/r.in.ascii.html
@@ -726,6 +730,19 @@ class GRIDtoGSSHA(object):
                 hourly_3d_array[hourly_index*int(self.num_generated_files_per_timestep)+i,:,:] = self._get_hourly_data(hourly_index, calc_function)
 
         self.data_np_array = hourly_3d_array
+
+    def _resample_data(self):
+        '''
+        This function resamples the data to match the GSSHA grid
+        '''
+        raw_data_grid = ArrayGrid(self.data_np_array, self.gssha_grid.wkt(),
+                                  geotransform=self.geotransform)
+
+        resampled_data_grid = resample_grid(original_grid=raw_data_grid,
+                                            match_grid=self.gssha_grid,
+                                            as_gdal_grid=True)
+
+        self.data_np_array = resampled_data_grid.np_array(band='all')
 
     def lsm_precip_to_gssha_precip_gage(self, out_gage_file, lsm_data_var, precip_type="RADAR"):
         """This function takes array data and writes out a GSSHA precip gage file.
@@ -1090,8 +1107,10 @@ class GRIDtoGSSHA(object):
         #BEFORE: subset_nc.createDimension('time', len(self.time_array))
         #NOW:
         subset_nc.createDimension('time', len(self.hourly_time_array))
-        subset_nc.createDimension('lat', len(self.lsm_lat_indices))
-        subset_nc.createDimension('lon', len(self.lsm_lon_indices))
+        #subset_nc.createDimension('lat', len(self.lsm_lat_indices))
+        #subset_nc.createDimension('lon', len(self.lsm_lon_indices))
+        subset_nc.createDimension('lat', self.gssha_grid.y_size())
+        subset_nc.createDimension('lon', self.gssha_grid.x_size())
 
         #time
         #TODO: Convert to local time
@@ -1127,7 +1146,7 @@ class GRIDtoGSSHA(object):
         lat_2d_var.coordinates = 'lat lon'
         lat_2d_var.axis = 'Y'
 
-        lon_2d_var[:], lat_2d_var[:] = transform(self.gssha_grid.getProj(),
+        lon_2d_var[:], lat_2d_var[:] = transform(self.gssha_grid.proj(),
                                                  Proj(init='epsg:4326'),
                                                  self.proj_lon_list,
                                                  self.proj_lat_list,
@@ -1149,15 +1168,16 @@ class GRIDtoGSSHA(object):
         lat_var.standard_name = 'latitude'
         lat_var.units = 'degrees_north'
         lat_var.axis = 'Y'
-
-        lon_2d, lat_2d = transform(self.gssha_grid.getProj(),
+        """
+        lon_2d, lat_2d = transform(self.gssha_grid.proj(),
                                    Proj(init='epsg:4326'),
                                    self.proj_lon_list,
                                    self.proj_lat_list,
                                    )
-
         lon_var[:] = lon_2d.mean(axis=0)
         lat_var[:] = lat_2d.mean(axis=1)
+        """
+        lat_var[:], lon_var[:] = self.gssha_grid.lat_lon()
 
         #DATA
         for gssha_var, lsm_var in data_var_map_array:
@@ -1172,6 +1192,7 @@ class GRIDtoGSSHA(object):
                 self._load_converted_gssha_data_from_lsm(gssha_var, lsm_var, 'netcdf')
                 #previously just added data, but needs to be hourly
                 self._convert_data_to_hourly(gssha_var)
+                self._resample_data()
                 net_var[:] = self.data_np_array
             else:
                 raise IndexError("Invalid GSSHA variable name: {0} ...".format(gssha_var))
@@ -1187,7 +1208,7 @@ class GRIDtoGSSHA(object):
         subset_nc.Conventions = 'CF-1.6'
         subset_nc.title = 'GSSHA LSM Input'
         subset_nc.history = 'date_created: {0}'.format(datetime.utcnow())
-        subset_nc.gssha_projection = self.gssha_grid.getWkt()
+        subset_nc.gssha_projection = self.gssha_grid.wkt()
         subset_nc.north = self.north_bound
         subset_nc.south = self.south_bound
         subset_nc.east = self.east_bound

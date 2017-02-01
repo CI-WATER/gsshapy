@@ -368,8 +368,8 @@ class GSSHAFramework(object):
         self.gssha_grid = GSSHAGrid(gssha_ele_card.value.strip('"').strip("'"),
                                     gssha_pro_card.value.strip('"').strip("'"))
 
-        min_x, max_x, min_y, max_y = self.gssha_grid.getBounds()
-        x_ext, y_ext = transform(self.gssha_grid.getProj(),
+        min_x, max_x, min_y, max_y = self.gssha_grid.bounds()
+        x_ext, y_ext = transform(self.gssha_grid.proj(),
                                  Proj(init='epsg:4326'),
                                  [min_x, max_x, min_x, max_x],
                                  [min_y, max_y, max_y, min_y],
