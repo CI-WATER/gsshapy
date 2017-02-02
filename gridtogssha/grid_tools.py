@@ -1,43 +1,9 @@
+from affine import Affine
 import numpy as np
 from osgeo import gdal, gdalconst, osr
 from os import path
 from pyproj import Proj, transform
 
-def geotransform_from_latlon(lats, lons, proj=None):
-    '''
-    get geotransform from arrays of latitude and longitude
-    '''
-    if lat.ndim < 2:
-        lons_2d, lats_2d = np.meshgrid(lons, lats)
-    else:
-        lons_2d = lons
-        lats_2d = lats
-
-    if proj:
-        # get projected transform
-        lons_2d, lats_2d = transform(Proj(init='epsg:4326'),
-                                     proj,
-                                     lons_2d,
-                                     lats_2d,
-                                     )
-
-    # get cell size
-    x_cell_size = np.max(np.absolute(np.diff(lons_2d, axis=1)))
-    y_cell_size = -np.max(np.absolute(np.diff(lats_2d, axis=0)))
-    # get top left corner
-    min_x_tl = lons_2d[0,0]
-    max_y_tl = lats_2d[0,0]
-    # get bottom rignt corner
-    max_x_br = lons_2d[-1,-1]
-    min_y_br = lats_2d[-1,-1]
-    # calculate size
-    x_size = lons_2d.shape[1]
-    y_size = lons_2d.shape[0]
-    # calculate skew
-    x_skew = (max_x_br - min_x_tl - (x_size-1) * x_cell_size)/(y_size-1)
-    y_skew = (min_y_br - max_y_tl - (y_size-1) * y_cell_size)/(x_size-1)
-
-    return (min_x_tl, x_cell_size, x_skew, max_y_tl, y_skew, y_cell_size)
 
 class GDALGrid(object):
     '''
@@ -51,6 +17,7 @@ class GDALGrid(object):
 
         self.projection = osr.SpatialReference()
         self.projection.ImportFromWkt(self.dataset.GetProjection())
+        self.affine = Affine.from_gdal(*self.dataset.GetGeoTransform())
 
     def geotransform(self):
         return self.dataset.GetGeoTransform()
@@ -76,22 +43,16 @@ class GDALGrid(object):
     def bounds(self):
         '''
         Returns bounding coordinates for raster
-        Based on http://gis.stackexchange.com/questions/57834/how-to-get-raster-corner-coordinates-using-python-gdal-bindings
         '''
-        min_x, xres, xskew, max_y, yskew, yres = self.geotransform()
-        max_x = min_x + self.dataset.RasterXSize * xres + self.dataset.RasterYSize * xskew
-        min_y = max_y + self.dataset.RasterYSize * yres + self.dataset.RasterXSize * yskew
-
-        return (min_x, max_x, min_y, max_y)
+        x_min, y_min = self.affine * (0, self.dataset.RasterYSize)
+        x_max, y_max = self.affine * (self.dataset.RasterXSize, 0)
+        return (x_min, x_max, y_min, y_max)
 
     def pixel2coord(self, col, row):
         """Returns global coordinates to pixel center using base-0 raster index
            http://gis.stackexchange.com/questions/53617/how-to-find-lat-lon-values-for-every-pixel-in-a-geotiff-file
         """
-        min_x, xres, xskew, max_y, yskew, yres = self.geotransform()
-        xp = xres * (col + 0.5) + xskew * (row + 0.5) + min_x
-        yp = yskew * (col + 0.5) + yres * (row + 0.5) + max_y
-        return (xp, yp)
+        return self.affine * (col+0.5, row+0.5)
 
 
     def lat_lon(self, two_dimensional=False):
@@ -133,7 +94,8 @@ class GSSHAGrid(GDALGrid):
     Loads GSSHA grid into gdal dataset with projection
     '''
     def __init__(self, gssha_ele_grid, gssha_prj_file):
-        self.dataset = gdal.Open(gssha_ele_grid, gdalconst.GA_ReadOnly)
+        dataset = gdal.Open(gssha_ele_grid, gdalconst.GA_ReadOnly)
+        super(GSSHAGrid, self).__init__(dataset)
         self.projection = osr.SpatialReference()
         with open(gssha_prj_file) as pro_file:
             self.projection.ImportFromWkt(pro_file.read())
@@ -161,28 +123,64 @@ class ArrayGrid(GDALGrid):
         else:
             y_size, x_size = in_array.shape
 
-        self.dataset = gdal.GetDriverByName('MEM').Create(name,
-                                                          x_size,
-                                                          y_size,
-                                                          num_bands,
-                                                          gdal_dtype,
-                                                          )
+        dataset = gdal.GetDriverByName('MEM').Create(name,
+                                                     x_size,
+                                                     y_size,
+                                                     num_bands,
+                                                     gdal_dtype,
+                                                     )
 
         if geotransform is None:
-            self.dataset.SetGeoTransform((x_min, x_pixel_size, x_skew,
-                                          y_max, y_skew, -y_pixel_size))
+            dataset.SetGeoTransform((x_min, x_pixel_size, x_skew,
+                                     y_max, y_skew, -y_pixel_size))
         else:
-            self.dataset.SetGeoTransform(geotransform)
+            dataset.SetGeoTransform(geotransform)
 
-        self.dataset.SetProjection(wkt_projection)
+        dataset.SetProjection(wkt_projection)
         if in_array.ndim == 3:
             for band in range(1, num_bands+1):
-                self.dataset.GetRasterBand(band).WriteArray(in_array[band-1])
+                dataset.GetRasterBand(band).WriteArray(in_array[band-1])
         else:
-            self.dataset.GetRasterBand(1).WriteArray(in_array)
+            dataset.GetRasterBand(1).WriteArray(in_array)
 
-        self.projection = osr.SpatialReference()
-        self.projection.ImportFromWkt(wkt_projection)
+        super(ArrayGrid, self).__init__(dataset)
+
+def geotransform_from_latlon(lats, lons, proj=None):
+    '''
+    get geotransform from arrays of latitude and longitude
+    WORKING PROGRESS
+    '''
+    if lats.ndim < 2:
+        lons_2d, lats_2d = np.meshgrid(lons, lats)
+    else:
+        lons_2d = lons
+        lats_2d = lats
+
+    if proj:
+        # get projected transform
+        lons_2d, lats_2d = transform(Proj(init='epsg:4326'),
+                                     proj,
+                                     lons_2d,
+                                     lats_2d,
+                                     )
+
+    # get cell size
+    x_cell_size = np.max(np.absolute(np.diff(lons_2d, axis=1)))
+    y_cell_size = -np.max(np.absolute(np.diff(lats_2d, axis=0)))
+    # get top left corner
+    min_x_tl = lons_2d[0,0] - x_cell_size/2.0
+    max_y_tl = lats_2d[0,0] + y_cell_size/2.0
+    # get bottom rignt corner
+    max_x_br = lons_2d[-1,-1] + x_cell_size/2.0
+    min_y_br = lats_2d[-1,-1] - y_cell_size/2.0
+    # calculate size
+    x_size = lons_2d.shape[1]
+    y_size = lons_2d.shape[0]
+    # calculate skew
+    # x_skew = (max_x_br - min_x_tl - x_size * x_cell_size)/y_size
+    # y_skew = (min_y_br - max_y_tl - y_size * y_cell_size)/x_size
+    # geotransform = (min_x_tl, x_cell_size, x_skew, max_y_tl, y_skew, y_cell_size)
+    return (min_x_tl, x_cell_size, 0, max_y_tl, 0, y_cell_size)
 
 def load_raster(grid):
     '''
@@ -258,73 +256,74 @@ def resample_grid(original_grid,
         if as_gdal_grid:
             return GDALGrid(dst)
         else:
-            print(dst.GetRasterBand(1).ReadAsArray())
+            # print(dst.GetRasterBand(1).ReadAsArray())
             return dst
     else:
         del dst
         return None
 
 
-# TODO: http://geoexamples.blogspot.com/2013/09/reading-wrf-netcdf-files-with-gdal.html
+if __name__ == "__main__":
+    # TODO: http://geoexamples.blogspot.com/2013/09/reading-wrf-netcdf-files-with-gdal.html
 
-# base_folder = 'C:/Users/RDCHLADS/Documents/scripts/gsshapy/tests/grid_standard'
-base_folder = '/home/rdchlads/scripts/gsshapy/tests/grid_standard'
-data_grid = path.join(base_folder, 'hrrr_hmet_data','2016091407_Pres.asc')
-gssha_grid = path.join(base_folder, 'gssha_project', 'grid_standard.ele')
-gssha_prj_file = path.join(base_folder, 'gssha_project', 'grid_standard_prj.pro')
-out_grid = path.join(base_folder, 'test_resample.tif')
-match_ds = GSSHAGrid(gssha_grid, gssha_prj_file)
-# resample_grid(data_grid, match_ds)
-lat, lon = match_ds.lat_lon(two_dimensional=True)
-print(match_ds.geotransform())
-print(geotransform_from_latlon(lat, lon, proj=match_ds.proj()))
+    # base_folder = 'C:/Users/RDCHLADS/Documents/scripts/gsshapy/tests/grid_standard'
+    base_folder = '/home/rdchlads/scripts/gsshapy/tests/grid_standard'
+    data_grid = path.join(base_folder, 'wrf_hmet_data','2016082322_Temp.asc')
+    gssha_grid = path.join(base_folder, 'gssha_project', 'grid_standard.ele')
+    gssha_prj_file = path.join(base_folder, 'gssha_project', 'grid_standard_prj.pro')
+    out_grid = path.join(base_folder, 'test_resample.tif')
+    match_ds = GSSHAGrid(gssha_grid, gssha_prj_file)
+    # resample_grid(data_grid, match_ds, to_file=out_grid)
+    # lat, lon = match_ds.lat_lon(two_dimensional=True)
+    # print(match_ds.geotransform())
+    # print(geotransform_from_latlon(lat, lon, proj=match_ds.proj()))
 
-'''
-# https://mapbox.github.io/rasterio/topics/resampling.html
-# https://mapbox.s3.amazonaws.com/playground/perrygeo/rasterio-docs/cookbook.html
+    '''
+    # https://mapbox.github.io/rasterio/topics/resampling.html
+    # https://mapbox.s3.amazonaws.com/playground/perrygeo/rasterio-docs/cookbook.html
 
-from gdal import osr
-import numpy as np
-import rasterio
-from rasterio.warp import calculate_default_transform, reproject, Resampling
-from rasterio.crs import CRS
+    from gdal import osr
+    import numpy as np
+    import rasterio
+    from rasterio.warp import calculate_default_transform, reproject, Resampling
+    from rasterio.crs import CRS
 
-with open(gssha_prj_file) as pro_file:
-    gssha_prj_str = pro_file.read()
-    gssha_srs=osr.SpatialReference()
-    gssha_srs.ImportFromWkt(gssha_prj_str)
-    dst_crs = CRS.from_string(gssha_srs.ExportToProj4())
+    with open(gssha_prj_file) as pro_file:
+        gssha_prj_str = pro_file.read()
+        gssha_srs=osr.SpatialReference()
+        gssha_srs.ImportFromWkt(gssha_prj_str)
+        dst_crs = CRS.from_string(gssha_srs.ExportToProj4())
 
-with rasterio.Env(CHECK_WITH_INVERT_PROJ=True):
-    with rasterio.open(data_grid) as src, \
-            rasterio.open(gssha_grid) as grd:
-        profile = grd.profile
+    with rasterio.Env(CHECK_WITH_INVERT_PROJ=True):
+        with rasterio.open(data_grid) as src, \
+                rasterio.open(gssha_grid) as grd:
+            profile = grd.profile
 
-        # update the relevant parts of the profile
-        profile.update({
-            'crs': dst_crs,
-            'driver': "GTiff",
-        })
+            # update the relevant parts of the profile
+            profile.update({
+                'crs': dst_crs,
+                'driver': "GTiff",
+            })
 
-        # Reproject and write each band
-        with rasterio.open(out_grid, 'w', **profile) as dst:
-            for i in range(1, src.count + 1):
-                src_array = src.read(i)
-                dst_array = np.empty((grd.height, grd.width), dtype=src_array.dtype)
-                reproject(
-                    # Source parameters
-                    source=src_array,
-                    src_crs=dst_crs,
-                    src_transform=src.transform,
-                    # Destination paramaters
-                    destination=dst_array,
-                    dst_transform=grd.transform,
-                    dst_crs=dst_crs,
-                    # Configuration
-                    resampling=Resampling.average,
-                    num_threads=1,
-                    )
-                print(dst_array)
+            # Reproject and write each band
+            with rasterio.open(out_grid, 'w', **profile) as dst:
+                for i in range(1, src.count + 1):
+                    src_array = src.read(i)
+                    dst_array = np.empty((grd.height, grd.width), dtype=src_array.dtype)
+                    reproject(
+                        # Source parameters
+                        source=src_array,
+                        src_crs=dst_crs,
+                        src_transform=src.transform,
+                        # Destination paramaters
+                        destination=dst_array,
+                        dst_transform=grd.transform,
+                        dst_crs=dst_crs,
+                        # Configuration
+                        resampling=Resampling.average,
+                        num_threads=1,
+                        )
+                    print(dst_array)
 
-                dst.write(dst_array, i)
-'''
+                    dst.write(dst_array, i)
+    '''

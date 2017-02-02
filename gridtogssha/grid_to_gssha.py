@@ -68,7 +68,7 @@ class GRIDtoGSSHA(object):
                  lsm_file_date_naming_convention=None,
                  time_step_seconds=None,
                  output_unix_format=False,
-                 output_timezone=None
+                 output_timezone=None,
                  ):
         """
         Initializer function for the LSMtoGSSHA class
@@ -452,7 +452,7 @@ class GRIDtoGSSHA(object):
         gssha_x_max = max(x_ext)
 
         lsm_lat_list, lsm_lon_list = self._get_subset_lat_lon(gssha_y_min, gssha_y_max,
-                                                              gssha_x_min, gssha_x_max)
+                                                                        gssha_x_min, gssha_x_max)
 
 
 
@@ -461,8 +461,6 @@ class GRIDtoGSSHA(object):
                                                            lsm_lon_list,
                                                            lsm_lat_list,
                                                            )
-
-        self.geotransform = geotransform_from_latlon(lsm_lat_list, lsm_lon_list, self.lsm_proj4)
 
         #GET BOUNDS BASED ON AVERAGE (NOTE: LAT IS REVERSED)
         #https://grass.osgeo.org/grass64/manuals/r.in.ascii.html
@@ -710,12 +708,12 @@ class GRIDtoGSSHA(object):
         time_index_start = self.hourly_time_index_array[hourly_index]
         if hourly_index+1 < self.len_hourly_time_index_array:
             next_time_index = self.hourly_time_index_array[hourly_index+1]
-            return calc_function(self.data_np_array[time_index_start:next_time_index,::-1,:], axis=0)
+            return calc_function(self.data_np_array[time_index_start:next_time_index], axis=0)
         elif hourly_index+1 == self.len_hourly_time_index_array:
             if time_index_start < len(self.time_array) - 1:
-                return calc_function(self.data_np_array[time_index_start:,::-1,:], axis=0)
+                return calc_function(self.data_np_array[time_index_start:], axis=0)
             else:
-                return self.data_np_array[time_index_start,::-1,:]
+                return self.data_np_array[time_index_start]
 
     def _convert_data_to_hourly(self, gssha_data_var):
         """
@@ -727,19 +725,23 @@ class GRIDtoGSSHA(object):
 
         for hourly_index in range(self.len_hourly_time_index_array):
             for i in range(int(self.num_generated_files_per_timestep)):
-                hourly_3d_array[hourly_index*int(self.num_generated_files_per_timestep)+i,:,:] = self._get_hourly_data(hourly_index, calc_function)
+                hourly_3d_array[hourly_index*int(self.num_generated_files_per_timestep)+i] = self._get_hourly_data(hourly_index, calc_function)
 
         self.data_np_array = hourly_3d_array
 
-    def _resample_data(self):
+    def _resample_data(self, resample_method):
         '''
         This function resamples the data to match the GSSHA grid
+        IN TESTING MODE
         '''
         raw_data_grid = ArrayGrid(self.data_np_array, self.gssha_grid.wkt(),
-                                  geotransform=self.geotransform)
+                                  x_min=self.west_bound, x_pixel_size=self.cell_size_ew,
+                                  y_max=self.north_bound, y_pixel_size=self.cell_size_ns,
+                                  )
 
         resampled_data_grid = resample_grid(original_grid=raw_data_grid,
                                             match_grid=self.gssha_grid,
+                                            resample_method=resample_method,
                                             as_gdal_grid=True)
 
         self.data_np_array = resampled_data_grid.np_array(band='all')
@@ -903,7 +905,7 @@ class GRIDtoGSSHA(object):
                         grid_writer = csv_writer(out_ascii_grid,
                                                  delimiter=" ",
                                                  lineterminator=csv_newline)
-                        grid_writer.writerows(self.data_np_array[hourly_index])
+                        grid_writer.writerows(self.data_np_array[hourly_index,::-1,:])
             else:
                 raise Exception("Invalid data array ...")
 
@@ -1023,7 +1025,9 @@ class GRIDtoGSSHA(object):
                                 data_var_map_array,
                                 main_output_folder)
 
-    def lsm_data_to_subset_netcdf(self, netcdf_file_path, data_var_map_array):
+    def lsm_data_to_subset_netcdf(self, netcdf_file_path,
+                                        data_var_map_array,
+                                        resample_method=None):
         """Writes extracted data to the NetCDF file format
 
         .. todo:: NetCDF output data time is always in UTC time. Need to convert to local timezone for GSSHA.
@@ -1039,6 +1043,8 @@ class GRIDtoGSSHA(object):
             netcdf_file_path(string): Path to output the NetCDF file for GSSHA.
             data_var_map_array(list): Array to map the variables in the LSM file to the
                                       matching required GSSHA data.
+            resample_method(Optional[gdalconst]): Resample input method to match hmet data to GSSHA grid for NetCDF output. Default is None.
+
 
         LSMtoGSSHA Example:
 
@@ -1107,10 +1113,12 @@ class GRIDtoGSSHA(object):
         #BEFORE: subset_nc.createDimension('time', len(self.time_array))
         #NOW:
         subset_nc.createDimension('time', len(self.hourly_time_array))
-        #subset_nc.createDimension('lat', len(self.lsm_lat_indices))
-        #subset_nc.createDimension('lon', len(self.lsm_lon_indices))
-        subset_nc.createDimension('lat', self.gssha_grid.y_size())
-        subset_nc.createDimension('lon', self.gssha_grid.x_size())
+        if resample_method:
+            subset_nc.createDimension('lat', self.gssha_grid.y_size())
+            subset_nc.createDimension('lon', self.gssha_grid.x_size())
+        else:
+            subset_nc.createDimension('lat', len(self.lsm_lat_indices))
+            subset_nc.createDimension('lon', len(self.lsm_lon_indices))
 
         #time
         #TODO: Convert to local time
@@ -1168,16 +1176,18 @@ class GRIDtoGSSHA(object):
         lat_var.standard_name = 'latitude'
         lat_var.units = 'degrees_north'
         lat_var.axis = 'Y'
-        """
-        lon_2d, lat_2d = transform(self.gssha_grid.proj(),
-                                   Proj(init='epsg:4326'),
-                                   self.proj_lon_list,
-                                   self.proj_lat_list,
-                                   )
-        lon_var[:] = lon_2d.mean(axis=0)
-        lat_var[:] = lat_2d.mean(axis=1)
-        """
-        lat_var[:], lon_var[:] = self.gssha_grid.lat_lon()
+
+        if resample_method:
+            lat_var[:], lon_var[:] = self.gssha_grid.lat_lon()
+        else:
+
+            lon_2d, lat_2d = transform(self.gssha_grid.proj(),
+                                       Proj(init='epsg:4326'),
+                                       self.proj_lon_list,
+                                       self.proj_lat_list,
+                                       )
+            lon_var[:] = lon_2d.mean(axis=0)
+            lat_var[:] = lat_2d.mean(axis=1)
 
         #DATA
         for gssha_var, lsm_var in data_var_map_array:
@@ -1192,7 +1202,8 @@ class GRIDtoGSSHA(object):
                 self._load_converted_gssha_data_from_lsm(gssha_var, lsm_var, 'netcdf')
                 #previously just added data, but needs to be hourly
                 self._convert_data_to_hourly(gssha_var)
-                self._resample_data()
+                if resample_method:
+                    self._resample_data(resample_method)
                 net_var[:] = self.data_np_array
             else:
                 raise IndexError("Invalid GSSHA variable name: {0} ...".format(gssha_var))

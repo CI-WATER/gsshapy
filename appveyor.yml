@@ -6,7 +6,7 @@ environment:
     MINICONDA: "C:\\Miniconda-x64"
     CYG_ROOT: "C:/cygwin64"
     CYG_MIRROR: "http://cygwin.mirror.constant.com"
-    CYG_CACHE: "C:/cygwin/var/cache/setup"  
+    CYG_CACHE: "C:/cygwin/var/cache/setup"
 
 install:
   - 'SET PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%'
@@ -16,18 +16,11 @@ install:
   - "conda create --name gssha python=%PYTHON_VERSION%"
   - activate gssha
   # Install required python packages
-  - conda install nose numpy pandas scipy netCDF4 gdal pyproj pytz python-dateutil psycopg2
-  - conda install -c conda-forge rtree
-  - conda install -c scitools shapely
+  - conda install -c conda-forge affine nose psycopg2 rapidpy
   - pip install coveralls nose-cov
   # Create directory for install packages
-  - 'SET INSTALLZ_DIR=%APPVEYOR_BUILD_FOLDER%\..\installz' 
+  - 'SET INSTALLZ_DIR=%APPVEYOR_BUILD_FOLDER%\..\installz'
   - 'mkdir %INSTALLZ_DIR%'
-  # Install RAPIDpy
-  - 'cd %INSTALLZ_DIR%'
-  - 'git clone https://github.com/erdc-cm/RAPIDpy.git'
-  - 'cd RAPIDpy'
-  - python setup.py install
   #TODO: FIGURE OUT HOW TO INSTALL PYGRIB ON WINDOWS
   #- deactivate gssha
   #install cygwin
@@ -52,7 +45,7 @@ install:
   - 'cd %APPVEYOR_BUILD_FOLDER%'
   - python setup.py install
   - 'cd %APPVEYOR_BUILD_FOLDER%\tests'
-   
+
 build: false
 
 test_script:

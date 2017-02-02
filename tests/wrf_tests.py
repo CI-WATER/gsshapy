@@ -7,6 +7,7 @@
 ********************************************************************************
 '''
 import os
+from osgeo import gdalconst
 import unittest
 from shutil import copytree
 
@@ -101,6 +102,22 @@ class TestLSMtoGSSHA(TestGridTemplate):
 
         # compare netcdf files
         self._compare_netcdf_files("gssha_dynamic_wrf", "gssha_dynamic_wrf")
+
+    """
+    def test_wrf_netcdf_file_write_resample(self):
+        '''
+        Test WRF lsm_data_to_subset_netcdf resample write method
+        '''
+        netcdf_file_path = os.path.join(self.writeDirectory,
+                                        'gssha_dynamic_wrf_resample.nc')
+        self.l2g.lsm_data_to_subset_netcdf(netcdf_file_path,
+                                           self.data_var_map_array,
+                                           resample_method=gdalconst.GRA_Average)
+
+        # compare netcdf files
+        self._compare_netcdf_files("gssha_dynamic_wrf_resample",
+                                   "gssha_dynamic_wrf_resample")
+    """
 
     def test_wrf_ascii_file_write(self):
         '''
