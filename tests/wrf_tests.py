@@ -103,7 +103,6 @@ class TestLSMtoGSSHA(TestGridTemplate):
         # compare netcdf files
         self._compare_netcdf_files("gssha_dynamic_wrf", "gssha_dynamic_wrf")
 
-    """
     def test_wrf_netcdf_file_write_resample(self):
         '''
         Test WRF lsm_data_to_subset_netcdf resample write method
@@ -117,7 +116,6 @@ class TestLSMtoGSSHA(TestGridTemplate):
         # compare netcdf files
         self._compare_netcdf_files("gssha_dynamic_wrf_resample",
                                    "gssha_dynamic_wrf_resample")
-    """
 
     def test_wrf_ascii_file_write(self):
         '''
