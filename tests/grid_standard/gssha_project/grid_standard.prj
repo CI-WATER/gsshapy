@@ -6,12 +6,12 @@ PROJECT_PATH             ""
 NON_ORTHO_CHANNELS
 FLINE                    "grid_standard.map"
 METRIC
-GRIDSIZE                 10.012451
-ROWS                     493
-COLS                     735
-TOT_TIME                 60
-TIMESTEP                 30
-OUTROW                   152
+GRIDSIZE                 147.183032
+ROWS                     34
+COLS                     50
+TOT_TIME                 500
+TIMESTEP                 2
+OUTROW                   11
 OUTCOL                   1
 OUTSLOPE                 0.001000
 MAP_FREQ                 30
