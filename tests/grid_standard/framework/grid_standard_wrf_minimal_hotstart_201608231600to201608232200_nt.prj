@@ -6,12 +6,12 @@ PROJECT_PATH             ""
 NON_ORTHO_CHANNELS
 FLINE                    "..\grid_standard.map"
 METRIC
-GRIDSIZE                 10.012451
-ROWS                     493
-COLS                     735
+GRIDSIZE                 147.183032
+ROWS                     34
+COLS                     50
 TOT_TIME                 60
 TIMESTEP                 30
-OUTROW                   152
+OUTROW                   11
 OUTCOL                   1
 OUTSLOPE                 0.001000
 MAP_FREQ                 30
@@ -39,8 +39,8 @@ RAIN_THIESSEN
 HMET_ASCII               "hmet_file_list.txt"
 LONG_TERM                
 SEASONAL_RS              
-LATITUDE                 40.2639722254
-LONGITUDE                -111.580594409
+LATITUDE                 40.2642628925
+LONGITUDE                -111.580676957
 EVENT_MIN_Q              0.0
 SOIL_MOIST_DEPTH         0.0
 ET_CALC_PENMAN           
