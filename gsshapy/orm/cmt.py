@@ -14,13 +14,16 @@ __all__ = ['MapTableFile',
            'MTIndex',
            'MTContaminant',
            'MTSediment']
-import os
 
 from future.utils import iteritems
+import pandas as pd
+import os
+from osgeo import gdalconst
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
 
+from gridtogssha.grid_tools import resample_grid
 from . import DeclarativeBase
 from .lnd import LinkNodeDatasetFile
 from ..base.file_base import GsshaPyFileObjectBase
@@ -558,6 +561,89 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return outputFilename
 
+    def addRoughnessMapFromLandUse(self, name, land_use_to_roughness_table,
+                                         land_use_grid):
+        '''
+        Adds a roughness map from land use file
+
+        Example::
+
+            from gsshapy.orm import ProjectFile
+            from gsshapy.lib import db_tools as dbt
+
+            from os import path, chdir
+
+            gssha_directory = '/gsshapy/tests/grid_standard/gssha_project'
+            land_use_grid = 'LC_5min_global_2012.tif'
+            land_use_to_roughness_table = ''/gsshapy/gridtogssha/land_cover/land_cover_glcf_modis.txt'
+
+            chdir(gssha_directory)
+
+            # Create Test DB
+            sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
+
+            # Create DB Sessions
+            db_session = dbt.create_session(sqlalchemy_url, sql_engine)
+
+            # Instantiate GSSHAPY object for reading to database
+            project_manager = ProjectFile()
+
+            # Call read method
+            project_manager.readInput(directory=gssha_directory,
+                                      projectFileName='grid_standard.prj',
+                                      session=db_session)
+
+            project_manager.mapTableFile.addRoughnessMapFromLandUse("roughness",
+                                                                    land_use_to_roughness_table,
+                                                                    land_use_grid)
+            # WRITE OUT UPDATED GSSHA PROJECT FILE
+            project_manager.writeInput(session=db_session,
+                                       directory=gssha_directory,
+                                       name='grid_standard')
+
+        '''
+
+        # read in table
+        df = pd.read_table(land_use_to_roughness_table, delim_whitespace=True,
+                           header=None, skiprows=1,
+                           names=('id', 'description', 'roughness'),
+                           dtype={'id':'int', 'description':'str', 'roughness':'float'},
+                           )
+        # get num ids
+        mapTable = MapTable(name=name,
+                            numIDs=len(df.index),
+                            maxNumCells=0,
+                            numSed=0,
+                            numContam=0)
+
+        # Create GSSHAPY IndexMap object from result object
+        mapTable.indexMap = IndexMap(name=name)
+
+        # add values to table
+        for row in df.itertuples():
+            idx = MTIndex(row.id, row.description, '')
+            idx.indexMap = mapTable.indexMap
+            val = MTValue('ROUGH', row.roughness)
+            val.index = idx
+            val.mapTable = mapTable
+
+        # Associate MapTable with this MapTableFile and IndexMaps
+        mapTable.mapTableFile = self
+
+        # resample land use grid to gssha grid
+        land_use_resampled = resample_grid(land_use_grid,
+                                           self.projectFile.getGrid(),
+                                           resample_method=gdalconst.GRA_NearestNeighbour,
+                                           as_gdal_grid=True)
+
+
+        project_path = self.projectFile.getCard('PROJECT_PATH').value.strip('"').strip("'")
+
+        # add path to file
+        mapTable.indexMap.filename = os.path.join(project_path, '{0}.idx'.format(name))
+
+        # write file
+        land_use_resampled.to_grass_ascii(mapTable.indexMap.filename)
 
 class MapTable(DeclarativeBase):
     """
