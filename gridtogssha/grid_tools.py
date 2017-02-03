@@ -97,7 +97,7 @@ class GDALGrid(object):
             out_ascii_grid.write(header_string)
             grid_writer = csv_writer(out_ascii_grid,
                                      delimiter=" ")
-            grid_writer.writerows(self.np_array(band)[::-1,:])
+            grid_writer.writerows(self.np_array(band)[:,::-1])
 
     def to_grass_ascii(self, file_path, band=1):
         '''Writes data to GRASS ASCII file format.
