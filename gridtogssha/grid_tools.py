@@ -1,7 +1,8 @@
 from affine import Affine
+from csv import writer as csv_writer
 import numpy as np
-from osgeo import gdal, gdalconst, osr
-from os import path
+from osgeo import gdal, gdalconst, ogr, osr
+from os import path, getcwd
 from pyproj import Proj, transform
 
 
@@ -88,6 +89,57 @@ class GDALGrid(object):
 
         return np.array(grid_data)
 
+    def _to_ascii(self, header_string, file_path, band):
+        '''
+        Writes data to ascii file
+        '''
+        with open(file_path, 'w') as out_ascii_grid:
+            out_ascii_grid.write(header_string)
+            grid_writer = csv_writer(out_ascii_grid,
+                                     delimiter=" ")
+            grid_writer.writerows(self.np_array(band)[::-1,:])
+
+    def to_grass_ascii(self, file_path, band=1):
+        '''Writes data to GRASS ASCII file format.
+
+            Parameters:
+                file_path(str): Path to output ascii file.
+                band(Optional[int]): Band number (1-based).
+        '''
+        # PART 1: HEADER
+        # get data extremes
+        east_bound, west_bound, south_bound, north_bound = self.bounds()
+        header_string = u"north: {0:.9f}\n".format(north_bound)
+        header_string += "south: {0:.9f}\n".format(south_bound)
+        header_string += "east: {0:.9f}\n".format(east_bound)
+        header_string += "west: {0:.9f}\n".format(west_bound)
+        header_string += "rows: {0}\n".format(self.y_size())
+        header_string += "cols: {0}\n".format(self.x_size())
+        header_string += "NODATA_value -9999\n"
+
+        # PART 2: WRITE DATA
+        self._to_ascii(header_string, file_path, band)
+
+    def to_arc_ascii(self, file_path, band=1):
+        '''Writes data to Arc ASCII file format.
+
+            Parameters:
+                file_path(str): Path to output ascii file.
+                band(Optional[int]): Band number (1-based).
+        '''
+        # PART 1: HEADER
+        # get data extremes
+        east_bound, west_bound, south_bound, north_bound = self.bounds()
+        cellsize = (self.geotransform()[1] - self.geotransform()[-1])/2.0
+        header_string = u"ncols {0}\n".format(self.x_size())
+        header_string += "nrows {0}\n".format(self.y_size())
+        header_string += "xllcorner {0}\n".format(west_bound)
+        header_string += "yllcorner {0}\n".format(south_bound)
+        header_string += "cellsize {0}\n".format(cellsize)
+        header_string += "NODATA_value -9999\n"
+
+        #PART 2: WRITE DATA
+        self._to_ascii(header_string, file_path, band)
 
 class GSSHAGrid(GDALGrid):
     '''
@@ -231,7 +283,7 @@ def resample_grid(original_grid,
     if not to_file:
         # in memory raster
         dst_driver = gdal.GetDriverByName('MEM')
-        dst_path = "tmp_ras"
+        dst_path = ""
     else:
         # geotiff
         dst_driver = gdal.GetDriverByName('GTiff')
@@ -262,18 +314,52 @@ def resample_grid(original_grid,
         del dst
         return None
 
+def rasterize_shapefile(shapefile_path, attribute, match_grid,
+                        out_raster_path, raster_dtype=gdal.GDT_Int32):
+    """
+    Convert shapefile to raster from specified attribute
+    """
+    # open the data source
+    shapefile = ogr.Open(shapefile_path)
+    source_layer = shapefile.GetLayer(0)
+
+    # grid to match
+    match_ds, match_proj = load_raster(match_grid)
+    match_geotrans = match_ds.GetGeoTransform()
+
+    # geotiff
+    dst_driver = gdal.GetDriverByName('GTiff')
+    target_ds = dst_driver.Create(out_raster_path,
+                                  match_ds.RasterXSize,
+                                  match_ds.RasterYSize,
+                                  1,
+                                  raster_dtype)
+
+    target_ds.SetGeoTransform(match_geotrans)
+    target_ds.SetProjection(match_proj)
+
+    # rasterize
+    err = gdal.RasterizeLayer(target_ds, [1], source_layer,
+                              options=["ATTRIBUTE={0}".format(attribute)])
+    if err != 0:
+        raise Exception("Error rasterizing layer: %s" % err)
+
 
 if __name__ == "__main__":
     # TODO: http://geoexamples.blogspot.com/2013/09/reading-wrf-netcdf-files-with-gdal.html
 
     # base_folder = 'C:/Users/RDCHLADS/Documents/scripts/gsshapy/tests/grid_standard'
     base_folder = '/home/rdchlads/scripts/gsshapy/tests/grid_standard'
-    data_grid = path.join(base_folder, 'wrf_hmet_data','2016082322_Temp.asc')
+    # data_grid = path.join(base_folder, 'wrf_hmet_data','2016082322_Temp.asc')
+    data_grid = path.join('/home/rdchlads/scripts/gsshapy/gridtogssha', 'LC_5min_global_2012.tif')
     gssha_grid = path.join(base_folder, 'gssha_project', 'grid_standard.ele')
     gssha_prj_file = path.join(base_folder, 'gssha_project', 'grid_standard_prj.pro')
-    out_grid = path.join(base_folder, 'test_resample.tif')
+    out_grid = path.join('/home/rdchlads/scripts/gsshapy/gridtogssha', 'test_resample.tif')
     match_ds = GSSHAGrid(gssha_grid, gssha_prj_file)
-    # resample_grid(data_grid, match_ds, to_file=out_grid)
+    data_grid = GDALGrid(data_grid)
+    resample_grid(data_grid, match_ds,
+                  resample_method=gdalconst.GRA_NearestNeighbour,
+                  to_file=out_grid)
     # lat, lon = match_ds.lat_lon(two_dimensional=True)
     # print(match_ds.geotransform())
     # print(geotransform_from_latlon(lat, lon, proj=match_ds.proj()))
