@@ -26,7 +26,6 @@ from timezonefinder import TimezoneFinder
 from gsshapy.lib import db_tools as dbt
 from gsshapy.orm import ProjectCard, ProjectFile
 from .lsm_to_gssha import LSMtoGSSHA
-from .grid_tools import GSSHAGrid
 
 def replace_file(from_file, to_file):
     """
@@ -356,17 +355,8 @@ class GSSHAFramework(object):
         This function updates the centroid and timezone
         based of off GSSHA elevation grid
         """
-        gssha_ele_card = self.project_manager.getCard("ELEVATION")
-        if gssha_ele_card is None:
-            raise Exception("ERROR: ELEVATION card not found ...")
-
-        gssha_pro_card = self.project_manager.getCard("#PROJECTION_FILE")
-        if gssha_pro_card is None:
-            raise Exception("ERROR: #PROJECTION_FILE card not found ...")
-
         # GET CENTROID FROM GSSHA GRID
-        self.gssha_grid = GSSHAGrid(gssha_ele_card.value.strip('"').strip("'"),
-                                    gssha_pro_card.value.strip('"').strip("'"))
+        self.gssha_grid = self.project_manager.getGrid()
 
         min_x, max_x, min_y, max_y = self.gssha_grid.bounds()
         x_ext, y_ext = transform(self.gssha_grid.proj(),

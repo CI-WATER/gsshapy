@@ -22,6 +22,7 @@ from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
+from gridtogssha.grid_tools import GSSHAGrid
 from . import DeclarativeBase
 from ..base.file_base import GsshaPyFileObjectBase
 from .file_io import *
@@ -637,7 +638,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             withStreamNetwork (bool, optional): Include stream network. Defaults to True.
             withNodes (bool, optional): Include nodes. Defaults to False.
             styles (dict, optional): Custom styles to apply to KML geometry. Defaults to empty dictionary.
-            
+
                 Valid keys (styles) include:
                    * streamLineColor: tuple/list of RGBA integers (0-255) e.g.: (255, 0, 0, 128)
                    * streamLineWidth: float line width in pixels
@@ -711,14 +712,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
             except ValueError:
                 print('WARNING: nodeIconScaleValue must be a valid number representing the width of the line in pixels.')
-                
+
         if 'maskLineColor' in styles:
             if len(styles['maskLineColor']) < 4:
                 print('WARNING: maskLineColor style must be a list or a tuple of four elements representing integer RGBA values.')
             else:
                 userLineColor = styles['maskLineColor']
                 maskLineColorValue = (userLineColor[3], userLineColor[2], userLineColor[1], userLineColor[0])
-                
+
         if 'maskFillColor' in styles:
             if len(styles['maskFillColor']) < 4:
                 print('WARNING: maskFillColor style must be a list or a tuple of four elements representing integer RGBA values.')
@@ -968,6 +969,22 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 jsonString = json.dumps(featureCollection)
 
         return jsonString
+
+    def getGrid(self):
+        """
+        Retuns GSSHA grid object
+        """
+        gssha_ele_card = self.getCard("ELEVATION")
+        if gssha_ele_card is None:
+            raise Exception("ERROR: ELEVATION card not found ...")
+
+        gssha_pro_card = self.getCard("#PROJECTION_FILE")
+        if gssha_pro_card is None:
+            raise Exception("ERROR: #PROJECTION_FILE card not found ...")
+
+        # return gssha grid
+        return GSSHAGrid(gssha_ele_card.value.strip('"').strip("'"),
+                         gssha_pro_card.value.strip('"').strip("'"))
 
     def _automaticallyDeriveSpatialReferenceId(self, directory):
         """
@@ -1413,9 +1430,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             filename = '%s_prj.%s' % (name, extension)
 
         elif originalPrefix == originalProjectName:
-            # This check is necessary because not all filenames are 
+            # This check is necessary because not all filenames are
             # prefixed with the project name. Thus the file prefix
-            # is only changed for files that are prefixed with the 
+            # is only changed for files that are prefixed with the
             # project name
             filename = '%s.%s' % (name, extension)
 
@@ -1423,7 +1440,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             filename = '%s%s.%s' % (name, originalPrefix.replace(originalProjectName, ''), extension)
 
         else:
-            # Filename doesn't change for files that don't share the 
+            # Filename doesn't change for files that don't share the
             # project prefix. e.g.: hmet.hmt
             filename = originalFilename
 
