@@ -1,0 +1,36 @@
+GSSHAPROJECT
+WMS WMS 10.1.10 (64-bit)
+WATERSHED_MASK           "grid_standard.msk"
+PROJECT_PATH             ""
+#PROJECTION_FILE         "grid_standard_prj.pro"
+NON_ORTHO_CHANNELS
+FLINE                    "grid_standard.map"
+METRIC
+GRIDSIZE                 147.183032
+ROWS                     34
+COLS                     50
+TOT_TIME                 60
+TIMESTEP                 30
+OUTROW                   11
+OUTCOL                   1
+OUTSLOPE                 0.001000
+MAP_FREQ                 30
+HYD_FREQ                 30
+MAP_TYPE                 1
+MANNING_N                0.12
+ELEVATION                "grid_standard.ele"
+DEPTH                    "grid_standard.dep"
+DIFFUSIVE_WAVE
+CHANNEL_INPUT            "grid_standard.cif"
+STREAM_CELL              "grid_standard.gst"
+OVERTYPE                 ADE
+MAPPING_TABLE            "grid_standard.cmt"
+ST_MAPPING_TABLE         "grid_standard.smt"
+SUMMARY                  "grid_standard.sum"
+OUTLET_HYDRO             "grid_standard.otl"
+QUIET
+PRECIP_UNIF
+RAIN_INTENSITY           30.000000
+RAIN_DURATION            30
+START_DATE               2016 07 21
+START_TIME               12 00

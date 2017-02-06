@@ -1,0 +1,16 @@
+ID	Description		Manning_n
+11	Water			0.025
+21	Dev_Open_Space		0.01
+22	Dev_Low_Intesity	0.038
+23	Dev_Med_Intensity	0.056
+24	Dev_High_Intensity	0.075
+31	Barren_Land		0.025
+41	Decid_Forest		0.1
+42	Evergreen_Forest	0.1
+43	Mixed_Forest		0.1
+52	Shrub			0.035
+71	Grass_Herb		0.025
+81	Pasture_Hay		0.03
+82	Cultivated_Crops	0.025
+90	Woody_Wetlands		0.08
+95	Emergent_Herb_Wet	0.075
