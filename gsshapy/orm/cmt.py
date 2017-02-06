@@ -163,14 +163,11 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 contaminants = sorted(contaminantList, key=lambda x: (x.indexMap.name, x.name))
 
-        # Derive a set of unique MTIndexMap objects
-        indexMaps = self.indexMaps
-
         # Write first line to file
         openFile.write('GSSHA_INDEX_MAP_TABLES\n')
 
         # Write list of index maps
-        for indexMap in indexMaps:
+        for indexMap in self.indexMaps:
             # Write to map table file
             openFile.write('INDEX_MAP%s"%s" "%s"\n' % (' ' * 16, indexMap.filename, indexMap.name))
 
@@ -201,6 +198,18 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         Retrieve the map tables ordered by name
         """
         return session.query(MapTable).filter(MapTable.mapTableFile == self).order_by(MapTable.name).all()
+
+    def deleteMapTable(self, name, session):
+        """
+        Remove duplicate map table if it exists
+        """
+
+        duplicate_map_tables = session.query(MapTable).filter(MapTable.mapTableFile == self).filter(MapTable.name == name).all()
+        for duplicate_map_table in duplicate_map_tables:
+            if duplicate_map_table.indexMap:
+                session.delete(duplicate_map_table.indexMap)
+            session.delete(duplicate_map_table)
+            session.commit()
 
     def _createGsshaPyObjects(self, mapTables, indexMaps, replaceParamFile, directory, session, spatial, spatialReferenceID):
         """
@@ -561,8 +570,13 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return outputFilename
 
-    def addRoughnessMapFromLandUse(self, name, land_use_to_roughness_table,
-                                         land_use_grid):
+    def addRoughnessMapFromLandUse(self, name,
+                                         session,
+                                         land_use_grid,
+                                         land_use_to_roughness_table=None,
+                                         land_use_grid_id=None,
+
+                                         ):
         '''
         Adds a roughness map from land use file
 
@@ -594,21 +608,45 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                                       session=db_session)
 
             project_manager.mapTableFile.addRoughnessMapFromLandUse("roughness",
+                                                                    db_session,
                                                                     land_use_to_roughness_table,
-                                                                    land_use_grid)
+                                                                    land_use_grid,
+                                                                    )
             # WRITE OUT UPDATED GSSHA PROJECT FILE
             project_manager.writeInput(session=db_session,
                                        directory=gssha_directory,
                                        name='grid_standard')
 
         '''
+        LAND_USE_GRID_TABLES = {
+                                 'nga'  : 'land_cover_nga.txt',
+                                 'glcf' : 'land_cover_glcf_modis.txt',
+                                 'nlcd' : 'land_cover_nlcd.txt',
+                                }
 
         # read in table
-        df = pd.read_table(land_use_to_roughness_table, delim_whitespace=True,
-                           header=None, skiprows=1,
-                           names=('id', 'description', 'roughness'),
-                           dtype={'id':'int', 'description':'str', 'roughness':'float'},
-                           )
+        if isinstance(land_use_to_roughness_table, pd.DataFrame):
+            df = land_use_to_roughness_table
+        else:
+            if land_use_to_roughness_table is None:
+                if land_use_grid_id is None:
+                    raise ValueError("Must have land_use_to_roughness_table or land_use_grid_id set ...")
+
+                land_use_to_roughness_table = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                           '..', '..',
+                                                           'gridtogssha',
+                                                           'land_cover',
+                                                           LAND_USE_GRID_TABLES[land_use_grid_id])
+
+            df = pd.read_table(land_use_to_roughness_table, delim_whitespace=True,
+                               header=None, skiprows=1,
+                               names=('id', 'description', 'roughness'),
+                               dtype={'id':'int', 'description':'str', 'roughness':'float'},
+                               )
+
+        # delete duplicate/old tables with same name if they exist
+        self.deleteMapTable("ROUGHNESS", session)
+
         # get num ids
         mapTable = MapTable(name="ROUGHNESS",
                             numIDs=len(df.index),
@@ -617,12 +655,14 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                             numContam=0)
 
         # Create GSSHAPY IndexMap object from result object
-        mapTable.indexMap = IndexMap(name=name)
+        indexMap = IndexMap(name=name)
+        indexMap.mapTableFile = self
+        mapTable.indexMap = indexMap
 
         # add values to table
         for row in df.itertuples():
             idx = MTIndex(row.id, row.description, '')
-            idx.indexMap = mapTable.indexMap
+            idx.indexMap = indexMap
             val = MTValue('ROUGH', row.roughness)
             val.index = idx
             val.mapTable = mapTable

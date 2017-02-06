@@ -82,6 +82,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
         """
         GsshaPyFileObjectBase.__init__(self)
         self.name = name
+        self.rasterText = None
 
     def __repr__(self):
         return '<IndexMap: Name=%s, Filename=%s, Raster=%s>' % (self.name, self.filename, self.raster)
@@ -160,6 +161,7 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
                 mapFile.write(grassAsciiGrid)
 
         else:
-            # Open file and write, raster_text only
-            with open(filePath, 'w') as mapFile:
-                mapFile.write(self.rasterText)
+            if self.rasterText is not None:
+                # Open file and write, raster_text only
+                with open(filePath, 'w') as mapFile:
+                    mapFile.write(self.rasterText)
