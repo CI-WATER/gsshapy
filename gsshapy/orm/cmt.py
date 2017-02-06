@@ -610,7 +610,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                            dtype={'id':'int', 'description':'str', 'roughness':'float'},
                            )
         # get num ids
-        mapTable = MapTable(name=name,
+        mapTable = MapTable(name="ROUGHNESS",
                             numIDs=len(df.index),
                             maxNumCells=0,
                             numSed=0,
