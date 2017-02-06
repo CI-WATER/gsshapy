@@ -17,6 +17,6 @@ dependencies:
 - pygrib
 - rapidpy
 - sphinx
+- timezonefinder
 - pip:
   - sphinxcontrib-napoleon
-  - timezonefinder

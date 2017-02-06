@@ -34,8 +34,6 @@ spatial data in GsshaPy you will need to use a PostgreSQL database with PostGIS 
 GsshaPy relies on a Python module called mapkit to generate visualizations. This will automatically be installed when
 you install GsshaPy.
 
-It is recommended to use Anaconda to install GsshaPy (See: https://www.continuum.io/downloads).
-
 .. _gsshapy-installation:
 
 Installation
@@ -44,29 +42,13 @@ Installation
 Linux/Mac
 ---------
 
-Prerequisites
-~~~~~~~~~~~~~
+Download Miniconda & Install Miniconda
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Download Miniconda
-^^^^^^^^^^^^^^^^^^
-
-Linux
-'''''
-
-::
-
-    $ wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-
-Mac
-'''
-
-::
-
-    $ curl -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh
-
+See: https://conda.io/miniconda.html
 
 Install Miniconda
-^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~
 
 ::
 
@@ -75,47 +57,28 @@ Install Miniconda
     $ export PATH=$HOME/miniconda2/bin:$PATH
     $ conda update --yes conda python
 
-Create gssha conda environment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-::
-
-    $ git clone https://github.com/CI-WATER/gsshapy.git
-    $ cd gsshapy
-
-Option 1: From the gsshapy-conda-env.yml file
-'''''''''''''''''''''''''''''''''''''''''''''
-
-::
-
-    $ conda env create -f conda-env.yml
-
-Option 2: Step-by-step
-''''''''''''''''''''''
+Install gsshapy
+~~~~~~~~~~~~~~~
 
 ::
 
     $ conda create --name gssha python=2
     $ source activate gssha
     $ conda config --add channels conda-forge
-    (gssha)$ conda install --yes rapidpy pygrib psycopg2
+    (gssha)$ conda install --yes gsshapy
 
-Install gsshapy:
-^^^^^^^^^^^^^^^^
-
-Stable Release
-''''''''''''''
+Install gsshapy for development:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    (gssha)$ pip install gsshapy
-
-Latest version
-''''''''''''''
-
-::
-
-    (gssha)$ python setup.py install
+    $ conda create --name gssha python=2
+    $ source activate gssha
+    $ conda config --add channels conda-forge
+    (gssha)$ conda install --yes mapkit pygrib rapidpy timezonefinder psycopg2
+    (gssha)$ git clone https://github.com/CI-WATER/gsshapy.git
+    (gssha)$ cd gsshapy
+    (gssha)$ python setup.py develop
 
 
 .. note:: When using a new terminal, always type *source activate gssha* before using GsshaPy.
@@ -135,8 +98,8 @@ Download & Install Miniconda
    or wherever you want
 -  During installation, make Miniconda the default python and export to path
 
-Create gssha conda environment:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Install gsshapy:
+~~~~~~~~~~~~~~~~
 
 Open up the CMD program. Then, enter each line separately.
 
@@ -146,22 +109,10 @@ Open up the CMD program. Then, enter each line separately.
     > conda create --name gssha python=2
     > activate gssha
     (gssha)> conda config --add channels conda-forge
-    (gssha)> conda install --yes rapidpy psycopg2
-    (gssha)> deactivate
+    (gssha)> conda install --yes gsshapy
 
-Install gsshapy:
-~~~~~~~~~~~~~~~~
-
-Stable Release
-^^^^^^^^^^^^^^
-
-::
-
-    > activate gssha
-    (gssha)> pip install gsshapy
-
-Latest version
-^^^^^^^^^^^^^^
+Install gsshapy for development:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Download the code for gsshapy from https://github.com/CI-WATER/gsshapy
 or clone it using a git program.
@@ -171,8 +122,11 @@ Open up the CMD program. Then, enter each line separately.
 ::
 
     > cd gsshapy
+    > conda create --name gssha python=2
     > activate gssha
-    (gssha)> python setup.py install
+    (gssha)> conda config --add channels conda-forge
+    (gssha)> conda install --yes mapkit rapidpy timezonefinder psycopg2
+    (gssha)> python setup.py develop
 
 .. note:: When using a new CMD terminal, always type *activate gssha* before using GsshaPy.
 
