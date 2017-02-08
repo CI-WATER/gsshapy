@@ -99,7 +99,7 @@ class GDALGrid(object):
                                      delimiter=" ")
             grid_writer.writerows(self.np_array(band)[:,::-1])
 
-    def to_grass_ascii(self, file_path, band=1):
+    def to_grass_ascii(self, file_path, band=1, print_nodata=True):
         '''Writes data to GRASS ASCII file format.
 
             Parameters:
@@ -115,12 +115,15 @@ class GDALGrid(object):
         header_string += "west: {0:.9f}\n".format(west_bound)
         header_string += "rows: {0}\n".format(self.y_size())
         header_string += "cols: {0}\n".format(self.x_size())
-        header_string += "NODATA_value -9999\n"
+        if print_nodata:
+            band = self.dataset.GetRasterBand(1)
+            nodata_value = band.GetNoDataValue()
+            header_string += "NODATA_value {0}\n".format(nodata_value)
 
         # PART 2: WRITE DATA
         self._to_ascii(header_string, file_path, band)
 
-    def to_arc_ascii(self, file_path, band=1):
+    def to_arc_ascii(self, file_path, band=1, print_nodata=True):
         '''Writes data to Arc ASCII file format.
 
             Parameters:
@@ -136,7 +139,10 @@ class GDALGrid(object):
         header_string += "xllcorner {0}\n".format(west_bound)
         header_string += "yllcorner {0}\n".format(south_bound)
         header_string += "cellsize {0}\n".format(cellsize)
-        header_string += "NODATA_value -9999\n"
+        if print_nodata:
+            band = self.dataset.GetRasterBand(1)
+            nodata_value = band.GetNoDataValue()
+            header_string += "NODATA_value {0}\n".format(nodata_value)
 
         #PART 2: WRITE DATA
         self._to_ascii(header_string, file_path, band)
@@ -314,36 +320,103 @@ def resample_grid(original_grid,
         del dst
         return None
 
-def rasterize_shapefile(shapefile_path, attribute, match_grid,
-                        out_raster_path, raster_dtype=gdal.GDT_Int32):
+def rasterize_shapefile(shapefile_path,
+                        out_raster_path=None,
+                        shapefile_attribute=None,
+                        x_cell_size=None,
+                        y_cell_size=None,
+                        x_num_cells=None,
+                        y_num_cells=None,
+                        match_grid=None,
+                        raster_wkt_proj=None,
+                        raster_dtype=gdal.GDT_Int32,
+                        raster_nodata=-9999,
+                        as_gdal_grid=False):
     """
     Convert shapefile to raster from specified attribute
     """
+    if as_gdal_grid:
+        raster_driver = gdal.GetDriverByName('MEM')
+        out_raster_path = ''
+    elif out_raster_path is not None:
+        raster_driver = gdal.GetDriverByName('GTiff')
+    else:
+        raise ValueError("Either out_raster_path or as_gdal_grid need to be set ...")
+
     # open the data source
     shapefile = ogr.Open(shapefile_path)
     source_layer = shapefile.GetLayer(0)
 
-    # grid to match
-    match_ds, match_proj = load_raster(match_grid)
-    match_geotrans = match_ds.GetGeoTransform()
+
+    x_min, x_max, y_min, y_max = source_layer.GetExtent()
+    shapefile_spatial_ref = source_layer.GetSpatialRef()
+
+    if match_grid is not None:
+        # grid to match
+        match_ds, match_proj = load_raster(match_grid)
+        match_geotrans = match_ds.GetGeoTransform()
+        x_num_cells = match_ds.RasterXSize
+        y_num_cells = match_ds.RasterYSize
+
+    elif x_cell_size is not None and y_cell_size is not None:
+        x_num_cells = int((x_max - x_min) / x_cell_size)
+        y_num_cells = int((y_max - y_min) / y_cell_size)
+        match_geotrans = (x_min, x_cell_size, 0, y_max, 0, -y_cell_size)
+        match_proj = shapefile_spatial_ref.ExportToWkt()
+
+    elif x_num_cells is not None and y_num_cells is not None:
+        x_cell_size = (x_max - x_min) / float(x_num_cells)
+        y_cell_size = (y_max - y_min) / float(y_num_cells)
+        match_geotrans = (x_min, x_cell_size, 0, y_max, 0, -y_cell_size)
+        match_proj = shapefile_spatial_ref.ExportToWkt()
+
+    else:
+        raise ValueError("Invalid parameters for output grid entered ...")
 
     # geotiff
-    dst_driver = gdal.GetDriverByName('GTiff')
-    target_ds = dst_driver.Create(out_raster_path,
-                                  match_ds.RasterXSize,
-                                  match_ds.RasterYSize,
-                                  1,
-                                  raster_dtype)
+    target_ds = raster_driver.Create(out_raster_path,
+                                     x_num_cells,
+                                     y_num_cells,
+                                     1,
+                                     raster_dtype)
 
     target_ds.SetGeoTransform(match_geotrans)
     target_ds.SetProjection(match_proj)
+    band = target_ds.GetRasterBand(1)
+    band.SetNoDataValue(raster_nodata)
 
     # rasterize
-    err = gdal.RasterizeLayer(target_ds, [1], source_layer,
-                              options=["ATTRIBUTE={0}".format(attribute)])
+    if shapefile_attribute is not None:
+        err = gdal.RasterizeLayer(target_ds, [1], source_layer,
+                                  options=["ATTRIBUTE={0}".format(attribute)])
+    else:
+        err = gdal.RasterizeLayer(target_ds, [1], source_layer,
+                                  burn_values=[1])
+
     if err != 0:
         raise Exception("Error rasterizing layer: %s" % err)
 
+
+    if raster_wkt_proj is not None:
+        # from http://gis.stackexchange.com/questions/139906/replicating-result-of-gdalwarp-using-gdal-python-bindings
+        error_threshold = 0.125  # error threshold --> use same value as in gdalwarp
+        resampling = gdal.GRA_NearestNeighbour
+
+        # Call AutoCreateWarpedVRT() to fetch default values for target raster dimensions and geotransform
+        target_ds = gdal.AutoCreateWarpedVRT(target_ds,
+                                             None, # src_wkt : left to default value --> will use the one from source
+                                             raster_wkt_proj,
+                                             resampling,
+                                             0.0)
+        if not as_gdal_grid:
+            # Create the final warped raster
+            target_ds = gdal.GetDriverByName('GTiff').CreateCopy(out_raster_path, target_ds)
+
+
+    if as_gdal_grid:
+        return GDALGrid(target_ds)
+
+    del target_ds
 
 if __name__ == "__main__":
     # TODO: http://geoexamples.blogspot.com/2013/09/reading-wrf-netcdf-files-with-gdal.html
