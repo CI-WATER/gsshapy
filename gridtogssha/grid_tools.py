@@ -95,10 +95,14 @@ class GDALGrid(object):
 
         return np.array(grid_data)
 
-    def _to_ascii(self, header_string, file_path, band):
+    def _to_ascii(self, header_string, file_path, band, print_nodata=True):
         '''
         Writes data to ascii file
         '''
+        if print_nodata:
+            nodata_value = self.dataset.GetRasterBand(1).GetNoDataValue()
+            header_string += "NODATA_value {0}\n".format(nodata_value)
+
         with open(file_path, 'w') as out_ascii_grid:
             out_ascii_grid.write(header_string)
             grid_writer = csv_writer(out_ascii_grid,
@@ -121,13 +125,9 @@ class GDALGrid(object):
         header_string += "west: {0:.9f}\n".format(west_bound)
         header_string += "rows: {0}\n".format(self.y_size())
         header_string += "cols: {0}\n".format(self.x_size())
-        if print_nodata:
-            band = self.dataset.GetRasterBand(1)
-            nodata_value = band.GetNoDataValue()
-            header_string += "NODATA_value {0}\n".format(nodata_value)
 
         # PART 2: WRITE DATA
-        self._to_ascii(header_string, file_path, band)
+        self._to_ascii(header_string, file_path, band, print_nodata)
 
     def to_arc_ascii(self, file_path, band=1, print_nodata=True):
         '''Writes data to Arc ASCII file format.
@@ -145,13 +145,9 @@ class GDALGrid(object):
         header_string += "xllcorner {0}\n".format(west_bound)
         header_string += "yllcorner {0}\n".format(south_bound)
         header_string += "cellsize {0}\n".format(cellsize)
-        if print_nodata:
-            band = self.dataset.GetRasterBand(1)
-            nodata_value = band.GetNoDataValue()
-            header_string += "NODATA_value {0}\n".format(nodata_value)
 
         #PART 2: WRITE DATA
-        self._to_ascii(header_string, file_path, band)
+        self._to_ascii(header_string, file_path, band, print_nodata)
 
 class GSSHAGrid(GDALGrid):
     '''
@@ -213,6 +209,12 @@ def geotransform_from_latlon(lats, lons, proj=None):
     '''
     get geotransform from arrays of latitude and longitude
     WORKING PROGRESS
+
+    Parameters:
+        lats(numpy array): Array of latitudes.
+        lons(numpy array): Array of longitudes.
+        proj(pyproj.Proj): Output projection.
+
     '''
     if lats.ndim < 2:
         lons_2d, lats_2d = np.meshgrid(lons, lats)
@@ -248,7 +250,8 @@ def geotransform_from_latlon(lats, lons, proj=None):
 
 def load_raster(grid):
     '''
-    grid (str|gdal.Dataset|GDALGrid): str is path to dataset or can pass in GDALGrid or gdal.Dataset.
+    Parameters:
+        grid(str|gdal.Dataset|GDALGrid): str is path to dataset or can pass in GDALGrid or gdal.Dataset.
     '''
     if isinstance(grid, gdal.Dataset):
         src = grid
@@ -271,12 +274,14 @@ def resample_grid(original_grid,
     '''
     This function resamples a grid and outputs the result to a file
 
-    original_grid (str|gdal.Dataset|GDALGrid): If str, reads in path, otherwise assumes gdal.Dataset.
-    match_grid (str|gdal.Dataset|GDALGrid): If str, reads in path, otherwise assumes gdal.Dataset.
-    to_file (str|bool): If False, returns in memory grid. If str, writes to file.
-    output_datatype (gdalconst): A valid datatype from gdalconst (ex. gdalconst.GDT_Float32).
-    resample_method (gdalconst): A valid resample method from gdalconst. Default is gdalconst.GRA_Average.
-    as_gdal_grid(bool): If True, it will return as a GDALGrid object. Default is False.
+    Parameters:
+        original_grid(str|gdal.Dataset|GDALGrid): If str, reads in path, otherwise assumes gdal.Dataset.
+        match_grid(str|gdal.Dataset|GDALGrid): If str, reads in path, otherwise assumes gdal.Dataset.
+        to_file(Optional[str|bool]): If False, returns in memory grid. If str, writes to file.
+        output_datatype(Optional[gdalconst]): A valid datatype from gdalconst (ex. gdalconst.GDT_Float32).
+        resample_method(Optional[gdalconst]): A valid resample method from gdalconst. Default is gdalconst.GRA_Average.
+        as_gdal_grid(Optional[bool]): If True, it will return as a GDALGrid object. Default is False.
+
     '''
     # http://stackoverflow.com/questions/10454316/how-to-project-and-resample-a-grid-to-match-another-grid-with-gdal-python
 
@@ -341,6 +346,50 @@ def rasterize_shapefile(shapefile_path,
                         as_gdal_grid=False):
     """
     Convert shapefile to raster from specified attribute
+
+    Parameters:
+        shapefile_path(str): Path to shapefile.
+        out_raster_path(Optional[str]): Path to raster to be generated.
+        shapefile_attribute(Optional[str]): Attribute to be rasterized.
+        x_cell_size(Optional[float]): Longitude cell size in output projection.
+        y_cell_size(Optional[float]): latitude cell size in output projection.
+        x_num_cells(Optional[int]): Number of cells in latitude.
+        y_num_cells(Optional[int]): Number of cells in longitude.
+        match_grid(Optional[str|gdal.Dataset|GDALGrid]): Grid to match for output.
+        raster_wkt_proj(Optional[str]): WKT projections string for output grid.
+        convert_to_utm(Optional[bool]): Convert grid to UTM automatically.
+        raster_dtype(Optional[gdal GDT]): Output grid datatype. Default is gdal.GDT_Int32.
+        raster_nodata(Optional[float,int]): No data value for output raster. Default is -9999,
+        as_gdal_grid((Optional[bool]): Return as GDAL grid. Default is False.
+
+    Example Default::
+
+        from gridtogssha.grid_tools import rasterize_shapefile
+
+        shapefile_path = 'shapefile.shp'
+        new_grid = 'new_grid.tif'
+        rasterize_shapefile(shapefile_path,
+                            new_grid,
+                            x_num_cells=50,
+                            y_num_cells=50,
+                            raster_nodata=0,
+                            )
+
+    Example GDALGrid to ASCII with UTM::
+
+        from gridtogssha.grid_tools import rasterize_shapefile
+
+        shapefile_path = 'shapefile.shp'
+        new_grid = 'new_grid.asc'
+        gr = rasterize_shapefile(shapefile_path,
+                                 x_num_cells=50,
+                                 y_num_cells=50,
+                                 raster_nodata=0,
+                                 convert_to_utm=True,
+                                 as_gdal_grid=True,
+                                 )
+        gr.to_grass_ascii(new_grid, print_nodata=False)
+
     """
     if as_gdal_grid:
         raster_driver = gdal.GetDriverByName('MEM')
