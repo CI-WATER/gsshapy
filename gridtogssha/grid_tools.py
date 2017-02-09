@@ -4,7 +4,13 @@ import numpy as np
 from osgeo import gdal, gdalconst, ogr, osr
 from os import path, getcwd
 from pyproj import Proj, transform
-
+UTM_LOADED=False
+try:
+    import utm
+    UTM_LOADED=True
+except ImportError:
+    print("WARNING: utm package not loaded. The UTM functionality will not work ...")
+    pass
 
 class GDALGrid(object):
     '''
@@ -329,6 +335,7 @@ def rasterize_shapefile(shapefile_path,
                         y_num_cells=None,
                         match_grid=None,
                         raster_wkt_proj=None,
+                        convert_to_utm=False,
                         raster_dtype=gdal.GDT_Int32,
                         raster_nodata=-9999,
                         as_gdal_grid=False):
@@ -347,9 +354,28 @@ def rasterize_shapefile(shapefile_path,
     shapefile = ogr.Open(shapefile_path)
     source_layer = shapefile.GetLayer(0)
 
-
     x_min, x_max, y_min, y_max = source_layer.GetExtent()
     shapefile_spatial_ref = source_layer.GetSpatialRef()
+
+    if convert_to_utm:
+        if not UTM_LOADED:
+            raise ImportError("utm package not loaded. 'convert_to_utm' will not work ...")
+
+        utm_centroid_info = utm.from_latlon((y_min+y_max)/2.0, (x_min+x_max)/2.0)
+        easting, northing, zone_number, zone_letter = utm_centroid_info
+
+        south_string = ''
+        if zone_letter < 'N':
+            south_string = ', +south'
+        proj4_utm_string = ('+proj=utm +zone={zone_number}{zone_letter}'
+                            '{south_string} +ellps=WGS84 +datum=WGS84 '
+                            '+units=m +no_defs').format(zone_number=zone_number,
+                                                        zone_letter=zone_letter,
+                                                        south_string=south_string)
+
+        sp_ref = osr.SpatialReference()
+        sp_ref.ImportFromProj4(proj4_utm_string)
+        raster_wkt_proj = sp_ref.ExportToWkt()
 
     if match_grid is not None:
         # grid to match
@@ -359,10 +385,18 @@ def rasterize_shapefile(shapefile_path,
         y_num_cells = match_ds.RasterYSize
 
     elif x_cell_size is not None and y_cell_size is not None:
+        match_proj = shapefile_spatial_ref.ExportToWkt()
+        if raster_wkt_proj:
+            sp_ref = osr.SpatialReference()
+            sp_ref.ImportFromWkt(raster_wkt_proj)
+            tx = osr.CoordinateTransformation (shapefile_spatial_ref, sp_ref)
+            x_min, y_max, ulz = tx.TransformPoint(x_min, y_max)
+            x_max, y_min, brz = tx.TransformPoint(x_max, y_min)
+            match_proj = raster_wkt_proj
+
         x_num_cells = int((x_max - x_min) / x_cell_size)
         y_num_cells = int((y_max - y_min) / y_cell_size)
         match_geotrans = (x_min, x_cell_size, 0, y_max, 0, -y_cell_size)
-        match_proj = shapefile_spatial_ref.ExportToWkt()
 
     elif x_num_cells is not None and y_num_cells is not None:
         x_cell_size = (x_max - x_min) / float(x_num_cells)
@@ -397,9 +431,9 @@ def rasterize_shapefile(shapefile_path,
         raise Exception("Error rasterizing layer: %s" % err)
 
 
-    if raster_wkt_proj is not None:
+    if raster_wkt_proj is not None and raster_wkt_proj != match_proj:
         # from http://gis.stackexchange.com/questions/139906/replicating-result-of-gdalwarp-using-gdal-python-bindings
-        error_threshold = 0.125  # error threshold --> use same value as in gdalwarp
+        error_threshold = 0.0  # error threshold --> use same value as in gdalwarp
         resampling = gdal.GRA_NearestNeighbour
 
         # Call AutoCreateWarpedVRT() to fetch default values for target raster dimensions and geotransform
@@ -407,7 +441,7 @@ def rasterize_shapefile(shapefile_path,
                                              None, # src_wkt : left to default value --> will use the one from source
                                              raster_wkt_proj,
                                              resampling,
-                                             0.0)
+                                             error_threshold)
         if not as_gdal_grid:
             # Create the final warped raster
             target_ds = gdal.GetDriverByName('GTiff').CreateCopy(out_raster_path, target_ds)
