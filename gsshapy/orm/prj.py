@@ -446,7 +446,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         batchDirectory = self._getBatchDirectory(directory)
 
         # Read Mask (dependency of some output files)
-        maskMap = RasterMapFile()
+        maskMap = WatershedMaskFile()
         maskMapFilename = self.getCard('WATERSHED_MASK').value.strip('"')
         maskMap.read(session=session, directory=directory, filename=maskMapFilename, spatial=spatial)
         maskMap.projectFile = self
@@ -976,15 +976,28 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         gssha_ele_card = self.getCard("ELEVATION")
         if gssha_ele_card is None:
-            raise Exception("ERROR: ELEVATION card not found ...")
+            raise ValueError("ELEVATION card not found ...")
 
         gssha_pro_card = self.getCard("#PROJECTION_FILE")
         if gssha_pro_card is None:
-            raise Exception("ERROR: #PROJECTION_FILE card not found ...")
+            raise ValueError("#PROJECTION_FILE card not found ...")
 
         # return gssha grid
         return GSSHAGrid(gssha_ele_card.value.strip('"').strip("'"),
                          gssha_pro_card.value.strip('"').strip("'"))
+
+    def getWkt(self):
+        '''
+        Returns GSSHA projection WKT string
+        '''
+        gssha_pro_card = self.getCard("#PROJECTION_FILE")
+        if gssha_pro_card is None:
+            raise ValueError("#PROJECTION_FILE card not found ...")
+
+        gssha_prj_file = gssha_pro_card.value.strip('"').strip("'")
+        with open(gssha_prj_file) as pro_file:
+            wkt_string = pro_file.read()
+        return wkt_string
 
     def _automaticallyDeriveSpatialReferenceId(self, directory):
         """

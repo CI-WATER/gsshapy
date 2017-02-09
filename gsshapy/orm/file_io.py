@@ -20,6 +20,7 @@ from .gst import GridStreamFile
 from .tim import TimeSeriesFile
 from .loc import OutputLocationFile
 from .map import RasterMapFile
+from .msk import WatershedMaskFile
 from .pro import ProjectionFile
 from .rep import ReplaceParamFile, ReplaceValFile
 from .lnd import LinkNodeDatasetFile

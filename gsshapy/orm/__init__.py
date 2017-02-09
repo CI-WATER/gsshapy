@@ -13,8 +13,8 @@ from sqlalchemy.orm import sessionmaker
 # Base class for all of model classes
 DeclarativeBase = declarative_base()
 
-# Global metadata. This is used to 
-# Initialize a database with the 
+# Global metadata. This is used to
+# Initialize a database with the
 # Appropriate tables. See db_tools
 metadata = DeclarativeBase.metadata
 
@@ -32,10 +32,9 @@ from .gpi import *
 from .snw import *
 from .loc import *
 from .map import *
+from .msk import *
 from .pro import *
 from .rep import *
 from .lnd import *
 from .generic import *
 from .wms_dataset import *
-
-
