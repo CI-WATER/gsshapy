@@ -17,7 +17,7 @@ install:
   - activate gssha
   # Install required python packages
   - conda install -c conda-forge affine nose psycopg2 rapidpy
-  - pip install coveralls nose-cov
+  - pip install utm coveralls nose-cov
   # Create directory for install packages
   - 'SET INSTALLZ_DIR=%APPVEYOR_BUILD_FOLDER%\..\installz'
   - 'mkdir %INSTALLZ_DIR%'
