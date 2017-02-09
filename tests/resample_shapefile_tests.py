@@ -11,7 +11,7 @@ from os import path
 import unittest
 from shutil import copy
 
-from template import TestGridTemplate
+from .template import TestGridTemplate
 
 from gridtogssha.grid_tools import rasterize_shapefile
 
@@ -71,7 +71,6 @@ class TestResampleShapefile(TestGridTemplate):
                             new_mask_grid,
                             x_num_cells=50,
                             y_num_cells=50,
-                            raster_nodata=0,
                             )
         # compare msk
         self._compare_masks(mask_name)
