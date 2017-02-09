@@ -11,7 +11,7 @@ from os import name as os_name
 import unittest
 from shutil import copy, copytree
 
-from .template import TestGridTemplate
+from template import TestGridTemplate
 
 from gsshapy.orm import ProjectFile
 from gsshapy.lib import db_tools as dbt
@@ -22,7 +22,7 @@ class TestLandCover(TestGridTemplate):
         self.gssha_project_directory = path.join(self.writeDirectory,
                                                  'gssha_project')
         self.gssha_project_file = 'grid_standard.prj'
-        self.land_use_grid = path.join(self.readDirectory, 'LC_5min_global_2012.tif')
+        self.land_use_grid = path.join(self.writeDirectory, 'LC_hd_global_2012.tif')
 
         # copy gssha project
         try:
