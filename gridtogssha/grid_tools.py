@@ -95,6 +95,16 @@ class GDALGrid(object):
 
         return np.array(grid_data)
 
+    def write_prj(self, out_projection_file, esri_format=False):
+        '''
+        Writes ESRI projection file
+        '''
+        if esri_format:
+            self.projection.MorphToESRI()
+        with open(out_projection_file, 'w') as prj_file:
+            prj_file.write(self.projection.ExportToWkt())
+            prj_file.close()
+
     def _to_ascii(self, header_string, file_path, band, print_nodata=True):
         '''
         Writes data to ascii file

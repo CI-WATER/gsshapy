@@ -1,10 +1,9 @@
 """
 ********************************************************************************
-* Name: RaserMapModel
-* Author: Nathan Swain
-* Created On: August 1, 2013
-* Copyright: (c) Brigham Young University 2013
-* License: BSD 2-Clause
+* Name: WatershedMaskFile
+* Author: Alan D. Snow
+* Created On: Feb. 9, 2017
+* License: BSD 3-Clause
 ********************************************************************************
 """
 
@@ -15,7 +14,7 @@ from gridtogssha.grid_tools import rasterize_shapefile
 import os
 
 from .map import RasterMapFile
-
+from .pro import ProjectionFile
 
 class WatershedMaskFile(RasterMapFile):
     """
@@ -26,12 +25,18 @@ class WatershedMaskFile(RasterMapFile):
     See: http://www.gsshawiki.com/Project_File:Project_File
     """
 
-    def __init__(self):
+    def __init__(self, session=None, project_file=None):
         """
         Constructor
         """
         super(WatershedMaskFile, self).__init__()
         self.fileExtension = 'msk'
+        if session is not None and project_file is not None:
+            # delete existing instances
+            self._delete_existing(project_file, session)
+        # add to project_file
+        self.projectFile = project_file
+        self.session = session
 
     def generateFromWatershedShapefile(self,
                                        shapefile_path,
@@ -42,32 +47,69 @@ class WatershedMaskFile(RasterMapFile):
                                        y_cell_size=None):
         '''
         Generates a mask from a watershed_shapefile
+
+        Example::
+
+            from gsshapy.orm import ProjectFile, WatershedMaskFile
+            from gsshapy.lib import db_tools as dbt
+
+            from os import path, chdir
+
+            gssha_directory = '/gsshapy/tests/grid_standard/gssha_project'
+            shapefile_path = 'watershed_boundary.shp'
+
+            # Create Test DB
+            sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
+
+            # Create DB Sessions
+            db_session = dbt.create_session(sqlalchemy_url, sql_engine)
+
+            # Instantiate GSSHAPY object for reading to database
+            project_manager = ProjectFile()
+
+            # read project file
+            project_manager.readInput(directory=gssha_directory,
+                                      projectFileName='grid_standard.prj',
+                                      session=db_session)
+
+            # generate watershed mask
+            watershed_mask = WatershedMaskFile(session=db_session,
+                                               project_file=project_manager)
+            watershed_mask.generateFromWatershedShapefile(shapefile_path,
+                                                          x_num_cells=50,
+                                                          y_num_cells=50,
+                                                          )
+            # write out updated parameters
+            project_manager.writeInput(session=db_session,
+                                       directory=gssha_directory,
+                                       name='grid_standard')
         '''
+        if not self.projectFile:
+            raise ValueError("Must be connected to project file ...")
+
+        # match elevation grid if exists
         match_grid = None
+        try:
+            match_grid = self.projectFile.getGrid(use_mask=False)
+        except ValueError:
+            pass
+
+        # match projection if exists
         wkt_projection = None
-        if self.projectFile:
-            try:
-                match_grid = self.projectFile.getGrid()
-            except ValueError:
-                try:
-                    wkt_projection = self.projectFile.getWkt()
-                except ValueError:
-                    pass
-                pass
+        try:
+            wkt_projection = self.projectFile.getWkt()
+        except ValueError:
+            pass
 
-            if out_raster_path is None:
-                project_path = ''
-                project_path_card = self.projectFile.getCard('PROJECT_PATH')
-                if project_path_card:
-                    project_path = project_path_card.value.strip('"').strip("'")
-                out_raster_path = os.path.join(project_path,
-                                               '{0}.{1}'.format(self.projectFile.name,
-                                                                self.extension),
-                                                )
-        elif out_raster_path is None:
-            raise ValueError("If watershed mask is not assiciated with a "
-                             "project file, out_raster_path must be set ...")
-
+        if out_raster_path is None:
+            project_path = ''
+            project_path_card = self.projectFile.getCard('PROJECT_PATH')
+            if project_path_card:
+                project_path = project_path_card.value.strip('"').strip("'")
+            out_raster_path = os.path.join(project_path,
+                                           '{0}.{1}'.format(self.projectFile.name,
+                                                            self.extension),
+                                            )
         gr = rasterize_shapefile(shapefile_path,
                                  x_num_cells=x_num_cells,
                                  y_num_cells=y_num_cells,
@@ -77,10 +119,24 @@ class WatershedMaskFile(RasterMapFile):
                                  raster_nodata=0,
                                  as_gdal_grid=True,
                                  raster_wkt_proj=wkt_projection,
-                                 convert_to_utm=True
+                                 convert_to_utm=True,
                                  )
-        gr.to_grass_ascii(out_raster_path, print_nodata=False)
 
+        gr.to_grass_ascii(out_raster_path, print_nodata=False)
         self.filename = out_raster_path
 
-        #TODO: Add capability to read raster into database if user desires
+        # update project file cards
+        self.projectFile.setCard('WATERSHED_MASK', out_raster_path, add_quotes=True)
+        self.projectFile.setCard('GRIDSIZE', str((gr.geotransform()[1] - gr.geotransform()[-1])/2.0))
+        self.projectFile.setCard('ROWS', str(gr.y_size()))
+        self.projectFile.setCard('COLS', str(gr.x_size()))
+        # write projection file if does not exist
+        if wkt_projection is None:
+            proj_file = ProjectionFile()
+            proj_file.projection = gr.wkt()
+            proj_file.projectFile = self.projectFile
+            proj_path = "{0}_prj.pro".format(os.path.splitext(out_raster_path)[0])
+            gr.write_prj(proj_path)
+            self.projectFile.setCard('#PROJECTION_FILE', proj_path, add_quotes=True)
+        # read raster into object
+        self._load_raster_text(out_raster_path)

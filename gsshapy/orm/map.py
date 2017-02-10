@@ -77,16 +77,25 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
     def __repr__(self):
         return '<RasterMap: FileExtension=%s>' % self.fileExtension
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
-        """
-        Raster Map File Read from File Method
-        """
-        # Assign file extension attribute to file object
-        self.fileExtension = extension
-        self.filename = filename
+    def _delete_existing(self, project_file, session):
+        '''
+        This will delete existing instances with the same extension
+        '''
+        # remove existing grid if exists
+        existing_elev = session.query(RasterMapFile).\
+                                      filter(RasterMapFile.projectFile == project_file).\
+                                      filter(RasterMapFile.fileExtension == self.fileExtension).\
+                                      all()
+        if existing_elev:
+            session.delete(existing_elev)
+            session.commit()
 
+    def _load_raster_text(self, raster_path):
+        '''
+        Loads grass ASCII to object
+        '''
         # Open file and read plain text into text field
-        with open(path, 'r') as f:
+        with open(raster_path, 'r') as f:
             self.rasterText = f.read()
 
         # Retrieve metadata from header
@@ -107,6 +116,16 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
             elif 'cols' in spline[0].lower():
                 self.columns = int(spline[1])
 
+    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
+        """
+        Raster Map File Read from File Method
+        """
+        # Assign file extension attribute to file object
+        self.fileExtension = extension
+        self.filename = filename
+
+        self._load_raster_text(path)
+        
         if spatial:
             # Get well known binary from the raster file using the MapKit RasterLoader
             wkbRaster = RasterLoader.grassAsciiRasterToWKB(session=session,
@@ -120,7 +139,7 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
         Raster Map File Write to File Method
         """
         # If the raster field is not empty, write from this field
-        if type(self.raster) != type(None):
+        if self.raster is not None:
             # Configure RasterConverter
             converter = RasterConverter(session)
 
@@ -132,6 +151,6 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
             # Write to file
             openFile.write(grassAsciiGrid)
 
-        else:
+        elif self.rasterText is not None:
             # Write file
             openFile.write(self.rasterText)

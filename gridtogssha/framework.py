@@ -310,18 +310,7 @@ class GSSHAFramework(object):
         """
         Adds/updates card for gssha project file
         """
-        card_name = card_name.upper()
-        gssha_card = self.project_manager.getCard(card_name)
-
-        if add_quotes:
-            new_value = "\"{0}\"".format(new_value)
-
-        if gssha_card is None:
-            # add new card
-            new_card = ProjectCard(name=card_name, value=new_value)
-            self.project_manager.projectCards.append(new_card)
-        else:
-            gssha_card.value = new_value
+        self.project_manager.setCard(card_name, new_value, add_quotes)
 
     def _update_card_file_location(self, card_name, new_directory):
         """

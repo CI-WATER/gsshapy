@@ -210,8 +210,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     COMMIT_ERROR_MESSAGE = ('Ensure the files listed in the project file '
                             'are not empty and try again.')
 
-    def __init__(self):
+    def __init__(self, name=None, map_type=None):
         GsshaPyFileObjectBase.__init__(self)
+        self.fileExtension = 'prj'
+        if name is not None:
+            self.name = name
+        if map_type is not None:
+            self.mapType = map_type
+            self.setCard(name='MAP_TYPE', value=str(map_type))
 
     def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
         """
@@ -626,6 +632,27 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return None
 
+    def setCard(self, name, value, add_quotes=False):
+        """
+        Adds/updates card for gssha project file
+
+        Args:
+            name (str): Name of card to be updated/added.
+            value (str): Value to attach to the card.
+            add_quotes (Optional[bool]): If True, will add quotes around string. Default is False.
+        """
+        gssha_card = self.getCard(name)
+
+        if add_quotes:
+            value = '"{0}"'.format(value)
+
+        if gssha_card is None:
+            # add new card
+            new_card = ProjectCard(name=name, value=value)
+            new_card.projectFile = self
+        else:
+            gssha_card.value = value
+
     def getModelSummaryAsKml(self, session, path=None, documentName=None, withStreamNetwork=True, withNodes=False, styles={}):
         """
         Retrieve a KML representation of the model. Includes polygonized mask map and vector stream network.
@@ -970,20 +997,23 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return jsonString
 
-    def getGrid(self):
+    def getGrid(self, use_mask=True):
         """
-        Retuns GSSHA grid object
+        Returns GSSHAGrid object of GSSHA model bounds
         """
-        gssha_ele_card = self.getCard("ELEVATION")
-        if gssha_ele_card is None:
-            raise ValueError("ELEVATION card not found ...")
+        grid_card_name = "WATERSHED_MASK"
+        if not use_mask:
+            grid_card_name = "ELEVATION"
+        gssha_grid_card = self.getCard(grid_card_name)
+        if gssha_grid_card is None:
+            raise ValueError("{0} card not found ...".format(grid_card_name))
 
         gssha_pro_card = self.getCard("#PROJECTION_FILE")
         if gssha_pro_card is None:
             raise ValueError("#PROJECTION_FILE card not found ...")
 
         # return gssha grid
-        return GSSHAGrid(gssha_ele_card.value.strip('"').strip("'"),
+        return GSSHAGrid(gssha_grid_card.value.strip('"').strip("'"),
                          gssha_pro_card.value.strip('"').strip("'"))
 
     def getWkt(self):
@@ -1143,13 +1173,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                                      spatialReferenceID, maskMap=maskMap)
 
     def _readReplacementFiles(self, directory, session, spatial, spatialReferenceID):
-        """
-        Check for the parameter replacement file cards (REPLACE_PARAMS and REPLACE_VALS) and read the files into
+        '''
+        Check for the parameter replacement file cards
+        (REPLACE_PARAMS and REPLACE_VALS) and read the files into
         database if they exist.
 
         Returns:
             replaceParamFile or None if it doesn't exist
-        """
+        '''
         # Set default
         replaceParamFile = None
 
@@ -1186,8 +1217,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     def _readBatchOutputForFile(self, directory, fileIO, filename, session, spatial, spatialReferenceID,
                                 replaceParamFile=None, maskMap=None):
         """
-        When batch mode is run in GSSHA, the files of the same type are prepended with an integer to avoid filename
-        conflicts. This will attempt to read files in this format and throw warnings if the files aren't found.
+        When batch mode is run in GSSHA, the files of the same type are
+        prepended with an integer to avoid filename conflicts.
+        This will attempt to read files in this format and
+        throw warnings if the files aren't found.
         """
         # Get contents of directory
         directoryList = os.listdir(directory)
@@ -1216,15 +1249,20 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Issue warnings
         if '[' in filename or ']' in filename:
-            print('INFO: A file cannot be read, because the path to the file in the project file has been replaced with replacement variable {0}.'.format(filename))
+            print('INFO: A file cannot be read, because the path to the '
+                  'file in the project file has been replaced with '
+                  'replacement variable {0}.'.format(filename))
 
         elif numFilesRead == 0:
-            print('WARNING: {0} listed in project file, but no such file exists.'.format(filename))
+            print('WARNING: {0} listed in project file, but no such '
+                  'file exists.'.format(filename))
 
         else:
-            print('INFO: Batch mode output detected. {0} files read for file {1}'.format(numFilesRead, filename))
+            print('INFO: Batch mode output detected. {0} files read '
+                  'for file {1}'.format(numFilesRead, filename))
 
-    def _invokeRead(self, fileIO, directory, filename, session, spatial=False, spatialReferenceID=4236, replaceParamFile=None):
+    def _invokeRead(self, fileIO, directory, filename, session, spatial=False,
+                    spatialReferenceID=4236, replaceParamFile=None):
         """
         Invoke File Read Method on Other Files
         """
@@ -1233,25 +1271,30 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         if os.path.isfile(path):
             instance = fileIO()
             instance.projectFile = self
-            instance.read(directory, filename, session, spatial=spatial, spatialReferenceID=spatialReferenceID,
+            instance.read(directory, filename, session, spatial=spatial,
+                          spatialReferenceID=spatialReferenceID,
                           replaceParamFile=replaceParamFile)
         else:
-            self._readBatchOutputForFile(directory, fileIO, filename, session, spatial, spatialReferenceID, replaceParamFile)
+            self._readBatchOutputForFile(directory, fileIO, filename, session,
+                                         spatial, spatialReferenceID, replaceParamFile)
 
 
-    def _writeXput(self, session, directory, fileCards, name=None, replaceParamFile=None):
+    def _writeXput(self, session, directory, fileCards,
+                   name=None, replaceParamFile=None):
         """
         GSSHA Project Write Files to File Method
         """
         for card in self.projectCards:
-            if (card.name in fileCards) and self._noneOrNumValue(card.value) and fileCards[card.name]:
+            if (card.name in fileCards) and self._noneOrNumValue(card.value) \
+                    and fileCards[card.name]:
                 fileIO = fileCards[card.name]
                 filename = card.value.strip('"')
 
                 # Check for replacement variables
                 if '[' in filename or ']' in filename:
-                    print('INFO: The file for project card {0} cannot be written, because the path'
-                          ' has been replaced with replacement variable {1}.'.format(card.name, filename))
+                    print('INFO: The file for project card {0} cannot be '
+                          'written, because the path has been replaced '
+                          'with replacement variable {1}.'.format(card.name, filename))
                     return
 
                 # Determine new filename
@@ -1265,7 +1308,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                   filename=filename,
                                   replaceParamFile=replaceParamFile)
 
-    def _writeXputMaps(self, session, directory, mapCards, name=None, replaceParamFile=None):
+    def _writeXputMaps(self, session, directory, mapCards,
+                       name=None, replaceParamFile=None):
         """
         GSSHAPY Project Write Map Files to File Method
         """
@@ -1301,7 +1345,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                           filename=filename,
                                           replaceParamFile=replaceParamFile)
 
-            print('Error: Could not write map files. MAP_TYPE {0} not supported.'.format(self.mapType))
+            print('Error: Could not write map files. MAP_TYPE {0} '
+                  'not supported.'.format(self.mapType))
 
     def _writeWMSDatasets(self, session, directory, wmsDatasetCards, name=None):
         """
@@ -1335,31 +1380,40 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                             one()
 
                     except NoResultFound:
-                        # Handle case when there is no file in database but the card is listed in the project file
-                        print('WARNING: {0} listed as card in project file, but the file is not found in the database.'.format(filename))
+                        # Handle case when there is no file in database but
+                        # the card is listed in the project file
+                        print('WARNING: {0} listed as card in project file, '
+                              'but the file is not found in the database.'.format(filename))
 
                     except MultipleResultsFound:
                         # Write all instances
-                        self._invokeWriteForMultipleOfType(directory, extension, WMSDatasetFile, filename, session, maskMap=maskMap)
+                        self._invokeWriteForMultipleOfType(directory, extension,
+                                                           WMSDatasetFile, filename,
+                                                           session, maskMap=maskMap)
                         return
 
                     # Initiate Write Method on File
                     if wmsDataset is not None and maskMap is not None:
-                        wmsDataset.write(session=session, directory=directory, name=filename, maskMap=maskMap)
+                        wmsDataset.write(session=session, directory=directory,
+                                         name=filename, maskMap=maskMap)
         else:
-            print('Error: Could not write WMS Dataset files. MAP_TYPE {0} not supported.'.format(self.mapType))
+            print('Error: Could not write WMS Dataset files. '
+                  'MAP_TYPE {0} not supported.'.format(self.mapType))
 
     def _writeReplacementFiles(self, session, directory, name):
         """
         Write the replacement files
         """
         if self.replaceParamFile:
-            self.replaceParamFile.write(session=session, directory=directory, name=name)
+            self.replaceParamFile.write(session=session, directory=directory,
+                                        name=name)
 
         if self.replaceValFile:
-            self.replaceValFile.write(session=session, directory=directory, name=name)
+            self.replaceValFile.write(session=session, directory=directory,
+                                      name=name)
 
-    def _invokeWriteForMultipleOfType(self, directory, extension, fileIO, filename, session, replaceParamFile=None,
+    def _invokeWriteForMultipleOfType(self, directory, extension, fileIO,
+                                      filename, session, replaceParamFile=None,
                                       maskMap=None):
         # Write all instances
         instances = session.query(fileIO). \
@@ -1375,12 +1429,15 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 prefixFilename = prefix + filename
 
                 if isinstance(instance, WMSDatasetFile):
-                    instance.write(session=session, directory=directory, name=prefixFilename, maskMap=maskMap)
+                    instance.write(session=session, directory=directory,
+                                   name=prefixFilename, maskMap=maskMap)
                 else:
-                    instance.write(session=session, directory=directory, name=prefixFilename,
+                    instance.write(session=session, directory=directory,
+                                   name=prefixFilename,
                                    replaceParamFile=replaceParamFile)
 
-        print('INFO: Batch mode output detected. {1} files written having extension {0}.'.format(extension, index + 1))
+        print('INFO: Batch mode output detected. {1} files written '
+              'having extension {0}.'.format(extension, index + 1))
 
     def _invokeWrite(self, fileIO, session, directory, filename, replaceParamFile):
         """
@@ -1409,15 +1466,20 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     one()
 
             except NoResultFound:
-                # Handle case when there is no file in database but the card is listed in the project file
-                print('WARNING: {0} listed as card in project file, but the file is not found in the database.'.format(filename))
+                # Handle case when there is no file in database but the
+                # card is listed in the project file
+                print('WARNING: {0} listed as card in project file, but '
+                      'the file is not found in the database.'.format(filename))
             except MultipleResultsFound:
-                self._invokeWriteForMultipleOfType(directory, extension, fileIO, filename, session, replaceParamFile=replaceParamFile)
+                self._invokeWriteForMultipleOfType(directory, extension, fileIO,
+                                                   filename, session,
+                                                   replaceParamFile=replaceParamFile)
                 return
 
         # Initiate Write Method on File
         if instance is not None:
-            instance.write(session=session, directory=directory, name=filename, replaceParamFile=replaceParamFile)
+            instance.write(session=session, directory=directory, name=filename,
+                           replaceParamFile=replaceParamFile)
 
     def _replaceNewFilename(self, filename, name):
         # Variables
@@ -1494,7 +1556,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 float(pathSplit[-1])
                 cardValue = ' '.join(splitLine[1:])
             except:
-                # A string will throw an exception with an attempt to convert to float. In this case wrap the string
+                # A string will throw an exception with an attempt to
+                # convert to float. In this case wrap the string
                 # in double quotes.
                 if cardName == 'WMS':
                     cardValue = ' '.join(splitLine[1:])
@@ -1510,7 +1573,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                         # If the string contains a '.' it is a path: wrap in double quotes
                         cardValue = '"%s"' % pathSplit[-1]
                 elif pathSplit[-1] == '':
-                    # For directory cards with unix run through _extractDirectoryCard() method to extract relative
+                    # For directory cards with unix run through
+                    # _extractDirectoryCard() method to extract relative
                     # path to the directory.
                     cardValue = self._extractDirectoryCard(projectLine)['value']
 
@@ -1529,7 +1593,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     def _extractDirectoryCard(self, projectLine):
         PROJECT_PATH = ('PROJECT_PATH')
 
-        # Handle special case with directory cards in windows. shlex.split fails because windows directory cards end
+        # Handle special case with directory cards in windows.
+        # shlex.split fails because windows directory cards end
         # with an escape character. (e.g.: "this\path\ends\with\escape\")
         currLine = projectLine.strip().split()
 

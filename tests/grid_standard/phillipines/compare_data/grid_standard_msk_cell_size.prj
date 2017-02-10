@@ -1,0 +1,7 @@
+GSSHAPROJECT
+MAP_TYPE                 1
+WATERSHED_MASK           "mask_cell_size_ascii_utm.msk"
+GRIDSIZE                 1000.0
+ROWS                     39
+COLS                     33
+#PROJECTION_FILE         "mask_cell_size_ascii_utm_prj.pro"
