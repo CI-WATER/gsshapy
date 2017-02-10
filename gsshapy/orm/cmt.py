@@ -685,6 +685,12 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         # write file
         land_use_resampled.to_grass_ascii(mapTable.indexMap.filename)
 
+        # update project card
+        if not self.projectFile.getCard('MAPPING_TABLE'):
+            self.projectFile.setCard('MAPPING_TABLE',
+                                     '{0}.cmt'.format(self.projectFile.name),
+                                     add_quotes=True)
+
 class MapTable(DeclarativeBase):
     """
     Object containing header data for a mapping table.
