@@ -99,19 +99,30 @@ class TestGridTemplate(unittest.TestCase):
                     print(os.path.join(dir1, afile))
                     print(os.path.join(dir2, afile))
                     raise
-                    
+
     def _list_compare(self, listone, listtwo):
         for one, two in itertools.izip(listone, listtwo):
             self.assertEqual(one, two)
 
+    def _before_teardown(self):
+        '''
+        Method to execute at beginning of tearDown
+        '''
+        return
+
     def tearDown(self):
+        '''
+        Method to cleanup after tests
+        '''
+        self._before_teardown()
+
         os.chdir(SCRIPT_DIR)
 
         # Clear out directory
         fileList = os.listdir(self.writeDirectory)
 
         for afile in fileList:
-            if afile != '.gitignote':
+            if not afile.endswith('.gitignore'):
                 path = os.path.join(self.writeDirectory, afile)
                 if os.path.isdir(path):
                     rmtree(path)
