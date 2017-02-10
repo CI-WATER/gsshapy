@@ -82,3 +82,5 @@ class WatershedMaskFile(RasterMapFile):
         gr.to_grass_ascii(out_raster_path, print_nodata=False)
 
         self.filename = out_raster_path
+
+        #TODO: Add capability to read raster into database if user desires
