@@ -10,6 +10,7 @@
 
 # This file is purely for convenience
 from .cmt import MapTableFile
+from .ele import ElevationGridFile
 from .gag import PrecipFile
 from .cif import ChannelInputFile
 from .spn import StormPipeNetworkFile

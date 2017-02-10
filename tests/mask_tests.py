@@ -11,7 +11,7 @@ from os import path
 import unittest
 from shutil import copy
 
-from template import TestGridTemplate
+from .template import TestGridTemplate
 
 from gsshapy.orm import ProjectFile, WatershedMaskFile
 from gsshapy.lib import db_tools as dbt
@@ -20,7 +20,7 @@ from os import path, chdir
 
 class TestMask(TestGridTemplate):
     def setUp(self):
-        self.gssha_directory = self.writeDirectory
+        self.gssha_project_directory = self.writeDirectory
 
         self.shapefile_path = path.join(self.writeDirectory,
                                         'phillipines_5070115700.shp')
@@ -53,7 +53,7 @@ class TestMask(TestGridTemplate):
 
         self.msk_file = WatershedMaskFile(project_file=self.project_manager,
                                           session=self.db_session)
-        chdir(self.writeDirectory)
+        chdir(self.gssha_project_directory)
 
     def _compare_masks(self, mask_name):
         '''
@@ -80,16 +80,16 @@ class TestMask(TestGridTemplate):
                                                      y_num_cells=50,
                                                      )
         self.project_manager.writeInput(session=self.db_session,
-                                        directory=self.gssha_directory,
+                                        directory=self.gssha_project_directory,
                                         name='grid_standard_msk')
         # compare msk
         self._compare_masks(mask_name)
         # compare project files
-        generated_prj_file = path.join(self.gssha_directory, 'grid_standard_msk.prj')
+        generated_prj_file = path.join(self.gssha_project_directory, 'grid_standard_msk.prj')
         compare_prj_file = path.join(self.compare_path, 'grid_standard_msk_50.prj')
         self._compare_files(generated_prj_file, compare_prj_file)
         # check to see if projection file generated
-        generated_proj_file = path.join(self.gssha_directory, 'mask_50_utm_ascii_prj.pro')
+        generated_proj_file = path.join(self.gssha_project_directory, 'mask_50_utm_ascii_prj.pro')
         compare_proj_file = path.join(self.compare_path, 'mask_50_utm_ascii_prj.pro')
         self._compare_files(generated_proj_file, compare_proj_file)
 
@@ -104,16 +104,16 @@ class TestMask(TestGridTemplate):
                                                      y_cell_size=1000,
                                                      )
         self.project_manager.writeInput(session=self.db_session,
-                                        directory=self.gssha_directory,
+                                        directory=self.gssha_project_directory,
                                         name='grid_standard_msk')
         # compare msk
         self._compare_masks(mask_name)
         # compare project files
-        generated_prj_file = path.join(self.gssha_directory, 'grid_standard_msk.prj')
+        generated_prj_file = path.join(self.gssha_project_directory, 'grid_standard_msk.prj')
         compare_prj_file = path.join(self.compare_path, 'grid_standard_msk_cell_size.prj')
         self._compare_files(generated_prj_file, compare_prj_file)
         # check to see if projection file generated
-        generated_proj_file = path.join(self.gssha_directory, 'mask_cell_size_ascii_utm_prj.pro')
+        generated_proj_file = path.join(self.gssha_project_directory, 'mask_cell_size_ascii_utm_prj.pro')
         compare_proj_file = path.join(self.compare_path, 'mask_cell_size_ascii_utm_prj.pro')
         self._compare_files(generated_proj_file, compare_proj_file)
 

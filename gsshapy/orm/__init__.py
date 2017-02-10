@@ -22,6 +22,7 @@ metadata = DeclarativeBase.metadata
 from .prj import *
 from .idx import *
 from .cmt import *
+from .ele import *
 from .tim import *
 from .gag import *
 from .cif import *

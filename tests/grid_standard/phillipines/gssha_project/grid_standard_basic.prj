@@ -1,0 +1,7 @@
+GSSHAPROJECT
+MAP_TYPE                 1
+WATERSHED_MASK           "grid_standard_basic.msk"
+GRIDSIZE                 729.727520052
+ROWS                     54
+COLS                     47
+#PROJECTION_FILE         "grid_standard_basic_prj.pro"
