@@ -1,6 +1,6 @@
 '''
 ********************************************************************************
-* Name: Land Cver Tests
+* Name: Land Cover Tests
 * Author: Alan D. Snow
 * Created On: February 6, 2016
 * License: BSD 3-Clause
