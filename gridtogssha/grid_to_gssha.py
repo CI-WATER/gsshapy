@@ -422,7 +422,7 @@ class GRIDtoGSSHA(object):
 
         #The projection file is named DIFFERENT as it is stored in the .PRO
         #file in the GSSHA folder. This searched for the file.
-        gssha_projection_file_path = "{0}.pro".format(path.splitext(gssha_grid_path)[0])
+        gssha_projection_file_path = "{0}_prj.pro".format(path.splitext(gssha_grid_path)[0])
         if not gssha_projection_file_path or not path.exists(gssha_projection_file_path):
             gssha_projection_file_list = glob(path.join(self.gssha_project_folder, "*.pro"))
             if len(gssha_projection_file_list) > 0:
