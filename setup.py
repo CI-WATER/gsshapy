@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 
 requires = [
+    'affine',
     'future',
     'mapkit>=1.2.0',
     'psycopg2',
@@ -9,6 +10,7 @@ requires = [
     'requests',
     'sqlalchemy',
     'timezonefinder',
+    'utm',
     ]
 
 setup(name='gsshapy',

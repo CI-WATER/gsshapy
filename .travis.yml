@@ -46,8 +46,8 @@ before_install:
 #-------------------------------------------------------------------------------
 # Install required python packages
 #-----------------------------------------------------------------------------
-- conda install --yes -c conda-forge affine nose numpy pandas netcdf4 gdal pyproj pygrib psycopg2
-- pip install utm coveralls
+- conda install --yes -c conda-forge affine mapkit nose pygrib psycopg2 timezonefinder rapidpy
+- pip install coveralls
 
 #-------------------------------------------------------------------------------
 #Creating directory for installation of libraries used by GSSHApy
