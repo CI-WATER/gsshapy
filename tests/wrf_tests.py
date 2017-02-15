@@ -78,6 +78,9 @@ class TestLSMtoGSSHA(TestGridTemplate):
                               output_unix_format=(os.name != 'nt')
                               )
 
+    def _before_teardown(self):
+        self.l2g = None
+
     def test_wrf_gage_file_write(self):
         '''
         Test WRF lsm_precip_to_gssha_precip_gage write method
