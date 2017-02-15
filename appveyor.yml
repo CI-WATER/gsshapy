@@ -1,12 +1,15 @@
 #FROM: http://tjelvarolsson.com/blog/how-to-continuously-test-your-python-code-on-windows-using-appveyor/
 # and on: https://github.com/DynamicDevices/mono/blob/master/appveyor.yml
 environment:
-  global:
-    PYTHON_VERSION: "2.7"
+#  global:
+#    CYG_ROOT: "C:/cygwin64"
+#    CYG_MIRROR: "http://cygwin.mirror.constant.com"
+#    CYG_CACHE: "C:/cygwin/var/cache/setup"
+matrix:
+  - PYTHON_VERSION: "2.7"
     MINICONDA: "C:\\Miniconda-x64"
-    CYG_ROOT: "C:/cygwin64"
-    CYG_MIRROR: "http://cygwin.mirror.constant.com"
-    CYG_CACHE: "C:/cygwin/var/cache/setup"
+  - PYTHON_VERSION: "3.5"
+    MINICONDA: "C:\\Miniconda3-x64"
 
 install:
   - 'SET PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%'
@@ -16,7 +19,7 @@ install:
   - "conda create --name gssha python=%PYTHON_VERSION%"
   - activate gssha
   # Install required python packages
-  - conda install -c conda-forge affine nose psycopg2 rapidpy
+  - conda install -c conda-forge affine nose psycopg2 timezonefinder rapidpy
   - pip install utm coveralls nose-cov
   # Create directory for install packages
   - 'SET INSTALLZ_DIR=%APPVEYOR_BUILD_FOLDER%\..\installz'
