@@ -500,12 +500,12 @@ class GSSHAFramework(object):
                        self.lsm_file_date_naming_convention)
 
         if None not in needed_vars:
-            gssha_ele_card = self.project_manager.getCard("ELEVATION")
-            if gssha_ele_card is None:
+            gssha_msk_card = self.project_manager.getCard("WATERSHED_MASK")
+            if gssha_msk_card is None:
                 raise Exception("ERROR: ELEVATION card not found ...")
 
             l2g = LSMtoGSSHA(gssha_project_folder=self.gssha_directory,
-                             gssha_grid_file_name=gssha_ele_card.value.strip('"').strip("'"),
+                             gssha_grid_file_name=gssha_msk_card.value.strip('"').strip("'"),
                              lsm_input_folder_path=self.lsm_folder,
                              lsm_search_card=self.lsm_search_card,
                              lsm_lat_var=self.lsm_lat_var,
