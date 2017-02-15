@@ -11,7 +11,7 @@ from os import name as os_name
 import unittest
 from shutil import copy, copytree
 
-from template import TestGridTemplate
+from .template import TestGridTemplate
 
 from gsshapy.orm import ProjectFile
 from gsshapy.lib import db_tools as dbt
