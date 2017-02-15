@@ -7,6 +7,7 @@ requires = [
     'psycopg2',
     'python-dateutil',
     'pytz',
+    'rapidpy',
     'requests',
     'sqlalchemy',
     'timezonefinder',
