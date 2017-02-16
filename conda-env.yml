@@ -10,6 +10,7 @@ channels:
 - defaults
 dependencies:
 - python=2
+- affine
 - mapkit
 - mock
 - nose
