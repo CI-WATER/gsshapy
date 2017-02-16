@@ -10,6 +10,9 @@ environment:
       MINICONDA: "C:\\Miniconda-x64"
     - PYTHON_VERSION: "3.5"
       MINICONDA: "C:\\Miniconda3-x64"
+    allow_failures:
+      - PYTHON_VERSION: "3.5"
+
 
 install:
   - 'SET PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%'
