@@ -75,7 +75,7 @@ Install gsshapy for development:
     $ conda create --name gssha python=2
     $ source activate gssha
     $ conda config --add channels conda-forge
-    (gssha)$ conda install --yes mapkit pygrib rapidpy timezonefinder psycopg2
+    (gssha)$ conda install --yes affine mapkit pygrib psycopg2 timezonefinder rapidpy
     (gssha)$ git clone https://github.com/CI-WATER/gsshapy.git
     (gssha)$ cd gsshapy
     (gssha)$ python setup.py develop
@@ -86,7 +86,7 @@ Install gsshapy for development:
 Windows
 -------
 
-.. note:: pygrib instructions are not provided for Windows, so :func:`~gridtogssha.hrrr_to_gssha.HRRRtoGSSHA` will not work.
+.. note:: pygrib installation instructions are not provided for Windows, so :func:`~gridtogssha.hrrr_to_gssha.HRRRtoGSSHA` will not work.
 
 Download & Install Miniconda
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -125,7 +125,7 @@ Open up the CMD program. Then, enter each line separately.
     > conda create --name gssha python=2
     > activate gssha
     (gssha)> conda config --add channels conda-forge
-    (gssha)> conda install --yes mapkit rapidpy timezonefinder psycopg2
+    (gssha)> conda install --yes affine mapkit psycopg2 timezonefinder rapidpy
     (gssha)> python setup.py develop
 
 .. note:: When using a new CMD terminal, always type *activate gssha* before using GsshaPy.
