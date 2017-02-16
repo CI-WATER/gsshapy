@@ -17,7 +17,7 @@ dependencies:
 - psycopg2
 - pygrib
 - rapidpy
-- sphinx
+#- sphinx
 - timezonefinder
-- pip:
-  - sphinxcontrib-napoleon
+#- pip:
+#  - sphinxcontrib-napoleon
