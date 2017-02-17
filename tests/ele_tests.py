@@ -16,8 +16,6 @@ from .template import TestGridTemplate
 from gsshapy.orm import ProjectFile, ElevationGridFile
 from gsshapy.lib import db_tools as dbt
 
-"""
-#COMMENTED OUT BECAUSE CANNOT UPLOAD VISNAV DATA
 class TestElevation(TestGridTemplate):
     def setUp(self):
         self.gssha_project_directory = path.join(self.writeDirectory,
@@ -25,7 +23,7 @@ class TestElevation(TestGridTemplate):
         self.gssha_project_file = 'grid_standard_basic.prj'
 
         self.elevation_path = path.join(self.writeDirectory,
-                                        'elevation.tif')
+                                        'gmted_elevation.tif')
 
         self.compare_path = path.join(self.readDirectory,
                                       'phillipines',
@@ -41,7 +39,7 @@ class TestElevation(TestGridTemplate):
         # copy elevation grid
         try:
             copy(path.join(self.readDirectory, 'phillipines',
-                           'VisNav3', 'ASTGTM2_N15E121_dem.tif'),
+                           'gmted_elevation.tif'),
                  self.elevation_path)
         except OSError:
             pass
@@ -82,8 +80,9 @@ class TestElevation(TestGridTemplate):
         compare_prj_file = path.join(self.compare_path, 'grid_standard_ele.prj')
         self._compare_files(generated_prj_file, compare_prj_file)
 
+    def tearDown(self):
+        pass
 
 
 if __name__ == '__main__':
     unittest.main()
-"""

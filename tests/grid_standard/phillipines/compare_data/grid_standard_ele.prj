@@ -1,4 +1,5 @@
 GSSHAPROJECT
+PROJECT_PATH             ""
 MAP_TYPE                 1
 WATERSHED_MASK           "grid_standard_ele.msk"
 GRIDSIZE                 729.727520052
