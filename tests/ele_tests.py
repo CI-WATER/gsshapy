@@ -80,9 +80,6 @@ class TestElevation(TestGridTemplate):
         compare_prj_file = path.join(self.compare_path, 'grid_standard_ele.prj')
         self._compare_files(generated_prj_file, compare_prj_file)
 
-    def tearDown(self):
-        pass
-
 
 if __name__ == '__main__':
     unittest.main()
