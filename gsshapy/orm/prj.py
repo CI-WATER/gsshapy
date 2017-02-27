@@ -1029,6 +1029,22 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             wkt_string = pro_file.read()
         return wkt_string
 
+    def setOutlet(self, latitude, longitude, outslope=0.001):
+        '''
+        Sets the outlet grid cell information in the project file.
+
+        Parameters:
+            latitude(float): Latitude of grid cell center.
+            longitude(float): Longitude of grid cell center.
+            outslope(Optional[float]): River slope at outlet.
+        '''
+        #OUTROW, OUTCOL, OUTSLOPE
+        gssha_grid = self.getGrid()
+        col, row = gssha_grid.lonlat2pixel(longitude, latitude)
+        self.setCard(name='OUTROW', value=str(row))
+        self.setCard(name='OUTCOL', value=str(col))
+        self.setCard(name='OUTSLOPE', value=str(outslope))
+
     def _automaticallyDeriveSpatialReferenceId(self, directory):
         """
         This method is used to automatically lookup the spatial reference ID of the GSSHA project. This method is a

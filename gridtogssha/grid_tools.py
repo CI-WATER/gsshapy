@@ -61,6 +61,35 @@ class GDALGrid(object):
         """
         return self.affine * (col+0.5, row+0.5)
 
+    def coord2pixel(self, x_coord, y_coord):
+        """Returns base-0 raster index using global coordinates to pixel center
+        """
+        col, row = ~self.affine * (x_coord, y_coord)
+        if col > self.x_size or col < 0:
+            raise IndexError("Longitude {0} is out of bounds ...")
+        if row > self.y_size or row < 0:
+            raise IndexError("Latitude {0} is out of bounds ...")
+
+        return (int(col), int(row))
+
+    def pixel2lonlat(self, col, row):
+        """Returns latitude and longitude to pixel center using base-0 raster index
+        """
+        x_coord, y_coord = self.pixel2coord(col, row)
+        sp_ref = osr.SpatialReference()
+        sp_ref.ImportFromEPSG(4326) # geographic
+        tx = osr.CoordinateTransformation(self.projection, sp_ref)
+        longitude, latitude, z_coord = tx.TransformPoint(x_coord, y_coord)
+        return (longitude, latitude)
+
+    def lonlat2pixel(self, longitude, latitude):
+        """Returns base-0 raster index using longitude and latitude of pixel center
+        """
+        sp_ref = osr.SpatialReference()
+        sp_ref.ImportFromEPSG(4326) # geographic
+        tx = osr.CoordinateTransformation(sp_ref, self.projection)
+        x_coord, y_coord, z_coord = tx.TransformPoint(longitude, latitude)
+        return self.coord2pixel(x_coord, y_coord)
 
     def lat_lon(self, two_dimensional=False):
         '''

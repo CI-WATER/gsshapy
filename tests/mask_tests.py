@@ -117,5 +117,47 @@ class TestMask(TestGridTemplate):
         compare_proj_file = path.join(self.compare_path, 'mask_cell_size_ascii_utm_prj.pro')
         self._compare_files(generated_proj_file, compare_proj_file)
 
+    def test_rasterize_cell_size_ascii_utm_outlet(self):
+        '''
+        Tests rasterize_shapefile using cell size to ascii in utm
+        Then add outlet information
+        '''
+        mask_name = 'mask_cell_size_ascii_utm.msk'
+        self.msk_file.generateFromWatershedShapefile(self.shapefile_path,
+                                                     mask_name,
+                                                     x_cell_size=1000,
+                                                     y_cell_size=1000,
+                                                     )
+        grid = self.project_manager.getGrid()
+        lon, lat = grid.pixel2lonlat(0,9)
+        self.project_manager.setOutlet(latitude=lat, longitude=lon)
+        self.project_manager.writeInput(session=self.db_session,
+                                        directory=self.gssha_project_directory,
+                                        name='grid_standard_msk_outlet')
+        # compare msk
+        self._compare_masks(mask_name)
+        # compare project files
+        generated_prj_file = path.join(self.gssha_project_directory, 'grid_standard_msk_outlet.prj')
+        compare_prj_file = path.join(self.compare_path, 'grid_standard_msk_cell_size_outlet.prj')
+        self._compare_files(generated_prj_file, compare_prj_file)
+        # check to see if projection file generated
+        generated_proj_file = path.join(self.gssha_project_directory, 'mask_cell_size_ascii_utm_prj.pro')
+        compare_proj_file = path.join(self.compare_path, 'mask_cell_size_ascii_utm_prj.pro')
+        self._compare_files(generated_proj_file, compare_proj_file)
+
+    def test_rasterize_cell_size_ascii_utm_outlet_error(self):
+        '''
+        Tests rasterize_shapefile using cell size to ascii in utm
+        Then add outlet information for out of bounds location
+        '''
+        mask_name = 'mask_cell_size_ascii_utm.msk'
+        self.msk_file.generateFromWatershedShapefile(self.shapefile_path,
+                                                     mask_name,
+                                                     x_cell_size=1000,
+                                                     y_cell_size=1000,
+                                                     )
+        with self.assertRaises(IndexError):
+            self.project_manager.setOutlet(latitude=12.8798, longitude=121.7740)
+
 if __name__ == '__main__':
     unittest.main()
