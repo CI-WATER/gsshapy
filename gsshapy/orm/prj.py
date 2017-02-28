@@ -1041,8 +1041,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         #OUTROW, OUTCOL, OUTSLOPE
         gssha_grid = self.getGrid()
         col, row = gssha_grid.lonlat2pixel(longitude, latitude)
-        self.setCard(name='OUTROW', value=str(row))
-        self.setCard(name='OUTCOL', value=str(col))
+        # add 1 to row & col becasue GSSHA is 1-based
+        self.setCard(name='OUTROW', value=str(row+1))
+        self.setCard(name='OUTCOL', value=str(col+1))
         self.setCard(name='OUTSLOPE', value=str(outslope))
 
     def _automaticallyDeriveSpatialReferenceId(self, directory):

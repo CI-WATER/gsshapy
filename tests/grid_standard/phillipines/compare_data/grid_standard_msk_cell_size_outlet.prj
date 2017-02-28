@@ -5,6 +5,6 @@ GRIDSIZE                 1000.0
 ROWS                     39
 COLS                     33
 #PROJECTION_FILE         "mask_cell_size_ascii_utm_prj.pro"
-OUTROW                   9
-OUTCOL                   0
+OUTROW                   10
+OUTCOL                   1
 OUTSLOPE                 0.001
