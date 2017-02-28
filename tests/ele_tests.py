@@ -72,14 +72,13 @@ class TestElevation(TestGridTemplate):
                                         directory=self.gssha_project_directory,
                                         name='grid_standard_ele')
         # compare ele
-        new_mask_grid = path.join(self.gssha_project_directory, 'grid_standard_basic.ele')
+        new_mask_grid = path.join(self.gssha_project_directory, 'grid_standard_ele.ele')
         compare_msk_file = path.join(self.compare_path, 'grid_standard_ele.ele')
         self._compare_files(compare_msk_file, new_mask_grid, raster=True)
         # compare project files
         generated_prj_file = path.join(self.gssha_project_directory, 'grid_standard_ele.prj')
         compare_prj_file = path.join(self.compare_path, 'grid_standard_ele.prj')
         self._compare_files(generated_prj_file, compare_prj_file)
-
 
 if __name__ == '__main__':
     unittest.main()

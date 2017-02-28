@@ -158,6 +158,6 @@ class TestMask(TestGridTemplate):
                                                      )
         with self.assertRaises(IndexError):
             self.project_manager.setOutlet(latitude=12.8798, longitude=121.7740)
-
+            
 if __name__ == '__main__':
     unittest.main()

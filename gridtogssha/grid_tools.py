@@ -65,10 +65,10 @@ class GDALGrid(object):
         """Returns base-0 raster index using global coordinates to pixel center
         """
         col, row = ~self.affine * (x_coord, y_coord)
-        if col > self.x_size or col < 0:
-            raise IndexError("Longitude {0} is out of bounds ...")
-        if row > self.y_size or row < 0:
-            raise IndexError("Latitude {0} is out of bounds ...")
+        if col > self.x_size() or col < 0:
+            raise IndexError("Longitude {0} is out of bounds ...".format(x_coord))
+        if row > self.y_size() or row < 0:
+            raise IndexError("Latitude {0} is out of bounds ...".format(y_coord))
 
         return (int(col), int(row))
 
@@ -139,14 +139,15 @@ class GDALGrid(object):
         Writes data to ascii file
         '''
         if print_nodata:
-            nodata_value = self.dataset.GetRasterBand(1).GetNoDataValue()
-            header_string += "NODATA_value {0}\n".format(nodata_value)
+            nodata_value = self.dataset.GetRasterBand(band).GetNoDataValue()
+            if nodata_value is not None:
+                header_string += "NODATA_value {0}\n".format(nodata_value)
 
         with open(file_path, 'w') as out_ascii_grid:
             out_ascii_grid.write(header_string)
             grid_writer = csv_writer(out_ascii_grid,
                                      delimiter=" ")
-            grid_writer.writerows(self.np_array(band)[:,::-1])
+            grid_writer.writerows(self.np_array(band))
 
     def to_grass_ascii(self, file_path, band=1, print_nodata=True):
         '''Writes data to GRASS ASCII file format.
@@ -157,7 +158,7 @@ class GDALGrid(object):
         '''
         # PART 1: HEADER
         # get data extremes
-        east_bound, west_bound, south_bound, north_bound = self.bounds()
+        west_bound, east_bound, south_bound, north_bound = self.bounds()
         header_string = u"north: {0:.9f}\n".format(north_bound)
         header_string += "south: {0:.9f}\n".format(south_bound)
         header_string += "east: {0:.9f}\n".format(east_bound)
@@ -177,7 +178,7 @@ class GDALGrid(object):
         '''
         # PART 1: HEADER
         # get data extremes
-        east_bound, west_bound, south_bound, north_bound = self.bounds()
+        west_bound, east_bound, south_bound, north_bound = self.bounds()
         cellsize = (self.geotransform()[1] - self.geotransform()[-1])/2.0
         header_string = u"ncols {0}\n".format(self.x_size())
         header_string += "nrows {0}\n".format(self.y_size())
@@ -353,6 +354,12 @@ def resample_grid(original_grid,
 
     dst.SetGeoTransform(match_geotrans)
     dst.SetProjection(match_proj)
+
+    for band_i in range(1, dst.RasterCount+1):
+        nodata_value = src.GetRasterBand(band_i).GetNoDataValue()
+        if not nodata_value:
+            nodata_value = -9999
+        dst.GetRasterBand(band_i).SetNoDataValue(nodata_value)
 
     # extract subset and resample grid
     gdal.ReprojectImage(src, dst,
