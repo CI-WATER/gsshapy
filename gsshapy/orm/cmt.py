@@ -679,6 +679,12 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         project_path = self.projectFile.getCard('PROJECT_PATH').value.strip('"').strip("'")
 
+        # remove MANNING_N card becasue it is mutually exclusive
+        manningn_card = self.projectFile.getCard('MANNING_N')
+        if manningn_card:
+            session.delete(manningn_card)
+            session.commit()
+
         # add path to file
         mapTable.indexMap.filename = os.path.join(project_path, '{0}.idx'.format(name))
 
