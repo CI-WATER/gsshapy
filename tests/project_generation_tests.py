@@ -245,8 +245,5 @@ class TestProjectGenerate(TestGridTemplate):
         compare_proj_file = path.join(self.compare_path, proj_file_name)
         self._compare_files(generated_proj_file, compare_proj_file)
 
-    def tearDown(self):
-        return
-
 if __name__ == '__main__':
     unittest.main()
