@@ -65,11 +65,15 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
     mapTables = relationship('MapTable', back_populates='mapTableFile')  #: RELATIONSHIP
     projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile')  #: RELATIONSHIP
 
-    def __init__(self):
+    def __init__(self, project_file=None):
         """
         Constructor
         """
         GsshaPyFileObjectBase.__init__(self)
+        # add to project_file
+        self.projectFile = project_file
+        # Set file extension property
+        self.fileExtension = 'cmt'
 
     def _read(self, directory, filename, session, path, name, extension,
               spatial=False, spatialReferenceID=4236, replaceParamFile=None,
@@ -676,8 +680,10 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                                            resample_method=gdalconst.GRA_NearestNeighbour,
                                            as_gdal_grid=True)
 
-
-        project_path = self.projectFile.getCard('PROJECT_PATH').value.strip('"').strip("'")
+        project_path = ""
+        proj_path_card = self.projectFile.getCard('PROJECT_PATH')
+        if proj_path_card:
+            project_path = proj_path_card.value.strip('"').strip("'")
 
         # remove MANNING_N card becasue it is mutually exclusive
         manningn_card = self.projectFile.getCard('MANNING_N')
