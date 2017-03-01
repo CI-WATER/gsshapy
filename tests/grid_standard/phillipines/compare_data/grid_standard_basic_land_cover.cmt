@@ -1,24 +1,6 @@
 GSSHA_INDEX_MAP_TABLES
 INDEX_MAP                "roughness.idx" "roughness"
 ROUGHNESS "roughness"
-NUM_IDS 19
-ID    DESCRIPTION1                            DESCRIPTION2                            ROUGH  
-0     Water                                                                           0.025000   
-1     Evergreen_Needleleaf_forest                                                     0.100000   
-2     Evergreen_Broadleaf_forest                                                      0.100000   
-3     Deciduous_Needleleaf_forest                                                     0.100000   
-4     Deciduous_Broadleaf_forest                                                      0.100000   
-5     Mixed_forest                                                                    0.100000   
-6     Closed_shrublands                                                               0.035000   
-7     Open_shrublands                                                                 0.035000   
-8     Woody_savannas                                                                  0.060000   
-9     Savannas                                                                        0.025000   
-10    Grasslands                                                                      0.025000   
-11    Permanent_wetlands                                                              0.075000   
-12    Croplands                                                                       0.025000   
-13    Urban_and_built_up                                                              0.075000   
-14    Cropland_Natural_vegetation_mosaic                                              0.025000   
-15    Snow_and_ice                                                                    0.025000   
-16    Barren_or_sparsely_vegetated                                                    0.025000   
-254   Unclassified                                                                    0.025000   
-255   Fill_Value                                                                      0.025000   
+NUM_IDS 1
+ID    DESCRIPTION1                            DESCRIPTION2                            ROUGH
+2     Evergreen_Broadleaf_forest                                                      0.100000

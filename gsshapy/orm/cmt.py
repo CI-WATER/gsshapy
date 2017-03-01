@@ -16,6 +16,7 @@ __all__ = ['MapTableFile',
            'MTSediment']
 
 from future.utils import iteritems
+import numpy as np
 import pandas as pd
 import os
 from osgeo import gdalconst
@@ -648,6 +649,23 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                                dtype={'id':'int', 'description':'str', 'roughness':'float'},
                                )
 
+
+        # resample land use grid to gssha grid
+        land_use_resampled = resample_grid(land_use_grid,
+                                           self.projectFile.getGrid(),
+                                           resample_method=gdalconst.GRA_NearestNeighbour,
+                                           as_gdal_grid=True)
+
+        unique_land_use_ids = np.unique(land_use_resampled.np_array())
+
+        #only add ids in index map subset
+        df = df[df['id'].isin(unique_land_use_ids)]
+
+        # make sure all needed land use IDs exist
+        for land_use_id in unique_land_use_ids:
+            if land_use_id not in df.index:
+                raise IndexError("Land use ID {0} not found in table.".format(land_use_id))
+
         # delete duplicate/old tables with same name if they exist
         self.deleteMapTable("ROUGHNESS", session)
 
@@ -663,6 +681,8 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         indexMap.mapTableFile = self
         mapTable.indexMap = indexMap
 
+        # Associate MapTable with this MapTableFile and IndexMaps
+        mapTable.mapTableFile = self
         # add values to table
         for row in df.itertuples():
             idx = MTIndex(row.id, row.description, '')
@@ -671,14 +691,6 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             val.index = idx
             val.mapTable = mapTable
 
-        # Associate MapTable with this MapTableFile and IndexMaps
-        mapTable.mapTableFile = self
-
-        # resample land use grid to gssha grid
-        land_use_resampled = resample_grid(land_use_grid,
-                                           self.projectFile.getGrid(),
-                                           resample_method=gdalconst.GRA_NearestNeighbour,
-                                           as_gdal_grid=True)
 
         project_path = ""
         proj_path_card = self.projectFile.getCard('PROJECT_PATH')
@@ -692,10 +704,12 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             session.commit()
 
         # add path to file
-        mapTable.indexMap.filename = os.path.join(project_path, '{0}.idx'.format(name))
+        mapTable.indexMap.filename = os.path.join(project_path,
+                                                  '{0}.idx'.format(name))
 
         # write file
-        land_use_resampled.to_grass_ascii(mapTable.indexMap.filename)
+        land_use_resampled.to_grass_ascii(mapTable.indexMap.filename,
+                                          print_nodata=False)
 
         # update project card
         if not self.projectFile.getCard('MAPPING_TABLE'):
