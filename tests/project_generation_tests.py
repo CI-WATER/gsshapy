@@ -126,7 +126,7 @@ class TestProjectGenerate(TestGridTemplate):
         project_manager.setCard('SUMMARY', '{0}.sum'.format(project_name), add_quotes=True)
         project_manager.setCard('OUTLET_HYDRO', '{0}.otl'.format(project_name), add_quotes=True)
         # see http://www.gsshawiki.com/Project_File:Overland_Flow_%E2%80%93_Required
-        project_manager.setCard('MANNING_N', '0.0013')
+        project_manager.setCard('MANNING_N', '0.013')
         # see http://www.gsshawiki.com/Project_File:Rainfall_Input_and_Options_%E2%80%93_Required
         project_manager.setCard('PRECIP_UNIF', '')
         project_manager.setCard('RAIN_INTENSITY', '2.4')

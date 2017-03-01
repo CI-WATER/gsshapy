@@ -14,8 +14,8 @@ TIMESTEP                 10
 HYD_FREQ                 15
 SUMMARY                  "grid_standard_basic.sum"
 OUTLET_HYDRO             "grid_standard_basic.otl"
-MANNING_N                0.0013
-PRECIP_UNIF              
+MANNING_N                0.013
+PRECIP_UNIF
 RAIN_INTENSITY           2.4
 RAIN_DURATION            30
 START_DATE               2017 02 28
