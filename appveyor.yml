@@ -25,10 +25,13 @@ install:
   # Install required python packages
   - conda install -c conda-forge affine mapkit nose psycopg2 timezonefinder rapidpy
   - pip install coveralls nose-cov
-  # Create directory for install packages
-  - 'SET INSTALLZ_DIR=%APPVEYOR_BUILD_FOLDER%\..\installz'
-  - 'mkdir %INSTALLZ_DIR%'
+  # reactivate environment to update paths
+  - deactivate
+  - activate gssha
   #TODO: FIGURE OUT HOW TO INSTALL PYGRIB ON WINDOWS
+  # Create directory for install packages
+  #- 'SET INSTALLZ_DIR=%APPVEYOR_BUILD_FOLDER%\..\installz'
+  #- 'mkdir %INSTALLZ_DIR%'
   #- deactivate gssha
   #install cygwin
   #- '%CYG_ROOT%\setup-x86_64.exe -qnNdO -R "%CYG_ROOT%" -s "%CYG_MIRROR%" -l "%CYG_CACHE%" -P cmake,gcc-core,gcc-g++,fcc-fortran,git,jasper,libjasper-devel,make,netcdf,libnetcdf-devel,wget > NULL'
