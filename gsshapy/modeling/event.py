@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+#
+#  event.py
+#  GSSHApy
+#
+#  Created by Alan D Snow, 2017.
+#  BSD 3-Clause
+
 from datetime import datetime
 from numpy import mean
 import os
