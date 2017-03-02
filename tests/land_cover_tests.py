@@ -43,7 +43,8 @@ class TestLandCover(TestGridTemplate):
         Tests adding land cover to map table
         '''
         land_use_to_roughness_table = path.join(path.dirname(path.realpath(__file__)),
-                                                '..', 'gridtogssha', 'land_cover',
+                                                '..', 'gsshapy',
+                                                'grid', 'land_cover',
                                                 'land_cover_glcf_modis.txt'
                                                 )
         chdir(self.gssha_project_directory)

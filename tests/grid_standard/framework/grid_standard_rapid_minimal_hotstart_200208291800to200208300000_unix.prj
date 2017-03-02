@@ -35,7 +35,6 @@ START_DATE               2002 08 29
 START_TIME               18 00
 END_TIME                 2002 08 30 00 00
 CHAN_POINT_INPUT         "grid_standard.ihg"
-GMT                      -7.0
 WRITE_OV_HOTSTART        "../hotstart/grid_standard_ov_hotstart_20020830_0000.ovh"
 WRITE_CHAN_HOTSTART      "../hotstart/grid_standard_chan_hotstart_20020830_0000"
 WRITE_SM_HOTSTART        "../hotstart/grid_standard_sm_hotstart_20020830_0000.smh"

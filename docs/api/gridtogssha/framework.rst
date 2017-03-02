@@ -12,10 +12,10 @@ the instructions here: https://github.com/erdc-cm/spt_dataset_manager.
 GSSHAFramework
 ==============
 
-.. autoclass:: gridtogssha.framework.GSSHAFramework
+.. autoclass:: gsshapy.modeling.GSSHAFramework
 
 GSSHA_WRF_Framework
 ===================
 
-.. autoclass:: gridtogssha.framework.GSSHA_WRF_Framework
+.. autoclass:: gsshapy.modeling.GSSHA_WRF_Framework
     :show-inheritance:

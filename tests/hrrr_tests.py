@@ -11,7 +11,7 @@ import os
 from shutil import copytree
 
 from .template import TestGridTemplate
-from gridtogssha import HRRRtoGSSHA
+from gsshapy.grid import HRRRtoGSSHA
 ###### ----------
 ### HRRR INPUT
 ###### ----------

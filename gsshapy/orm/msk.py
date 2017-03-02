@@ -10,7 +10,7 @@
 __all__ = ['WatershedMaskFile']
 
 
-from gridtogssha.grid_tools import rasterize_shapefile
+from ..grid.grid_tools import rasterize_shapefile
 import os
 
 from .map import RasterMapFile

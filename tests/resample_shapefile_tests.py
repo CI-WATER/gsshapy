@@ -13,7 +13,7 @@ from shutil import copy
 
 from .template import TestGridTemplate
 
-from gridtogssha.grid_tools import rasterize_shapefile
+from gsshapy.grid.grid_tools import rasterize_shapefile
 
 class TestResampleShapefile(TestGridTemplate):
     def setUp(self):

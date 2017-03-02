@@ -22,7 +22,7 @@ from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from gridtogssha.grid_tools import GSSHAGrid
+from ..grid.grid_tools import GSSHAGrid
 from . import DeclarativeBase
 from ..base.file_base import GsshaPyFileObjectBase
 from .file_io import *
@@ -652,6 +652,16 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             new_card.projectFile = self
         else:
             gssha_card.value = value
+
+    def deleteCard(self, card_name, db_session):
+        """
+        Removes card from gssha project file
+        """
+        card_name = card_name.upper()
+        gssha_card = self.getCard(card_name)
+        if gssha_card is not None:
+            db_session.delete(gssha_card)
+            db_session.commit()
 
     def getModelSummaryAsKml(self, session, path=None, documentName=None, withStreamNetwork=True, withNodes=False, styles={}):
         """

@@ -24,24 +24,24 @@ except ImportError:
     raise
 
 from .grid_to_gssha import GRIDtoGSSHA
-    
+
 #------------------------------------------------------------------------------
 # HELPER FUNCTIONS
 #------------------------------------------------------------------------------
 def update_hmet_card_file(hmet_card_file_path, new_hmet_data_path):
-    """This function updates the paths in the HMET card file to the new 
+    """This function updates the paths in the HMET card file to the new
     location of the HMET data. This is necessary because the file paths
     are absolute and will need to be updated if moved.
 
     Args:
         hmet_card_file_path(str): Location of the file used for the HMET_ASCII card.
-        new_hmet_data_path(str): Location where the HMET ASCII files are currently. 
+        new_hmet_data_path(str): Location where the HMET ASCII files are currently.
 
     Example::
 
         new_hmet_data_path = "E:\\GSSHA\\new_hmet_directory"
         hmet_card_file_path = "E:\\GSSHA\\hmet_card_file.txt"
-        
+
         update_hmet_card_file(hmet_card_file_path, new_hmet_data_path)
 
     """
@@ -50,19 +50,19 @@ def update_hmet_card_file(hmet_card_file_path, new_hmet_data_path):
         remove(hmet_card_file_path_temp)
     except OSError:
         pass
-        
+
     copy(hmet_card_file_path, hmet_card_file_path_temp)
-    
+
     with io_open(hmet_card_file_path_temp, 'w', newline='\r\n') as out_hmet_list_file:
         with open(hmet_card_file_path) as old_hmet_list_file:
             for date_path in old_hmet_list_file:
-                out_hmet_list_file.write(u"{0}\n".format(path.join(new_hmet_data_path, 
+                out_hmet_list_file.write(u"{0}\n".format(path.join(new_hmet_data_path,
                                                         path.basename(date_path))))
     try:
         remove(hmet_card_file_path)
     except OSError:
         pass
-    
+
     rename(hmet_card_file_path_temp, hmet_card_file_path)
 
 #------------------------------------------------------------------------------
@@ -71,7 +71,7 @@ def update_hmet_card_file(hmet_card_file_path, new_hmet_data_path):
 class LSMtoGSSHA(GRIDtoGSSHA):
     """This class converts the LSM output data to GSSHA formatted input.
     This class inheris from class:`GRIDtoGSSHA`.
-    
+
     Attributes:
         gssha_project_folder(str): Path to the GSSHA project folder
         gssha_grid_file_name(str): Name of the GSSHA elevation grid file.
@@ -80,33 +80,33 @@ class LSMtoGSSHA(GRIDtoGSSHA):
         lsm_lat_var(Optional[str]): Name of the latitude variable in the LSM netCDF files. Defaults to 'lat'.
         lsm_lon_var(Optional[str]): Name of the longitude variable in the LSM netCDF files. Defaults to 'lon'.
         lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. Defaults to 'time'.
-        lsm_file_date_naming_convention(Optional[str]): Use Pythons datetime conventions to find file. 
+        lsm_file_date_naming_convention(Optional[str]): Use Pythons datetime conventions to find file.
                                               Ex. "gssha_ddd_%Y_%m_%d_%H_%M_%S.nc".
-        time_step_seconds(Optional[int]): If the time step is not able to be determined automatically, 
+        time_step_seconds(Optional[int]): If the time step is not able to be determined automatically,
                                 this parameter defines the time step in seconds for the LSM files.
-        output_unix_format(Optional[bool]): If True, it will output to "unix" format. 
-                                        Otherwise, it will output in "dos" (Windows) format. Default is False. 
+        output_unix_format(Optional[bool]): If True, it will output to "unix" format.
+                                        Otherwise, it will output in "dos" (Windows) format. Default is False.
         output_timezone(Optional[tzinfo]): This is the timezone to output the dates for the data. Default is UTC.
 
     Example::
-    
-        from gridtogssha import LSMtoGSSHA
-        
+
+        from gsshapy.grid import LSMtoGSSHA
+
         l2g = LSMtoGSSHA(gssha_project_folder='E:\\GSSHA',
                          gssha_grid_file_name='gssha.ele',
                          lsm_input_folder_path='E:\\GSSHA\\wrf-data',
-                         lsm_search_card="*.nc", 
+                         lsm_search_card="*.nc",
                          lsm_lat_var='XLAT',
                          lsm_lon_var='XLONG',
                          lsm_file_date_naming_convention='gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
                          )
-                         
+
     """
     def __init__(self,
                  gssha_project_folder,
                  gssha_grid_file_name,
                  lsm_input_folder_path,
-                 lsm_search_card, 
+                 lsm_search_card,
                  lsm_lat_var='lat',
                  lsm_lon_var='lon',
                  lsm_time_var='time',
@@ -123,15 +123,15 @@ class LSMtoGSSHA(GRIDtoGSSHA):
         self.lsm_lon_var = lsm_lon_var
         self.lsm_time_var = lsm_time_var
         self.lsm_grid_type = lsm_grid_type
-        
+
         super(LSMtoGSSHA, self).__init__(gssha_project_folder,
                                          gssha_grid_file_name,
                                          lsm_input_folder_path,
-                                         lsm_search_card, 
+                                         lsm_search_card,
                                          lsm_file_date_naming_convention,
                                          time_step_seconds,
                                          output_unix_format,
-                                         output_timezone)    
+                                         output_timezone)
     def _load_lsm_projection(self):
         """
         Loads the LSM projection in Proj4
@@ -203,8 +203,8 @@ class LSMtoGSSHA(GRIDtoGSSHA):
                                'PARAMETER["Central_Meridian",{0}],'
                                'PARAMETER["Scale_Factor",{1}],'
                                'PARAMETER["Latitude_Of_Origin",{2}],'
-                               'UNIT["Meter",1.0]]').format(central_meridian, 
-                                                            central_scale_factor, 
+                               'UNIT["Meter",1.0]]').format(central_meridian,
+                                                            central_scale_factor,
                                                             standard_parallel_1)
 
                 lsm_srs=osr.SpatialReference()
@@ -244,13 +244,13 @@ class LSMtoGSSHA(GRIDtoGSSHA):
                                'PARAMETER["Standard_Parallel_1",{1}],'
                                'UNIT["Meter",1.0],AUTHORITY["ESRI",53002]]').format(central_meridian,
                                                                                     standard_parallel_1)
-        
+
                 lsm_srs=osr.SpatialReference()
                 lsm_srs.ImportFromWkt(lsm_prj_str)
                 self.lsm_proj4 = Proj(lsm_srs.ExportToProj4())
         else:
             raise IndexError("Invalid mode to retrieve LSM projection ...")
-            
+
     def _get_subset_lat_lon(self, gssha_y_min, gssha_y_max, gssha_x_min, gssha_x_max):
         """
         #subset lat lon list based on GSSHA extent
@@ -258,21 +258,21 @@ class LSMtoGSSHA(GRIDtoGSSHA):
         ######
         #STEP 1: Load latitude and longiute
         ######
-        
+
         if self.lsm_grid_type=='geographic':
             lsm_nc = Dataset(self.lsm_nc_list[0])
             lsm_lon_array = lsm_nc.variables[self.lsm_lon_var][:] #assume [-180, 180]
             lsm_lat_array = lsm_nc.variables[self.lsm_lat_var][:] #assume [-90,90]
             lsm_nc.close()
-            
+
             #convert 3d to 2d if time dimension
             if(len(lsm_lon_array.shape) == 3):
                 lsm_lon_array = lsm_lon_array[0]
                 lsm_lat_array = lsm_lat_array[0]
-                
+
         elif self.lsm_grid_type=='wrf':
             #EXPERIMENTAL CODE
-        
+
             #generate grid from information
             lsm_nc = Dataset(self.lsm_nc_list[0])
 
@@ -285,7 +285,7 @@ class LSMtoGSSHA(GRIDtoGSSHA):
             x_min, y_min = transform(Proj(init='epsg:4326'),
                                      self.lsm_proj4,
                                      [float(lsm_nc.__dict__['corner_lons'][0])],
-                                     [float(lsm_nc.__dict__['corner_lats'][0])], 
+                                     [float(lsm_nc.__dict__['corner_lats'][0])],
                                      )
             DX = float(lsm_nc.__dict__['DX'])
             DY = float(lsm_nc.__dict__['DY'])
@@ -301,16 +301,16 @@ class LSMtoGSSHA(GRIDtoGSSHA):
             lsm_lon_array, lsm_lat_array = transform(Proj(init='epsg:4326'),
                                                      self.lsm_proj4,
                                                      lsm_nc.variables[self.lsm_lon_var][:],
-                                                     lsm_nc.variables[self.lsm_lat_var][:], 
+                                                     lsm_nc.variables[self.lsm_lat_var][:],
                                                      )
             #convert 3d to 2d if time dimension
             if(len(lsm_lon_array.shape) == 3):
                 lsm_lon_array = lsm_lat_array[0]
                 lsm_lat_array = lsm_lat_array[0]
-            
+
         else:
             raise IndexError("Invalid mode to retrieve LSM Lat/Lon lists ...")
-        
+
 
         ######
         #STEP 2: Determine range within LSM Grid
@@ -331,7 +331,7 @@ class LSMtoGSSHA(GRIDtoGSSHA):
 
         if lsm_dx is None:
             lsm_dx = np.max(np.absolute(np.diff(lsm_lon_array)))
-        
+
         # Extract the lat and lon within buffered extent
         #IF LAT LON IS !D:
         if len(lsm_lat_array.shape) == 1:
@@ -354,20 +354,20 @@ class LSMtoGSSHA(GRIDtoGSSHA):
 
             lsm_lat_list = lsm_lat_array[self.lsm_lat_indices,:][:,self.lsm_lon_indices]
             lsm_lon_list = lsm_lon_array[self.lsm_lat_indices,:][:,self.lsm_lon_indices]
-            
+
         else:
             raise IndexError("Only 1D & 2D lat lon dimensions supported ...")
 
         return lsm_lat_list, lsm_lon_list
-        
- 
+
+
     def _load_time_from_files(self):
         """
         Loads in the time from the grid files
         """
         epoch = datetime.utcfromtimestamp(0)
         convert_to_seconds = 1
-        
+
         if self.lsm_file_date_naming_convention is not None:
             #METHOD 1: LOAD FROM TIME STRING IN FILES
             for lsm_idx, lsm_nc_file in enumerate(self.lsm_nc_list):
@@ -389,7 +389,7 @@ class LSMtoGSSHA(GRIDtoGSSHA):
             else:
                 raise IndexError("Unexpected time units: {0} ...".format(time_units))
 
-            
+
             for lsm_idx, lsm_nc_file in enumerate(self.lsm_nc_list):
                 lsm_nc = Dataset(lsm_nc_file)
                 #GET TIME IN SECONDS SINCE EPOCH
@@ -399,9 +399,9 @@ class LSMtoGSSHA(GRIDtoGSSHA):
                 lsm_time = lsm_nc.variables[self.lsm_time_var][0]
                 self.time_array[lsm_idx] = (datetime_start+timedelta(seconds=lsm_time*convert_to_seconds)-epoch).total_seconds()
                 lsm_nc.close()
-                
+
         return convert_to_seconds
-        
+
     def _load_time_step(self, convert_to_seconds):
         """
         Loads in the time step
@@ -426,9 +426,9 @@ class LSMtoGSSHA(GRIDtoGSSHA):
         This extracts the LSM data from a folder of netcdf files
         """
         self.data_np_array = np.zeros((len(self.lsm_nc_list),
-                                       len(self.lsm_lat_indices), 
+                                       len(self.lsm_lat_indices),
                                        len(self.lsm_lon_indices)))
-        
+
         for lsm_idx, lsm_nc_file in enumerate(self.lsm_nc_list):
             lsm_nc = Dataset(lsm_nc_file)
             #EXTRACT DATA WITHIN EXTENT
@@ -438,7 +438,7 @@ class LSMtoGSSHA(GRIDtoGSSHA):
                 self.data_np_array[lsm_idx] = four_dim_var_calc_method(lsm_nc.variables[data_var][0, :, self.lsm_lat_indices, self.lsm_lon_indices]*conversion_factor, axis=0)
             lsm_nc.close()
 
-"""        
+"""
 if __name__ == "__main__":
     #gssha_project_folder = 'C:\\Users\\RDCHLADS\\Documents\\GSSHA\\AF_GSSHA\\NK_Texas\\GSSHA'
     #gssha_project_folder = '/Volumes/Seagate Backup Plus Drive/GSSHA'
@@ -464,10 +464,10 @@ if __name__ == "__main__":
 ##    out_gage_file = path.join(main_output_folder, 'gage_test_gldas.gag')
 ##    netcdf_file_path = path.join(main_output_folder, 'gssha_dynamic_gldas.nc')
 ##    data_var_map_array = [
-##                          ['precipitation_rate', 'Rainf_f_tavg'], 
-##                          ['pressure', 'Psurf_f_inst'], 
-##                          ['relative_humidity', ['Qair_f_inst', 'Psurf_f_inst', 'Tair_f_inst']], 
-##                          ['wind_speed', 'Wind_f_inst'], 
+##                          ['precipitation_rate', 'Rainf_f_tavg'],
+##                          ['pressure', 'Psurf_f_inst'],
+##                          ['relative_humidity', ['Qair_f_inst', 'Psurf_f_inst', 'Tair_f_inst']],
+##                          ['wind_speed', 'Wind_f_inst'],
 ##                          ['temperature', 'Tair_f_inst'],
 ##                          ['direct_radiation', 'Swnet_tavg'],
 ##                          ['diffusive_radiation', 'SWdown_f_tavg'],
@@ -482,14 +482,14 @@ if __name__ == "__main__":
     precip_data_var = ['RAINC', 'RAINNC']
     precip_type = 'ACCUM'
     lsm_file_date_naming_convention='gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
-    
+
     ##CONVERT FROM RAW WRF DATA
     main_output_folder = path.join(gssha_project_folder, "wrf_hmet_data")
     data_var_map_array = [
-                          ['precipitation_acc', ['RAINC', 'RAINNC']], 
-                          ['pressure', 'PSFC'], 
-                          ['relative_humidity', ['Q2', 'PSFC', 'T2']], 
-                          ['wind_speed', ['U10', 'V10']], 
+                          ['precipitation_acc', ['RAINC', 'RAINNC']],
+                          ['pressure', 'PSFC'],
+                          ['relative_humidity', ['Q2', 'PSFC', 'T2']],
+                          ['wind_speed', ['U10', 'V10']],
                           ['direct_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
                           ['diffusive_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
                           ['temperature', 'T2'],
@@ -498,10 +498,10 @@ if __name__ == "__main__":
     ##EXTRACT FROM CONVERTED WRF DATA
 ##    main_output_folder = path.join(gssha_project_folder, "gssha_from_wrf_no_conv")
 ##    data_var_map_array = [
-##                          ['precipitation_acc', 'RUNPCP'], 
-##                          ['pressure_hg', 'PSFCInHg'], 
-##                          ['relative_humidity', 'RH2'], 
-##                          ['wind_speed_kts', 'SPEED10'], 
+##                          ['precipitation_acc', 'RUNPCP'],
+##                          ['pressure_hg', 'PSFCInHg'],
+##                          ['relative_humidity', 'RH2'],
+##                          ['wind_speed_kts', 'SPEED10'],
 ##                          ['temperature_f', 'T2F'],
 ##                          ['cloud_cover_pc' , 'SKYCOVER'],
 ##                         ]
@@ -516,7 +516,7 @@ if __name__ == "__main__":
     l2g = LSMtoGSSHA(gssha_project_folder=gssha_project_folder,
                      gssha_grid_file_name=gssha_grid_name,
                      lsm_input_folder_path=lsm_folder,
-                     lsm_search_card=search_card, 
+                     lsm_search_card=search_card,
                      lsm_lat_var=lsm_lat_var,
                      lsm_lon_var=lsm_lon_var,
                      #lsm_time_var='time',
@@ -524,7 +524,7 @@ if __name__ == "__main__":
                      #gssha_projection_file_name="",
                      lsm_grid_type='geographic' # geographic, or wrf (to use global projection attributes)
                      )
-    
+
     l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
                                         lsm_data_var=precip_data_var,
                                         precip_type=precip_type)

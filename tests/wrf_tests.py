@@ -12,7 +12,7 @@ import unittest
 from shutil import copytree
 
 from .template import TestGridTemplate
-from gridtogssha import LSMtoGSSHA
+from gsshapy.grid import LSMtoGSSHA
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 

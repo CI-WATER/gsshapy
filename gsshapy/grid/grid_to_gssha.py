@@ -50,7 +50,7 @@ class GRIDtoGSSHA(object):
 
     Example::
 
-        from gridtogssha.grid_to_gssha import GRIDtoGSSHA
+        from gsshapy.grid import GRIDtoGSSHA
 
         l2g = GRIDtoGSSHA(gssha_project_folder='E:/GSSHA',
                           gssha_grid_file_name='gssha.ele',
@@ -768,7 +768,7 @@ class GRIDtoGSSHA(object):
 
         .. code:: python
 
-            from gridtogssha import LSMtoGSSHA
+            from gsshapy.grid import LSMtoGSSHA
 
             #STEP 1: Initialize class
             l2g = LSMtoGSSHA(
@@ -784,7 +784,7 @@ class GRIDtoGSSHA(object):
 
         .. code:: python
 
-            from gridtogssha import HRRRtoGSSHA
+            from gsshapy.grid import HRRRtoGSSHA
 
             #STEP 1: Initialize class
             h2g = HRRRtoGSSHA(
@@ -958,7 +958,7 @@ class GRIDtoGSSHA(object):
 
         .. code:: python
 
-            from gridtogssha import LSMtoGSSHA
+            from gsshapy.grid import LSMtoGSSHA
 
             #STEP 1: Initialize class
             l2g = LSMtoGSSHA(
@@ -987,7 +987,7 @@ class GRIDtoGSSHA(object):
 
         .. code:: python
 
-            from gridtogssha import HRRRtoGSSHA
+            from gsshapy.grid import HRRRtoGSSHA
 
             #STEP 1: Initialize class
             h2g = HRRRtoGSSHA(
@@ -1050,7 +1050,7 @@ class GRIDtoGSSHA(object):
 
         .. code:: python
 
-            from gridtogssha import LSMtoGSSHA
+            from gsshapy.grid import LSMtoGSSHA
 
             #STEP 1: Initialize class
             l2g = LSMtoGSSHA(
@@ -1080,7 +1080,7 @@ class GRIDtoGSSHA(object):
 
         .. code:: python
 
-            from gridtogssha import HRRRtoGSSHA
+            from gsshapy.grid import HRRRtoGSSHA
 
             #STEP 1: Initialize class
             h2g = HRRRtoGSSHA(

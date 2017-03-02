@@ -24,7 +24,7 @@ from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
 
-from gridtogssha.grid_tools import resample_grid
+from ..grid.grid_tools import resample_grid
 from . import DeclarativeBase
 from .lnd import LinkNodeDatasetFile
 from ..base.file_base import GsshaPyFileObjectBase
@@ -638,8 +638,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     raise ValueError("Must have land_use_to_roughness_table or land_use_grid_id set ...")
 
                 land_use_to_roughness_table = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                           '..', '..',
-                                                           'gridtogssha',
+                                                           '..', 'grid',
                                                            'land_cover',
                                                            LAND_USE_GRID_TABLES[land_use_grid_id])
 
