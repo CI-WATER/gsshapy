@@ -87,7 +87,7 @@ class GSSHAFramework(object):
 
     .. code:: python
 
-            from gridtogssha.framework import GSSHAFramework
+            from gsshapy.modeling import GSSHAFramework
 
             gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
             gssha_directory = "C:/Users/{username}/Documents/GSSHA"
@@ -669,7 +669,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
 
     .. code:: python
 
-        from gridtogssha.framework import GSSHA_WRF_Framework
+        from gsshapy.modeling import GSSHA_WRF_Framework
 
         gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
         gssha_directory = "C:/Users/{username}/Documents/GSSHA"
@@ -699,7 +699,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
 
     .. code:: python
 
-        from gridtogssha.framework import GSSHA_WRF_Framework
+        from gsshapy.modeling import GSSHA_WRF_Framework
 
         gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
         gssha_directory = "C:/Users/{username}/Documents/GSSHA"
@@ -742,7 +742,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
     .. code:: python
 
         from datetime import datetime, timedelta
-        from gridtogssha.framework import GSSHA_WRF_Framework
+        from gsshapy.modeling import GSSHA_WRF_Framework
 
         gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
         gssha_directory = "C:/Users/{username}/Documents/GSSHA"
