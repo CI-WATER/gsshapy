@@ -1,0 +1,6 @@
+GSSHA_INDEX_MAP_TABLES
+INDEX_MAP                "roughness.idx" "roughness"
+ROUGHNESS "roughness"
+NUM_IDS 1
+ID    DESCRIPTION1                            DESCRIPTION2                            ROUGH  
+2     Evergreen_Broadleaf_forest                                                      0.100000   
