@@ -5,3 +5,6 @@ GRIDSIZE                 729.727520052
 ROWS                     54
 COLS                     47
 #PROJECTION_FILE         "mask_50_utm_ascii_prj.pro"
+OUTROW                   10
+OUTCOL                   1
+OUTSLOPE                 0.001

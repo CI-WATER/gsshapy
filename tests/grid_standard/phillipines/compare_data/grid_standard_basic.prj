@@ -5,10 +5,10 @@ GRIDSIZE                 1000.0
 ROWS                     39
 COLS                     33
 #PROJECTION_FILE         "grid_standard_basic_prj.pro"
-ELEVATION                "grid_standard_basic.ele"
 OUTROW                   7
 OUTCOL                   1
 OUTSLOPE                 0.002
+ELEVATION                "grid_standard_basic.ele"
 TOT_TIME                 180
 TIMESTEP                 10
 HYD_FREQ                 15
