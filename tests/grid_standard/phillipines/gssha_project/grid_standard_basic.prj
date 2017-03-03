@@ -1,8 +1,15 @@
 GSSHAPROJECT
 PROJECT_PATH             ""
 MAP_TYPE                 1
+TIMESTEP                 10
+HYD_FREQ                 15
+SUMMARY                  "grid_standard_basic.sum"
+OUTLET_HYDRO             "grid_standard_basic.otl"
 WATERSHED_MASK           "grid_standard_basic.msk"
-GRIDSIZE                 729.727520052
-ROWS                     54
-COLS                     47
+GRIDSIZE                 1000.0
+ROWS                     39
+COLS                     33
 #PROJECTION_FILE         "grid_standard_basic_prj.pro"
+OUTROW                   7
+OUTCOL                   1
+
