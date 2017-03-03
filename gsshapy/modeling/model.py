@@ -49,7 +49,7 @@ class GSSHAModel(object):
         # see http://www.gsshawiki.com/Project_File:Overland_Flow_%E2%80%93_Required
         self.project_manager.setCard('MANNING_N', str(roughness))
 
-    def set_mask_from_shapefile(self, shapefile_path, cell_size=None, num_cells=None):
+    def set_mask_from_shapefile(self, shapefile_path, cell_size):
         '''
         Adds a mask from a shapefile
         '''
@@ -59,11 +59,8 @@ class GSSHAModel(object):
                                      session=self.db_session)
 
         msk_file.generateFromWatershedShapefile(shapefile_path,
-                                                mask_name,
-                                                x_cell_size=cell_size,
-                                                y_cell_size=cell_size,
-                                                x_num_cells=num_cells,
-                                                y_num_cells=num_cells,
+                                                cell_size=cell_size,
+                                                out_raster_path=mask_name,
                                                 )
 
     def set_elevation(self, elevation_grid_path):

@@ -102,9 +102,8 @@ class TestProjectGenerate(TestGridTemplate):
                                      session=self.db_session)
 
         msk_file.generateFromWatershedShapefile(self.shapefile_path,
-                                                mask_name,
-                                                x_cell_size=1000,
-                                                y_cell_size=1000,
+                                                cell_size=1000,
+                                                out_raster_path=mask_name,
                                                 )
 
         # ADD ELEVATION FILE
@@ -175,9 +174,8 @@ class TestProjectGenerate(TestGridTemplate):
                                      session=self.db_session)
 
         msk_file.generateFromWatershedShapefile(self.shapefile_path,
-                                                mask_name,
-                                                x_cell_size=1000,
-                                                y_cell_size=1000,
+                                                cell_size=1000,
+                                                out_raster_path=mask_name,
                                                 )
 
         # ADD ELEVATION FILE

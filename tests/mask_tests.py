@@ -69,39 +69,14 @@ class TestMask(TestGridTemplate):
         '''
         self.db_session.close()
 
-    def test_rasterize_num_cells(self):
-        '''
-        Tests rasterize_shapefile default using num cells
-        '''
-        mask_name = 'mask_50_utm_ascii.msk'
-        self.msk_file.generateFromWatershedShapefile(self.shapefile_path,
-                                                     mask_name,
-                                                     x_num_cells=50,
-                                                     y_num_cells=50,
-                                                     )
-        self.project_manager.writeInput(session=self.db_session,
-                                        directory=self.gssha_project_directory,
-                                        name='grid_standard_msk')
-        # compare msk
-        self._compare_masks(mask_name)
-        # compare project files
-        generated_prj_file = path.join(self.gssha_project_directory, 'grid_standard_msk.prj')
-        compare_prj_file = path.join(self.compare_path, 'grid_standard_msk_50.prj')
-        self._compare_files(generated_prj_file, compare_prj_file)
-        # check to see if projection file generated
-        generated_proj_file = path.join(self.gssha_project_directory, 'mask_50_utm_ascii_prj.pro')
-        compare_proj_file = path.join(self.compare_path, 'mask_50_utm_ascii_prj.pro')
-        self._compare_files(generated_proj_file, compare_proj_file)
-
     def test_rasterize_cell_size_ascii_utm(self):
         '''
         Tests rasterize_shapefile using cell size to ascii in utm
         '''
         mask_name = 'mask_cell_size_ascii_utm.msk'
         self.msk_file.generateFromWatershedShapefile(self.shapefile_path,
-                                                     mask_name,
-                                                     x_cell_size=1000,
-                                                     y_cell_size=1000,
+                                                     cell_size=1000,
+                                                     out_raster_path=mask_name,
                                                      )
         self.project_manager.writeInput(session=self.db_session,
                                         directory=self.gssha_project_directory,
@@ -124,9 +99,8 @@ class TestMask(TestGridTemplate):
         '''
         mask_name = 'mask_cell_size_ascii_utm.msk'
         self.msk_file.generateFromWatershedShapefile(self.shapefile_path,
-                                                     mask_name,
-                                                     x_cell_size=1000,
-                                                     y_cell_size=1000,
+                                                     cell_size=1000,
+                                                     out_raster_path=mask_name,
                                                      )
         grid = self.project_manager.getGrid()
         lon, lat = grid.pixel2lonlat(0,9)
@@ -152,12 +126,11 @@ class TestMask(TestGridTemplate):
         '''
         mask_name = 'mask_cell_size_ascii_utm.msk'
         self.msk_file.generateFromWatershedShapefile(self.shapefile_path,
-                                                     mask_name,
-                                                     x_cell_size=1000,
-                                                     y_cell_size=1000,
+                                                     cell_size=1000,
+                                                     out_raster_path=mask_name,
                                                      )
         with self.assertRaises(IndexError):
             self.project_manager.setOutlet(latitude=12.8798, longitude=121.7740)
-            
+
 if __name__ == '__main__':
     unittest.main()

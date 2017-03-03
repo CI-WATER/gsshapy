@@ -42,11 +42,8 @@ class WatershedMaskFile(RasterMapFile):
 
     def generateFromWatershedShapefile(self,
                                        shapefile_path,
-                                       out_raster_path=None,
-                                       x_num_cells=None,
-                                       y_num_cells=None,
-                                       x_cell_size=None,
-                                       y_cell_size=None):
+                                       cell_size,
+                                       out_raster_path=None):
         '''
         Generates a mask from a watershed_shapefile
 
@@ -113,10 +110,8 @@ class WatershedMaskFile(RasterMapFile):
                                                             self.extension),
                                             )
         gr = rasterize_shapefile(shapefile_path,
-                                 x_num_cells=x_num_cells,
-                                 y_num_cells=y_num_cells,
-                                 x_cell_size=x_cell_size,
-                                 y_cell_size=y_cell_size,
+                                 x_cell_size=cell_size,
+                                 y_cell_size=cell_size,
                                  match_grid=match_grid,
                                  raster_nodata=0,
                                  as_gdal_grid=True,
