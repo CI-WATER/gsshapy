@@ -16,51 +16,111 @@ from .event import EventMode, LongTermMode
 class GSSHAModel(object):
     '''
     This class manages the generation and modification of
-    models for GSSHA
+    models for GSSHA.
+
+    Parameters:
+         project_name(Optional[str]): Name of GSSHA project. Required for new model.
+         project_directory(Optional[str]): Directory to write GSSHA project files to. Required for new model.
+         mask_shapefile(Optional[str]): Path to watershed boundary shapefile. Required for new model.
+         grid_cell_size(Optional[str]): Cell size of model (meters). Required for new model.
+         elevation_grid_path(Optional[str]): Path to elevation raster used for GSSHA grid. Required for new model.
+         simulation_timestep(Optional[float]): Overall model timestep (seconds). Sets TIMESTEP card. Required for new model.
+         out_hydrograph_write_frequency(Optional[str]): Frequency of writing to hydrograph (minutes). Sets HYD_FREQ card. Required for new model.
+         roughness(Optional[float]): Value of uniform manning's n roughness for grid. Mutually exlusive with land use roughness. Required for new model.
+         land_use_grid(Optional[str]): Path to land use grid to use for roughness. Mutually exlusive with roughness. Required for new model.
+         land_use_grid_id(Optional[str]): ID of default grid supported in GSSHApy. Mutually exlusive with roughness. Required for new model.
+         land_use_to_roughness_table(Optional[str]): Path to land use to roughness table. Use if not using land_use_grid_id. Mutually exlusive with roughness. Required for new model.
+         db_session(Optional[database session]): Active database session object. Required for existing model.
+         project_manager(Optional[ProjectFile]): Initialized ProjectFile object. Required for existing model.
+
+    Model Generation Example:
+
+    .. code:: python
+
+        from datetime import datetime, timedelta
+        from gsshapy.modeling import GSSHAModel
+
+        model = GSSHAModel(project_name="gssha_project",
+                           project_directory="/path/to/gssha_project",
+                           mask_shapefile="/path/to/watershed_boundary.shp",
+                           grid_cell_size=1000,
+                           elevation_grid_path="/path/to/elevation.tif",
+                           simulation_timestep=10,
+                           out_hydrograph_write_frequency=15,
+                           land_use_grid='/path/to/land_use.tif',
+                           land_use_grid_id='glcf',
+                           )
+        model.set_event(simulation_start=datetime(2017, 2, 28, 14, 33),
+                        simulation_duration=timedelta(seconds=180*60),
+                        rain_intensity=2.4,
+                        rain_duration=timedelta(seconds=30*60),
+                        )
+        model.write()
+
     '''
     def __init__(self,
-                 project_name,
-                 project_directory,
-                 mask_shapefile,
-                 grid_cell_size,
-                 elevation_grid_path,
+                 project_name=None,
+                 project_directory=None,
+                 mask_shapefile=None,
+                 grid_cell_size=None,
+                 elevation_grid_path=None,
                  simulation_timestep=30,
                  out_hydrograph_write_frequency=10,
                  roughness=None,
                  land_use_grid=None,
                  land_use_grid_id=None,
-                 land_use_to_roughness_table=None
+                 land_use_to_roughness_table=None,
+                 db_session=None,
+                 project_manager=None,
                 ):
 
         self.project_directory = project_directory
 
-        # Create Test DB
-        sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
+        self.db_session = db_session
+        self.project_manager = project_manager
 
-        # Create DB Sessions
-        self.db_session = dbt.create_session(sqlalchemy_url, sql_engine)
+        if project_manager is not None and db_session is None:
+            raise ValueError("'project_manager' and 'db_session' are required to edit existing model.")
 
-        # Instantiate GSSHAPY object for reading to database
-        self.project_manager = ProjectFile(name=project_name, map_type=1)
-        self.db_session.add(self.project_manager)
-        self.db_session.commit()
+        if project_manager is None and db_session is None:
+            # Create Test DB
+            sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
 
-        # ADD BASIC REQUIRED CARDS
-        # see http://www.gsshawiki.com/Project_File:Required_Inputs
-        self.project_manager.setCard('TIMESTEP', str(simulation_timestep))
-        self.project_manager.setCard('HYD_FREQ', str(out_hydrograph_write_frequency))
-        # see http://www.gsshawiki.com/Project_File:Output_Files_%E2%80%93_Required
-        self.project_manager.setCard('SUMMARY', '{0}.sum'.format(project_name), add_quotes=True)
-        self.project_manager.setCard('OUTLET_HYDRO', '{0}.otl'.format(project_name), add_quotes=True)
+            # Create DB Sessions
+            self.db_session = dbt.create_session(sqlalchemy_url, sql_engine)
 
-        # ADD REQUIRED MODEL GRID INPUT
-        self.set_mask_from_shapefile(mask_shapefile, grid_cell_size)
-        self.set_elevation(elevation_grid_path)
-        self.set_roughness(roughness=roughness,
-                           land_use_grid=land_use_grid,
-                           land_use_grid_id=land_use_grid_id,
-                           land_use_to_roughness_table=land_use_to_roughness_table,
-                           )
+            if None in (project_name, mask_shapefile, grid_cell_size,
+                    elevation_grid_path):
+                raise ValueError("Need to set project_name, mask_shapefile, "
+                                 "grid_cell_size, and elevation_grid_path "
+                                 "to generate a new GSSHA model.")
+            # Instantiate GSSHAPY object for reading to database
+            self.project_manager = ProjectFile(name=project_name, map_type=1)
+            self.db_session.add(self.project_manager)
+            self.db_session.commit()
+
+            # ADD BASIC REQUIRED CARDS
+            # see http://www.gsshawiki.com/Project_File:Required_Inputs
+            self.project_manager.setCard('TIMESTEP',
+                                         str(simulation_timestep))
+            self.project_manager.setCard('HYD_FREQ',
+                                         str(out_hydrograph_write_frequency))
+            # see http://www.gsshawiki.com/Project_File:Output_Files_%E2%80%93_Required
+            self.project_manager.setCard('SUMMARY',
+                                         '{0}.sum'.format(project_name),
+                                         add_quotes=True)
+            self.project_manager.setCard('OUTLET_HYDRO',
+                                         '{0}.otl'.format(project_name),
+                                         add_quotes=True)
+
+            # ADD REQUIRED MODEL GRID INPUT
+            self.set_mask_from_shapefile(mask_shapefile, grid_cell_size)
+            self.set_elevation(elevation_grid_path)
+            self.set_roughness(roughness=roughness,
+                               land_use_grid=land_use_grid,
+                               land_use_grid_id=land_use_grid_id,
+                               land_use_to_roughness_table=land_use_to_roughness_table,
+                               )
 
     def set_mask_from_shapefile(self, shapefile_path, cell_size):
         '''
