@@ -248,10 +248,12 @@ class TestProjectGenerate(TestGridTemplate):
 
         model = GSSHAModel(project_name=project_name,
                            project_directory=self.gssha_project_directory,
+                           mask_shapefile=self.shapefile_path,
+                           grid_cell_size=1000,
+                           elevation_grid_path=self.elevation_path,
                            out_hydrograph_write_frequency=15,
+                           roughness=0.013,
                            )
-        model.set_mask_from_shapefile(self.shapefile_path, cell_size=1000)
-        model.set_elevation(self.elevation_path)
         model.set_event(simulation_start=datetime(2017, 2, 28),
                         simulation_duration=timedelta(seconds=180*60),
                         rain_intensity=2.4,
@@ -267,6 +269,59 @@ class TestProjectGenerate(TestGridTemplate):
         new_mask_grid = path.join(self.gssha_project_directory, ele_grid_name)
         compare_msk_file = path.join(self.compare_path, ele_grid_name)
         self._compare_files(compare_msk_file, new_mask_grid, raster=True)
+        # compare project files
+        prj_file_name = '{0}.prj'.format(project_name)
+        generated_prj_file = path.join(self.gssha_project_directory, prj_file_name)
+        compare_prj_file = path.join(self.compare_path, prj_file_name)
+        self._compare_files(generated_prj_file, compare_prj_file)
+        # check to see if projection file generated
+        proj_file_name = '{0}_prj.pro'.format(project_name)
+        generated_proj_file = path.join(self.gssha_project_directory, proj_file_name)
+        compare_proj_file = path.join(self.compare_path, proj_file_name)
+        self._compare_files(generated_proj_file, compare_proj_file)
+
+
+    def test_generate_basic_rough_project_manager(self):
+        '''
+        Tests generating a basic GSSHA project with GSSHAModel with roughness
+        '''
+
+        project_name = "grid_standard_basic_model_land_cover"
+
+        model = GSSHAModel(project_name=project_name,
+                           project_directory=self.gssha_project_directory,
+                           mask_shapefile=self.shapefile_path,
+                           grid_cell_size=1000,
+                           elevation_grid_path=self.elevation_path,
+                           simulation_timestep=10,
+                           out_hydrograph_write_frequency=15,
+                           land_use_grid=self.land_use_grid,
+                           land_use_grid_id='glcf',
+                           )
+        model.set_event(simulation_start=datetime(2017, 2, 28, 14, 33),
+                        simulation_duration=timedelta(seconds=180*60),
+                        rain_intensity=2.4,
+                        rain_duration=timedelta(seconds=30*60),
+                        )
+        model.write()
+
+        # compare msk
+        mask_name = '{0}.msk'.format(project_name)
+        self._compare_masks(mask_name)
+        # compare ele
+        ele_grid_name = '{0}.ele'.format(project_name)
+        new_mask_grid = path.join(self.gssha_project_directory, ele_grid_name)
+        compare_msk_file = path.join(self.compare_path, ele_grid_name)
+        self._compare_files(compare_msk_file, new_mask_grid, raster=True)
+        # compare cmt
+        cmt_file_name = '{0}.cmt'.format(project_name)
+        new_cmt_file = path.join(self.gssha_project_directory, cmt_file_name)
+        compare_cmt_file = path.join(self.compare_path, cmt_file_name)
+        self._compare_files(new_cmt_file, compare_cmt_file)
+        # compare idx
+        new_idx_file = path.join(self.gssha_project_directory, 'roughness.idx')
+        original_idx_file = path.join(self.compare_path, 'roughness.idx')
+        self._compare_files(original_idx_file, new_idx_file, raster=True)
         # compare project files
         prj_file_name = '{0}.prj'.format(project_name)
         generated_prj_file = path.join(self.gssha_project_directory, prj_file_name)

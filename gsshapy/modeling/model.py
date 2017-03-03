@@ -21,9 +21,15 @@ class GSSHAModel(object):
     def __init__(self,
                  project_name,
                  project_directory,
+                 mask_shapefile,
+                 grid_cell_size,
+                 elevation_grid_path,
                  simulation_timestep=30,
                  out_hydrograph_write_frequency=10,
-                 roughness=0.013,
+                 roughness=None,
+                 land_use_grid=None,
+                 land_use_grid_id=None,
+                 land_use_to_roughness_table=None
                 ):
 
         self.project_directory = project_directory
@@ -46,8 +52,15 @@ class GSSHAModel(object):
         # see http://www.gsshawiki.com/Project_File:Output_Files_%E2%80%93_Required
         self.project_manager.setCard('SUMMARY', '{0}.sum'.format(project_name), add_quotes=True)
         self.project_manager.setCard('OUTLET_HYDRO', '{0}.otl'.format(project_name), add_quotes=True)
-        # see http://www.gsshawiki.com/Project_File:Overland_Flow_%E2%80%93_Required
-        self.project_manager.setCard('MANNING_N', str(roughness))
+
+        # ADD REQUIRED MODEL GRID INPUT
+        self.set_mask_from_shapefile(mask_shapefile, grid_cell_size)
+        self.set_elevation(elevation_grid_path)
+        self.set_roughness(roughness=roughness,
+                           land_use_grid=land_use_grid,
+                           land_use_grid_id=land_use_grid_id,
+                           land_use_to_roughness_table=land_use_to_roughness_table,
+                           )
 
     def set_mask_from_shapefile(self, shapefile_path, cell_size):
         '''
@@ -79,19 +92,29 @@ class GSSHAModel(object):
         self.project_manager.setOutlet(latitude=latitude, longitude=longitude,
                                        outslope=outslope)
 
-    def set_roughtness_idx(self, land_use_grid, land_use_grid_id=None,
-                           land_use_to_roughness_table=None):
+    def set_roughness(self,
+                      roughness=None,
+                      land_use_grid=None,
+                      land_use_grid_id=None,
+                      land_use_to_roughness_table=None):
         '''
         ADD ROUGHNESS FROM LAND COVER
         See: http://www.gsshawiki.com/Project_File:Overland_Flow_%E2%80%93_Required
         '''
-        mapTableFile = MapTableFile(project_file=self.project_manager)
-        mapTableFile.addRoughnessMapFromLandUse("roughness",
-                                                self.db_session,
-                                                land_use_grid,
-                                                land_use_to_roughness_table=land_use_to_roughness_table,
-                                                land_use_grid_id=land_use_grid_id,
-                                                )
+        if roughness is not None:
+            self.project_manager.setCard('MANNING_N', str(roughness))
+        elif land_use_grid is not None and (land_use_grid_id is not None \
+                or land_use_to_roughness_table is not None):
+            mapTableFile = MapTableFile(project_file=self.project_manager)
+            mapTableFile.addRoughnessMapFromLandUse("roughness",
+                                                    self.db_session,
+                                                    land_use_grid,
+                                                    land_use_to_roughness_table=land_use_to_roughness_table,
+                                                    land_use_grid_id=land_use_grid_id,
+                                                    )
+        else:
+            raise ValueError("Need to either set 'roughness', or need "
+                             "to set values from land use grid ...")
 
     def set_event(self,
                   simulation_start=None,
