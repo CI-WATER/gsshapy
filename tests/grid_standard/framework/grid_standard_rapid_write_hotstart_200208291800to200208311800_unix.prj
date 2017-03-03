@@ -9,7 +9,7 @@ METRIC
 GRIDSIZE                 147.183032
 ROWS                     34
 COLS                     50
-TOT_TIME                 60
+TOT_TIME                 2880.0
 TIMESTEP                 30
 OUTROW                   11
 OUTCOL                   1

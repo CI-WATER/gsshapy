@@ -80,6 +80,15 @@ class Event(object):
         self.simulation_start = simulation_start
         if self.simulation_duration is not None and self.simulation_start is not None:
             self.simulation_end = self.simulation_start + self.simulation_duration
+        self._update_simulation_start_cards()
+
+    def _update_simulation_start_cards(self):
+        '''
+        Update GSSHA cards for simulation start
+        '''
+        if self.simulation_start is not None:
+            self._update_card("START_DATE", self.simulation_start.strftime("%Y %m %d"))
+            self._update_card("START_TIME", self.simulation_start.strftime("%H %M"))
 
     def _update_centroid_timezone(self):
         """
@@ -104,6 +113,14 @@ class Event(object):
         tz_name = tf.timezone_at(lng=self.center_lon, lat=self.center_lat)
 
         self.tz = timezone(tz_name)
+
+    def set_simulation_duration(self, simulation_duration):
+        '''
+        set the simulation_duration
+        see: http://www.gsshawiki.com/Project_File:Required_Inputs
+        ONLY NEEDED FOR EVENT MODE
+        '''
+        self.simulation_duration = simulation_duration
 
     def add_precip_file(self, precip_file_path, interpolation_type=None):
         '''
@@ -174,11 +191,13 @@ class Event(object):
 
         if len(time_index_range) > 0:
             # update cards
-            self._update_card("START_DATE", self.simulation_start.strftime("%Y %m %d"))
-            self._update_card("START_TIME", self.simulation_start.strftime("%H %M"))
+            self._update_simulation_start_cards()
 
             self._update_card("END_TIME", self.simulation_end.strftime("%Y %m %d %H %M"))
             self._update_card("CHAN_POINT_INPUT", ihg_filename, True)
+
+            # update duration
+            self.set_simulation_duration(self.simulation_end-self.simulation_start)
 
             # UPDATE GMT CARD
             self._update_gmt()
@@ -196,10 +215,15 @@ class EventMode(Event):
                  project_manager,
                  db_session,
                  gssha_directory,
-                 simulation_start=None,
+                 simulation_start,
                  simulation_end=None,
                  simulation_duration=None,
                  ):
+
+        if simulation_duration is None and None not in \
+                (simulation_start, simulation_end):
+            simulation_duration = simulation_end - simulation_start
+
         super(EventMode, self).__init__(project_manager, db_session,
                                         gssha_directory, simulation_start,
                                         simulation_end, simulation_duration)
@@ -208,13 +232,26 @@ class EventMode(Event):
         for long_term_mode_card in self.LONG_TERM_MODE_CARDS:
             self.project_manager.deleteCard(long_term_mode_card, self.db_session)
 
+        if simulation_duration is not None:
+            # see: http://www.gsshawiki.com/Project_File:Required_Inputs
+            self.set_simulation_duration(simulation_duration)
+
+    def set_simulation_duration(self, simulation_duration):
+        '''
+        set the simulation_duration
+        see: http://www.gsshawiki.com/Project_File:Required_Inputs
+        '''
+        self.project_manager.setCard('TOT_TIME', str(simulation_duration.total_seconds()/60.0))
+        super(EventMode, self).set_simulation_duration(simulation_duration)
+        self.simulation_duration = simulation_duration
+
     def add_uniform_precip_event(self, intensity, duration):
         '''
         Add a uniform precip event
         '''
         self.project_manager.setCard('PRECIP_UNIF', '')
         self.project_manager.setCard('RAIN_INTENSITY', str(intensity))
-        self.project_manager.setCard('RAIN_DURATION', str(duration))
+        self.project_manager.setCard('RAIN_DURATION', str(duration.total_seconds()/60.0))
 
 
 class LongTermMode(Event):
@@ -363,8 +400,7 @@ class LongTermMode(Event):
             self._update_simulation_start(datetime.utcfromtimestamp(l2g.hourly_time_array[0])
                                           .replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None))
 
-        self._update_card("START_DATE", self.simulation_start.strftime("%Y %m %d"))
-        self._update_card("START_TIME", self.simulation_start.strftime("%H %M"))
+        self._update_simulation_start_cards()
 
         # GSSHA simulation does not work after HMET data is finished
         wrf_simulation_end = datetime.utcfromtimestamp(l2g.hourly_time_array[-1]) \
