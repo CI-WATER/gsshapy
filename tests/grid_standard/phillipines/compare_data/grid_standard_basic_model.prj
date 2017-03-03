@@ -11,7 +11,7 @@ COLS                     33
 #PROJECTION_FILE         "grid_standard_basic_model_prj.pro"
 OUTROW                   7
 OUTCOL                   1
-OUTSLOPE                 0.001
+OUTSLOPE                 0.01
 ELEVATION                "grid_standard_basic_model.ele"
 MANNING_N                0.013
 START_DATE               2017 02 28
