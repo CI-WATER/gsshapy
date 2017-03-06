@@ -104,34 +104,44 @@ class ElevationGridFile(RasterMapFile):
         self.projectFile.setCard("ELEVATION", out_elevation_grid, add_quotes=True)
         # read raster into object
         self._load_raster_text(out_elevation_grid)
-
-        # attempt to determine the slope at the OUTLET
         if calculate_outlet_slope:
-            outrow = int(self.projectFile.getCard("OUTROW").value)-1
-            outcol = int(self.projectFile.getCard("OUTCOL").value)-1
-            cell_size = float(self.projectFile.getCard("GRIDSIZE").value)
+            self.calculateOutletSlope(elevation_grid=elevation_grid,
+                                      mask_grid=mask_grid)
 
-            min_row = max(0, outrow-1)
-            max_row = min(mask_grid.x_size(), outrow+2)
-            min_col = max(0, outcol-1)
-            max_col = min(mask_grid.y_size(), outcol+2)
+    def calculateOutletSlope(self, elevation_grid=None, mask_grid=None):
+        '''
+        Attempt to determine the slope at the OUTLET
+        '''
+        if mask_grid is None:
+            mask_grid = self.projectFile.getGrid()
+        if elevation_grid is None:
+            elevation_grid = self.projectFile.getGrid(use_mask=False)
 
-            mask_array = mask_grid.np_array()
-            mask_array[outrow, outcol] = 0
-            mask_array = mask_array[min_row:max_row, min_col:max_col]
-            mask_array = (mask_array==0)
+        outrow = int(self.projectFile.getCard("OUTROW").value)-1
+        outcol = int(self.projectFile.getCard("OUTCOL").value)-1
+        cell_size = float(self.projectFile.getCard("GRIDSIZE").value)
 
-            elevation_array = elevation_grid.np_array()
-            original_elevation = elevation_array[outrow, outcol]
-            elevation_array = elevation_array[min_row:max_row, min_col:max_col]
+        min_row = max(0, outrow-1)
+        max_row = min(mask_grid.x_size(), outrow+2)
+        min_col = max(0, outcol-1)
+        max_col = min(mask_grid.y_size(), outcol+2)
 
-            slope_calc_array = (elevation_array-original_elevation)/cell_size
-            #NOTE: Ignoring distance to cells at angles. Assuming to small to matter
-            mask_array[slope_calc_array<=0] = True
+        mask_array = mask_grid.np_array()
+        mask_array[outrow, outcol] = 0
+        mask_array = mask_array[min_row:max_row, min_col:max_col]
+        mask_array = (mask_array==0)
 
-            slope_mask_array = np.ma.array(slope_calc_array, mask=mask_array)
-            outslope = slope_mask_array.mean()
-            if outslope is np.ma.masked or outslope < 0.001:
-                outslope = 0.001
+        elevation_array = elevation_grid.np_array()
+        original_elevation = elevation_array[outrow, outcol]
+        elevation_array = elevation_array[min_row:max_row, min_col:max_col]
 
-            self.projectFile.setCard("OUTSLOPE", str(outslope))
+        slope_calc_array = (elevation_array-original_elevation)/cell_size
+        #NOTE: Ignoring distance to cells at angles. Assuming to small to matter
+        mask_array[slope_calc_array<=0] = True
+
+        slope_mask_array = np.ma.array(slope_calc_array, mask=mask_array)
+        outslope = slope_mask_array.mean()
+        if outslope is np.ma.masked or outslope < 0.001:
+            outslope = 0.001
+
+        self.projectFile.setCard("OUTSLOPE", str(outslope))
