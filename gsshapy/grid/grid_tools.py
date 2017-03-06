@@ -456,7 +456,15 @@ def rasterize_shapefile(shapefile_path,
         if not UTM_LOADED:
             raise ImportError("utm package not loaded. 'convert_to_utm' will not work ...")
 
-        utm_centroid_info = utm.from_latlon((y_min+y_max)/2.0, (x_min+x_max)/2.0)
+        # Make sure projected into global projection
+        sp_ref = osr.SpatialReference()
+        sp_ref.ImportFromEPSG(4326)
+        tx = osr.CoordinateTransformation(shapefile_spatial_ref, sp_ref)
+        lon_min, lat_max, ulz = tx.TransformPoint(x_min, y_max)
+        lon_max, lat_min, brz = tx.TransformPoint(x_max, y_min)
+
+        # get utm coordinates
+        utm_centroid_info = utm.from_latlon((lat_min+lat_max)/2.0, (lon_min+lon_max)/2.0)
         easting, northing, zone_number, zone_letter = utm_centroid_info
 
         south_string = ''
@@ -484,7 +492,7 @@ def rasterize_shapefile(shapefile_path,
         if raster_wkt_proj:
             sp_ref = osr.SpatialReference()
             sp_ref.ImportFromWkt(raster_wkt_proj)
-            tx = osr.CoordinateTransformation (shapefile_spatial_ref, sp_ref)
+            tx = osr.CoordinateTransformation(shapefile_spatial_ref, sp_ref)
             x_min, y_max, ulz = tx.TransformPoint(x_min, y_max)
             x_max, y_min, brz = tx.TransformPoint(x_max, y_min)
             match_proj = raster_wkt_proj
