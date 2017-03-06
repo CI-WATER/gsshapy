@@ -7,11 +7,12 @@
 #  BSD 3-Clause
 
 from datetime import timedelta
-from gsshapy.orm import (ProjectFile, WatershedMaskFile, ElevationGridFile,
-                         MapTableFile)
-from gsshapy.lib import db_tools as dbt
 
 from .event import EventMode, LongTermMode
+from ..orm import (ProjectFile, WatershedMaskFile, ElevationGridFile,
+                         MapTableFile)
+from ..lib import db_tools as dbt
+from ..grid.grid_tools import GDALGrid
 
 class GSSHAModel(object):
     '''
@@ -89,11 +90,10 @@ class GSSHAModel(object):
             # Create DB Sessions
             self.db_session = dbt.create_session(sqlalchemy_url, sql_engine)
 
-            if None in (project_name, mask_shapefile, grid_cell_size,
-                    elevation_grid_path):
+            if None in (project_name, mask_shapefile, elevation_grid_path):
                 raise ValueError("Need to set project_name, mask_shapefile, "
-                                 "grid_cell_size, and elevation_grid_path "
-                                 "to generate a new GSSHA model.")
+                                 "and elevation_grid_path to generate "
+                                 "a new GSSHA model.")
             # Instantiate GSSHAPY object for reading to database
             self.project_manager = ProjectFile(name=project_name, map_type=1)
             self.db_session.add(self.project_manager)
@@ -114,6 +114,16 @@ class GSSHAModel(object):
                                          add_quotes=True)
 
             # ADD REQUIRED MODEL GRID INPUT
+            if grid_cell_size is None:
+                ele_grid = GDALGrid(elevation_grid_path)
+                utm_bounds = ele_grid.bounds(as_utm=True)
+                x_cell_size = (utm_bounds[1] - utm_bounds[0])/ele_grid.x_size()
+                y_cell_size = (utm_bounds[3] - utm_bounds[2])/ele_grid.y_size()
+                grid_cell_size = min(x_cell_size, y_cell_size)
+                ele_grid = None
+                print("INFO: Calculated cell size is {grid_cell_size}"
+                      .format(grid_cell_size=grid_cell_size))
+
             self.set_mask_from_shapefile(mask_shapefile, grid_cell_size)
             self.set_elevation(elevation_grid_path)
             self.set_roughness(roughness=roughness,

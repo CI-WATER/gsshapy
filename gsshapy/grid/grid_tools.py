@@ -12,6 +12,46 @@ except ImportError:
     print("WARNING: utm package not loaded. The UTM functionality will not work ...")
     pass
 
+def utm_proj_from_latlon(latitude, longitude, as_wkt=False, as_osr=False):
+    '''
+    Returns UTM projection information from a latitude, longitude corrdinate pair
+    '''
+    if not UTM_LOADED:
+        raise ImportError("utm package not loaded. 'utm_proj_from_latlon' "
+                          "will not work ...")
+
+    # get utm coordinates
+    utm_centroid_info = utm.from_latlon(latitude, longitude)
+    easting, northing, zone_number, zone_letter = utm_centroid_info
+
+    south_string = ''
+    if zone_letter < 'N':
+        south_string = ', +south'
+    proj4_utm_string = ('+proj=utm +zone={zone_number}{zone_letter}'
+                        '{south_string} +ellps=WGS84 +datum=WGS84 '
+                        '+units=m +no_defs').format(zone_number=zone_number,
+                                                    zone_letter=zone_letter,
+                                                    south_string=south_string)
+    sp_ref = osr.SpatialReference()
+    sp_ref.ImportFromProj4(proj4_utm_string)
+    if as_osr:
+        return sp_ref
+    elif as_wkt:
+        return sp_ref.ExportToWkt()
+    return proj4_utm_string
+
+
+def project_to_geographic(x_coord, y_coord, osr_projetion):
+    '''
+    Project point to geographic
+    '''
+    # Make sure projected into global projection
+    sp_ref = osr.SpatialReference()
+    sp_ref.ImportFromEPSG(4326)
+    tx = osr.CoordinateTransformation(osr_projetion, sp_ref)
+    return tx.TransformPoint(x_coord, y_coord)
+
+
 class GDALGrid(object):
     '''
     Loads grid into gdal dataset with projection
@@ -47,12 +87,29 @@ class GDALGrid(object):
         '''
         return Proj(self.projection.ExportToProj4())
 
-    def bounds(self):
+    def bounds(self, as_geographic=False, as_utm=False):
         '''
         Returns bounding coordinates for raster
         '''
         x_min, y_min = self.affine * (0, self.dataset.RasterYSize)
         x_max, y_max = self.affine * (self.dataset.RasterXSize, 0)
+        if as_geographic or as_utm:
+            lon_min, lat_max, ulz = project_to_geographic(x_min, y_max,
+                                                          self.projection)
+            lon_max, lat_min, brz = project_to_geographic(x_max, y_min,
+                                                          self.projection)
+            if as_geographic:
+                return(lon_min, lon_max, lat_min, lat_max)
+
+            # convert to UTM
+            utm_osr = utm_proj_from_latlon((lat_min+lat_max)/2.0,
+                                           (lon_min+lon_max)/2.0,
+                                           as_osr=True)
+
+            tx = osr.CoordinateTransformation(self.projection, utm_osr)
+            x_min, y_max, ulz = tx.TransformPoint(x_min, y_max)
+            x_max, y_min, brz = tx.TransformPoint(x_max, y_min)
+
         return (x_min, x_max, y_min, y_max)
 
     def pixel2coord(self, col, row):
@@ -76,10 +133,8 @@ class GDALGrid(object):
         """Returns latitude and longitude to pixel center using base-0 raster index
         """
         x_coord, y_coord = self.pixel2coord(col, row)
-        sp_ref = osr.SpatialReference()
-        sp_ref.ImportFromEPSG(4326) # geographic
-        tx = osr.CoordinateTransformation(self.projection, sp_ref)
-        longitude, latitude, z_coord = tx.TransformPoint(x_coord, y_coord)
+        longitude, latitude, z_coord = project_to_geographic(x_coord, y_coord,
+                                                             self.projection)
         return (longitude, latitude)
 
     def lonlat2pixel(self, longitude, latitude):
@@ -453,32 +508,16 @@ def rasterize_shapefile(shapefile_path,
     shapefile_spatial_ref = source_layer.GetSpatialRef()
 
     if convert_to_utm:
-        if not UTM_LOADED:
-            raise ImportError("utm package not loaded. 'convert_to_utm' will not work ...")
-
         # Make sure projected into global projection
-        sp_ref = osr.SpatialReference()
-        sp_ref.ImportFromEPSG(4326)
-        tx = osr.CoordinateTransformation(shapefile_spatial_ref, sp_ref)
-        lon_min, lat_max, ulz = tx.TransformPoint(x_min, y_max)
-        lon_max, lat_min, brz = tx.TransformPoint(x_max, y_min)
+        lon_min, lat_max, ulz = project_to_geographic(x_min, y_max,
+                                                      shapefile_spatial_ref)
+        lon_max, lat_min, brz = project_to_geographic(x_max, y_min,
+                                                      shapefile_spatial_ref)
 
-        # get utm coordinates
-        utm_centroid_info = utm.from_latlon((lat_min+lat_max)/2.0, (lon_min+lon_max)/2.0)
-        easting, northing, zone_number, zone_letter = utm_centroid_info
-
-        south_string = ''
-        if zone_letter < 'N':
-            south_string = ', +south'
-        proj4_utm_string = ('+proj=utm +zone={zone_number}{zone_letter}'
-                            '{south_string} +ellps=WGS84 +datum=WGS84 '
-                            '+units=m +no_defs').format(zone_number=zone_number,
-                                                        zone_letter=zone_letter,
-                                                        south_string=south_string)
-
-        sp_ref = osr.SpatialReference()
-        sp_ref.ImportFromProj4(proj4_utm_string)
-        raster_wkt_proj = sp_ref.ExportToWkt()
+        # get UTM projection for watershed
+        raster_wkt_proj = utm_proj_from_latlon((lat_min+lat_max)/2.0,
+                                               (lon_min+lon_max)/2.0,
+                                               as_wkt=True)
 
     if match_grid is not None:
         # grid to match

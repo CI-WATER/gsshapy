@@ -71,13 +71,46 @@ class TestProjectGenerate(TestGridTemplate):
 
         chdir(self.gssha_project_directory)
 
-    def _compare_masks(self, mask_name):
+    def _compare_basic_model(self, project_name):
         '''
-        compare mask files
+        Compare output from basic GSSHA model
         '''
-        new_mask_grid = path.join(self.writeDirectory, mask_name)
+        # compare msk
+        mask_name = '{0}.msk'.format(project_name)
+        new_mask_grid = path.join(self.gssha_project_directory, mask_name)
         compare_msk_file = path.join(self.compare_path, mask_name)
         self._compare_files(compare_msk_file, new_mask_grid, raster=True)
+        # compare ele
+        ele_grid_name = '{0}.ele'.format(project_name)
+        new_ele_grid = path.join(self.gssha_project_directory, ele_grid_name)
+        compare_ele_file = path.join(self.compare_path, ele_grid_name)
+        self._compare_files(compare_ele_file, new_ele_grid, raster=True)
+        # compare project files
+        prj_file_name = '{0}.prj'.format(project_name)
+        generated_prj_file = path.join(self.gssha_project_directory, prj_file_name)
+        compare_prj_file = path.join(self.compare_path, prj_file_name)
+        self._compare_files(generated_prj_file, compare_prj_file)
+        # check to see if projection file generated
+        proj_file_name = '{0}_prj.pro'.format(project_name)
+        generated_proj_file = path.join(self.gssha_project_directory, proj_file_name)
+        compare_proj_file = path.join(self.compare_path, proj_file_name)
+        self._compare_files(generated_proj_file, compare_proj_file)
+
+    def _compare_basic_model_idx_maps(self, project_name):
+        '''
+        Compare output from basic GSSHA model with index maps
+        '''
+        # compare main project files
+        self._compare_basic_model(project_name)
+        # compare cmt
+        cmt_file_name = '{0}.cmt'.format(project_name)
+        new_cmt_file = path.join(self.gssha_project_directory, cmt_file_name)
+        compare_cmt_file = path.join(self.compare_path, cmt_file_name)
+        self._compare_files(new_cmt_file, compare_cmt_file)
+        # compare idx
+        new_idx_file = path.join(self.gssha_project_directory, 'roughness.idx')
+        original_idx_file = path.join(self.compare_path, 'roughness.idx')
+        self._compare_files(original_idx_file, new_idx_file, raster=True)
 
     def _before_teardown(self):
         '''
@@ -139,23 +172,8 @@ class TestProjectGenerate(TestGridTemplate):
         project_manager.writeInput(session=self.db_session,
                                    directory=self.gssha_project_directory,
                                    name=project_name)
-        # compare msk
-        self._compare_masks(mask_name)
-        # compare ele
-        ele_grid_name = '{0}.ele'.format(project_name)
-        new_mask_grid = path.join(self.gssha_project_directory, ele_grid_name)
-        compare_msk_file = path.join(self.compare_path, ele_grid_name)
-        self._compare_files(compare_msk_file, new_mask_grid, raster=True)
-        # compare project files
-        prj_file_name = '{0}.prj'.format(project_name)
-        generated_prj_file = path.join(self.gssha_project_directory, prj_file_name)
-        compare_prj_file = path.join(self.compare_path, prj_file_name)
-        self._compare_files(generated_prj_file, compare_prj_file)
-        # check to see if projection file generated
-        proj_file_name = '{0}_prj.pro'.format(project_name)
-        generated_proj_file = path.join(self.gssha_project_directory, proj_file_name)
-        compare_proj_file = path.join(self.compare_path, proj_file_name)
-        self._compare_files(generated_proj_file, compare_proj_file)
+        # compare
+        self._compare_basic_model(project_name)
 
     def test_generate_basic_project_land_cover(self):
         '''
@@ -211,33 +229,8 @@ class TestProjectGenerate(TestGridTemplate):
         project_manager.writeInput(session=self.db_session,
                                    directory=self.gssha_project_directory,
                                    name=project_name)
-        # compare msk
-        self._compare_masks(mask_name)
-        # compare ele
-        ele_grid_name = '{0}.ele'.format(project_name)
-        new_mask_grid = path.join(self.gssha_project_directory, ele_grid_name)
-        compare_msk_file = path.join(self.compare_path, ele_grid_name)
-        self._compare_files(compare_msk_file, new_mask_grid, raster=True)
-        # compare cmt
-        cmt_file_name = '{0}.cmt'.format(project_name)
-        new_cmt_file = path.join(self.gssha_project_directory, cmt_file_name)
-        compare_cmt_file = path.join(self.compare_path, cmt_file_name)
-        self._compare_files(new_cmt_file, compare_cmt_file)
-        # compare idx
-        new_idx_file = path.join(self.gssha_project_directory, 'roughness.idx')
-        original_idx_file = path.join(self.compare_path, 'roughness.idx')
-        self._compare_files(original_idx_file, new_idx_file, raster=True)
-        # compare project files
-        prj_file_name = '{0}.prj'.format(project_name)
-        generated_prj_file = path.join(self.gssha_project_directory, prj_file_name)
-        compare_prj_file = path.join(self.compare_path, prj_file_name)
-        self._compare_files(generated_prj_file, compare_prj_file)
-        # check to see if projection file generated
-        proj_file_name = '{0}_prj.pro'.format(project_name)
-        generated_proj_file = path.join(self.gssha_project_directory, proj_file_name)
-        compare_proj_file = path.join(self.compare_path, proj_file_name)
-        self._compare_files(generated_proj_file, compare_proj_file)
-
+        # compare main project files
+        self._compare_basic_model_idx_maps(project_name)
 
     def test_generate_basic_project_manager(self):
         '''
@@ -261,25 +254,33 @@ class TestProjectGenerate(TestGridTemplate):
                         )
         model.write()
 
-        # compare msk
-        mask_name = '{0}.msk'.format(project_name)
-        self._compare_masks(mask_name)
-        # compare ele
-        ele_grid_name = '{0}.ele'.format(project_name)
-        new_mask_grid = path.join(self.gssha_project_directory, ele_grid_name)
-        compare_msk_file = path.join(self.compare_path, ele_grid_name)
-        self._compare_files(compare_msk_file, new_mask_grid, raster=True)
-        # compare project files
-        prj_file_name = '{0}.prj'.format(project_name)
-        generated_prj_file = path.join(self.gssha_project_directory, prj_file_name)
-        compare_prj_file = path.join(self.compare_path, prj_file_name)
-        self._compare_files(generated_prj_file, compare_prj_file)
-        # check to see if projection file generated
-        proj_file_name = '{0}_prj.pro'.format(project_name)
-        generated_proj_file = path.join(self.gssha_project_directory, proj_file_name)
-        compare_proj_file = path.join(self.compare_path, proj_file_name)
-        self._compare_files(generated_proj_file, compare_proj_file)
+        # compare main project files
+        self._compare_basic_model(project_name)
 
+    def test_generate_basic_project_manager(self):
+        '''
+        Tests generating a basic GSSHA project with GSSHAModel self-calulating
+        grid cell size from elevation grid
+        '''
+
+        project_name = "grid_standard_basic_model_auto"
+
+        model = GSSHAModel(project_name=project_name,
+                           project_directory=self.gssha_project_directory,
+                           mask_shapefile=self.shapefile_path,
+                           elevation_grid_path=self.elevation_path,
+                           out_hydrograph_write_frequency=15,
+                           roughness=0.013,
+                           )
+        model.set_event(simulation_start=datetime(2017, 2, 28),
+                        simulation_duration=timedelta(seconds=180*60),
+                        rain_intensity=2.4,
+                        rain_duration=timedelta(seconds=30*60),
+                        )
+        model.write()
+
+        # compare main project files
+        self._compare_basic_model(project_name)
 
     def test_generate_basic_rough_project_manager(self):
         '''
@@ -305,33 +306,12 @@ class TestProjectGenerate(TestGridTemplate):
                         )
         model.write()
 
-        # compare msk
-        mask_name = '{0}.msk'.format(project_name)
-        self._compare_masks(mask_name)
-        # compare ele
-        ele_grid_name = '{0}.ele'.format(project_name)
-        new_mask_grid = path.join(self.gssha_project_directory, ele_grid_name)
-        compare_msk_file = path.join(self.compare_path, ele_grid_name)
-        self._compare_files(compare_msk_file, new_mask_grid, raster=True)
-        # compare cmt
-        cmt_file_name = '{0}.cmt'.format(project_name)
-        new_cmt_file = path.join(self.gssha_project_directory, cmt_file_name)
-        compare_cmt_file = path.join(self.compare_path, cmt_file_name)
-        self._compare_files(new_cmt_file, compare_cmt_file)
-        # compare idx
-        new_idx_file = path.join(self.gssha_project_directory, 'roughness.idx')
-        original_idx_file = path.join(self.compare_path, 'roughness.idx')
-        self._compare_files(original_idx_file, new_idx_file, raster=True)
-        # compare project files
-        prj_file_name = '{0}.prj'.format(project_name)
-        generated_prj_file = path.join(self.gssha_project_directory, prj_file_name)
-        compare_prj_file = path.join(self.compare_path, prj_file_name)
-        self._compare_files(generated_prj_file, compare_prj_file)
-        # check to see if projection file generated
-        proj_file_name = '{0}_prj.pro'.format(project_name)
-        generated_proj_file = path.join(self.gssha_project_directory, proj_file_name)
-        compare_proj_file = path.join(self.compare_path, proj_file_name)
-        self._compare_files(generated_proj_file, compare_proj_file)
+        # compare main project files
+        self._compare_basic_model_idx_maps(project_name)
+
+    def tearDown(self):
+        return
+
 
 if __name__ == '__main__':
     unittest.main()
