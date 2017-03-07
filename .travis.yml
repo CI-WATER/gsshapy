@@ -46,7 +46,9 @@ before_install:
 #-------------------------------------------------------------------------------
 # Install required python packages
 #-----------------------------------------------------------------------------
-- conda install --yes -c conda-forge affine mapkit nose pygrib psycopg2 timezonefinder rapidpy
+- conda config --add channels conda-forge
+- conda install --yes affine mapkit pygrib psycopg2 timezonefinder rapidpy
+- conda install --yes pytest pytest-cov
 - pip install coveralls
 
 #-------------------------------------------------------------------------------
@@ -75,7 +77,7 @@ install:
 #-------------------------------------------------------------------------------
 - cd $TRAVIS_BUILD_DIR/tests
 script:
-- nosetests --with-coverage --cover-package=gsshapy,gridtogssha
+- py.test --cov-report term-missing --cov=gsshapy
 ##ADD Coveralls stats for code coverage
 after_success:
   - coveralls

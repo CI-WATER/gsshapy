@@ -23,8 +23,10 @@ install:
   - "conda create --name gssha python=%PYTHON_VERSION%"
   - activate gssha
   # Install required python packages
-  - conda install -c conda-forge affine mapkit nose psycopg2 timezonefinder rapidpy
-  - pip install coveralls nose-cov
+  - conda config --add channels conda-forge
+  - conda install --yes affine mapkit psycopg2 timezonefinder rapidpy
+  - conda install --yes pytest pytest-cov
+  - pip install coveralls
   # reactivate environment to update paths
   - deactivate
   - activate gssha
@@ -59,6 +61,6 @@ install:
 build: false
 
 test_script:
-  - nosetests --with-coverage --cover-package=gsshapy,gridtogssha
+  - py.test --cov-report term-missing --cov=gsshapy
 #on_success:
 #  - coveralls
