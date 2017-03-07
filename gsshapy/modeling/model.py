@@ -115,6 +115,8 @@ class GSSHAModel(object):
 
             # ADD REQUIRED MODEL GRID INPUT
             if grid_cell_size is None:
+                # caluclate cell size from elevation grid if not given
+                # as input from the user
                 ele_grid = GDALGrid(elevation_grid_path)
                 utm_bounds = ele_grid.bounds(as_utm=True)
                 x_cell_size = (utm_bounds[1] - utm_bounds[0])/ele_grid.x_size()
@@ -194,7 +196,9 @@ class GSSHAModel(object):
                   rain_duration=timedelta(seconds=30*60),
                   event_type='EVENT',
                  ):
-
+        '''
+        Initializes event for GSSHA model
+        '''
         # ADD TEMPORTAL EVENT INFORMAITON
         if event_type == 'LONG_TERM':
             self.event = LongTermMode(self.project_manager,
