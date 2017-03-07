@@ -432,6 +432,71 @@ def resample_grid(original_grid,
         del dst
         return None
 
+
+def reproject_layer(in_path, out_path, outSpatialRef):
+    """
+    From: https://pcjericks.github.io/py-gdalogr-cookbook/projection.html
+    """
+    driver = ogr.GetDriverByName('ESRI Shapefile')
+
+    # get the input layer
+    inDataSet = driver.Open(in_path)
+    inLayer = inDataSet.GetLayer()
+
+    # input SpatialReference
+    inSpatialRef = inLayer.GetSpatialRef()
+
+    # create the CoordinateTransformation
+    coordTrans = osr.CoordinateTransformation(inSpatialRef, outSpatialRef)
+
+    # create the output layer
+    outputShapefile = out_path
+    if path.exists(outputShapefile):
+        driver.DeleteDataSource(outputShapefile)
+    outDataSet = driver.CreateDataSource(outputShapefile)
+    outLayer = outDataSet.CreateLayer("", geom_type=ogr.wkbMultiPolygon)
+
+    # add fields
+    inLayerDefn = inLayer.GetLayerDefn()
+    for i in range(0, inLayerDefn.GetFieldCount()):
+        fieldDefn = inLayerDefn.GetFieldDefn(i)
+        outLayer.CreateField(fieldDefn)
+
+    # get the output layer's feature definition
+    outLayerDefn = outLayer.GetLayerDefn()
+
+    # loop through the input features
+    inFeature = inLayer.GetNextFeature()
+    while inFeature:
+        # get the input geometry
+        geom = inFeature.GetGeometryRef()
+        # reproject the geometry
+        geom.Transform(coordTrans)
+        # create a new feature
+        outFeature = ogr.Feature(outLayerDefn)
+        # set the geometry and attribute
+        outFeature.SetGeometry(geom)
+        for i in range(0, outLayerDefn.GetFieldCount()):
+            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(), inFeature.GetField(i))
+        # add the feature to the shapefile
+        outLayer.CreateFeature(outFeature)
+        # dereference the features and get the next input feature
+        outFeature = None
+        inFeature = inLayer.GetNextFeature()
+
+    # Save and close the shapefiles
+    inDataSet = None
+    outDataSet = None
+
+    # write projection
+    shapefile_basename = path.splitext(out_path)[0]
+    projection_file_name = "{shapefile_basename}.prj" \
+                          .format(shapefile_basename=shapefile_basename)
+    with open(projection_file_name, 'w') as prj_file:
+        prj_file.write(outSpatialRef.ExportToWkt())
+        prj_file.close()
+
+
 def rasterize_shapefile(shapefile_path,
                         out_raster_path=None,
                         shapefile_attribute=None,
@@ -506,7 +571,7 @@ def rasterize_shapefile(shapefile_path,
 
     x_min, x_max, y_min, y_max = source_layer.GetExtent()
     shapefile_spatial_ref = source_layer.GetSpatialRef()
-
+    reprojected_layer = None
     if convert_to_utm:
         # Make sure projected into global projection
         lon_min, lat_max, ulz = project_to_geographic(x_min, y_max,
@@ -519,6 +584,18 @@ def rasterize_shapefile(shapefile_path,
                                                (lon_min+lon_max)/2.0,
                                                as_wkt=True)
 
+        shapefile_basename = path.splitext(shapefile_path)[0]
+        reprojected_layer = "{shapefile_basename}_projected.shp" \
+                             .format(shapefile_basename=shapefile_basename)
+        outSpatialRef = osr.SpatialReference()
+        outSpatialRef.ImportFromWkt(raster_wkt_proj)
+        reproject_layer(shapefile_path, reprojected_layer, outSpatialRef)
+        reprojected_shapefile = ogr.Open(reprojected_layer)
+        source_layer = reprojected_shapefile.GetLayer(0)
+
+        x_min, x_max, y_min, y_max = source_layer.GetExtent()
+        shapefile_spatial_ref = source_layer.GetSpatialRef()
+
     if match_grid is not None:
         # grid to match
         match_ds, match_proj = load_raster(match_grid)
@@ -527,18 +604,11 @@ def rasterize_shapefile(shapefile_path,
         y_num_cells = match_ds.RasterYSize
 
     elif x_cell_size is not None and y_cell_size is not None:
-        match_proj = shapefile_spatial_ref.ExportToWkt()
-        if raster_wkt_proj:
-            sp_ref = osr.SpatialReference()
-            sp_ref.ImportFromWkt(raster_wkt_proj)
-            tx = osr.CoordinateTransformation(shapefile_spatial_ref, sp_ref)
-            x_min, y_max, ulz = tx.TransformPoint(x_min, y_max)
-            x_max, y_min, brz = tx.TransformPoint(x_max, y_min)
-            match_proj = raster_wkt_proj
-
+        # caluclate nuber of cells in extent
         x_num_cells = int((x_max - x_min) / x_cell_size)
         y_num_cells = int((y_max - y_min) / y_cell_size)
         match_geotrans = (x_min, x_cell_size, 0, y_max, 0, -y_cell_size)
+        match_proj = shapefile_spatial_ref.ExportToWkt()
 
     elif x_num_cells is not None and y_num_cells is not None:
         x_cell_size = (x_max - x_min) / float(x_num_cells)
@@ -575,7 +645,7 @@ def rasterize_shapefile(shapefile_path,
 
     if raster_wkt_proj is not None and raster_wkt_proj != match_proj:
         # from http://gis.stackexchange.com/questions/139906/replicating-result-of-gdalwarp-using-gdal-python-bindings
-        error_threshold = 0.0  # error threshold --> use same value as in gdalwarp
+        error_threshold = 0.125 # error threshold --> use same value as in gdalwarp
         resampling = gdal.GRA_NearestNeighbour
 
         # Call AutoCreateWarpedVRT() to fetch default values for target raster dimensions and geotransform
@@ -592,7 +662,12 @@ def rasterize_shapefile(shapefile_path,
     if as_gdal_grid:
         return GDALGrid(target_ds)
 
+    # clean up
     del target_ds
+    if reprojected_layer is not None:
+        driver = ogr.GetDriverByName("ESRI Shapefile")
+        if path.exists(reprojected_layer):
+             driver.DeleteDataSource(reprojected_layer)
 
 if __name__ == "__main__":
     # TODO: http://geoexamples.blogspot.com/2013/09/reading-wrf-netcdf-files-with-gdal.html

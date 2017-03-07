@@ -55,13 +55,25 @@ class TestMask(TestGridTemplate):
                                           session=self.db_session)
         chdir(self.gssha_project_directory)
 
-    def _compare_masks(self, mask_name):
+    def _compare_output(self, project_name):
         '''
         compare mask files
         '''
-        new_mask_grid = path.join(self.writeDirectory, mask_name)
-        compare_msk_file = path.join(self.compare_path, mask_name)
+        # compare mask files
+        mask_file_name = '{0}.msk'.format(project_name)
+        new_mask_grid = path.join(self.writeDirectory, mask_file_name)
+        compare_msk_file = path.join(self.compare_path, mask_file_name)
         self._compare_files(compare_msk_file, new_mask_grid, raster=True)
+        # compare project files
+        prj_file_name = '{0}.prj'.format(project_name)
+        generated_prj_file = path.join(self.gssha_project_directory, prj_file_name)
+        compare_prj_file = path.join(self.compare_path, prj_file_name)
+        self._compare_files(generated_prj_file, compare_prj_file)
+        # check to see if projection file generated
+        proj_file_name = '{0}_prj.pro'.format(project_name)
+        generated_proj_file = path.join(self.gssha_project_directory, proj_file_name)
+        compare_proj_file = path.join(self.compare_path, proj_file_name)
+        self._compare_files(generated_proj_file, compare_proj_file)
 
     def _before_teardown(self):
         '''
@@ -73,31 +85,25 @@ class TestMask(TestGridTemplate):
         '''
         Tests rasterize_shapefile using cell size to ascii in utm
         '''
-        mask_name = 'mask_cell_size_ascii_utm.msk'
+        project_name = 'grid_standard_msk'
+        mask_name = '{0}.msk'.format(project_name)
         self.msk_file.generateFromWatershedShapefile(self.shapefile_path,
                                                      cell_size=1000,
                                                      out_raster_path=mask_name,
                                                      )
         self.project_manager.writeInput(session=self.db_session,
                                         directory=self.gssha_project_directory,
-                                        name='grid_standard_msk')
-        # compare msk
-        self._compare_masks(mask_name)
-        # compare project files
-        generated_prj_file = path.join(self.gssha_project_directory, 'grid_standard_msk.prj')
-        compare_prj_file = path.join(self.compare_path, 'grid_standard_msk_cell_size.prj')
-        self._compare_files(generated_prj_file, compare_prj_file)
-        # check to see if projection file generated
-        generated_proj_file = path.join(self.gssha_project_directory, 'mask_cell_size_ascii_utm_prj.pro')
-        compare_proj_file = path.join(self.compare_path, 'mask_cell_size_ascii_utm_prj.pro')
-        self._compare_files(generated_proj_file, compare_proj_file)
+                                        name=project_name)
+        # compare results
+        self._compare_output(project_name)
 
     def test_rasterize_cell_size_ascii_utm_outlet(self):
         '''
         Tests rasterize_shapefile using cell size to ascii in utm
         Then add outlet information
         '''
-        mask_name = 'mask_cell_size_ascii_utm.msk'
+        project_name = 'grid_standard_msk_outlet'
+        mask_name = '{0}.msk'.format(project_name)
         self.msk_file.generateFromWatershedShapefile(self.shapefile_path,
                                                      cell_size=1000,
                                                      out_raster_path=mask_name,
@@ -107,24 +113,16 @@ class TestMask(TestGridTemplate):
         self.project_manager.setOutlet(latitude=lat, longitude=lon)
         self.project_manager.writeInput(session=self.db_session,
                                         directory=self.gssha_project_directory,
-                                        name='grid_standard_msk_outlet')
-        # compare msk
-        self._compare_masks(mask_name)
-        # compare project files
-        generated_prj_file = path.join(self.gssha_project_directory, 'grid_standard_msk_outlet.prj')
-        compare_prj_file = path.join(self.compare_path, 'grid_standard_msk_cell_size_outlet.prj')
-        self._compare_files(generated_prj_file, compare_prj_file)
-        # check to see if projection file generated
-        generated_proj_file = path.join(self.gssha_project_directory, 'mask_cell_size_ascii_utm_prj.pro')
-        compare_proj_file = path.join(self.compare_path, 'mask_cell_size_ascii_utm_prj.pro')
-        self._compare_files(generated_proj_file, compare_proj_file)
+                                        name=project_name)
+        # compare results
+        self._compare_output(project_name)
 
     def test_rasterize_cell_size_ascii_utm_outlet_error(self):
         '''
         Tests rasterize_shapefile using cell size to ascii in utm
         Then add outlet information for out of bounds location
         '''
-        mask_name = 'mask_cell_size_ascii_utm.msk'
+        mask_name = 'grid_standard_msk.msk'
         self.msk_file.generateFromWatershedShapefile(self.shapefile_path,
                                                      cell_size=1000,
                                                      out_raster_path=mask_name,

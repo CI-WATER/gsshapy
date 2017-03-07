@@ -6,8 +6,8 @@ SUMMARY                  "grid_standard_basic_model_auto.sum"
 OUTLET_HYDRO             "grid_standard_basic_model_auto.otl"
 WATERSHED_MASK           "grid_standard_basic_model_auto.msk"
 GRIDSIZE                 887.527707038
-ROWS                     44
-COLS                     37
+ROWS                     43
+COLS                     38
 #PROJECTION_FILE         "grid_standard_basic_model_auto_prj.pro"
 OUTROW                   8
 OUTCOL                   1

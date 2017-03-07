@@ -6,12 +6,12 @@ SUMMARY                  "grid_standard_basic_model_land_cover.sum"
 OUTLET_HYDRO             "grid_standard_basic_model_land_cover.otl"
 WATERSHED_MASK           "grid_standard_basic_model_land_cover.msk"
 GRIDSIZE                 1000.0
-ROWS                     39
+ROWS                     38
 COLS                     33
 #PROJECTION_FILE         "grid_standard_basic_model_land_cover_prj.pro"
 OUTROW                   7
 OUTCOL                   1
-OUTSLOPE                 0.01
+OUTSLOPE                 0.009
 ELEVATION                "grid_standard_basic_model_land_cover.ele"
 MAPPING_TABLE            "grid_standard_basic_model_land_cover.cmt"
 START_DATE               2017 02 28
@@ -20,4 +20,3 @@ TOT_TIME                 180.0
 PRECIP_UNIF              
 RAIN_INTENSITY           2.4
 RAIN_DURATION            30.0
-

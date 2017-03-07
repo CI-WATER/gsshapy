@@ -2,7 +2,7 @@ GSSHAPROJECT
 MAP_TYPE                 1
 WATERSHED_MASK           "grid_standard_basic.msk"
 GRIDSIZE                 1000.0
-ROWS                     39
+ROWS                     38
 COLS                     33
 #PROJECTION_FILE         "grid_standard_basic_prj.pro"
 OUTROW                   7
@@ -15,7 +15,7 @@ HYD_FREQ                 15
 SUMMARY                  "grid_standard_basic.sum"
 OUTLET_HYDRO             "grid_standard_basic.otl"
 MANNING_N                0.013
-PRECIP_UNIF
+PRECIP_UNIF              
 RAIN_INTENSITY           2.4
 RAIN_DURATION            30
 START_DATE               2017 02 28

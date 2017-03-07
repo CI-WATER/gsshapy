@@ -309,9 +309,5 @@ class TestProjectGenerate(TestGridTemplate):
         # compare main project files
         self._compare_basic_model_idx_maps(project_name)
 
-    def tearDown(self):
-        return
-
-
 if __name__ == '__main__':
     unittest.main()
