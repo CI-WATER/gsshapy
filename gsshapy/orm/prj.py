@@ -7,13 +7,14 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
-import json
 
 __all__ = ['ProjectFile',
            'ProjectCard']
 
+import json
 import re
 import shlex
+import numpy as np
 import os
 import xml.etree.ElementTree as ET
 
@@ -1039,7 +1040,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             wkt_string = pro_file.read()
         return wkt_string
 
-    def setOutlet(self, latitude, longitude, outslope=0.001):
+    def setOutlet(self, latitude, longitude, outslope=None):
         '''
         Sets the outlet grid cell information in the project file.
 
@@ -1054,7 +1055,52 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # add 1 to row & col becasue GSSHA is 1-based
         self.setCard(name='OUTROW', value=str(row+1))
         self.setCard(name='OUTCOL', value=str(col+1))
-        self.setCard(name='OUTSLOPE', value=str(outslope))
+        if outslope is None:
+            self.calculateOutletSlope(mask_grid=gssha_grid)
+        else:
+            self.setCard(name='OUTSLOPE', value=str(outslope))
+
+    def calculateOutletSlope(self, elevation_grid=None, mask_grid=None):
+        '''
+        Attempt to determine the slope at the OUTLET
+        '''
+        try:
+            if mask_grid is None:
+                mask_grid = self.getGrid()
+            if elevation_grid is None:
+                elevation_grid = self.getGrid(use_mask=False)
+
+            outrow = int(self.getCard("OUTROW").value)-1
+            outcol = int(self.getCard("OUTCOL").value)-1
+            cell_size = float(self.getCard("GRIDSIZE").value)
+
+            min_row = max(0, outrow-1)
+            max_row = min(mask_grid.x_size(), outrow+2)
+            min_col = max(0, outcol-1)
+            max_col = min(mask_grid.y_size(), outcol+2)
+
+            mask_array = mask_grid.np_array()
+            mask_array[outrow, outcol] = 0
+            mask_array = mask_array[min_row:max_row, min_col:max_col]
+            mask_array = (mask_array==0)
+
+            elevation_array = elevation_grid.np_array()
+            original_elevation = elevation_array[outrow, outcol]
+            elevation_array = elevation_array[min_row:max_row, min_col:max_col]
+
+            slope_calc_array = (elevation_array-original_elevation)/cell_size
+            #NOTE: Ignoring distance to cells at angles. Assuming to small to matter
+            mask_array[slope_calc_array<=0] = True
+
+            slope_mask_array = np.ma.array(slope_calc_array, mask=mask_array)
+            outslope = slope_mask_array.mean()
+            if outslope is np.ma.masked or outslope < 0.001:
+                outslope = 0.001
+
+        except ValueError:
+            outslope = 0.001
+
+        self.setCard("OUTSLOPE", str(outslope))
 
     def _automaticallyDeriveSpatialReferenceId(self, directory):
         """
