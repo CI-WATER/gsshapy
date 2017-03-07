@@ -81,7 +81,14 @@ class TestGridTemplate(unittest.TestCase):
             with open(new) as fileN:
                 contentsN = fileN.read()
                 linesN = contentsN.strip().split()
-            self.assertEqual(linesO, linesN)
+                
+            for lineO, lineN in zip(linesO, linesN):
+                try:
+                    valO = float(lineO)
+                    valN = float(lineN)
+                    assert_almost_equal(valO, valN) 
+                except ValueError:
+                    self.assertEqual(linesO, linesN)
 
     def _compare_directories(self, dir1, dir2, ignore_file=None, raster=False):
         '''
