@@ -70,7 +70,9 @@ class TestGridTemplate(unittest.TestCase):
             assert_almost_equal(rO, rN)
 
             # compare geotransform
-            assert dsO.GetGeoTransform() == dsN.GetGeoTransform()
+            assert_almost_equal(dsO.GetGeoTransform(), dsN.GetGeoTransform(), 
+                                decimal=10)
+            
         else:
             with open(original) as fileO:
                 contentsO = fileO.read()
