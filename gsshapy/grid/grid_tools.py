@@ -572,6 +572,7 @@ def rasterize_shapefile(shapefile_path,
     x_min, x_max, y_min, y_max = source_layer.GetExtent()
     shapefile_spatial_ref = source_layer.GetSpatialRef()
     reprojected_layer = None
+    # determine UTM projection from centroid of shapefile
     if convert_to_utm:
         # Make sure projected into global projection
         lon_min, lat_max, ulz = project_to_geographic(x_min, y_max,
@@ -583,7 +584,8 @@ def rasterize_shapefile(shapefile_path,
         raster_wkt_proj = utm_proj_from_latlon((lat_min+lat_max)/2.0,
                                                (lon_min+lon_max)/2.0,
                                                as_wkt=True)
-
+    # reproject shapefile to new projection
+    if raster_wkt_proj is not None:
         shapefile_basename = path.splitext(shapefile_path)[0]
         reprojected_layer = "{shapefile_basename}_projected.shp" \
                              .format(shapefile_basename=shapefile_basename)
