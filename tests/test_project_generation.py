@@ -69,8 +69,6 @@ class TestProjectGenerate(TestGridTemplate):
         # Create DB Sessions
         self.db_session = dbt.create_session(sqlalchemy_url, sql_engine)
 
-        chdir(self.gssha_project_directory)
-
     def _compare_basic_model(self, project_name):
         '''
         Compare output from basic GSSHA model
@@ -123,6 +121,7 @@ class TestProjectGenerate(TestGridTemplate):
         Tests generating a basic GSSHA project
         '''
 
+        chdir(self.gssha_project_directory)
         project_name = "grid_standard_basic"
         # Instantiate GSSHAPY object for reading to database
         project_manager = ProjectFile(name=project_name, map_type=1)
@@ -180,6 +179,7 @@ class TestProjectGenerate(TestGridTemplate):
         Tests generating a basic GSSHA project with land cover
         '''
 
+        chdir(self.gssha_project_directory)
         project_name = "grid_standard_basic_land_cover"
         # Instantiate GSSHAPY object for reading to database
         project_manager = ProjectFile(name=project_name, map_type=1)

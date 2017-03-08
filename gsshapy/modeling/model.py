@@ -7,6 +7,7 @@
 #  BSD 3-Clause
 
 from datetime import timedelta
+from os import chdir
 
 from .event import EventMode, LongTermMode
 from ..orm import (ProjectFile, WatershedMaskFile, ElevationGridFile,
@@ -20,8 +21,8 @@ class GSSHAModel(object):
     models for GSSHA.
 
     Parameters:
+         project_directory(str): Directory to write GSSHA project files to.
          project_name(Optional[str]): Name of GSSHA project. Required for new model.
-         project_directory(Optional[str]): Directory to write GSSHA project files to. Required for new model.
          mask_shapefile(Optional[str]): Path to watershed boundary shapefile. Required for new model.
          grid_cell_size(Optional[str]): Cell size of model (meters). Required for new model.
          elevation_grid_path(Optional[str]): Path to elevation raster used for GSSHA grid. Required for new model.
@@ -60,8 +61,8 @@ class GSSHAModel(object):
 
     '''
     def __init__(self,
+                 project_directory,
                  project_name=None,
-                 project_directory=None,
                  mask_shapefile=None,
                  grid_cell_size=None,
                  elevation_grid_path=None,
@@ -75,8 +76,8 @@ class GSSHAModel(object):
                  project_manager=None,
                 ):
 
+        chdir(project_directory)
         self.project_directory = project_directory
-
         self.db_session = db_session
         self.project_manager = project_manager
 
