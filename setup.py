@@ -13,7 +13,8 @@ requires = [
 setup(name='gsshapy',
       version='2.2.0',
       description='An SQLAlchemy ORM for GSSHA model files and a toolkit'
-                  ' to convert gridded input into GSSHA input.',
+                  ' to convert gridded input into GSSHA input'
+                  ' (http://gsshapy.readthedocs.io).',
       long_description='',
       author='Nathan Swain and Alan D. Snow',
       author_email='nathan.swain@byu.net',
