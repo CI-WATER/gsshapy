@@ -38,5 +38,5 @@ setup(name='gsshapy',
             'sphinx_rtd_theme',
             'sphinxcontrib-napoleon',
         ]
-    },
+      },
       )
