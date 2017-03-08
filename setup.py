@@ -2,13 +2,9 @@ from setuptools import setup, find_packages
 
 requires = [
     'affine',
-    'future',
     'mapkit>=1.2.0',
     'psycopg2',
-    'python-dateutil',
-    'pytz',
     'rapidpy',
-    'requests',
     'sqlalchemy',
     'timezonefinder',
     'utm',
@@ -26,6 +22,16 @@ setup(name='gsshapy',
       keywords='GSSHA, database, object relational model',
       packages=find_packages(),
       include_package_data=True,
+      classifiers=[
+                'Intended Audience :: Developers',
+                'Intended Audience :: Science/Research',
+                'Operating System :: OS Independent',
+                'Programming Language :: Python',
+                'Programming Language :: Python :: 2',
+                'Programming Language :: Python :: 2.7',
+                'Programming Language :: Python :: 3',
+                'Programming Language :: Python :: 3.5',
+                ],
       install_requires=requires,
       extras_require={
         'tests': [

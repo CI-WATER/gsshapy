@@ -17,3 +17,5 @@ dependencies:
 #- pygrib
 - rapidpy
 - timezonefinder
+- pip:
+    - utm

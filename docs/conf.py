@@ -13,9 +13,11 @@
 
 import sys, os
 
-##TEMP SECTION UNTIL PILLOW DEPENDENCY FIXED
-# http://readthedocs.org/projects/gsshapy/builds/5121864
+##TEMP SECTION UNTIL PILLOW/GDAL DEPENDENCIES FIXED
 # SEE: http://docs.readthedocs.io/en/latest/faq.html#i-get-import-errors-on-libraries-that-depend-on-c-modules
+# Failed Builds:
+# http://readthedocs.org/projects/gsshapy/builds/5121864
+# http://readthedocs.org/projects/gsshapy/builds/5122986
 from mock import Mock as MagicMock
 
 class Mock(MagicMock):
@@ -23,9 +25,9 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return Mock()
 
-MOCK_MODULES = ['pygrib']
+MOCK_MODULES = ['pygrib', 'osgeo']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-##END TEMP SECTION UNTIL UNTIL PILLOW DEPENDENCY FIXED
+##END TEMP SECTION UNTIL UNTIL PILLOW/GDAL DEPENDENCIES FIXED
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
