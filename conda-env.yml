@@ -13,6 +13,7 @@ dependencies:
 - affine
 - mapkit
 - psycopg2
-- pygrib
+# REMOVED UNTIL DOCS PILLOW DEPENDENCY FIXED
+#- pygrib
 - rapidpy
 - timezonefinder
