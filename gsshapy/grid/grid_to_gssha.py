@@ -220,6 +220,23 @@ class GRIDtoGSSHA(object):
                                                                     'netcdf' : 1.94,
                                                                 },
                                         },
+                                    'wind_speed_kmd' :
+                                        #NOTE: LSM
+                                        #units = "km/day" ;
+                                        {
+                                          'units' : {
+                                                        'ascii': 'kts',
+                                                        'netcdf': 'kts',
+                                                    },
+                                          'standard_name' : 'wind_speed',
+                                          'long_name' : 'Wind speed',
+                                          'gssha_name' : 'wind_speed',
+                                          'hmet_name' : 'WndS',
+                                          'conversion_factor' : {
+                                                                    'ascii' : 0.0224537037,
+                                                                    'netcdf' : 0.0224537037,
+                                                                },
+                                        },
                                     'wind_speed_kts' :
                                         {
                                           'units' : {
