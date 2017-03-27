@@ -120,8 +120,8 @@ class GSSHAModel(object):
                 # as input from the user
                 ele_grid = GDALGrid(elevation_grid_path)
                 utm_bounds = ele_grid.bounds(as_utm=True)
-                x_cell_size = (utm_bounds[1] - utm_bounds[0])/ele_grid.x_size()
-                y_cell_size = (utm_bounds[3] - utm_bounds[2])/ele_grid.y_size()
+                x_cell_size = (utm_bounds[1] - utm_bounds[0])/ele_grid.x_size
+                y_cell_size = (utm_bounds[3] - utm_bounds[2])/ele_grid.y_size
                 grid_cell_size = min(x_cell_size, y_cell_size)
                 ele_grid = None
                 print("INFO: Calculated cell size is {grid_cell_size}"

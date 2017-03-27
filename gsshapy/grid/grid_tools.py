@@ -66,26 +66,38 @@ class GDALGrid(object):
         self.projection.ImportFromWkt(self.dataset.GetProjection())
         self.affine = Affine.from_gdal(*self.dataset.GetGeoTransform())
 
+    @property
     def geotransform(self):
         return self.dataset.GetGeoTransform()
 
+    @property
     def x_size(self):
         return self.dataset.RasterXSize
 
+    @property
     def y_size(self):
         return self.dataset.RasterYSize
 
+    @property
     def wkt(self):
         '''
         returns WKT projection string
         '''
         return self.projection.ExportToWkt()
 
+    @property
     def proj(self):
         '''
         returns pyproj object
         '''
         return Proj(self.projection.ExportToProj4())
+
+    @property
+    def epsg(self):
+        '''
+        Returns EPSG code
+        '''
+        return self.projection.GetAttrValue("AUTHORITY", 1)
 
     def bounds(self, as_geographic=False, as_utm=False):
         '''
@@ -122,9 +134,9 @@ class GDALGrid(object):
         """Returns base-0 raster index using global coordinates to pixel center
         """
         col, row = ~self.affine * (x_coord, y_coord)
-        if col > self.x_size() or col < 0:
+        if col > self.x_size or col < 0:
             raise IndexError("Longitude {0} is out of bounds ...".format(x_coord))
-        if row > self.y_size() or row < 0:
+        if row > self.y_size or row < 0:
             raise IndexError("Latitude {0} is out of bounds ...".format(y_coord))
 
         return (int(col), int(row))
@@ -150,13 +162,13 @@ class GDALGrid(object):
         '''
         Returns latitude and longitude lists
         '''
-        lats_2d = np.zeros((self.y_size(), self.x_size()))
-        lons_2d = np.zeros((self.y_size(), self.x_size()))
-        for x in range(self.x_size()):
-            for y in range(self.y_size()):
+        lats_2d = np.zeros((self.y_size, self.x_size))
+        lons_2d = np.zeros((self.y_size, self.x_size))
+        for x in range(self.x_size):
+            for y in range(self.y_size):
                 lons_2d[y,x], lats_2d[y,x] = self.pixel2coord(x,y)
 
-        proj_lons, proj_lats = transform(self.proj(),
+        proj_lons, proj_lats = transform(self.proj,
                                          Proj(init='epsg:4326'),
                                          lons_2d,
                                          lats_2d,
@@ -179,6 +191,13 @@ class GDALGrid(object):
 
         return np.array(grid_data)
 
+    def write_tif(self, file_path):
+        """
+        Write out as geotiff
+        """
+        drv = gdal.GetDriverByName('GTiff')
+        ds_out = drv.CreateCopy(file_path, self.dataset)
+
     def write_prj(self, out_projection_file, esri_format=False):
         '''
         Writes ESRI projection file
@@ -186,7 +205,7 @@ class GDALGrid(object):
         if esri_format:
             self.projection.MorphToESRI()
         with open(out_projection_file, 'w') as prj_file:
-            prj_file.write(self.projection.ExportToWkt())
+            prj_file.write(self.wkt)
             prj_file.close()
 
     def _to_ascii(self, header_string, file_path, band, print_nodata=True):
@@ -218,8 +237,8 @@ class GDALGrid(object):
         header_string += "south: {0:.9f}\n".format(south_bound)
         header_string += "east: {0:.9f}\n".format(east_bound)
         header_string += "west: {0:.9f}\n".format(west_bound)
-        header_string += "rows: {0}\n".format(self.y_size())
-        header_string += "cols: {0}\n".format(self.x_size())
+        header_string += "rows: {0}\n".format(self.y_size)
+        header_string += "cols: {0}\n".format(self.x_size)
 
         # PART 2: WRITE DATA
         self._to_ascii(header_string, file_path, band, print_nodata)
@@ -234,9 +253,9 @@ class GDALGrid(object):
         # PART 1: HEADER
         # get data extremes
         west_bound, east_bound, south_bound, north_bound = self.bounds()
-        cellsize = (self.geotransform()[1] - self.geotransform()[-1])/2.0
-        header_string = u"ncols {0}\n".format(self.x_size())
-        header_string += "nrows {0}\n".format(self.y_size())
+        cellsize = (self.geotransform[1] - self.geotransform[-1])/2.0
+        header_string = u"ncols {0}\n".format(self.x_size)
+        header_string += "nrows {0}\n".format(self.y_size)
         header_string += "xllcorner {0}\n".format(west_bound)
         header_string += "yllcorner {0}\n".format(south_bound)
         header_string += "cellsize {0}\n".format(cellsize)
@@ -353,7 +372,7 @@ def load_raster(grid):
         src_proj = src.GetProjection()
     elif isinstance(grid, GDALGrid):
         src = grid.dataset
-        src_proj = grid.wkt()
+        src_proj = grid.wkt
     else:
         src = gdal.Open(grid, gdalconst.GA_ReadOnly)
         src_proj = src.GetProjection()
@@ -687,8 +706,8 @@ if __name__ == "__main__":
                   resample_method=gdalconst.GRA_NearestNeighbour,
                   to_file=out_grid)
     # lat, lon = match_ds.lat_lon(two_dimensional=True)
-    # print(match_ds.geotransform())
-    # print(geotransform_from_latlon(lat, lon, proj=match_ds.proj()))
+    # print(match_ds.geotransform)
+    # print(geotransform_from_latlon(lat, lon, proj=match_ds.proj))
 
     '''
     # https://mapbox.github.io/rasterio/topics/resampling.html

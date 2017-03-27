@@ -99,7 +99,7 @@ class Event(object):
         gssha_grid = self.project_manager.getGrid()
 
         min_x, max_x, min_y, max_y = gssha_grid.bounds()
-        x_ext, y_ext = transform(gssha_grid.proj(),
+        x_ext, y_ext = transform(gssha_grid.proj,
                                  Proj(init='epsg:4326'),
                                  [min_x, max_x, min_x, max_x],
                                  [min_y, max_y, max_y, min_y],

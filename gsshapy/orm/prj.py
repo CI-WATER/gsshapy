@@ -1075,9 +1075,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             cell_size = float(self.getCard("GRIDSIZE").value)
 
             min_row = max(0, outrow-1)
-            max_row = min(mask_grid.x_size(), outrow+2)
+            max_row = min(mask_grid.x_size, outrow+2)
             min_col = max(0, outcol-1)
-            max_col = min(mask_grid.y_size(), outcol+2)
+            max_col = min(mask_grid.y_size, outcol+2)
 
             mask_array = mask_grid.np_array()
             mask_array[outrow, outcol] = 0

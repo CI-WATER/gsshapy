@@ -124,14 +124,14 @@ class WatershedMaskFile(RasterMapFile):
 
         # update project file cards
         self.projectFile.setCard('WATERSHED_MASK', out_raster_path, add_quotes=True)
-        self.projectFile.setCard('GRIDSIZE', str((gr.geotransform()[1] - gr.geotransform()[-1])/2.0))
-        self.projectFile.setCard('ROWS', str(gr.y_size()))
-        self.projectFile.setCard('COLS', str(gr.x_size()))
+        self.projectFile.setCard('GRIDSIZE', str((gr.geotransform[1] - gr.geotransform[-1])/2.0))
+        self.projectFile.setCard('ROWS', str(gr.y_size))
+        self.projectFile.setCard('COLS', str(gr.x_size))
 
         # write projection file if does not exist
         if wkt_projection is None:
             proj_file = ProjectionFile()
-            proj_file.projection = gr.wkt()
+            proj_file.projection = gr.wkt
             proj_file.projectFile = self.projectFile
             proj_path = "{0}_prj.pro".format(os.path.splitext(out_raster_path)[0])
             gr.write_prj(proj_path)

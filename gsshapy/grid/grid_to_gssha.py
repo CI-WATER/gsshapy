@@ -440,7 +440,7 @@ class GRIDtoGSSHA(object):
         #get projection from LSM file (ASSUME GEOGRAPHIC IF LAT/LON)
         self._load_lsm_projection()
         min_x, max_x, min_y, max_y = self.gssha_grid.bounds()
-        x_ext, y_ext = transform(self.gssha_grid.proj(),
+        x_ext, y_ext = transform(self.gssha_grid.proj,
                                  self.lsm_proj4,
                                  [min_x, max_x, min_x, max_x],
                                  [min_y, max_y, max_y, min_y],
@@ -457,7 +457,7 @@ class GRIDtoGSSHA(object):
 
 
         self.proj_lon_list, self.proj_lat_list = transform(self.lsm_proj4,
-                                                           self.gssha_grid.proj(),
+                                                           self.gssha_grid.proj,
                                                            lsm_lon_list,
                                                            lsm_lat_list,
                                                            )
@@ -734,7 +734,7 @@ class GRIDtoGSSHA(object):
         This function resamples the data to match the GSSHA grid
         IN TESTING MODE
         '''
-        raw_data_grid = ArrayGrid(self.data_np_array, self.gssha_grid.wkt(),
+        raw_data_grid = ArrayGrid(self.data_np_array, self.gssha_grid.wkt,
                                   x_min=self.west_bound, x_pixel_size=self.cell_size_ew,
                                   y_max=self.north_bound, y_pixel_size=self.cell_size_ns,
                                   )
@@ -1114,8 +1114,8 @@ class GRIDtoGSSHA(object):
         #NOW:
         subset_nc.createDimension('time', len(self.hourly_time_array))
         if resample_method:
-            subset_nc.createDimension('lat', self.gssha_grid.y_size())
-            subset_nc.createDimension('lon', self.gssha_grid.x_size())
+            subset_nc.createDimension('lat', self.gssha_grid.y_size)
+            subset_nc.createDimension('lon', self.gssha_grid.x_size)
         else:
             subset_nc.createDimension('lat', len(self.lsm_lat_indices))
             subset_nc.createDimension('lon', len(self.lsm_lon_indices))
@@ -1154,7 +1154,7 @@ class GRIDtoGSSHA(object):
         lat_2d_var.coordinates = 'lat lon'
         lat_2d_var.axis = 'Y'
 
-        lon_2d_var[:], lat_2d_var[:] = transform(self.gssha_grid.proj(),
+        lon_2d_var[:], lat_2d_var[:] = transform(self.gssha_grid.proj,
                                                  Proj(init='epsg:4326'),
                                                  self.proj_lon_list,
                                                  self.proj_lat_list,
@@ -1181,7 +1181,7 @@ class GRIDtoGSSHA(object):
             lat_var[:], lon_var[:] = self.gssha_grid.lat_lon()
         else:
 
-            lon_2d, lat_2d = transform(self.gssha_grid.proj(),
+            lon_2d, lat_2d = transform(self.gssha_grid.proj,
                                        Proj(init='epsg:4326'),
                                        self.proj_lon_list,
                                        self.proj_lat_list,
@@ -1219,7 +1219,7 @@ class GRIDtoGSSHA(object):
         subset_nc.Conventions = 'CF-1.6'
         subset_nc.title = 'GSSHA LSM Input'
         subset_nc.history = 'date_created: {0}'.format(datetime.utcnow())
-        subset_nc.gssha_projection = self.gssha_grid.wkt()
+        subset_nc.gssha_projection = self.gssha_grid.wkt
         subset_nc.north = self.north_bound
         subset_nc.south = self.south_bound
         subset_nc.east = self.east_bound
