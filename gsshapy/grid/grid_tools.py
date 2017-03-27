@@ -24,21 +24,17 @@ def utm_proj_from_latlon(latitude, longitude, as_wkt=False, as_osr=False):
     utm_centroid_info = utm.from_latlon(latitude, longitude)
     easting, northing, zone_number, zone_letter = utm_centroid_info
 
-    south_string = ''
-    if zone_letter < 'N':
-        south_string = ', +south'
-    proj4_utm_string = ('+proj=utm +zone={zone_number}{zone_letter}'
-                        '{south_string} +ellps=WGS84 +datum=WGS84 '
-                        '+units=m +no_defs').format(zone_number=zone_number,
-                                                    zone_letter=zone_letter,
-                                                    south_string=south_string)
     sp_ref = osr.SpatialReference()
-    sp_ref.ImportFromProj4(proj4_utm_string)
+    north_zone = True
+    if zone_letter < 'N':
+        north_zone = False
+    sp_ref.SetUTM(zone_number, north_zone)
+
     if as_osr:
         return sp_ref
     elif as_wkt:
         return sp_ref.ExportToWkt()
-    return proj4_utm_string
+    return sp_ref.ExportToProj4()
 
 
 def project_to_geographic(x_coord, y_coord, osr_projetion):
@@ -191,12 +187,16 @@ class GDALGrid(object):
 
         return np.array(grid_data)
 
-    def write_tif(self, file_path):
+    def write_tif(self, file_path, out_epsg=None):
         """
         Write out as geotiff
         """
-        drv = gdal.GetDriverByName('GTiff')
-        ds_out = drv.CreateCopy(file_path, self.dataset)
+        if out_epsg:
+            return gdal_reproject(self.dataset, file_path, src_srs=self.wkt,
+                                  epsg=out_epsg)
+        else:
+            drv = gdal.GetDriverByName('GTiff')
+            return drv.CreateCopy(file_path, self.dataset)
 
     def write_prj(self, out_projection_file, esri_format=False):
         '''
@@ -514,6 +514,50 @@ def reproject_layer(in_path, out_path, outSpatialRef):
     with open(projection_file_name, 'w') as prj_file:
         prj_file.write(outSpatialRef.ExportToWkt())
         prj_file.close()
+
+def gdal_reproject(src,
+                   dst,
+                   epsg=None,
+                   src_srs=None,
+                   dst_srs=None,
+                   error_threshold=0.125,
+                   resampling=gdal.GRA_NearestNeighbour):
+    """
+    FROM: https://github.com/OpenDataAnalytics/gaia/blob/master/gaia/geo/gdal_functions.py
+    To be removed when gaia is conda package.
+
+    Reproject a raster image
+    :param src: The source image
+    :param dst: The filepath/name of the output image
+    :param epsg: The EPSG code to reproject to
+    :param error_threshold: Default is 0.125 (same as gdalwarp commandline)
+    :param resampling: Default method is Nearest Neighbor
+    """
+    # Open source dataset
+    src_ds, src_proj = load_raster(src)
+
+    # Define target SRS
+    if dst_srs is None:
+        dst_srs = osr.SpatialReference()
+        dst_srs.ImportFromEPSG(int(epsg))
+        dst_wkt = dst_srs.ExportToWkt()
+
+    # Resampling might be passed as a string
+    if not isinstance(resampling, int):
+        resampling = getattr(gdal, resampling)
+
+    # Call AutoCreateWarpedVRT() to fetch default values
+    # for target raster dimensions and geotransform
+    reprojected_ds = gdal.AutoCreateWarpedVRT(src_ds,
+                                              src_srs,
+                                              dst_wkt,
+                                              resampling,
+                                              error_threshold)
+
+    # Create the final warped raster
+    if dst:
+        gdal.GetDriverByName('GTiff').CreateCopy(dst, reprojected_ds)
+    return reprojected_ds
 
 
 def rasterize_shapefile(shapefile_path,
