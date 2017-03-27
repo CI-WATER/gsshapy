@@ -11,7 +11,7 @@
 __all__ = ['GenericFile']
 
 from sqlalchemy import Column, ForeignKey
-from sqlalchemy.types import Integer, String, Binary
+from sqlalchemy.types import Integer, String, LargeBinary
 from sqlalchemy.orm import relationship
 
 from . import DeclarativeBase
@@ -36,7 +36,7 @@ class GenericFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     # Value Columns
     text = Column(String)  #: STRING
-    binary = Column(Binary)  #: BINARY
+    binary = Column(LargeBinary)  #: BINARY
     name = Column(String)  #: STRING
     fileExtension = Column(String, default='txt')  #: STRING
 
