@@ -62,7 +62,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
     fileExtension = Column(String, default='cmt')  #: STRING
 
     # Relationship Properties
-    indexMaps = relationship('IndexMap', back_populates='mapTableFile')  #: RELATIONSHIP
+    indexMaps = relationship('IndexMap', back_populates='mapTableFile', lazy='dynamic')  #: RELATIONSHIP
     mapTables = relationship('MapTable', back_populates='mapTableFile')  #: RELATIONSHIP
     projectFile = relationship('ProjectFile', uselist=False, back_populates='mapTableFile')  #: RELATIONSHIP
 

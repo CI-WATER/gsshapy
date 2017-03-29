@@ -1027,6 +1027,20 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         return GSSHAGrid(gssha_grid_card.value.strip('"').strip("'"),
                          gssha_pro_card.value.strip('"').strip("'"))
 
+    def getIndexGrid(self, name):
+        """
+        Returns GSSHAGrid object of GSSHA model bounds
+        """
+        index_map = self.mapTableFile.indexMaps.filter_by(name=name).one()
+
+        gssha_pro_card = self.getCard("#PROJECTION_FILE")
+        if gssha_pro_card is None:
+            raise ValueError("#PROJECTION_FILE card not found ...")
+
+        # return gssha grid
+        return GSSHAGrid(index_map.filename,
+                         gssha_pro_card.value.strip('"').strip("'"))
+
     def getWkt(self):
         '''
         Returns GSSHA projection WKT string
