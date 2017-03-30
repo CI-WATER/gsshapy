@@ -1029,7 +1029,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def getIndexGrid(self, name):
         """
-        Returns GSSHAGrid object of GSSHA model bounds
+        Returns GSSHAGrid object of index map
         """
         index_map = self.mapTableFile.indexMaps.filter_by(name=name).one()
 
@@ -1053,6 +1053,20 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         with open(gssha_prj_file) as pro_file:
             wkt_string = pro_file.read()
         return wkt_string
+
+    def getOutlet(self):
+        '''
+        Gets the outlet latitude and longitude.
+
+        Returns:
+            latitude(float): Latitude of grid cell center.
+            longitude(float): Longitude of grid cell center.
+        '''
+        # OUTROW, OUTCOL
+        outrow = int(self.getCard(name='OUTROW').value)-1
+        outcol = int(self.getCard(name='OUTCOL').value)-1
+        gssha_grid = self.getGrid()
+        return gssha_grid.pixel2lonlat(outcol, outrow)
 
     def setOutlet(self, latitude, longitude, outslope=None):
         '''
