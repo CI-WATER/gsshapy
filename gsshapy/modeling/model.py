@@ -82,7 +82,7 @@ class GSSHAModel(object):
         self.project_manager = project_manager
 
         if project_manager is not None and db_session is None:
-            raise ValueError("'project_manager' and 'db_session' are required to edit existing model.")
+            raise ValueError("'db_session' is required to edit existing model if 'project_manager' is given.")
 
         if project_manager is None and db_session is None:
             # Create Test DB
@@ -91,49 +91,58 @@ class GSSHAModel(object):
             # Create DB Sessions
             self.db_session = dbt.create_session(sqlalchemy_url, sql_engine)
 
-            if None in (project_name, mask_shapefile, elevation_grid_path):
-                raise ValueError("Need to set project_name, mask_shapefile, "
-                                 "and elevation_grid_path to generate "
-                                 "a new GSSHA model.")
-            # Instantiate GSSHAPY object for reading to database
-            self.project_manager = ProjectFile(name=project_name, map_type=1)
-            self.db_session.add(self.project_manager)
-            self.db_session.commit()
+            if project_name is not None and mask_shapefile is None and elevation_grid_path is None:
+                # Instantiate GSSHAPY object for reading to database
+                self.project_manager = ProjectFile()
+                # Call read method
+                self.project_manager.readInput(directory=self.project_directory,
+                                               projectFileName="{0}.prj".format(project_name),
+                                               session=self.db_session)
+            else:
+                # generate model
+                if None in (project_name, mask_shapefile, elevation_grid_path):
+                    raise ValueError("Need to set project_name, mask_shapefile, "
+                                     "and elevation_grid_path to generate "
+                                     "a new GSSHA model.")
+                # Instantiate GSSHAPY object for reading to database
+                self.project_manager = ProjectFile(name=project_name, map_type=1)
+                self.db_session.add(self.project_manager)
+                self.db_session.commit()
 
-            # ADD BASIC REQUIRED CARDS
-            # see http://www.gsshawiki.com/Project_File:Required_Inputs
-            self.project_manager.setCard('TIMESTEP',
-                                         str(simulation_timestep))
-            self.project_manager.setCard('HYD_FREQ',
-                                         str(out_hydrograph_write_frequency))
-            # see http://www.gsshawiki.com/Project_File:Output_Files_%E2%80%93_Required
-            self.project_manager.setCard('SUMMARY',
-                                         '{0}.sum'.format(project_name),
-                                         add_quotes=True)
-            self.project_manager.setCard('OUTLET_HYDRO',
-                                         '{0}.otl'.format(project_name),
-                                         add_quotes=True)
+                # ADD BASIC REQUIRED CARDS
+                # see http://www.gsshawiki.com/Project_File:Required_Inputs
+                self.project_manager.setCard('TIMESTEP',
+                                             str(simulation_timestep))
+                self.project_manager.setCard('HYD_FREQ',
+                                             str(out_hydrograph_write_frequency))
+                # see http://www.gsshawiki.com/Project_File:Output_Files_%E2%80%93_Required
+                self.project_manager.setCard('SUMMARY',
+                                             '{0}.sum'.format(project_name),
+                                             add_quotes=True)
+                self.project_manager.setCard('OUTLET_HYDRO',
+                                             '{0}.otl'.format(project_name),
+                                             add_quotes=True)
 
-            # ADD REQUIRED MODEL GRID INPUT
-            if grid_cell_size is None:
-                # caluclate cell size from elevation grid if not given
-                # as input from the user
-                ele_grid = GDALGrid(elevation_grid_path)
-                utm_bounds = ele_grid.bounds(as_utm=True)
-                x_cell_size = (utm_bounds[1] - utm_bounds[0])/ele_grid.x_size
-                y_cell_size = (utm_bounds[3] - utm_bounds[2])/ele_grid.y_size
-                grid_cell_size = min(x_cell_size, y_cell_size)
-                ele_grid = None
-                print("INFO: Calculated cell size is {grid_cell_size}"
-                      .format(grid_cell_size=grid_cell_size))
+                # ADD REQUIRED MODEL GRID INPUT
+                if grid_cell_size is None:
+                    # caluclate cell size from elevation grid if not given
+                    # as input from the user
+                    ele_grid = GDALGrid(elevation_grid_path)
+                    utm_bounds = ele_grid.bounds(as_utm=True)
+                    x_cell_size = (utm_bounds[1] - utm_bounds[0])/ele_grid.x_size
+                    y_cell_size = (utm_bounds[3] - utm_bounds[2])/ele_grid.y_size
+                    grid_cell_size = min(x_cell_size, y_cell_size)
+                    ele_grid = None
+                    print("INFO: Calculated cell size is {grid_cell_size}"
+                          .format(grid_cell_size=grid_cell_size))
 
-            self.set_mask_from_shapefile(mask_shapefile, grid_cell_size)
-            self.set_elevation(elevation_grid_path)
-            self.set_roughness(roughness=roughness,
-                               land_use_grid=land_use_grid,
-                               land_use_grid_id=land_use_grid_id,
-                               land_use_to_roughness_table=land_use_to_roughness_table,
-                               )
+                self.set_mask_from_shapefile(mask_shapefile, grid_cell_size)
+                self.set_elevation(elevation_grid_path)
+                self.set_roughness(roughness=roughness,
+                                   land_use_grid=land_use_grid,
+                                   land_use_grid_id=land_use_grid_id,
+                                   land_use_to_roughness_table=land_use_to_roughness_table,
+                                   )
 
     def set_mask_from_shapefile(self, shapefile_path, cell_size):
         '''
