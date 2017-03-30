@@ -1,5 +1,6 @@
 from affine import Affine
 from csv import writer as csv_writer
+from mapkit import lookupSpatialReferenceID
 import numpy as np
 from osgeo import gdal, gdalconst, ogr, osr
 from os import path, getcwd
@@ -77,6 +78,8 @@ class GDALGrid(object):
 
         self.projection = osr.SpatialReference()
         self.projection.ImportFromWkt(self.dataset.GetProjection())
+        # identify EPSG code where applicable
+        self.projection.AutoIdentifyEPSG()
         self.affine = Affine.from_gdal(*self.dataset.GetGeoTransform())
 
     @property
@@ -99,18 +102,29 @@ class GDALGrid(object):
         return self.projection.ExportToWkt()
 
     @property
+    def proj4(self):
+        '''
+        returns proj4 string
+        '''
+        return self.projection.ExportToProj4()
+
+    @property
     def proj(self):
         '''
         returns pyproj object
         '''
-        return Proj(self.projection.ExportToProj4())
+        return Proj(self.proj4)
 
     @property
     def epsg(self):
         '''
         Returns EPSG code
         '''
-        return self.projection.GetAttrValue("AUTHORITY", 1)
+        epsg =  self.projection.GetAuthorityCode(None)
+        if epsg:
+            return epsg
+        # attempt online lookup
+        return lookupSpatialReferenceID(self.wkt)
 
     def bounds(self, as_geographic=False, as_utm=False):
         '''
@@ -750,72 +764,3 @@ def rasterize_shapefile(shapefile_path,
         driver = ogr.GetDriverByName("ESRI Shapefile")
         if path.exists(reprojected_layer):
              driver.DeleteDataSource(reprojected_layer)
-
-if __name__ == "__main__":
-    # TODO: http://geoexamples.blogspot.com/2013/09/reading-wrf-netcdf-files-with-gdal.html
-
-    # base_folder = 'C:/Users/RDCHLADS/Documents/scripts/gsshapy/tests/grid_standard'
-    base_folder = '/home/rdchlads/scripts/gsshapy/tests/grid_standard'
-    # data_grid = path.join(base_folder, 'wrf_hmet_data','2016082322_Temp.asc')
-    data_grid = path.join('/home/rdchlads/scripts/gsshapy/gridtogssha', 'LC_5min_global_2012.tif')
-    gssha_grid = path.join(base_folder, 'gssha_project', 'grid_standard.ele')
-    gssha_prj_file = path.join(base_folder, 'gssha_project', 'grid_standard_prj.pro')
-    out_grid = path.join('/home/rdchlads/scripts/gsshapy/gridtogssha', 'test_resample.tif')
-    match_ds = GSSHAGrid(gssha_grid, gssha_prj_file)
-    data_grid = GDALGrid(data_grid)
-    resample_grid(data_grid, match_ds,
-                  resample_method=gdalconst.GRA_NearestNeighbour,
-                  to_file=out_grid)
-    # lat, lon = match_ds.lat_lon(two_dimensional=True)
-    # print(match_ds.geotransform)
-    # print(geotransform_from_latlon(lat, lon, proj=match_ds.proj))
-
-    '''
-    # https://mapbox.github.io/rasterio/topics/resampling.html
-    # https://mapbox.s3.amazonaws.com/playground/perrygeo/rasterio-docs/cookbook.html
-
-    from gdal import osr
-    import numpy as np
-    import rasterio
-    from rasterio.warp import calculate_default_transform, reproject, Resampling
-    from rasterio.crs import CRS
-
-    with open(gssha_prj_file) as pro_file:
-        gssha_prj_str = pro_file.read()
-        gssha_srs=osr.SpatialReference()
-        gssha_srs.ImportFromWkt(gssha_prj_str)
-        dst_crs = CRS.from_string(gssha_srs.ExportToProj4())
-
-    with rasterio.Env(CHECK_WITH_INVERT_PROJ=True):
-        with rasterio.open(data_grid) as src, \
-                rasterio.open(gssha_grid) as grd:
-            profile = grd.profile
-
-            # update the relevant parts of the profile
-            profile.update({
-                'crs': dst_crs,
-                'driver': "GTiff",
-            })
-
-            # Reproject and write each band
-            with rasterio.open(out_grid, 'w', **profile) as dst:
-                for i in range(1, src.count + 1):
-                    src_array = src.read(i)
-                    dst_array = np.empty((grd.height, grd.width), dtype=src_array.dtype)
-                    reproject(
-                        # Source parameters
-                        source=src_array,
-                        src_crs=dst_crs,
-                        src_transform=src.transform,
-                        # Destination paramaters
-                        destination=dst_array,
-                        dst_transform=grd.transform,
-                        dst_crs=dst_crs,
-                        # Configuration
-                        resampling=Resampling.average,
-                        num_threads=1,
-                        )
-                    print(dst_array)
-
-                    dst.write(dst_array, i)
-    '''
