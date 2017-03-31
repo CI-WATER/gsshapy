@@ -70,17 +70,22 @@ class GDALGrid(object):
     '''
     Loads grid into gdal dataset with projection
     '''
-    def __init__(self, grid_file):
+    def __init__(self, grid_file, **kwargs):
         if isinstance(grid_file, gdal.Dataset):
             self.dataset = grid_file
         else:
             self.dataset = gdal.Open(grid_file, gdalconst.GA_ReadOnly)
 
-        self.projection = osr.SpatialReference()
-        self.projection.ImportFromWkt(self.dataset.GetProjection())
+        self._init_projection(**kwargs)
         # identify EPSG code where applicable
         self.projection.AutoIdentifyEPSG()
         self.affine = Affine.from_gdal(*self.dataset.GetGeoTransform())
+
+    def _init_projection(self, **kwargs):
+        """initialize projection
+        """
+        self.projection = osr.SpatialReference()
+        self.projection.ImportFromWkt(self.dataset.GetProjection())
 
     @property
     def geotransform(self):
@@ -88,38 +93,38 @@ class GDALGrid(object):
 
     @property
     def x_size(self):
+        """size of x dimensions
+        """
         return self.dataset.RasterXSize
 
     @property
     def y_size(self):
+        """size of y dimensions
+        """
         return self.dataset.RasterYSize
 
     @property
     def wkt(self):
-        '''
-        returns WKT projection string
-        '''
+        """WKT projection string
+        """
         return self.projection.ExportToWkt()
 
     @property
     def proj4(self):
-        '''
-        returns proj4 string
-        '''
+        """proj4 string
+        """
         return self.projection.ExportToProj4()
 
     @property
     def proj(self):
-        '''
-        returns pyproj object
-        '''
+        """pyproj.Proj object
+        """
         return Proj(self.proj4)
 
     @property
     def epsg(self):
-        '''
-        Returns EPSG code
-        '''
+        """EPSG code
+        """
         epsg =  self.projection.GetAuthorityCode(None)
         if epsg:
             return epsg
@@ -127,9 +132,8 @@ class GDALGrid(object):
         return lookupSpatialReferenceID(self.wkt)
 
     def bounds(self, as_geographic=False, as_utm=False):
-        '''
-        Returns bounding coordinates for raster
-        '''
+        """Returns bounding coordinates for raster
+        """
         x_min, y_min = self.affine * (0, self.dataset.RasterYSize)
         x_max, y_max = self.affine * (self.dataset.RasterXSize, 0)
         if as_geographic or as_utm:
@@ -144,7 +148,6 @@ class GDALGrid(object):
             utm_osr = utm_proj_from_latlon((lat_min+lat_max)/2.0,
                                            (lon_min+lon_max)/2.0,
                                            as_osr=True)
-
             tx = osr.CoordinateTransformation(self.projection, utm_osr)
             x_min, y_max, ulz = tx.TransformPoint(x_min, y_max)
             x_max, y_min, brz = tx.TransformPoint(x_max, y_min)
@@ -186,9 +189,8 @@ class GDALGrid(object):
         return self.coord2pixel(x_coord, y_coord)
 
     def lat_lon(self, two_dimensional=False):
-        '''
-        Returns latitude and longitude lists
-        '''
+        """Returns latitude and longitude lists
+        """
         lats_2d = np.zeros((self.y_size, self.x_size))
         lons_2d = np.zeros((self.y_size, self.x_size))
         for x in range(self.x_size):
@@ -206,21 +208,26 @@ class GDALGrid(object):
         return proj_lats, proj_lons
 
     def np_array(self, band=1):
-        '''
-        Returns the raster band as a numpy array
-        '''
-        if band == 'all' and self.dataset.RasterCount > 1:
-            grid_data = []
-            for band in range(1, self.dataset.RasterCount+1):
-                grid_data.append(self.dataset.GetRasterBand(band).ReadAsArray())
+        """Returns the raster band as a numpy array
+        """
+        if band == 'all':
+            grid_data = self.dataset.ReadAsArray()
         else:
             grid_data = self.dataset.GetRasterBand(band).ReadAsArray()
 
         return np.array(grid_data)
 
-    def write_tif(self, file_path, out_epsg=None):
+    def write_prj(self, out_projection_file, esri_format=False):
+        """Writes ESRI projection file
         """
-        Write out as geotiff
+        if esri_format:
+            self.projection.MorphToESRI()
+        with open(out_projection_file, 'w') as prj_file:
+            prj_file.write(self.wkt)
+            prj_file.close()
+
+    def to_tif(self, file_path, out_epsg=None):
+        """Write out as geotiff
         """
         if out_epsg:
             return gdal_reproject(self.dataset, file_path, src_srs=self.wkt,
@@ -229,20 +236,9 @@ class GDALGrid(object):
             drv = gdal.GetDriverByName('GTiff')
             return drv.CreateCopy(file_path, self.dataset)
 
-    def write_prj(self, out_projection_file, esri_format=False):
-        '''
-        Writes ESRI projection file
-        '''
-        if esri_format:
-            self.projection.MorphToESRI()
-        with open(out_projection_file, 'w') as prj_file:
-            prj_file.write(self.wkt)
-            prj_file.close()
-
     def _to_ascii(self, header_string, file_path, band, print_nodata=True):
-        '''
-        Writes data to ascii file
-        '''
+        """Writes data to ascii file
+        """
         if print_nodata:
             nodata_value = self.dataset.GetRasterBand(band).GetNoDataValue()
             if nodata_value is not None:
@@ -255,12 +251,12 @@ class GDALGrid(object):
             grid_writer.writerows(self.np_array(band))
 
     def to_grass_ascii(self, file_path, band=1, print_nodata=True):
-        '''Writes data to GRASS ASCII file format.
+        """Writes data to GRASS ASCII file format.
 
             Parameters:
                 file_path(str): Path to output ascii file.
                 band(Optional[int]): Band number (1-based).
-        '''
+        """
         # PART 1: HEADER
         # get data extremes
         west_bound, east_bound, south_bound, north_bound = self.bounds()
@@ -275,12 +271,12 @@ class GDALGrid(object):
         self._to_ascii(header_string, file_path, band, print_nodata)
 
     def to_arc_ascii(self, file_path, band=1, print_nodata=True):
-        '''Writes data to Arc ASCII file format.
+        """Writes data to Arc ASCII file format.
 
             Parameters:
                 file_path(str): Path to output ascii file.
                 band(Optional[int]): Band number (1-based).
-        '''
+        """
         # PART 1: HEADER
         # get data extremes
         west_bound, east_bound, south_bound, north_bound = self.bounds()
@@ -295,13 +291,17 @@ class GDALGrid(object):
         self._to_ascii(header_string, file_path, band, print_nodata)
 
 class GSSHAGrid(GDALGrid):
-    '''
-    Loads GSSHA grid into gdal dataset with projection
-    '''
+    """Loads GSSHA grid into gdal dataset with projection
+    """
     def __init__(self, gssha_ele_grid, gssha_prj_file):
         dataset = gdal.Open(gssha_ele_grid, gdalconst.GA_ReadOnly)
-        super(GSSHAGrid, self).__init__(dataset)
+        super(GSSHAGrid, self).__init__(dataset, gssha_prj_file=gssha_prj_file)
+
+    def _init_projection(self, **kwargs):
+        """initialize projection
+        """
         self.projection = osr.SpatialReference()
+        gssha_prj_file = kwargs.get('gssha_prj_file')
         with open(gssha_prj_file) as pro_file:
             self.projection.ImportFromWkt(pro_file.read())
 
@@ -754,13 +754,11 @@ def rasterize_shapefile(shapefile_path,
             # Create the final warped raster
             target_ds = gdal.GetDriverByName('GTiff').CreateCopy(out_raster_path, target_ds)
 
-
-    if as_gdal_grid:
-        return GDALGrid(target_ds)
-
     # clean up
-    del target_ds
     if reprojected_layer is not None:
         driver = ogr.GetDriverByName("ESRI Shapefile")
         if path.exists(reprojected_layer):
              driver.DeleteDataSource(reprojected_layer)
+
+    if as_gdal_grid:
+        return GDALGrid(target_ds)

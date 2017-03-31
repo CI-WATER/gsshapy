@@ -38,6 +38,8 @@ class TestResampleShapefile(TestGridTemplate):
         self.shapefile_path = path.join(self.writeDirectory,
                                         'phillipines_5070115700.shp')
 
+        self.projected_shapefile = path.join(self.writeDirectory,
+                                             'phillipines_5070115700_projected.shp')
         self.compare_path = path.join(self.readDirectory,
                                       'phillipines',
                                       'compare_data')
@@ -52,6 +54,13 @@ class TestResampleShapefile(TestGridTemplate):
                      path.join(self.writeDirectory, path.basename(shapefile_part)))
             except OSError:
                 pass
+
+    def _before_teardown(self):
+        '''
+        Method to execute at beginning of tearDown
+        '''
+        # make sure cleanup worked
+        assert not path.exists(self.projected_shapefile)
 
     def _compare_masks(self, mask_name):
         '''

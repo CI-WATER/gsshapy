@@ -70,9 +70,16 @@ class TestGridTemplate(unittest.TestCase):
             assert_almost_equal(rO, rN)
 
             # compare geotransform
-            assert_almost_equal(dsO.GetGeoTransform(), dsN.GetGeoTransform(), 
+            assert_almost_equal(dsO.GetGeoTransform(), dsN.GetGeoTransform(),
                                 decimal=10)
-            
+
+            # compare band counts
+            assert dsO.RasterCount == dsN.RasterCount
+            # compare nodata
+            for band_id in range(1, dsO.RasterCount+1):
+                assert (dsO.GetRasterBand(band_id).GetNoDataValue()
+                        == dsN.GetRasterBand(band_id).GetNoDataValue())
+
         else:
             with open(original) as fileO:
                 contentsO = fileO.read()
@@ -81,12 +88,12 @@ class TestGridTemplate(unittest.TestCase):
             with open(new) as fileN:
                 contentsN = fileN.read()
                 linesN = contentsN.strip().split()
-                
+
             for lineO, lineN in zip(linesO, linesN):
                 try:
                     valO = float(lineO)
                     valN = float(lineN)
-                    assert_almost_equal(valO, valN) 
+                    assert_almost_equal(valO, valN)
                 except ValueError:
                     self.assertEqual(linesO, linesN)
 
