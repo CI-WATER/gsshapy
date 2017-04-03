@@ -1008,16 +1008,23 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return jsonString
 
-    def getGrid(self, use_mask=True):
+    def getGridByCard(self, gssha_card_name):
         """
-        Returns GSSHAGrid object of GSSHA model bounds
+        Returns GSSHAGrid object of GSSHA grid
+
+        Paramters:
+            gssha_card_name(str): Name of GSSHA project card for grid.
+
+        Returns:
+            GSSHAGrid
         """
-        grid_card_name = "WATERSHED_MASK"
-        if not use_mask:
-            grid_card_name = "ELEVATION"
-        gssha_grid_card = self.getCard(grid_card_name)
+        if gssha_card_name not in (self.INPUT_MAPS+self.WMS_DATASETS):
+            raise ValueError("Card {0} not found in valid grid cards ..."
+                             .format(gssha_card_name))
+
+        gssha_grid_card = self.getCard(gssha_card_name)
         if gssha_grid_card is None:
-            raise ValueError("{0} card not found ...".format(grid_card_name))
+            raise ValueError("{0} card not found ...".format(gssha_card_name))
 
         gssha_pro_card = self.getCard("#PROJECTION_FILE")
         if gssha_pro_card is None:
@@ -1027,9 +1034,32 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         return GSSHAGrid(gssha_grid_card.value.strip('"').strip("'"),
                          gssha_pro_card.value.strip('"').strip("'"))
 
+    def getGrid(self, use_mask=True):
+        """
+        Returns GSSHAGrid object of GSSHA model bounds
+
+        Paramters:
+            use_mask(bool): If True, uses watershed mask. Otherwise, it uses the elevaiton grid.
+
+        Returns:
+            GSSHAGrid
+
+        """
+        grid_card_name = "WATERSHED_MASK"
+        if not use_mask:
+            grid_card_name = "ELEVATION"
+
+        return self.getGridByCard(grid_card_name)
+
     def getIndexGrid(self, name):
         """
         Returns GSSHAGrid object of index map
+
+        Paramters:
+            name(str): Name of index map in 'cmt' file.
+
+        Returns:
+            GSSHAGrid
         """
         index_map = self.mapTableFile.indexMaps.filter_by(name=name).one()
 
