@@ -318,6 +318,12 @@ class TestReadMethods(unittest.TestCase):
                                         filename='standard.ohl')
 
         # Tests
+        dfR = timR.as_dataframe()
+        dfQ = timQ.as_dataframe()
+        assert dfR.equals(dfQ)
+        assert len(dfR.index) == 10
+        self.assertAlmostEqual(dfR.iloc[7, 1], 0.016869)
+        self.assertAlmostEqual(dfR.index[7], 2002.42440068)
 
     def test_index_map_read(self):
         '''
