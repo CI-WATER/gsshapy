@@ -105,7 +105,7 @@ class GSSHAModel(object):
                                      "and elevation_grid_path to generate "
                                      "a new GSSHA model.")
                 # Instantiate GSSHAPY object for reading to database
-                self.project_manager = ProjectFile(name=project_name, map_type=1)
+                self.project_manager = ProjectFile(name=project_name, map_type=0)
                 self.db_session.add(self.project_manager)
                 self.db_session.commit()
 

@@ -1,5 +1,5 @@
 GSSHAPROJECT
-MAP_TYPE                 1
+MAP_TYPE                 0
 TIMESTEP                 30
 HYD_FREQ                 15
 SUMMARY                  "grid_standard_basic_model_auto.sum"
@@ -17,6 +17,6 @@ MANNING_N                0.013
 START_DATE               2017 02 28
 START_TIME               00 00
 TOT_TIME                 180.0
-PRECIP_UNIF              
+PRECIP_UNIF
 RAIN_INTENSITY           2.4
 RAIN_DURATION            30.0
