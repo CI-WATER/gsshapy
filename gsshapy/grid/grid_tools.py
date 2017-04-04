@@ -213,8 +213,12 @@ class GDALGrid(object):
         if band == 'all':
             grid_data = self.dataset.ReadAsArray()
         else:
-            grid_data = self.dataset.GetRasterBand(band).ReadAsArray()
-
+            raster_band = self.dataset.GetRasterBand(band)
+            grid_data = raster_band.ReadAsArray()
+            nodata_value = raster_band.GetNoDataValue()
+            if nodata_value is not None:
+                return np.ma.array(data=grid_data,
+                                   mask=(grid_data==nodata_value))
         return np.array(grid_data)
 
     def write_prj(self, out_projection_file, esri_format=False):
