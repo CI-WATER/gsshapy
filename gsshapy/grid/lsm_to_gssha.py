@@ -440,106 +440,13 @@ class LSMtoGSSHA(GRIDtoGSSHA):
                                      .format(var=data_var))
                 data = lsm_nc.variables[data_var][0, :, self.lsm_lat_indices, self.lsm_lon_indices]
                 self.data_np_array[lsm_idx] = four_dim_var_calc_method(data * conversion_factor, axis=0)
-            elif lsm_var.ndim == 3:
-                # assume size of time dimension is one
-                data = lsm_var[0, self.lsm_lat_indices, self.lsm_lon_indices]
-            else: # lsm_var.ndim == 2
-                data = lsm_var[self.lsm_lat_indices, self.lsm_lon_indices]
-            self.data_np_array[lsm_idx] = data*conversion_factor
+            else:
+                if lsm_var.ndim == 3:
+                    # assume size of time dimension is one
+                    data = lsm_var[0, self.lsm_lat_indices, self.lsm_lon_indices]
+                else:  # lsm_var.ndim == 2
+                    data = lsm_var[self.lsm_lat_indices, self.lsm_lon_indices]
+
+                self.data_np_array[lsm_idx] = data*conversion_factor
+
             lsm_nc.close()
-
-"""
-if __name__ == "__main__":
-    #gssha_project_folder = 'C:\\Users\\RDCHLADS\\Documents\\GSSHA\\AF_GSSHA\\NK_Texas\\GSSHA'
-    #gssha_project_folder = '/Volumes/Seagate Backup Plus Drive/GSSHA'
-    gssha_project_folder = 'E:\\GSSHA'
-    gssha_grid_name = 'nk_arb2.ele'
-
-    ###### ----------
-    ### LSM INPUT
-    ###### ----------
-
-##    ##GLDAS
-##    lsm_folder = 'E:\\AutoRAPID\\lsm_data\\GLDAS'
-##    #lsm_folder = '/Volumes/Seagate Backup Plus Drive/AutoRAPID/lsm_data/GLDAS'
-##   lsm_lat_var = 'lat'
-##    lsm_lon_var = 'lon'
-##    search_card = 'GLDAS_NOAH025_3H.A19890116*.020.nc4'
-##    precip_data_var='Rainf_tavg'
-##    precip_type = 'RADAR'
-##    humidity_gssha_data_var = 'relative_humidity'
-##    humidity_lsm_data_var = ['Qair_f_inst', 'Psurf_f_inst', 'Tair_f_inst']
-##    lsm_file_date_naming_convention = None
-##    main_output_folder = path.join(gssha_project_folder, "gssha_from_gldas")
-##    out_gage_file = path.join(main_output_folder, 'gage_test_gldas.gag')
-##    netcdf_file_path = path.join(main_output_folder, 'gssha_dynamic_gldas.nc')
-##    data_var_map_array = [
-##                          ['precipitation_rate', 'Rainf_f_tavg'],
-##                          ['pressure', 'Psurf_f_inst'],
-##                          ['relative_humidity', ['Qair_f_inst', 'Psurf_f_inst', 'Tair_f_inst']],
-##                          ['wind_speed', 'Wind_f_inst'],
-##                          ['temperature', 'Tair_f_inst'],
-##                          ['direct_radiation', 'Swnet_tavg'],
-##                          ['diffusive_radiation', 'SWdown_f_tavg'],
-##                         ]
-    ##WRF
-    # See: http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
-    lsm_folder = 'E:\\GSSHA\\wrf-sample-data-v1.0'
-    #lsm_folder = '/Volumes/Seagate Backup Plus Drive/GSSHA/wrf-sample-data-v1.0'
-    lsm_lat_var = 'XLAT'
-    lsm_lon_var = 'XLONG'
-    search_card = '*.nc'
-    precip_data_var = ['RAINC', 'RAINNC']
-    precip_type = 'ACCUM'
-    lsm_file_date_naming_convention='gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
-
-    ##CONVERT FROM RAW WRF DATA
-    main_output_folder = path.join(gssha_project_folder, "wrf_hmet_data")
-    data_var_map_array = [
-                          ['precipitation_acc', ['RAINC', 'RAINNC']],
-                          ['pressure', 'PSFC'],
-                          ['relative_humidity', ['Q2', 'PSFC', 'T2']],
-                          ['wind_speed', ['U10', 'V10']],
-                          ['direct_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
-                          ['diffusive_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
-                          ['temperature', 'T2'],
-                          ['cloud_cover' , 'CLDFRA'],
-                         ]
-    ##EXTRACT FROM CONVERTED WRF DATA
-##    main_output_folder = path.join(gssha_project_folder, "gssha_from_wrf_no_conv")
-##    data_var_map_array = [
-##                          ['precipitation_acc', 'RUNPCP'],
-##                          ['pressure_hg', 'PSFCInHg'],
-##                          ['relative_humidity', 'RH2'],
-##                          ['wind_speed_kts', 'SPEED10'],
-##                          ['temperature_f', 'T2F'],
-##                          ['cloud_cover_pc' , 'SKYCOVER'],
-##                         ]
-
-
-    out_gage_file = path.join(main_output_folder, 'gage_test_wrf.gag')
-    netcdf_file_path = path.join(main_output_folder, 'gssha_dynamic_wrf.nc')
-    ###### ----------
-    ### MAIN FUNNCTIONS
-    ###### ----------
-
-    l2g = LSMtoGSSHA(gssha_project_folder=gssha_project_folder,
-                     gssha_grid_file_name=gssha_grid_name,
-                     lsm_input_folder_path=lsm_folder,
-                     lsm_search_card=search_card,
-                     lsm_lat_var=lsm_lat_var,
-                     lsm_lon_var=lsm_lon_var,
-                     #lsm_time_var='time',
-                     lsm_file_date_naming_convention=lsm_file_date_naming_convention,
-                     #gssha_projection_file_name="",
-                     lsm_grid_type='geographic' # geographic, or wrf (to use global projection attributes)
-                     )
-
-    l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
-                                        lsm_data_var=precip_data_var,
-                                        precip_type=precip_type)
-
-    l2g.lsm_data_to_arc_ascii(data_var_map_array, main_output_folder)
-
-    l2g.lsm_data_to_subset_netcdf(netcdf_file_path, data_var_map_array)
-"""
