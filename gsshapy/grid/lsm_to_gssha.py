@@ -432,17 +432,20 @@ class LSMtoGSSHA(GRIDtoGSSHA):
         for lsm_idx, lsm_nc_file in enumerate(self.lsm_nc_list):
             lsm_nc = Dataset(lsm_nc_file)
             # EXTRACT DATA WITHIN EXTENT
-            if four_dim_var_calc_method is None:
-                lsm_var = lsm_nc.variables[data_var]
-                if lsm_var.ndim == 3:
-                    # assume size of time dimension is one
-                    data = lsm_var[0, self.lsm_lat_indices, self.lsm_lon_indices]
-                else: # lsm_var.ndim == 2
-                    data = lsm_var[self.lsm_lat_indices, self.lsm_lon_indices]
-                self.data_np_array[lsm_idx] = data*conversion_factor
-            else:
+            lsm_var = lsm_nc.variables[data_var]
+            if lsm_var.ndim == 4:
+                if four_dim_var_calc_method is None:
+                    raise ValueError("The variable {var} has 4 dimension. "
+                                     "Need 'four_dim_var_calc_method' to proceed ..."
+                                     .format(var=data_var))
                 data = lsm_nc.variables[data_var][0, :, self.lsm_lat_indices, self.lsm_lon_indices]
-                self.data_np_array[lsm_idx] = four_dim_var_calc_method(data*conversion_factor, axis=0)
+                self.data_np_array[lsm_idx] = four_dim_var_calc_method(data * conversion_factor, axis=0)
+            elif lsm_var.ndim == 3:
+                # assume size of time dimension is one
+                data = lsm_var[0, self.lsm_lat_indices, self.lsm_lon_indices]
+            else: # lsm_var.ndim == 2
+                data = lsm_var[self.lsm_lat_indices, self.lsm_lon_indices]
+            self.data_np_array[lsm_idx] = data*conversion_factor
             lsm_nc.close()
 
 """
