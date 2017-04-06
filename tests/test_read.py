@@ -11,6 +11,7 @@
 from builtins import zip
 import unittest
 import os
+import sqlalchemy
 
 from gsshapy.orm.file_io import *
 from gsshapy.orm import ProjectFile
@@ -324,6 +325,25 @@ class TestReadMethods(unittest.TestCase):
         assert len(dfR.index) == 10
         self.assertAlmostEqual(dfR.iloc[7, 1], 0.016869)
         self.assertAlmostEqual(dfR.index[7], 2002.42440068)
+
+    def test_evt_yml_file_read(self):
+        '''
+        Test ProjectFileEventManager read method
+        '''
+        ymlR, ymlQ = self._read_n_query(fileIO=ProjectFileEventManager,
+                                        directory=self.directory,
+                                        filename='testyml.yml')
+
+    def test_evt_yml_file_read_error(self):
+        '''
+        Test ProjectFileEventManager read method integrity
+        '''
+        with self.assertRaises(sqlalchemy.exc.IntegrityError) as context:
+            ymlR, ymlQ = self._read_n_query(fileIO=ProjectFileEventManager,
+                                            directory=self.directory,
+                                            filename='testyml_error.yml')
+
+        # Tests
 
     def test_index_map_read(self):
         '''

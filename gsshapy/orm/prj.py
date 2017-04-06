@@ -92,6 +92,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     linkNodeDatasets = relationship('LinkNodeDatasetFile', back_populates='projectFile')  #: RELATIONSHIP
     genericFiles = relationship('GenericFile', back_populates='projectFile')  #: RELATIONSHIP
     wmsDatasets = relationship('WMSDatasetFile', back_populates='projectFile')  #: RELATIONSHIP
+    projectFileEventManager = relationship('ProjectFileEventManager')  #: RELATIONSHIP
 
     # File Properties
     MAP_TYPES_SUPPORTED = (1,)
@@ -129,7 +130,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                    'OVERLAND_DEPTH_LOCATION': OutputLocationFile,  # Overland Flow (Other Output)
                    'OVERLAND_WSE_LOCATION': OutputLocationFile,
                    'OUT_WELL_LOCATION': OutputLocationFile,
-                   'SIMULATION_INPUT': GenericFile}
+                   'SIMULATION_INPUT': GenericFile,
+                   '#GSSHAPY_EVENT_YML': ProjectFileEventManager,
+                   }
 
     INPUT_MAPS = ('ELEVATION',  # Required Inputs
                   'WATERSHED_MASK',
@@ -220,7 +223,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             self.mapType = map_type
             self.setCard(name='MAP_TYPE', value=str(map_type))
 
-    def _read(self, directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile):
+    def _read(self, directory, filename, session, path, name, extension,
+              spatial, spatialReferenceID, replaceParamFile):
         """
         Project File Read from File Method
         """
@@ -228,7 +232,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         HEADERS = ('GSSHAPROJECT',)
 
         # WMS Cards to include (don't discount as comments)
-        WMS_CARDS = ('#INDEXGRID_GUID', '#PROJECTION_FILE', '#LandSoil', '#CHANNEL_POINT_INPUT_WMS')
+        WMS_CARDS = ('#INDEXGRID_GUID', '#PROJECTION_FILE', '#LandSoil',
+                     '#CHANNEL_POINT_INPUT_WMS')
+
+        GSSHAPY_CARDS = ('#GSSHAPY_EVENT_YML', )
 
         with open(path, 'r') as f:
             for line in f:
@@ -236,8 +243,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Skip empty lines
                     continue
 
-                elif '#' in line.split()[0] and line.split()[0] not in WMS_CARDS:
-                    # Skip comments designated by the hash symbol (with the exception of WMS_CARDS
+                elif '#' in line.split()[0] and line.split()[0] \
+                        not in WMS_CARDS + GSSHAPY_CARDS:
+                    # Skip comments designated by the hash symbol
+                    # (with the exception of WMS_CARDS and GSSHAPY_CARDS)
                     continue
 
                 try:
@@ -270,7 +279,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         Project File Write to File Method
         """
         # Enforce cards that must be written in certain order
-        PRIORITY_CARDS = ('WMS', 'MASK_WATERSHED', 'REPLACE_LINE', 'REPLACE_PARAMS', 'REPLACE_VALS', 'REPLACE_FOLDER')
+        PRIORITY_CARDS = ('WMS', 'MASK_WATERSHED', 'REPLACE_LINE',
+                          'REPLACE_PARAMS', 'REPLACE_VALS', 'REPLACE_FOLDER')
 
         filename = os.path.split(openFile.name)[1]
         name = filename.split('.')[0]
