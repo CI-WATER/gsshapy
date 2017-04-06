@@ -179,20 +179,16 @@ class GSSHAFramework(object):
                                         )
     GSSHA_OPTIONAL_OUTPUT_CARDS = (
                                   "IN_THETA_LOCATION",
-                                  "IN_HYD_LOCATION", "IN_SED_LOC",
+                                  "IN_HYD_LOCATION",
+                                  "IN_SED_LOC",
                                   "OVERLAND_DEPTH_LOCATION",
                                   "OVERLAND_WSE_LOCATION",
-                                  "IN_GWFLUX_LOCATION", "OUT_WELL_LOCATION",
+                                  "IN_GWFLUX_LOCATION",
+                                  "OUT_WELL_LOCATION",
                                   "STRICT_JULIAN_DATE",
-                                  "OPTIMIZE", "OPTIMIZE_SED",
+                                  "OPTIMIZE",
+                                  "OPTIMIZE_SED",
                                   ) + GSSHA_OPTIONAL_OUTPUT_PATH_CARDS
-
-    SIMULATION_RUN_MODIFIED_INPUT_CARDS = ("HMET_ASCII",
-                                           "HMET_NETCDF",
-                                           "CHAN_POINT_INPUT",
-                                           "PRECIP_FILE",
-                                           "MAPPING_TABLE",
-                                           )
 
     def __init__(self,
                  gssha_executable,
@@ -255,6 +251,7 @@ class GSSHAFramework(object):
         self.read_hotstart = read_hotstart
         self.hotstart_minimal_mode = hotstart_minimal_mode
 
+        self.simulation_modified_input_cards = ["MAPPING_TABLE"]
         # make sure execting from GSSHA project directory
         os.chdir(self.gssha_directory)
 
@@ -410,10 +407,9 @@ class GSSHAFramework(object):
         # move simulation generated files to working directory
         # PRECIP_FILE, HMET_NETCDF, HMET_ASCII, CHAN_POINT_INPUT
         # TODO: Move HMET_ASCII files
-        self._update_card_file_location("PRECIP_FILE", working_directory)
-        self._update_card_file_location("CHAN_POINT_INPUT", working_directory)
-        self._update_card_file_location("HMET_NETCDF", working_directory)
-        self._update_card_file_location("HMET_ASCII", working_directory)
+        for sim_card in self.simulation_modified_input_cards:
+            if sim_card != 'MAPPING_TABLE':
+                self._update_card_file_location(sim_card, working_directory)
 
         mapping_table_card = self.project_manager.getCard('MAPPING_TABLE')
         if mapping_table_card:
@@ -438,7 +434,7 @@ class GSSHAFramework(object):
         for gssha_card in self.project_manager.projectCards:
             if gssha_card.name not in self.GSSHA_REQUIRED_OUTPUT_PATH_CARDS + \
                                         self.GSSHA_OPTIONAL_OUTPUT_PATH_CARDS + \
-                                        self.SIMULATION_RUN_MODIFIED_INPUT_CARDS:
+                                        tuple(self.simulation_modified_input_cards):
                 if gssha_card.value:
                     updated_value = gssha_card.value.strip('"').strip("'")
                     if updated_value:
@@ -483,6 +479,8 @@ class GSSHAFramework(object):
                     print(line)
             except subprocess.CalledProcessError as ex:
                 print("ERROR {0}: {1}".format(ex.returncode, ex.output))
+
+            return working_directory
         else:
             print("GSSHA EXECTUABLE NOT FOUND. SKIPPING GSSHA SIMULATION RUN ...")
 
@@ -520,6 +518,10 @@ class GSSHAFramework(object):
                                                 netcdf_file_path,
                                                 )
 
+            self.simulation_modified_input_cards += ["HMET_NETCDF",
+                                                     "HMET_ASCII",
+                                                     "PRECIP_FILE"]
+
         # ----------------------------------------------------------------------
         # RAPID to GSSHA
         # ----------------------------------------------------------------------
@@ -536,7 +538,7 @@ class GSSHAFramework(object):
         if self.path_to_rapid_qout is not None and self.connection_list_file:
             self.event_manager.prepare_rapid_streamflow(self.path_to_rapid_qout,
                                                         self.connection_list_file)
-
+            self.simulation_modified_input_cards.append('CHAN_POINT_INPUT')
         # ----------------------------------------------------------------------
         # HOTSTART
         # ----------------------------------------------------------------------
