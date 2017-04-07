@@ -57,6 +57,7 @@ class GSSHAFramework(object):
         gssha_simulation_start(Optional[datetime]): Datetime object with date of start of GSSHA simulation.
         gssha_simulation_end(Optional[datetime]): Datetime object with date of end of GSSHA simulation.
         gssha_simulation_duration(Optional[timedelta]): Datetime timedelta object with duration of GSSHA simulation.
+        load_simulation_datetime(Optional[bool]): If True, this will load in datetime information from the project file. Default is False.
         spt_watershed_name(Optional[str]): Streamflow Prediction Tool watershed name.
         spt_subbasin_name(Optional[str]): Streamflow Prediction Tool subbasin name.
         spt_forecast_date_string(Optional[str]): Streamflow Prediction Tool forecast date string.
@@ -197,6 +198,7 @@ class GSSHAFramework(object):
                  gssha_simulation_start=None,
                  gssha_simulation_end=None,
                  gssha_simulation_duration=None,
+                 load_simulation_datetime=False,
                  spt_watershed_name=None,
                  spt_subbasin_name=None,
                  spt_forecast_date_string=None,
@@ -285,8 +287,6 @@ class GSSHAFramework(object):
                                        session=self.db_session)
             self.db_session.commit()
 
-        
-
         if not self._connect_to_lsm():
             self.event_manager = EventMode(project_manager=self.project_manager,
                                            db_session=self.db_session,
@@ -294,6 +294,7 @@ class GSSHAFramework(object):
                                            simulation_start=gssha_simulation_start,
                                            simulation_end=gssha_simulation_end,
                                            simulation_duration=gssha_simulation_duration,
+                                           load_simulation_datetime=load_simulation_datetime,
                                           )
         else:
             self.event_manager = LongTermMode(project_manager=self.project_manager,
@@ -305,6 +306,7 @@ class GSSHAFramework(object):
                                               event_min_q=event_min_q,
                                               et_calc_mode=et_calc_mode,
                                               soil_moisture_depth=soil_moisture_depth,
+                                              load_simulation_datetime=load_simulation_datetime,
                                              )
 
 
@@ -669,6 +671,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
         gssha_simulation_start(Optional[datetime]): Datetime object with date of start of GSSHA simulation.
         gssha_simulation_end(Optional[datetime]): Datetime object with date of end of GSSHA simulation.
         gssha_simulation_duration(Optional[timedelta]): Datetime timedelta object with duration of GSSHA simulation.
+        load_simulation_datetime(Optional[bool]): If True, this will load in datetime information from the project file. Default is False.
         spt_watershed_name(Optional[str]): Streamflow Prediction Tool watershed name.
         spt_subbasin_name(Optional[str]): Streamflow Prediction Tool subbasin name.
         spt_forecast_date_string(Optional[str]): Streamflow Prediction Tool forecast date string.
@@ -828,6 +831,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                  gssha_simulation_start=None,
                  gssha_simulation_end=None,
                  gssha_simulation_duration=None,
+                 load_simulation_datetime=False,
                  spt_watershed_name=None,
                  spt_subbasin_name=None,
                  spt_forecast_date_string=None,
@@ -870,7 +874,8 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                                      ]
 
         super(GSSHA_WRF_Framework, self).__init__(gssha_executable, gssha_directory, project_filename,
-                                                  gssha_simulation_start, gssha_simulation_end, gssha_simulation_duration,
+                                                  gssha_simulation_start, gssha_simulation_end,
+                                                  gssha_simulation_duration, load_simulation_datetime,
                                                   spt_watershed_name, spt_subbasin_name,
                                                   spt_forecast_date_string, ckan_engine_url,
                                                   ckan_api_key, ckan_owner_organization, path_to_rapid_qout,
