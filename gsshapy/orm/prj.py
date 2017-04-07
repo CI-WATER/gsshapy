@@ -471,6 +471,78 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Commit to database
         self._commit(session, self.COMMIT_ERROR_MESSAGE)
 
+    def _readXputFile(self, file_cards, card_name, directory, session,
+                      spatial=False, spatialReferenceID=None,
+                      replaceParamFile=None, **kwargs):
+        """
+        Read specific IO file for a GSSHA project to the database.
+        """
+        # Automatically derive the spatial reference system, if possible
+        if spatialReferenceID is None:
+            spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
+
+        card = self.getCard(card_name)
+        if card:
+            fileIO = file_cards[card.name]
+            filename = card.value.strip('"').strip("'")
+
+            # Invoke read method on each file
+            return self._invokeRead(fileIO=fileIO,
+                                    directory=directory,
+                                    filename=filename,
+                                    session=session,
+                                    spatial=spatial,
+                                    spatialReferenceID=spatialReferenceID,
+                                    replaceParamFile=replaceParamFile,
+                                    **kwargs)
+
+    def readInputFile(self, card_name, directory, session, spatial=False,
+                      spatialReferenceID=None, **kwargs):
+        """
+        Read specific input file for a GSSHA project to the database.
+
+        Args:
+            card_name(str): Name of GSSHA project card.
+            directory (str): Directory containing all GSSHA model files. This method assumes that all files are located
+                in the same directory.
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
+            spatial (bool, optional): If True, spatially enabled objects will be read in as PostGIS spatial objects.
+                Defaults to False.
+            spatialReferenceID (int, optional): Integer id of spatial reference system for the model. If no id is
+                provided GsshaPy will attempt to automatically lookup the spatial reference ID. If this process fails,
+                default srid will be used (4326 for WGS 84).
+
+        Returns:
+            file object
+        """
+        # Read in replace param file
+        replaceParamFile = self._readReplacementFiles(directory, session, spatial, spatialReferenceID)
+        return self._readXputFile(self.INPUT_FILES, card_name, directory,
+                                  session, spatial, spatialReferenceID,
+                                  replaceParamFile, **kwargs)
+
+    def readOutputFile(self, card_name, directory, session, spatial=False,
+                      spatialReferenceID=None, **kwargs):
+        """
+        Read specific input file for a GSSHA project to the database.
+
+        Args:
+            card_name(str): Name of GSSHA project card.
+            directory (str): Directory containing all GSSHA model files. This method assumes that all files are located
+                in the same directory.
+            session (:mod:`sqlalchemy.orm.session.Session`): SQLAlchemy session object bound to PostGIS enabled database
+            spatial (bool, optional): If True, spatially enabled objects will be read in as PostGIS spatial objects.
+                Defaults to False.
+            spatialReferenceID (int, optional): Integer id of spatial reference system for the model. If no id is
+                provided GsshaPy will attempt to automatically lookup the spatial reference ID. If this process fails,
+                default srid will be used (4326 for WGS 84).
+
+        Returns:
+            file object
+        """
+        return self._readXputFile(self.OUTPUT_FILES, card_name, directory,
+                                  session, spatial, spatialReferenceID, **kwargs)
+
     def writeProject(self, session, directory, name):
         """
         Write all files for a project from the database to file.
@@ -1393,7 +1465,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                   'for file {1}'.format(numFilesRead, filename))
 
     def _invokeRead(self, fileIO, directory, filename, session, spatial=False,
-                    spatialReferenceID=4236, replaceParamFile=None):
+                    spatialReferenceID=4236, replaceParamFile=None, **kwargs):
         """
         Invoke File Read Method on Other Files
         """
@@ -1404,7 +1476,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             instance.projectFile = self
             instance.read(directory, filename, session, spatial=spatial,
                           spatialReferenceID=spatialReferenceID,
-                          replaceParamFile=replaceParamFile)
+                          replaceParamFile=replaceParamFile, **kwargs)
+            return instance
         else:
             self._readBatchOutputForFile(directory, fileIO, filename, session,
                                          spatial, spatialReferenceID, replaceParamFile)

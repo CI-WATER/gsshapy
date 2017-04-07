@@ -31,7 +31,8 @@ class GsshaPyFileObjectBase:
         """
         self.fileExtension = ''
 
-    def read(self, directory, filename, session, spatial=False, spatialReferenceID=4236, replaceParamFile=None):
+    def read(self, directory, filename, session, spatial=False,
+             spatialReferenceID=4236, replaceParamFile=None, **kwargs):
         """
         Generic read file into database method.
 
@@ -63,7 +64,8 @@ class GsshaPyFileObjectBase:
             session.add(self)
 
             # Read
-            self._read(directory, filename, session, path, name, extension, spatial, spatialReferenceID, replaceParamFile)
+            self._read(directory, filename, session, path, name, extension,
+                       spatial, spatialReferenceID, replaceParamFile, **kwargs)
 
             # Commit to database
             self._commit(session, self.COMMIT_ERROR_MESSAGE)
@@ -74,7 +76,7 @@ class GsshaPyFileObjectBase:
             # Print warning
             print('WARNING: Could not find file named {0}. File not read.'.format(filename))
 
-    def write(self, session, directory, name, replaceParamFile=None):
+    def write(self, session, directory, name, replaceParamFile=None, **kwargs):
         """
         Write from database back to file.
 
@@ -113,7 +115,8 @@ class GsshaPyFileObjectBase:
             # Write Lines
             self._write(session=session,
                         openFile=openFile,
-                        replaceParamFile=replaceParamFile)
+                        replaceParamFile=replaceParamFile,
+                        **kwargs)
 
     def _commit(self, session, errorMessage):
         """
