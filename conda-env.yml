@@ -18,5 +18,4 @@ dependencies:
 - pyyaml
 - rapidpy
 - timezonefinder
-- pip:
-    - utm
+- utm
