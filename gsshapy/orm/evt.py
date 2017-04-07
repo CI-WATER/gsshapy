@@ -1,6 +1,6 @@
 import os
 
-from sqlalchemy import Column, ForeignKey, or_
+from sqlalchemy import Column, ForeignKey, or_, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import String, Integer
@@ -20,6 +20,20 @@ class ProjectFileEventManager(DeclarativeBase, GsshaPyFileObjectBase):
                           lazy='dynamic',
                           cascade="save-update,merge,delete,delete-orphan")  #: RELATIONSHIP
 
+
+    def _events_by_subfolder(self, subfolder):
+        return self.events.filter(
+                    or_(ProjectFileEvent.subfolder==subfolder,
+                        ProjectFileEvent.subfolder.like("{0}_%".format(subfolder))
+                        )
+                    )
+
+    def _similar_event_exists(self, subfolder):
+        """
+        Check if events exist
+        """
+        return self._events_by_subfolder(subfolder).first()
+
     def _read(self, directory, filename, session, path, name, extension,
               spatial=None, spatialReferenceID=None, replaceParamFile=None):
         """
@@ -31,12 +45,10 @@ class ProjectFileEventManager(DeclarativeBase, GsshaPyFileObjectBase):
 
         for yml_event in yml_events:
             if os.path.exists(os.path.join(directory, yml_event.subfolder)):
-                try:
-                    orm_event = yml_event.as_orm()
+                orm_event = yml_event.as_orm()
+                if not self.events.filter_by(subfolder=yml_event.subfolder).first():
                     session.add(orm_event)
                     self.events.append(orm_event)
-                except IntegrityError:
-                    pass
 
         session.commit()
 
@@ -44,25 +56,31 @@ class ProjectFileEventManager(DeclarativeBase, GsshaPyFileObjectBase):
         """
         ProjectFileEvent Write to File Method
         """
-        openFile.write(yaml.dump([evt.as_yml() for evt in self.events.order_by(ProjectFileEvent.name)]))
+        openFile.write(yaml.dump([evt.as_yml() for evt in
+                                  self.events.order_by(ProjectFileEvent.name)]))
+
+    def next_id(self, subfolder):
+        return self._events_by_subfolder(subfolder).count()
 
     def add_event(self, name, subfolder, session):
         """
         Add an event
         """
-        int_err = True
-        new_event = None
-        while int_err:
-            try:
-                new_event = ProjectFileEvent(name=name, subfolder=subfolder)
-                session.add(new_event)
-                self.events.append(new_event)
-                session.commit()
-            except IntegrityError as int_err:
-                subfolder += "_{0}".format(self.events.count()+1)
-                pass
+        if self._similar_event_exists(subfolder):
+            subfolder += "_{0}".format(self.next_id(subfolder))
+        new_event = ProjectFileEvent(name=name, subfolder=subfolder)
+        session.add(new_event)
+        self.events.append(new_event)
+        session.commit()
         return new_event
 
+    def generate_event(self, session):
+        """
+        Add an event
+        """
+        event_name = "event_{0}".format(self.next_id("event"))
+        return self.add_event(name=event_name, subfolder=event_name,
+                              session=session)
 
 class ProjectFileEvent(DeclarativeBase):
     __tablename__ = "project_file_event"
@@ -70,7 +88,7 @@ class ProjectFileEvent(DeclarativeBase):
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
     project_file_event_manager_id = Column(Integer, ForeignKey('project_file_event_manager.id'))
     name = Column(String)
-    subfolder = Column(String, unique=True)
+    subfolder = Column(String)
 
     def __init__(self, name, subfolder):
         self.name = name

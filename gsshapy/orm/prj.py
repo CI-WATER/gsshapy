@@ -92,7 +92,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     linkNodeDatasets = relationship('LinkNodeDatasetFile', back_populates='projectFile')  #: RELATIONSHIP
     genericFiles = relationship('GenericFile', back_populates='projectFile')  #: RELATIONSHIP
     wmsDatasets = relationship('WMSDatasetFile', back_populates='projectFile')  #: RELATIONSHIP
-    projectFileEventManager = relationship('ProjectFileEventManager')  #: RELATIONSHIP
+    projectFileEventManager = relationship('ProjectFileEventManager', uselist=False)  #: RELATIONSHIP
 
     # File Properties
     MAP_TYPES_SUPPORTED = (1,)

@@ -31,9 +31,16 @@ class TestWriteMethods(unittest.TestCase):
         self.original = 'standard'
         self.name = 'standard'
 
+        self.dir_list = ('run_2014_to_2017', 'run_2015_to_2017',
+                         'run_2016_to_2017')
+        for subdir in self.dir_list:
+            try:
+                os.mkdir(os.path.join(self.readDirectory, subdir))
+            except OSError:
+                pass
+
         # Create DB Sessions
         readSession = dbt.create_session(sqlalchemy_url)
-        self.writeSession = dbt.create_session(sqlalchemy_url)
 
         # Instantiate GSSHAPY ProjectFile object
         prjR = ProjectFile()
@@ -44,6 +51,10 @@ class TestWriteMethods(unittest.TestCase):
                          session=readSession)
 
         readSession.close()
+
+        # create write session
+        self.writeSession = dbt.create_session(sqlalchemy_url)
+
 
     def test_project_file_write(self):
         '''
@@ -213,14 +224,29 @@ class TestWriteMethods(unittest.TestCase):
         # Retrieve ProjectFileEventManager from database
         prjEvtMng = self.writeSession.query(ProjectFileEventManager).one()
 
-        prjEvtMng.add_event(name="event3", subfolder="run_2015_to_2017",
-                            session=self.writeSession)
+        a = prjEvtMng.add_event(name="event3", subfolder="run_2015_to_2017",
+                                session=self.writeSession)
+        assert a.name == "event3"
+        assert a.subfolder == "run_2015_to_2017_1"
+
+        a1 = prjEvtMng.add_event(name="event3", subfolder="run_2015_to_2017",
+                                 session=self.writeSession)
+        assert a1.name == "event3"
+        assert a1.subfolder == "run_2015_to_2017_2"
+
+        b = prjEvtMng.generate_event(session=self.writeSession)
+        assert b.name == "event_0"
+        assert b.subfolder == "event_0"
+
+        b1 = prjEvtMng.generate_event(session=self.writeSession)
+        assert b1.name == "event_1"
+        assert b1.subfolder == "event_1"
 
         # Query and invoke write method
         self._query_n_write_filename(ProjectFileEventManager, 'testyml2.yml')
 
         # Test
-        self._compare_files('testyml', 'testyml2', 'yml')
+        self._compare_files('testyml2', 'testyml2', 'yml')
 
     def test_storm_pipe_network_file_write(self):
         '''
@@ -365,6 +391,8 @@ class TestWriteMethods(unittest.TestCase):
         '''
         Compare the contents of the files of two directories
         '''
+        self._delete_extra_dirs()
+
         fileList2 = os.listdir(dir2)
 
         for afile in fileList2:
@@ -379,9 +407,16 @@ class TestWriteMethods(unittest.TestCase):
         for one, two in itertools.izip(listone, listtwo):
             self.assertEqual(one, two)
 
+    def _delete_extra_dirs(self):
+        for subdir in self.dir_list:
+            try:
+                os.rmdir(os.path.join(self.readDirectory, subdir))
+            except OSError:
+                pass
+
     def tearDown(self):
         self.writeSession.close()
-
+        self._delete_extra_dirs()
         # Remove temp database
         dbt.del_sqlite_db(self.db_path)
 
@@ -391,7 +426,10 @@ class TestWriteMethods(unittest.TestCase):
         for afile in fileList:
             if afile != ".gitignore":
             	path = os.path.join(self.writeDirectory, afile)
-            	os.remove(path)
+                try:
+            	    os.remove(path)
+                except OSError:
+                    pass
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestWriteMethods)
 

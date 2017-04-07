@@ -269,6 +269,24 @@ class GSSHAFramework(object):
                                   filename=self.project_filename,
                                   session=self.db_session)
 
+        # generate event manager card if does not exist already
+        if not self.project_manager.projectFileEventManager:
+            prj_evt_manager = self.project_manager.INPUT_FILES['#GSSHAPY_EVENT_YML']()
+            self.db_session.add(prj_evt_manager)
+            prj_evt_manager.projectFile = self.project_manager
+            prj_evt_manager.write(directory=self.gssha_directory,
+                                  name='gsshapy_event.yml',
+                                  session=self.db_session)
+            self.project_manager.setCard(name='#GSSHAPY_EVENT_YML',
+                                         value='gsshapy_event.yml',
+                                         add_quotes=True)
+            self.project_manager.write(directory=self.gssha_directory,
+                                       name=self.project_filename,
+                                       session=self.db_session)
+            self.db_session.commit()
+
+        
+
         if not self._connect_to_lsm():
             self.event_manager = EventMode(project_manager=self.project_manager,
                                            db_session=self.db_session,
@@ -379,7 +397,7 @@ class GSSHAFramework(object):
         # TODO: Download WRF Forecasts
         return
 
-    def run(self):
+    def run(self, subdirectory=None):
         """
         Write out project file and run GSSHA simulation
         """
@@ -389,16 +407,35 @@ class GSSHAFramework(object):
                 self._delete_card(gssha_optional_output_card)
             # make sure running in SUPER_QUIET mode
             self._update_card('SUPER_QUIET', '')
-            # give execute folder name
-            timestamp_out_dir_name = "minimal_hotstart_run_{0}to{1}".format(self.event_manager.simulation_start.strftime("%Y%m%d%H%M"),
-                                                                            self.event_manager.simulation_end.strftime("%Y%m%d%H%M"))
+            if subdirectory is None:
+                # give execute folder name
+                subdirectory = "minimal_hotstart_run_{0}to{1}" \
+                               .format(self.event_manager.simulation_start.strftime("%Y%m%d%H%M"),
+                                       self.event_manager.simulation_end.strftime("%Y%m%d%H%M"))
         else:
             # give execute folder name
-            timestamp_out_dir_name = "run_{0}to{1}".format(self.event_manager.simulation_start.strftime("%Y%m%d%H%M"),
-                                                           self.event_manager.simulation_end.strftime("%Y%m%d%H%M"))
+            subdirectory = "run_{0}to{1}".format(self.event_manager.simulation_start.strftime("%Y%m%d%H%M"),
+                                                 self.event_manager.simulation_end.strftime("%Y%m%d%H%M"))
+
+
+        # ensure unique folder naming conventions and add to exisitng event manager
+        prj_evt_manager = self.project_manager.projectFileEventManager
+        prj_event = prj_evt_manager.add_event(name=subdirectory,
+                                              subfolder=subdirectory,
+                                              session=self.db_session)
+        eventyml_path = self.project_manager.getCard('#GSSHAPY_EVENT_YML') \
+                                            .value.strip("'").strip('"')
+        prj_evt_manager.write(session=self.db_session,
+                              directory=self.gssha_directory,
+                              name=os.path.basename(eventyml_path))
+        # ensure event manager not propagated to child event
+        self.project_manager.deleteCard('#GSSHAPY_EVENT_YML',
+                                        db_session=self.db_session)
+        self.db_session.delete(self.project_manager.projectFileEventManager)
+        self.db_session.commit()
 
         # make working directory
-        working_directory = os.path.join(self.gssha_directory, timestamp_out_dir_name)
+        working_directory = os.path.join(self.gssha_directory, prj_event.subfolder)
         try:
             os.mkdir(working_directory)
         except OSError:
