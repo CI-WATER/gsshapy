@@ -1,4 +1,7 @@
+import os
+
 from sqlalchemy import Column, ForeignKey, or_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import String, Integer
 import yaml
@@ -27,9 +30,14 @@ class ProjectFileEventManager(DeclarativeBase, GsshaPyFileObjectBase):
             yml_events = yaml.load(fo)
 
         for yml_event in yml_events:
-            orm_event = yml_event.as_orm()
-            session.add(orm_event)
-            self.events.append(orm_event)
+            if os.path.exists(os.path.join(directory, yml_event.subfolder)):
+                try:
+                    orm_event = yml_event.as_orm()
+                    session.add(orm_event)
+                    self.events.append(orm_event)
+                except IntegrityError:
+                    pass
+
         session.commit()
 
     def _write(self, session, openFile, replaceParamFile=None):
@@ -42,11 +50,18 @@ class ProjectFileEventManager(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Add an event
         """
-        new_event = ProjectFileEvent(name=name, subfolder=subfolder)
-        session.add(new_event)
-        self.events.append(new_event)
-        session.commit()
-
+        int_err = True
+        new_event = None
+        while int_err:
+            try:
+                new_event = ProjectFileEvent(name=name, subfolder=subfolder)
+                session.add(new_event)
+                self.events.append(new_event)
+                session.commit()
+            except IntegrityError as int_err:
+                subfolder += "_{0}".format(self.events.count()+1)
+                pass
+        return new_event
 
 
 class ProjectFileEvent(DeclarativeBase):

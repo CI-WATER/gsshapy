@@ -206,6 +206,22 @@ class TestWriteMethods(unittest.TestCase):
         # Test
         self._compare_files('testyml', 'testyml', 'yml')
 
+    def test_evt_yml_file_add_write(self):
+        '''
+        Test ProjectFileEventManager add_event write method
+        '''
+        # Retrieve ProjectFileEventManager from database
+        prjEvtMng = self.writeSession.query(ProjectFileEventManager).one()
+
+        prjEvtMng.add_event(name="event3", subfolder="run_2015_to_2017",
+                            session=self.writeSession)
+
+        # Query and invoke write method
+        self._query_n_write_filename(ProjectFileEventManager, 'testyml2.yml')
+
+        # Test
+        self._compare_files('testyml', 'testyml2', 'yml')
+
     def test_storm_pipe_network_file_write(self):
         '''
         Test StormPipeNetworkFile write method
