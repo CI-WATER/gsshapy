@@ -40,14 +40,14 @@ before_install:
 - export PATH=$HOME/miniconda/bin:$PATH
 - conda update --yes conda python
 #create environment in conda
-- conda create --yes --name gssha python=$TRAVIS_PYTHON_VERSION
+- conda env create -f conda-env.yml python=$TRAVIS_PYTHON_VERSION
 - source activate gssha
 
 #-------------------------------------------------------------------------------
 # Install required python packages
 #-----------------------------------------------------------------------------
 - conda config --add channels conda-forge
-- conda install --yes affine mapkit pygrib psycopg2 timezonefinder rapidpy
+- conda install --yes pygrib
 - conda install --yes pytest pytest-cov
 - pip install coveralls
 
