@@ -8,6 +8,7 @@ requires = [
     'sqlalchemy',
     'timezonefinder',
     'utm',
+    'pyyaml',
     ]
 
 setup(name='gsshapy',
@@ -16,7 +17,7 @@ setup(name='gsshapy',
                   ' to convert gridded input into GSSHA input'
                   ' (http://gsshapy.readthedocs.io).',
       long_description='',
-      author='Nathan Swain and Alan D. Snow',
+      author='Nathan Swain, Alan D. Snow, and Scott D. Christensen',
       author_email='nathan.swain@byu.net',
       url='https://github.com/CI-WATER/gsshapy',
       license='BSD 3-Clause License',
