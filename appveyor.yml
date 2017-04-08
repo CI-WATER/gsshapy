@@ -20,16 +20,12 @@ install:
   #create environment in conda
   - conda config --set always_yes yes
   - conda update -q conda python
-  - "conda create --name gssha python=%PYTHON_VERSION%"
+  - conda env create -f conda-env.yml python=%PYTHON_VERSION%
   - activate gssha
   # Install required python packages
   - conda config --add channels conda-forge
-  - conda install --yes affine mapkit psycopg2 timezonefinder rapidpy
   - conda install --yes pytest pytest-cov
   - pip install coveralls
-  # reactivate environment to update paths
-  - deactivate
-  - activate gssha
   #TODO: FIGURE OUT HOW TO INSTALL PYGRIB ON WINDOWS
   # Create directory for install packages
   #- 'SET INSTALLZ_DIR=%APPVEYOR_BUILD_FOLDER%\..\installz'
