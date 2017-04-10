@@ -7,7 +7,7 @@
 ********************************************************************************
 '''
 from glob import glob
-from os import path
+from os import environ, path
 import unittest
 from shutil import copy
 
@@ -60,7 +60,7 @@ class TestResampleShapefile(TestGridTemplate):
         Method to execute at beginning of tearDown
         '''
         # make sure cleanup worked
-        if os.environ.get('APPVEYOR_BUILD_FOLDER') is None:
+        if environ.get('APPVEYOR_BUILD_FOLDER') is None:
             assert not path.exists(self.projected_shapefile)
 
     def _compare_masks(self, mask_name):
