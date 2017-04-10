@@ -1,7 +1,11 @@
 - !ProjectFileEvent {name: event1, subfolder: run_2016_to_2017}
 - !ProjectFileEvent {name: event2, subfolder: run_2014_to_2017}
+- !ProjectFileEvent {name: event2, subfolder: run_2014_to_2017_2}
+- !ProjectFileEvent {name: event2, subfolder: run_2014_to_2017_3}
+- !ProjectFileEvent {name: event2, subfolder: run_2014_to_2017_4}
 - !ProjectFileEvent {name: event3, subfolder: run_2015_to_2017}
 - !ProjectFileEvent {name: event3, subfolder: run_2015_to_2017_1}
 - !ProjectFileEvent {name: event3, subfolder: run_2015_to_2017_2}
-- !ProjectFileEvent {name: event_0, subfolder: event_0}
+- !ProjectFileEvent {name: event3, subfolder: run_2015_to_2017_3}
 - !ProjectFileEvent {name: event_1, subfolder: event_1}
+- !ProjectFileEvent {name: event_2, subfolder: event_2}

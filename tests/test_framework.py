@@ -82,6 +82,11 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         assert compare_csv_timeseries_files(self._generated_file_path('run_200208291800to200208311800', extension='ihg'),
                                             compare_igh_file,
                                             header=False)
+
+        # compare yml files
+        self._compare_files(os.path.join(self.readDirectory, 'framework', 'gssha_event_rapid_200208291800to200208311800.yml'),
+                            os.path.join(self.gssha_project_directory, 'gsshapy_event.yml'))
+
         # grid_standard.cmt
         # 1 file in main directory not modified
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
@@ -117,6 +122,10 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                         "grid_standard_rapid_200208291800to200208311800.ihg")
         assert compare_csv_timeseries_files(self._generated_file_path('run_200208291800to200208311800', extension='ihg'),
                                             compare_igh_file, header=False)
+
+        # compare yml files
+        self._compare_files(os.path.join(self.readDirectory, 'framework', 'gssha_event_rapid_200208291800to200208311800.yml'),
+                            os.path.join(self.gssha_project_directory, 'gsshapy_event.yml'))
 
         # grid_standard.cmt
         # 1 file in main directory not modified
@@ -264,6 +273,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         assert compare_csv_timeseries_files(self._generated_file_path('minimal_hotstart_run_200208291800to200208300000', extension='ihg'),
                                             compare_igh_file, header=False)
 
+        # compare yml files
+        self._compare_files(os.path.join(self.readDirectory, 'framework', 'gssha_event_rapid_hotstart_200208291800to200208300000.yml'),
+                            os.path.join(self.gssha_project_directory, 'gsshapy_event.yml'))
         # grid_standard.cmt
         # 1 file in main directory not modified
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
@@ -307,6 +319,10 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # grid_standard.gag
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608231600to201608240700.gag"),
                             self._generated_file_path('run_201608231600to201608240700', extension="gag"))
+
+        # compare yml files
+        self._compare_files(os.path.join(self.readDirectory, 'framework', 'gssha_event_wrf_201608231600to201608240700.yml'),
+                            os.path.join(self.gssha_project_directory, 'gsshapy_event.yml'))
 
         # compare HMET files
         compare_directory = os.path.join(self.readDirectory,
@@ -354,6 +370,10 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608231600to201608240700.gag"),
                             self._generated_file_path('run_201608231600to201608240700', extension="gag"))
 
+        # compare yml files
+        self._compare_files(os.path.join(self.readDirectory, 'framework', 'gssha_event_wrf_201608231600to201608240700.yml'),
+                            os.path.join(self.gssha_project_directory, 'gsshapy_event.yml'))
+
         # compare HMET files
         compare_directory = os.path.join(self.readDirectory,
                                          "framework",
@@ -398,6 +418,10 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # grid_standard.gag
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608231600to201608240700.gag"),
                             self._generated_file_path('run_201608231600to201608240700', extension="gag"))
+
+        # compare yml files
+        self._compare_files(os.path.join(self.readDirectory, 'framework', 'gssha_event_wrf_201608231600to201608240700.yml'),
+                            os.path.join(self.gssha_project_directory, 'gsshapy_event.yml'))
 
         # compare HMET files
         compare_directory = os.path.join(self.readDirectory,
@@ -446,6 +470,10 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # grid_standard.gag
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608230000to200208240359.gag"),
                             self._generated_file_path('run_201608230000to200208240359', extension="gag"))
+
+        # compare yml files
+        self._compare_files(os.path.join(self.readDirectory, 'framework', 'gssha_event_wrf_201608230000to200208240359.yml'),
+                            os.path.join(self.gssha_project_directory, 'gsshapy_event.yml'))
 
         # compare HMET files
         compare_directory = os.path.join(self.readDirectory,
@@ -496,6 +524,10 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608231600to201608232200.gag"),
                             self._generated_file_path('minimal_hotstart_run_201608231600to201608232200', extension="gag"))
 
+        # compare yml files
+        self._compare_files(os.path.join(self.readDirectory, 'framework', 'gssha_event_wrf_minimal_hotstart_201608231600to201608232200.yml'),
+                            os.path.join(self.gssha_project_directory, 'gsshapy_event.yml'))
+
         # compare HMET files
         compare_directory = os.path.join(self.readDirectory,
                                          "framework",
@@ -515,7 +547,6 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         return os.path.join(self.gssha_project_directory,
                             output_directory,
                             'grid_standard.{0}'.format(extension))
-
 
 if __name__ == '__main__':
     unittest.main()

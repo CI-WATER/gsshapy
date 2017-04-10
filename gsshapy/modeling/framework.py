@@ -7,6 +7,7 @@
 #  BSD 3-Clause
 
 from datetime import datetime
+from distutils.spawn import find_executable
 from glob import glob
 import os
 from shutil import copy, move
@@ -506,7 +507,7 @@ class GSSHAFramework(object):
                                    name=self.project_manager.name)
 
         # RUN SIMULATION
-        if self.gssha_executable and os.path.exists(self.gssha_executable):
+        if self.gssha_executable and find_executable(self.gssha_executable) is not None:
             print("RUNNING GSSHA SIMULATION ...")
 
             run_gssha_command = [self.gssha_executable,
@@ -519,9 +520,10 @@ class GSSHAFramework(object):
             except subprocess.CalledProcessError as ex:
                 print("ERROR {0}: {1}".format(ex.returncode, ex.output))
 
-            return working_directory
         else:
             print("GSSHA EXECTUABLE NOT FOUND. SKIPPING GSSHA SIMULATION RUN ...")
+
+        return working_directory
 
     def run_forecast(self):
 
@@ -644,7 +646,7 @@ class GSSHAFramework(object):
         # ----------------------------------------------------------------------
         # Run GSSHA
         # ----------------------------------------------------------------------
-        self.run()
+        return self.run()
 
 
 class GSSHA_WRF_Framework(GSSHAFramework):

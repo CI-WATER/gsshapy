@@ -1,5 +1,5 @@
 import os
-
+import re
 from sqlalchemy import Column, ForeignKey, or_, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import relationship
@@ -21,18 +21,11 @@ class ProjectFileEventManager(DeclarativeBase, GsshaPyFileObjectBase):
                           cascade="save-update,merge,delete,delete-orphan")  #: RELATIONSHIP
 
 
-    def _events_by_subfolder(self, subfolder):
-        return self.events.filter(
-                    or_(ProjectFileEvent.subfolder==subfolder,
-                        ProjectFileEvent.subfolder.like("{0}_%".format(subfolder))
-                        )
-                    )
-
     def _similar_event_exists(self, subfolder):
         """
         Check if events exist
         """
-        return self._events_by_subfolder(subfolder).first()
+        return self.events.filter_by(subfolder=subfolder).first()
 
     def _read(self, directory, filename, session, path, name, extension,
               spatial=None, spatialReferenceID=None, replaceParamFile=None):
@@ -46,7 +39,7 @@ class ProjectFileEventManager(DeclarativeBase, GsshaPyFileObjectBase):
         for yml_event in yml_events:
             if os.path.exists(os.path.join(directory, yml_event.subfolder)):
                 orm_event = yml_event.as_orm()
-                if not self.events.filter_by(subfolder=yml_event.subfolder).first():
+                if not self._similar_event_exists(orm_event.subfolder):
                     session.add(orm_event)
                     self.events.append(orm_event)
 
@@ -57,10 +50,24 @@ class ProjectFileEventManager(DeclarativeBase, GsshaPyFileObjectBase):
         ProjectFileEvent Write to File Method
         """
         openFile.write(yaml.dump([evt.as_yml() for evt in
-                                  self.events.order_by(ProjectFileEvent.name)]))
+                                  self.events.order_by(ProjectFileEvent.name,
+                                                       ProjectFileEvent.subfolder)]))
 
     def next_id(self, subfolder):
-        return self._events_by_subfolder(subfolder).count()
+        """
+        ProjectFileEvent Write to File Method
+        """
+        evt_sim_folders = self.events.filter(
+                        ProjectFileEvent.subfolder
+                            .like("{0}_%".format(subfolder))
+                    )
+        max_id = 0
+        num_search = re.compile(r'{0}_(\d+)'.format(subfolder), re.IGNORECASE)
+        for prj_event in evt_sim_folders:
+            found_num = num_search.findall(prj_event.subfolder)
+            if found_num is not None:
+                max_id = max(max_id, int(found_num[0]))
+        return max_id + 1
 
     def add_event(self, name, subfolder, session):
         """

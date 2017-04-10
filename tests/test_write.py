@@ -31,7 +31,8 @@ class TestWriteMethods(unittest.TestCase):
         self.original = 'standard'
         self.name = 'standard'
 
-        self.dir_list = ('run_2014_to_2017', 'run_2015_to_2017',
+        self.dir_list = ('run_2014_to_2017', 'run_2014_to_2017_2',
+                         'run_2015_to_2017', 'run_2015_to_2017_1',
                          'run_2016_to_2017')
         for subdir in self.dir_list:
             try:
@@ -227,20 +228,30 @@ class TestWriteMethods(unittest.TestCase):
         a = prjEvtMng.add_event(name="event3", subfolder="run_2015_to_2017",
                                 session=self.writeSession)
         assert a.name == "event3"
-        assert a.subfolder == "run_2015_to_2017_1"
+        assert a.subfolder == "run_2015_to_2017_2"
 
         a1 = prjEvtMng.add_event(name="event3", subfolder="run_2015_to_2017",
                                  session=self.writeSession)
         assert a1.name == "event3"
-        assert a1.subfolder == "run_2015_to_2017_2"
+        assert a1.subfolder == "run_2015_to_2017_3"
 
         b = prjEvtMng.generate_event(session=self.writeSession)
-        assert b.name == "event_0"
-        assert b.subfolder == "event_0"
+        assert b.name == "event_1"
+        assert b.subfolder == "event_1"
 
         b1 = prjEvtMng.generate_event(session=self.writeSession)
-        assert b1.name == "event_1"
-        assert b1.subfolder == "event_1"
+        assert b1.name == "event_2"
+        assert b1.subfolder == "event_2"
+
+        c = prjEvtMng.add_event(name="event2", subfolder="run_2014_to_2017",
+                                session=self.writeSession)
+        assert c.name == "event2"
+        assert c.subfolder == "run_2014_to_2017_3"
+
+        c1 = prjEvtMng.add_event(name="event2", subfolder="run_2014_to_2017",
+                                session=self.writeSession)
+        assert c1.name == "event2"
+        assert c1.subfolder == "run_2014_to_2017_4"
 
         # Query and invoke write method
         self._query_n_write_filename(ProjectFileEventManager, 'testyml2.yml')
