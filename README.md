@@ -1,5 +1,5 @@
 # gsshapy
-Object Relational Model for GSSHA model files.
+An SQLAlchemy ORM for GSSHA model files and a toolkit to convert gridded input into GSSHA input.
 
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-yellow.svg)](https://github.com/ci-water/gsshapy/blob/master/LICENSE)
 
