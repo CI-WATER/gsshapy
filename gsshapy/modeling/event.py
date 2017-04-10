@@ -6,7 +6,7 @@
 #  Created by Alan D Snow, 2017.
 #  BSD 3-Clause
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from numpy import mean
 import os
 from osgeo import gdal, osr
@@ -68,7 +68,7 @@ class Event(object):
         duration = self.project_manager.getCard("TOT_TIME")
         self.simulation_duration = simulation_duration
         if duration and load_simulation_datetime:
-            self.simulation_duration = datetime.timedelta(seconds=float(duration.value.strip())*60.0)
+            self.simulation_duration = timedelta(seconds=float(duration.value.strip())*60.0)
 
         start_time = self.project_manager.getCard("START_TIME")
         start_date = self.project_manager.getCard("START_DATE")
