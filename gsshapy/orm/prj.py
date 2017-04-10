@@ -224,7 +224,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             self.setCard(name='MAP_TYPE', value=str(map_type))
 
     def _read(self, directory, filename, session, path, name, extension,
-              spatial, spatialReferenceID, replaceParamFile):
+              spatial, spatialReferenceID, replaceParamFile,
+              force_relative=True):
         """
         Project File Read from File Method
         """
@@ -250,10 +251,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     continue
 
                 try:
-                    card = self._extractCard(line)
+                    card = self._extractCard(line, force_relative)
 
                 except:
-                    card = self._extractDirectoryCard(line)
+                    card = self._extractDirectoryCard(line, force_relative)
 
                 # Now that the cardName and cardValue are separated
                 # load them into the gsshapy objects
@@ -1750,7 +1751,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # If the value is a None type, then return false
         return False
 
-    def _extractCard(self, projectLine):
+    def _extractCard(self, projectLine, force_relative=True):
         DIRECTORY_PATHS = ('REPLACE_FOLDER',)
 
         splitLine = shlex.split(projectLine)
@@ -1773,7 +1774,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # A string will throw an exception with an attempt to
                 # convert to float. In this case wrap the string
                 # in double quotes.
-                if cardName == 'WMS':
+                if cardName == 'WMS' or not force_relative:
                     cardValue = ' '.join(splitLine[1:])
                 elif '.' in pathSplit[-1]:
                     if cardName == '#INDEXGRID_GUID':
@@ -1804,7 +1805,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         return {'name': cardName, 'value': cardValue}
 
-    def _extractDirectoryCard(self, projectLine):
+    def _extractDirectoryCard(self, projectLine, force_relative=True):
         PROJECT_PATH = ('PROJECT_PATH')
 
         # Handle special case with directory cards in windows.
@@ -1814,31 +1815,34 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Extract Card Name from the first item in the list
         cardName = currLine[0]
-        preValue = currLine[1].strip('"')
+        preValue = currLine[1].strip('"').strip("'")
 
-        if cardName in PROJECT_PATH:
-            # Project as relative is the current directory (empty string)
-            cardValue = '""'
+        if not force_relative:
+            cardValue = preValue
         else:
-            # Pull only the last directory to make it relative
-            if preValue.endswith('/'):
-                splath = preValue.split('/')
-                dirname = splath[-2]
-
-            elif preValue.endswith('\\\\'):
-                splath = preValue.split('\\\\')
-                dirname = splath[-2]
-
-            elif preValue.endswith('\\'):
-                splath = preValue.split('\\')
-                dirname = splath[-2]
-
+            if cardName in PROJECT_PATH:
+                # Project as relative is the current directory (empty string)
+                cardValue = '""'
             else:
-                dirname = os.path.basename(preValue)
+                # Pull only the last directory to make it relative
+                if preValue.endswith('/'):
+                    splath = preValue.split('/')
+                    dirname = splath[-2]
 
-            # Eliminate slashes to make it OS agnostic
-            basename = dirname.replace('\\', '')
-            cardValue = '"%s"' % basename.replace('/', '')
+                elif preValue.endswith('\\\\'):
+                    splath = preValue.split('\\\\')
+                    dirname = splath[-2]
+
+                elif preValue.endswith('\\'):
+                    splath = preValue.split('\\')
+                    dirname = splath[-2]
+
+                else:
+                    dirname = os.path.basename(preValue)
+
+                # Eliminate slashes to make it OS agnostic
+                basename = dirname.replace('\\', '')
+                cardValue = '"%s"' % basename.replace('/', '')
 
         return {'name': cardName, 'value': cardValue}
 
