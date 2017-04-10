@@ -32,6 +32,7 @@ class Event(object):
         simulation_start(Optional[datetime]): Date of simulation start.
         simulation_end(Optional[datetime]): Date of simulation end.
         simulation_duration(Optional[timedelta]): Datetime timedelta object with duration of GSSHA simulation.
+        load_simulation_datetime(Optional[bool]): If True, this will load in datetime information from the project file. Default is False.
     '''
     PRECIP_INTERP_TYPES = ('THIESSEN', 'INV_DISTANCE')
     ET_CALC_MODES = ("PENMAN", "DEARDORFF")
@@ -50,14 +51,33 @@ class Event(object):
                  simulation_start=None,
                  simulation_end=None,
                  simulation_duration=None,
+                 load_simulation_datetime=False,
                  ):
 
         self.project_manager = project_manager
         self.db_session = db_session
         self.gssha_directory = gssha_directory
-        self.simulation_duration = simulation_duration
+
+        # load time
+        end_time = self.project_manager.getCard("END_TIME")
         self.simulation_end = simulation_end
-        self._update_simulation_start(simulation_start)
+        if end_time and load_simulation_datetime:
+            self.simulation_end = datetime.strptime(end_time.value.strip(), "%Y %m %d %H %M")
+
+
+        duration = self.project_manager.getCard("TOT_TIME")
+        self.simulation_duration = simulation_duration
+        if duration and load_simulation_datetime:
+            self.simulation_duration = datetime.timedelta(seconds=float(duration.value.strip())*60.0)
+
+        start_time = self.project_manager.getCard("START_TIME")
+        start_date = self.project_manager.getCard("START_DATE")
+        if start_time and start_date and load_simulation_datetime:
+            stard_date_time_str = start_date.value.strip() + " " + start_time.value.strip()
+            self._update_simulation_start(datetime.strptime(stard_date_time_str, "%Y %m %d %H %M"))
+        else:
+            self._update_simulation_start(simulation_start)
+
         self._update_centroid_timezone()
 
     def _update_card(self, card_name, new_value, add_quotes=False):
@@ -218,6 +238,7 @@ class EventMode(Event):
                  simulation_start,
                  simulation_end=None,
                  simulation_duration=None,
+                 load_simulation_datetime=False,
                  ):
 
         if simulation_duration is None and None not in \
@@ -226,7 +247,8 @@ class EventMode(Event):
 
         super(EventMode, self).__init__(project_manager, db_session,
                                         gssha_directory, simulation_start,
-                                        simulation_end, simulation_duration)
+                                        simulation_end, simulation_duration,
+                                        load_simulation_datetime)
 
         # Clean up any long term mode cards
         for long_term_mode_card in self.LONG_TERM_MODE_CARDS:
@@ -264,6 +286,7 @@ class LongTermMode(Event):
         db_session(Database session): Database session object.
         simulation_start(Optional[datetime]): Date of simulation start.
         simulation_end(Optional[datetime]): Date of simulation end.
+        load_simulation_datetime(Optional[bool]): If True, this will load in datetime information from the project file. Default is False.
         event_min_q(Optional[double]): Threshold discharge for continuing runoff events in m3/s. Default is 60.0.
         et_calc_mode(Optional[str]): Type of evapo-transpitation calculation for GSSHA. Can be "PENMAN" or "DEARDORFF". Default is "PENMAN".
         soil_moisture_depth(Optional[double]): Depth of the active soil moisture layer from which ET occurs (m). Default is 0.0.
@@ -276,6 +299,7 @@ class LongTermMode(Event):
                  simulation_start=None,
                  simulation_end=None,
                  simulation_duration=None,
+                 load_simulation_datetime=False,
                  event_min_q=None,
                  et_calc_mode=None,
                  soil_moisture_depth=None,
@@ -283,7 +307,8 @@ class LongTermMode(Event):
 
         super(LongTermMode, self).__init__(project_manager, db_session,
                                            gssha_directory, simulation_start,
-                                           simulation_end, simulation_duration)
+                                           simulation_end, simulation_duration,
+                                           load_simulation_datetime)
 
         # Clean up any event mode cards
         for evt_mode_card in self.EVENT_MODE_CARDS:

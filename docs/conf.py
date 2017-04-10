@@ -11,6 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+from datetime import datetime
 import sys, os
 
 ##TEMP SECTION UNTIL PILLOW/GDAL DEPENDENCIES FIXED
@@ -41,8 +42,10 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.todo', 'sphinx.ext.coverage', 'sphinx.ext.mathjax',
-              'sphinx.ext.ifconfig', 'sphinx.ext.viewcode', 'sphinxcontrib.napoleon']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.todo',
+              'sphinx.ext.coverage', 'sphinx.ext.mathjax',
+              'sphinx.ext.ifconfig', 'sphinx.ext.viewcode',
+              'sphinxcontrib.napoleon']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -58,7 +61,9 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'GSSHAPY'
-copyright = u'2014, Brigham Young University'
+copyright = (u'2014-{0}, Brigham Young University & '
+             'US Army Engineer Research and Development Center'
+             .format(datetime.now().year))
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -204,7 +209,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'GSSHAPY.tex', u'GSSHAPY Documentation',
-   u'Nathan Swain', 'manual'),
+   u'Nathan Swain, Alan D. Snow, and Scott D. Christensen', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -234,7 +239,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'gsshapy', u'GSSHAPY Documentation',
-     [u'Nathan Swain'], 1)
+     [u'Nathan Swain', u'Alan D. Snow', u'Scott D. Christensen'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -248,7 +253,9 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'GSSHAPY', u'GSSHAPY Documentation',
-   u'Nathan Swain', 'GSSHAPY', 'One line description of project.',
+   u'Nathan Swain, Alan D. Snow, and Scott D. Christensen',
+   'GSSHAPY', ('An SQLAlchemy ORM for GSSHA model files and a '
+               'toolkit to convert gridded input into GSSHA input.'),
    'Miscellaneous'),
 ]
 

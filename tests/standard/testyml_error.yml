@@ -1,0 +1,4 @@
+- !ProjectFileEvent {name: event1, subfolder: run_2016_to_2017}
+- !ProjectFileEvent {name: event2, subfolder: run_2014_to_2017}
+- !ProjectFileEvent {name: event3, subfolder: run_2015_to_2017}
+- !ProjectFileEvent {name: event3, subfolder: run_2015_to_2017}

@@ -11,6 +11,7 @@
 from builtins import zip
 import unittest
 import os
+import sqlalchemy
 
 from gsshapy.orm.file_io import *
 from gsshapy.orm import ProjectFile
@@ -324,6 +325,71 @@ class TestReadMethods(unittest.TestCase):
         assert len(dfR.index) == 10
         self.assertAlmostEqual(dfR.iloc[7, 1], 0.016869)
         self.assertAlmostEqual(dfR.index[7], 2002.42440068)
+
+    def test_evt_yml_file_read(self):
+        '''
+        Test ProjectFileEventManager read method
+        '''
+        dir_list = ('run_2014_to_2017', 'run_2015_to_2017',
+                    'run_2016_to_2017')
+        for subdir in dir_list:
+            try:
+                os.mkdir(os.path.join(self.directory, subdir))
+            except OSError:
+                pass
+
+        ymlR, ymlQ = self._read_n_query(fileIO=ProjectFileEventManager,
+                                        directory=self.directory,
+                                        filename='testyml.yml')
+
+        # Tests
+        assert ymlR.events.count() == 3
+        a = ymlR.events.filter_by(subfolder='run_2015_to_2017').one()
+
+        # cleanup
+        for subdir in dir_list:
+            try:
+                os.rmdir(os.path.join(self.directory, subdir))
+            except OSError:
+                pass
+
+    def test_evt_yml_file_read_error(self):
+        '''
+        Test ProjectFileEventManager read method integrity
+        '''
+        dir_list = ('run_2014_to_2017', 'run_2015_to_2017',
+                    'run_2016_to_2017')
+        for subdir in dir_list:
+            try:
+                os.mkdir(os.path.join(self.directory, subdir))
+            except OSError:
+                pass
+
+        ymlR, ymlQ = self._read_n_query(fileIO=ProjectFileEventManager,
+                                        directory=self.directory,
+                                        filename='testyml_error.yml')
+
+        # Tests
+        assert ymlR.events.count() == 3
+        a = ymlR.events.filter_by(subfolder='run_2015_to_2017').one()
+
+        # cleanup
+        for subdir in dir_list:
+            try:
+                os.rmdir(os.path.join(self.directory, subdir))
+            except OSError:
+                pass
+
+    def test_evt_yml_file_read_nodir(self):
+        '''
+        Test ProjectFileEventManager read method without directories
+        '''
+        ymlR, ymlQ = self._read_n_query(fileIO=ProjectFileEventManager,
+                                        directory=self.directory,
+                                        filename='testyml.yml')
+
+        # Tests
+        assert ymlR.events.count() == 0
 
     def test_index_map_read(self):
         '''

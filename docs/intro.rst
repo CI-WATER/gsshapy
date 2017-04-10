@@ -2,11 +2,12 @@
 Introduction
 ************
 
-**Last Updated:** September 16, 2016
+**Last Updated:** April 10, 2017
 
 GsshaPy is an object relational model (ORM) for the Gridded Surface Subsurface
-Hydrologic Analysis (GSSHA) model. The purpose of GsshaPy is to expose GSSHA files
-to a web development environment by reading them into an SQL database. The files
+Hydrologic Analysis (GSSHA) model and a toolkit to convert gridded input into
+GSSHA input. The purpose of GsshaPy is to expose GSSHA files to a web
+development environment by reading them into an SQL database. The files
 can also be written back to file for model execution. GsshaPy is built on top of
 the powerful SQLAlchemy ORM.
 
@@ -26,18 +27,16 @@ moisture as well as runoff and flooding on watersheds.
 
 .. _gsshawiki: http://www.gsshawiki.com/Main_Page
 
-Requirements
-============
-
-The spatial components of GsshaPy rely heavily on the PostGIS spatial extension for the PostgreSQL database. To work with
-spatial data in GsshaPy you will need to use a PostgreSQL database with PostGIS 2.1 or greater enabled. In addition,
-GsshaPy relies on a Python module called mapkit to generate visualizations. This will automatically be installed when
-you install GsshaPy.
-
 .. _gsshapy-installation:
 
 Installation
 ============
+
+.. note::
+
+  The spatial components of GsshaPy can rely heavily on the PostGIS spatial
+  extension for the PostgreSQL database. To work with spatial data in GsshaPy
+  you will need to use a PostgreSQL database with PostGIS 2.1 or greater enabled.
 
 Linux/Mac
 ---------
@@ -75,7 +74,7 @@ Install gsshapy for development:
     $ conda create --name gssha python=2
     $ source activate gssha
     $ conda config --add channels conda-forge
-    (gssha)$ conda install --yes affine mapkit pygrib psycopg2 timezonefinder rapidpy
+    (gssha)$ conda install --yes affine mapkit pygrib psycopg2 timezonefinder utm rapidpy
     (gssha)$ git clone https://github.com/CI-WATER/gsshapy.git
     (gssha)$ cd gsshapy
     (gssha)$ python setup.py develop
@@ -125,7 +124,7 @@ Open up the CMD program. Then, enter each line separately.
     > conda create --name gssha python=2
     > activate gssha
     (gssha)> conda config --add channels conda-forge
-    (gssha)> conda install --yes affine mapkit psycopg2 timezonefinder rapidpy
+    (gssha)> conda install --yes affine mapkit psycopg2 timezonefinder utm rapidpy
     (gssha)> python setup.py develop
 
 .. note:: When using a new CMD terminal, always type *activate gssha* before using GsshaPy.
@@ -152,7 +151,7 @@ The source code is available on GitHub: https://github.com/CI-WATER/gsshapy.git
 Authors
 =======
 
-Nathan Swain & Alan D. Snow
+Nathan Swain, Alan D. Snow, and Scott D. Christensen.
 
 NSF Grant
 =========

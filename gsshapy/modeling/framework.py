@@ -7,6 +7,7 @@
 #  BSD 3-Clause
 
 from datetime import datetime
+from distutils.spawn import find_executable
 from glob import glob
 import os
 from shutil import copy, move
@@ -57,6 +58,7 @@ class GSSHAFramework(object):
         gssha_simulation_start(Optional[datetime]): Datetime object with date of start of GSSHA simulation.
         gssha_simulation_end(Optional[datetime]): Datetime object with date of end of GSSHA simulation.
         gssha_simulation_duration(Optional[timedelta]): Datetime timedelta object with duration of GSSHA simulation.
+        load_simulation_datetime(Optional[bool]): If True, this will load in datetime information from the project file. Default is False.
         spt_watershed_name(Optional[str]): Streamflow Prediction Tool watershed name.
         spt_subbasin_name(Optional[str]): Streamflow Prediction Tool subbasin name.
         spt_forecast_date_string(Optional[str]): Streamflow Prediction Tool forecast date string.
@@ -197,6 +199,7 @@ class GSSHAFramework(object):
                  gssha_simulation_start=None,
                  gssha_simulation_end=None,
                  gssha_simulation_duration=None,
+                 load_simulation_datetime=False,
                  spt_watershed_name=None,
                  spt_subbasin_name=None,
                  spt_forecast_date_string=None,
@@ -269,6 +272,22 @@ class GSSHAFramework(object):
                                   filename=self.project_filename,
                                   session=self.db_session)
 
+        # generate event manager card if does not exist already
+        if not self.project_manager.projectFileEventManager:
+            prj_evt_manager = self.project_manager.INPUT_FILES['#GSSHAPY_EVENT_YML']()
+            self.db_session.add(prj_evt_manager)
+            prj_evt_manager.projectFile = self.project_manager
+            prj_evt_manager.write(directory=self.gssha_directory,
+                                  name='gsshapy_event.yml',
+                                  session=self.db_session)
+            self.project_manager.setCard(name='#GSSHAPY_EVENT_YML',
+                                         value='gsshapy_event.yml',
+                                         add_quotes=True)
+            self.project_manager.write(directory=self.gssha_directory,
+                                       name=self.project_filename,
+                                       session=self.db_session)
+            self.db_session.commit()
+
         if not self._connect_to_lsm():
             self.event_manager = EventMode(project_manager=self.project_manager,
                                            db_session=self.db_session,
@@ -276,6 +295,7 @@ class GSSHAFramework(object):
                                            simulation_start=gssha_simulation_start,
                                            simulation_end=gssha_simulation_end,
                                            simulation_duration=gssha_simulation_duration,
+                                           load_simulation_datetime=load_simulation_datetime,
                                           )
         else:
             self.event_manager = LongTermMode(project_manager=self.project_manager,
@@ -287,6 +307,7 @@ class GSSHAFramework(object):
                                               event_min_q=event_min_q,
                                               et_calc_mode=et_calc_mode,
                                               soil_moisture_depth=soil_moisture_depth,
+                                              load_simulation_datetime=load_simulation_datetime,
                                              )
 
 
@@ -379,7 +400,7 @@ class GSSHAFramework(object):
         # TODO: Download WRF Forecasts
         return
 
-    def run(self):
+    def run(self, subdirectory=None):
         """
         Write out project file and run GSSHA simulation
         """
@@ -389,16 +410,35 @@ class GSSHAFramework(object):
                 self._delete_card(gssha_optional_output_card)
             # make sure running in SUPER_QUIET mode
             self._update_card('SUPER_QUIET', '')
-            # give execute folder name
-            timestamp_out_dir_name = "minimal_hotstart_run_{0}to{1}".format(self.event_manager.simulation_start.strftime("%Y%m%d%H%M"),
-                                                                            self.event_manager.simulation_end.strftime("%Y%m%d%H%M"))
+            if subdirectory is None:
+                # give execute folder name
+                subdirectory = "minimal_hotstart_run_{0}to{1}" \
+                               .format(self.event_manager.simulation_start.strftime("%Y%m%d%H%M"),
+                                       self.event_manager.simulation_end.strftime("%Y%m%d%H%M"))
         else:
             # give execute folder name
-            timestamp_out_dir_name = "run_{0}to{1}".format(self.event_manager.simulation_start.strftime("%Y%m%d%H%M"),
-                                                           self.event_manager.simulation_end.strftime("%Y%m%d%H%M"))
+            subdirectory = "run_{0}to{1}".format(self.event_manager.simulation_start.strftime("%Y%m%d%H%M"),
+                                                 self.event_manager.simulation_end.strftime("%Y%m%d%H%M"))
+
+
+        # ensure unique folder naming conventions and add to exisitng event manager
+        prj_evt_manager = self.project_manager.projectFileEventManager
+        prj_event = prj_evt_manager.add_event(name=subdirectory,
+                                              subfolder=subdirectory,
+                                              session=self.db_session)
+        eventyml_path = self.project_manager.getCard('#GSSHAPY_EVENT_YML') \
+                                            .value.strip("'").strip('"')
+        prj_evt_manager.write(session=self.db_session,
+                              directory=self.gssha_directory,
+                              name=os.path.basename(eventyml_path))
+        # ensure event manager not propagated to child event
+        self.project_manager.deleteCard('#GSSHAPY_EVENT_YML',
+                                        db_session=self.db_session)
+        self.db_session.delete(self.project_manager.projectFileEventManager)
+        self.db_session.commit()
 
         # make working directory
-        working_directory = os.path.join(self.gssha_directory, timestamp_out_dir_name)
+        working_directory = os.path.join(self.gssha_directory, prj_event.subfolder)
         try:
             os.mkdir(working_directory)
         except OSError:
@@ -467,7 +507,7 @@ class GSSHAFramework(object):
                                    name=self.project_manager.name)
 
         # RUN SIMULATION
-        if self.gssha_executable and os.path.exists(self.gssha_executable):
+        if self.gssha_executable and find_executable(self.gssha_executable) is not None:
             print("RUNNING GSSHA SIMULATION ...")
 
             run_gssha_command = [self.gssha_executable,
@@ -480,9 +520,10 @@ class GSSHAFramework(object):
             except subprocess.CalledProcessError as ex:
                 print("ERROR {0}: {1}".format(ex.returncode, ex.output))
 
-            return working_directory
         else:
             print("GSSHA EXECTUABLE NOT FOUND. SKIPPING GSSHA SIMULATION RUN ...")
+
+        return working_directory
 
     def run_forecast(self):
 
@@ -605,7 +646,7 @@ class GSSHAFramework(object):
         # ----------------------------------------------------------------------
         # Run GSSHA
         # ----------------------------------------------------------------------
-        self.run()
+        return self.run()
 
 
 class GSSHA_WRF_Framework(GSSHAFramework):
@@ -632,6 +673,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
         gssha_simulation_start(Optional[datetime]): Datetime object with date of start of GSSHA simulation.
         gssha_simulation_end(Optional[datetime]): Datetime object with date of end of GSSHA simulation.
         gssha_simulation_duration(Optional[timedelta]): Datetime timedelta object with duration of GSSHA simulation.
+        load_simulation_datetime(Optional[bool]): If True, this will load in datetime information from the project file. Default is False.
         spt_watershed_name(Optional[str]): Streamflow Prediction Tool watershed name.
         spt_subbasin_name(Optional[str]): Streamflow Prediction Tool subbasin name.
         spt_forecast_date_string(Optional[str]): Streamflow Prediction Tool forecast date string.
@@ -791,6 +833,7 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                  gssha_simulation_start=None,
                  gssha_simulation_end=None,
                  gssha_simulation_duration=None,
+                 load_simulation_datetime=False,
                  spt_watershed_name=None,
                  spt_subbasin_name=None,
                  spt_forecast_date_string=None,
@@ -833,7 +876,8 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                                      ]
 
         super(GSSHA_WRF_Framework, self).__init__(gssha_executable, gssha_directory, project_filename,
-                                                  gssha_simulation_start, gssha_simulation_end, gssha_simulation_duration,
+                                                  gssha_simulation_start, gssha_simulation_end,
+                                                  gssha_simulation_duration, load_simulation_datetime,
                                                   spt_watershed_name, spt_subbasin_name,
                                                   spt_forecast_date_string, ckan_engine_url,
                                                   ckan_api_key, ckan_owner_organization, path_to_rapid_qout,
