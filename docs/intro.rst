@@ -27,18 +27,16 @@ moisture as well as runoff and flooding on watersheds.
 
 .. _gsshawiki: http://www.gsshawiki.com/Main_Page
 
-Requirements
+.. _gsshapy-installation:
+
+Installation
 ============
+
 .. note::
 
   The spatial components of GsshaPy can rely heavily on the PostGIS spatial
   extension for the PostgreSQL database. To work with spatial data in GsshaPy
   you will need to use a PostgreSQL database with PostGIS 2.1 or greater enabled.
-
-.. _gsshapy-installation:
-
-Installation
-============
 
 Linux/Mac
 ---------
