@@ -272,8 +272,15 @@ class GSSHAFramework(object):
                                   filename=self.project_filename,
                                   session=self.db_session)
 
+
+        # read event manager card if exists
+        eventyml_card = self.project_manager.getCard('#GSSHAPY_EVENT_YML')
+        if eventyml_card is not None:
+            self.project_manager.readInputFile('#GSSHAPY_EVENT_YML',
+                                               directory=self.gssha_directory,
+                                               session=self.db_session)
         # generate event manager card if does not exist already
-        if not self.project_manager.projectFileEventManager:
+        else:
             prj_evt_manager = self.project_manager.INPUT_FILES['#GSSHAPY_EVENT_YML']()
             self.db_session.add(prj_evt_manager)
             prj_evt_manager.projectFile = self.project_manager
