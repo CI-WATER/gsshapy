@@ -9,24 +9,60 @@
 from builtins import range
 from csv import writer as csv_writer
 from datetime import datetime
-from glob import glob
 from io import open as io_open
-from os import mkdir, path
+import numpy as np
+from os import chdir, mkdir, path
+from osgeo import gdal, osr
+import pandas as pd
 from past.builtins import basestring
 from pytz import utc
-import time
+from pyproj import Proj, transform
+import xarray as xr
+import extension
 
-#extra dependencies
-try:
-    import numpy as np
-    from pyproj import Proj, transform
-    from osgeo import gdal, osr
-    from netCDF4 import Dataset
-except ImportError:
-    print("To use GRIDtoGSSHA, you must have the numpy, pyproj, gdal, and netCDF4 packages installed.")
-    raise
+from .grid_tools import ArrayGrid
+from ..lib import db_tools as dbt
+from ..orm import ProjectFile
 
-from .grid_tools import ArrayGrid, GSSHAGrid, geotransform_from_latlon, resample_grid
+#------------------------------------------------------------------------------
+# HELPER FUNCTIONS
+#------------------------------------------------------------------------------
+def update_hmet_card_file(hmet_card_file_path, new_hmet_data_path):
+    """This function updates the paths in the HMET card file to the new
+    location of the HMET data. This is necessary because the file paths
+    are absolute and will need to be updated if moved.
+
+    Args:
+        hmet_card_file_path(str): Location of the file used for the HMET_ASCII card.
+        new_hmet_data_path(str): Location where the HMET ASCII files are currently.
+
+    Example::
+
+        new_hmet_data_path = "E:\\GSSHA\\new_hmet_directory"
+        hmet_card_file_path = "E:\\GSSHA\\hmet_card_file.txt"
+
+        update_hmet_card_file(hmet_card_file_path, new_hmet_data_path)
+
+    """
+    hmet_card_file_path_temp = "{0}_tmp".format(hmet_card_file_path)
+    try:
+        remove(hmet_card_file_path_temp)
+    except OSError:
+        pass
+
+    copy(hmet_card_file_path, hmet_card_file_path_temp)
+
+    with io_open(hmet_card_file_path_temp, 'w', newline='\r\n') as out_hmet_list_file:
+        with open(hmet_card_file_path) as old_hmet_list_file:
+            for date_path in old_hmet_list_file:
+                out_hmet_list_file.write(u"{0}\n".format(path.join(new_hmet_data_path,
+                                                        path.basename(date_path))))
+    try:
+        remove(hmet_card_file_path)
+    except OSError:
+        pass
+
+    rename(hmet_card_file_path_temp, hmet_card_file_path)
 
 #------------------------------------------------------------------------------
 # MAIN CLASS
@@ -36,15 +72,15 @@ class GRIDtoGSSHA(object):
 
     Attributes:
         gssha_project_folder(str): Path to the GSSHA project folder
-        gssha_grid_file_name(str): Name of the GSSHA elevation grid file.
+        gssha_project_file_name(str): Name of the GSSHA elevation grid file.
         lsm_input_folder_path(str): Path to the input folder for the LSM files.
         lsm_search_card(str): Glob search pattern for LSM files. Ex. "*.nc".
-        lsm_file_date_naming_convention(Optional[str]): Use Pythons datetime conventions to find file.
-                                              Ex. "gssha_ddd_%Y_%m_%d_%H_%M_%S.nc".
-        time_step_seconds(Optional[int]): If the time step is not able to be determined automatically,
-                                this parameter defines the time step in seconds for the LSM files.
-        output_unix_format(Optional[bool]): If True, it will output to "unix" format.
-                                        Otherwise, it will output in "dos" (Windows) format. Default is False.
+        lsm_lat_var(Optional[str]): Name of the latitude variable in the LSM netCDF files. Defaults to 'lat'.
+        lsm_lon_var(Optional[str]): Name of the longitude variable in the LSM netCDF files. Defaults to 'lon'.
+        lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. Defaults to 'time'.
+        lsm_lat_dim(Optional[str]): Name of the latitude dimension in the LSM netCDF files. Defaults to 'lat'.
+        lsm_lon_dim(Optional[str]): Name of the longitude dimension in the LSM netCDF files. Defaults to 'lon'.
+        lsm_time_dim(Optional[str]): Name of the time dimension in the LSM netCDF files. Defaults to 'time'.
         output_timezone(Optional[tzinfo]): This is the timezone to output the dates for the data. Default is UTC.
                                            This option does NOT currently work for NetCDF output.
 
@@ -53,533 +89,478 @@ class GRIDtoGSSHA(object):
         from gsshapy.grid import GRIDtoGSSHA
 
         l2g = GRIDtoGSSHA(gssha_project_folder='E:/GSSHA',
-                          gssha_grid_file_name='gssha.ele',
+                          gssha_project_file_name='gssha.prj',
                           lsm_input_folder_path='E:/GSSHA/wrf-data',
                           lsm_search_card="*.nc",
-                          lsm_file_date_naming_convention='gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
                          )
 
     """
+    ##DEFAULT GSSHA NetCDF Attributes
+    netcdf_attributes = {
+                        'precipitation_rate' :
+                            #NOTE: LSM INFO
+                            #units = "kg m-2 s-1" ; i.e. mm s-1
+                            {
+                              'units' : {
+                                            'gage': 'mm hr-1',
+                                            'ascii': 'mm hr-1',
+                                            'netcdf': 'mm hr-1',
+                                        },
+                              'units_netcdf' : 'mm hr-1',
+                              'standard_name' : 'rainfall_flux',
+                              'long_name' : 'Rain precipitation rate',
+                              'gssha_name' : 'precipitation',
+                              'hmet_name' : 'Prcp',
+                              'conversion_factor' : {
+                                                        'gage': 3600,
+                                                        'ascii' : 3600,
+                                                        'netcdf' : 3600,
+                                                    },
+                            },
+                        'precipitation_acc' :
+                            #NOTE: LSM INFO
+                            #units = "kg m-2" ; i.e. mm
+                            {
+                              'units' : {
+                                            'gage': 'mm hr-1',
+                                            'ascii': 'mm hr-1',
+                                            'netcdf': 'mm hr-1',
+                                        },
+                              'units_netcdf' : 'mm hr-1',
+                              'standard_name' : 'rainfall_flux',
+                              'long_name' : 'Rain precipitation rate',
+                              'gssha_name' : 'precipitation',
+                              'hmet_name' : 'Prcp',
+                              'conversion_factor' : {
+                                                        'gage' : 1,
+                                                        'ascii' : 1,
+                                                        'netcdf' : 1,
+                                                    },
+                            },
+                        'precipitation_inc' :
+                            #NOTE: LSM INFO
+                            #units = "kg m-2" ; i.e. mm
+                            {
+                              'units' : {
+                                            'gage': 'mm hr-1',
+                                            'ascii': 'mm hr-1',
+                                            'netcdf': 'mm hr-1',
+                                        },
+                              'units_netcdf' : 'mm hr-1',
+                              'standard_name' : 'rainfall_flux',
+                              'long_name' : 'Rain precipitation rate',
+                              'gssha_name' : 'precipitation',
+                              'hmet_name' : 'Prcp',
+                              'conversion_factor' : {
+                                                        'gage' : 1,
+                                                        'ascii' : 1,
+                                                        'netcdf' : 1,
+                                                    },
+                            },
+                        'pressure' :
+                            #NOTE: LSM INFO
+                            #units = "Pa" ;
+                            {
+                              'units' : {
+                                            'ascii': 'in. Hg',
+                                            'netcdf': 'mb',
+                                        },
+                              'standard_name' : 'surface_air_pressure',
+                              'long_name' : 'Pressure',
+                              'gssha_name' : 'pressure',
+                              'hmet_name' : 'Pres',
+                              'conversion_factor' : {
+                                                        'ascii' : 0.000295299830714,
+                                                        'netcdf' : 0.01,
+                                                    },
+                            },
+                        'pressure_hg' :
+                            {
+                              'units' : {
+                                            'ascii': 'in. Hg',
+                                            'netcdf': 'mb',
+                                        },
+                              'standard_name' : 'surface_air_pressure',
+                              'long_name' : 'Pressure',
+                              'gssha_name' : 'pressure',
+                              'hmet_name' : 'Pres',
+                              'conversion_factor' : {
+                                                        'ascii' : 1,
+                                                        'netcdf' : 33.863886667,
+                                                    },
+                            },
+                        'relative_humidity' :
+                            #NOTE: LSM Usually Specific Humidity
+                            #units = "kg kg-1" ;
+                            #standard_name = "specific_humidity" ;
+                            #long_name = "Specific humidity" ;
+                            {
+                              'units' : {
+                                            'ascii': '%',
+                                            'netcdf': '%',
+                                        },
+                              'standard_name' : 'relative_humidity',
+                              'long_name' : 'Relative humidity',
+                              'gssha_name' : 'relative_humidity',
+                              'hmet_name' : 'RlHm',
+                              'conversion_factor' : {
+                                                        'ascii' : 1,
+                                                        'netcdf' : 1,
+                                                    },
+                            },
+                        'wind_speed' :
+                            #NOTE: LSM
+                            #units = "m s-1" ;
+                            {
+                              'units' : {
+                                            'ascii': 'kts',
+                                            'netcdf': 'kts',
+                                        },
+                              'standard_name' : 'wind_speed',
+                              'long_name' : 'Wind speed',
+                              'gssha_name' : 'wind_speed',
+                              'hmet_name' : 'WndS',
+                              'conversion_factor' : {
+                                                        'ascii' : 1.94,
+                                                        'netcdf' : 1.94,
+                                                    },
+                            },
+                        'wind_speed_kmd' :
+                            #NOTE: LSM
+                            #units = "km/day" ;
+                            {
+                              'units' : {
+                                            'ascii': 'kts',
+                                            'netcdf': 'kts',
+                                        },
+                              'standard_name' : 'wind_speed',
+                              'long_name' : 'Wind speed',
+                              'gssha_name' : 'wind_speed',
+                              'hmet_name' : 'WndS',
+                              'conversion_factor' : {
+                                                        'ascii' : 0.0224537037,
+                                                        'netcdf' : 0.0224537037,
+                                                    },
+                            },
+                        'wind_speed_kts' :
+                            {
+                              'units' : {
+                                            'ascii': 'kts',
+                                            'netcdf': 'kts',
+                                        },
+                              'standard_name' : 'wind_speed',
+                              'long_name' : 'Wind speed',
+                              'gssha_name' : 'wind_speed',
+                              'hmet_name' : 'WndS',
+                              'conversion_factor' : {
+                                                        'ascii' : 1,
+                                                        'netcdf' : 1,
+                                                    },
+                            },
+                        'temperature' :
+                            #NOTE: LSM
+                            #units = "K" ;
+                            {
+                              'units' : {
+                                            'ascii': 'F',
+                                            'netcdf': 'C',
+                                        },
+                              'standard_name' : 'air_temperature',
+                              'long_name' : 'Temperature',
+                              'gssha_name' : 'temperature',
+                              'hmet_name' : 'Temp',
+                              'conversion_factor' : {
+                                                        'ascii' : 1,
+                                                        'netcdf' : 1,
+                                                    },
+                              'conversion_function' : {
+                                                        'ascii' : lambda temp_kelvin: temp_kelvin * 9.0/5.0 - 459.67,
+                                                        'netcdf' : lambda temp_celcius: temp_celcius - 273.15,
+                                                    },
+                            },
+                        'temperature_f' :
+                            {
+                              'units' : {
+                                            'ascii': 'F',
+                                            'netcdf': 'C',
+                                        },
+                              'standard_name' : 'air_temperature',
+                              'long_name' : 'Temperature',
+                              'gssha_name' : 'temperature',
+                              'hmet_name' : 'Temp',
+                              'conversion_factor' : {
+                                                        'ascii' : 1,
+                                                        'netcdf' : 1,
+                                                    },
+                              'conversion_function' : {
+                                                        'ascii' : lambda temp_farenheight: temp_farenheight,
+                                                        'netcdf' : lambda temp_farenheight: (temp_farenheight - 32) * 5.0/9.0,
+                                                    },
+                            },
+                        'direct_radiation' :
+                            #DIRECT/BEAM/SOLAR RADIATION
+                            #NOTE: LSM
+                            #WRF: global_radiation * (1-DIFFUSIVE_FRACTION)
+                            #units = "W m-2" ;
+                            {
+                              'units' : {
+                                            'ascii': 'W hr m-2',
+                                            'netcdf': 'W hr m-2',
+                                        },
+                              'standard_name' : 'surface_direct_downward_shortwave_flux',
+                              'long_name' : 'Direct short wave radiation flux',
+                              'gssha_name' : 'direct_radiation',
+                              'hmet_name' : 'Drad',
+                              'conversion_factor' : {
+                                                        'ascii' : 1,
+                                                        'netcdf' : 1,
+                                                    },
+                            },
+                        'diffusive_radiation' :
+                            #DIFFUSIVE RADIATION
+                            #NOTE: LSM
+                            #WRF: global_radiation * DIFFUSIVE_FRACTION
+                            #units = "W m-2" ;
+                            {
+                              'units' : {
+                                            'ascii': 'W hr m-2',
+                                            'netcdf': 'W hr m-2',
+                                        },
+                              'standard_name' : 'surface_diffusive_downward_shortwave_flux',
+                              'long_name' : 'Diffusive short wave radiation flux',
+                              'gssha_name' : 'diffusive_radiation',
+                              'hmet_name' : 'Grad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
+                              'conversion_factor' : {
+                                                        'ascii' : 1,
+                                                        'netcdf' : 1,
+                                                    },
+                            },
+                        'direct_radiation_cc' :
+                            #DIRECT/BEAM/SOLAR RADIATION
+                            #NOTE: LSM
+                            #DIFFUSIVE_FRACTION = cloud_cover_pc/100
+                            #WRF: global_radiation * (1-DIFFUSIVE_FRACTION)
+                            #units = "W m-2" ;
+                            {
+                              'units' : {
+                                            'ascii': 'W hr m-2',
+                                            'netcdf': 'W hr m-2',
+                                        },
+                              'standard_name' : 'surface_direct_downward_shortwave_flux',
+                              'long_name' : 'Direct short wave radiation flux',
+                              'gssha_name' : 'direct_radiation',
+                              'hmet_name' : 'Drad',
+                              'conversion_factor' : {
+                                                        'ascii' : 1,
+                                                        'netcdf' : 1,
+                                                    },
+                            },
+                        'diffusive_radiation_cc' :
+                            #DIFFUSIVE RADIATION
+                            #NOTE: LSM
+                            #DIFFUSIVE_FRACTION = cloud_cover_pc/100
+                            #WRF: global_radiation * DIFFUSIVE_FRACTION
+                            #units = "W m-2" ;
+                            {
+                              'units' : {
+                                            'ascii': 'W hr m-2',
+                                            'netcdf': 'W hr m-2',
+                                        },
+                              'standard_name' : 'surface_diffusive_downward_shortwave_flux',
+                              'long_name' : 'Diffusive short wave radiation flux',
+                              'gssha_name' : 'diffusive_radiation',
+                              'hmet_name' : 'Grad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
+                              'conversion_factor' : {
+                                                        'ascii' : 1,
+                                                        'netcdf' : 1,
+                                                    },
+                            },
+                        'cloud_cover' :
+                            #NOTE: LSM
+                            #Between 0-1 (0=No Clouds; 1=Clouds) ;
+                            {
+                              'units' : {
+                                            'ascii': '%',
+                                            'netcdf': '%/10',
+                                        },
+                              'standard_name' : 'cloud_cover_fraction',
+                              'long_name' : 'Cloud cover fraction',
+                              'gssha_name' : 'cloud_cover',
+                              'hmet_name' : 'Clod',
+                              'conversion_factor' : {
+                                                        'ascii' : 100,
+                                                        'netcdf' : 10,
+                                                    },
+                              'calc_4d_method' : 'max',
+                              'calc_4d_dim' : 'bottom_top',
+                            },
+                        'cloud_cover_pc' :
+                            {
+                              'units' : {
+                                            'ascii': '%',
+                                            'netcdf': '%/10',
+                                        },
+                              'standard_name' : 'cloud_cover_fraction',
+                              'long_name' : 'Cloud cover fraction',
+                              'gssha_name' : 'cloud_cover',
+                              'hmet_name' : 'Clod',
+                              'conversion_factor' : {
+                                                        'ascii' : 1,
+                                                        'netcdf' : 0.1,
+                                                    },
+                            },
+
+                    }
     def __init__(self,
                  gssha_project_folder,
-                 gssha_grid_file_name,
+                 gssha_project_file_name,
                  lsm_input_folder_path,
                  lsm_search_card,
-                 lsm_file_date_naming_convention=None,
-                 time_step_seconds=None,
-                 output_unix_format=False,
+                 lsm_lat_var='lat',
+                 lsm_lon_var='lon',
+                 lsm_time_var='time',
+                 lsm_lat_dim='lat',
+                 lsm_lon_dim='lon',
+                 lsm_time_dim='time',
                  output_timezone=None,
                  ):
         """
-        Initializer function for the LSMtoGSSHA class
+        Initializer function for the GRIDtoGSSHA class
         """
         self.gssha_project_folder = gssha_project_folder
-        self.gssha_grid_file_name = gssha_grid_file_name
+        self.gssha_project_file_name = gssha_project_file_name
         self.lsm_input_folder_path = lsm_input_folder_path
         self.lsm_search_card = lsm_search_card
-        self.lsm_file_date_naming_convention = lsm_file_date_naming_convention
-        self.time_step_seconds = time_step_seconds
-        self.output_unix_format = output_unix_format
+        self.lsm_lat_var = lsm_lat_var
+        self.lsm_lon_var = lsm_lon_var
+        self.lsm_time_var = lsm_time_var
+        self.lsm_lat_dim = lsm_lat_dim
+        self.lsm_lon_dim = lsm_lon_dim
+        self.lsm_time_dim = lsm_time_dim
         self.output_timezone = output_timezone
+        self._load_modeling_extent()
 
-        self.default_line_ending = '\r\n'
-        if output_unix_format:
-            self.default_line_ending = ''
-
-        ##INIT FUNCTIONS
-        self._load_sorted_lsm_list_and_time()
-        self._load_gssha_and_lsm_extent()
-
-        ##DEFAULT GSSHA NetCDF Attributes
-        self.netcdf_attributes = {
-                                    'precipitation_rate' :
-                                        #NOTE: LSM INFO
-                                        #units = "kg m-2 s-1" ; i.e. mm s-1
-                                        {
-                                          'units' : {
-                                                        'gage': 'mm hr-1',
-                                                        'ascii': 'mm hr-1',
-                                                        'netcdf': 'mm hr-1',
-                                                    },
-                                          'units_netcdf' : 'mm hr-1',
-                                          'standard_name' : 'rainfall_flux',
-                                          'long_name' : 'Rain precipitation rate',
-                                          'gssha_name' : 'precipitation',
-                                          'hmet_name' : 'Prcp',
-                                          'conversion_factor' : {
-                                                                    'gage': 3600,
-                                                                    'ascii' : 3600,
-                                                                    'netcdf' : 3600,
-                                                                },
-                                        },
-                                    'precipitation_acc' :
-                                        #NOTE: LSM INFO
-                                        #units = "kg m-2" ; i.e. mm
-                                        {
-                                          'units' : {
-                                                        'gage': 'mm hr-1',
-                                                        'ascii': 'mm hr-1',
-                                                        'netcdf': 'mm hr-1',
-                                                    },
-                                          'units_netcdf' : 'mm hr-1',
-                                          'standard_name' : 'rainfall_flux',
-                                          'long_name' : 'Rain precipitation rate',
-                                          'gssha_name' : 'precipitation',
-                                          'hmet_name' : 'Prcp',
-                                          'conversion_factor' : {
-                                                                    'gage' : 1,
-                                                                    'ascii' : 1,
-                                                                    'netcdf' : 1,
-                                                                },
-                                        },
-                                    'precipitation_inc' :
-                                        #NOTE: LSM INFO
-                                        #units = "kg m-2" ; i.e. mm
-                                        {
-                                          'units' : {
-                                                        'gage': 'mm hr-1',
-                                                        'ascii': 'mm hr-1',
-                                                        'netcdf': 'mm hr-1',
-                                                    },
-                                          'units_netcdf' : 'mm hr-1',
-                                          'standard_name' : 'rainfall_flux',
-                                          'long_name' : 'Rain precipitation rate',
-                                          'gssha_name' : 'precipitation',
-                                          'hmet_name' : 'Prcp',
-                                          'conversion_factor' : {
-                                                                    'gage' : 1,
-                                                                    'ascii' : 1,
-                                                                    'netcdf' : 1,
-                                                                },
-                                        },
-                                    'pressure' :
-                                        #NOTE: LSM INFO
-                                        #units = "Pa" ;
-                                        {
-                                          'units' : {
-                                                        'ascii': 'in. Hg',
-                                                        'netcdf': 'mb',
-                                                    },
-                                          'standard_name' : 'surface_air_pressure',
-                                          'long_name' : 'Pressure',
-                                          'gssha_name' : 'pressure',
-                                          'hmet_name' : 'Pres',
-                                          'conversion_factor' : {
-                                                                    'ascii' : 0.000295299830714,
-                                                                    'netcdf' : 0.01,
-                                                                },
-                                        },
-                                    'pressure_hg' :
-                                        {
-                                          'units' : {
-                                                        'ascii': 'in. Hg',
-                                                        'netcdf': 'mb',
-                                                    },
-                                          'standard_name' : 'surface_air_pressure',
-                                          'long_name' : 'Pressure',
-                                          'gssha_name' : 'pressure',
-                                          'hmet_name' : 'Pres',
-                                          'conversion_factor' : {
-                                                                    'ascii' : 1,
-                                                                    'netcdf' : 33.863886667,
-                                                                },
-                                        },
-                                    'relative_humidity' :
-                                        #NOTE: LSM Usually Specific Humidity
-                                        #units = "kg kg-1" ;
-                                        #standard_name = "specific_humidity" ;
-                                        #long_name = "Specific humidity" ;
-                                        {
-                                          'units' : {
-                                                        'ascii': '%',
-                                                        'netcdf': '%',
-                                                    },
-                                          'standard_name' : 'relative_humidity',
-                                          'long_name' : 'Relative humidity',
-                                          'gssha_name' : 'relative_humidity',
-                                          'hmet_name' : 'RlHm',
-                                          'conversion_factor' : {
-                                                                    'ascii' : 1,
-                                                                    'netcdf' : 1,
-                                                                },
-                                        },
-                                    'wind_speed' :
-                                        #NOTE: LSM
-                                        #units = "m s-1" ;
-                                        {
-                                          'units' : {
-                                                        'ascii': 'kts',
-                                                        'netcdf': 'kts',
-                                                    },
-                                          'standard_name' : 'wind_speed',
-                                          'long_name' : 'Wind speed',
-                                          'gssha_name' : 'wind_speed',
-                                          'hmet_name' : 'WndS',
-                                          'conversion_factor' : {
-                                                                    'ascii' : 1.94,
-                                                                    'netcdf' : 1.94,
-                                                                },
-                                        },
-                                    'wind_speed_kmd' :
-                                        #NOTE: LSM
-                                        #units = "km/day" ;
-                                        {
-                                          'units' : {
-                                                        'ascii': 'kts',
-                                                        'netcdf': 'kts',
-                                                    },
-                                          'standard_name' : 'wind_speed',
-                                          'long_name' : 'Wind speed',
-                                          'gssha_name' : 'wind_speed',
-                                          'hmet_name' : 'WndS',
-                                          'conversion_factor' : {
-                                                                    'ascii' : 0.0224537037,
-                                                                    'netcdf' : 0.0224537037,
-                                                                },
-                                        },
-                                    'wind_speed_kts' :
-                                        {
-                                          'units' : {
-                                                        'ascii': 'kts',
-                                                        'netcdf': 'kts',
-                                                    },
-                                          'standard_name' : 'wind_speed',
-                                          'long_name' : 'Wind speed',
-                                          'gssha_name' : 'wind_speed',
-                                          'hmet_name' : 'WndS',
-                                          'conversion_factor' : {
-                                                                    'ascii' : 1,
-                                                                    'netcdf' : 1,
-                                                                },
-                                        },
-                                    'temperature' :
-                                        #NOTE: LSM
-                                        #units = "K" ;
-                                        {
-                                          'units' : {
-                                                        'ascii': 'F',
-                                                        'netcdf': 'C',
-                                                    },
-                                          'standard_name' : 'air_temperature',
-                                          'long_name' : 'Temperature',
-                                          'gssha_name' : 'temperature',
-                                          'hmet_name' : 'Temp',
-                                          'conversion_factor' : {
-                                                                    'ascii' : 1,
-                                                                    'netcdf' : 1,
-                                                                },
-                                          'conversion_function' : {
-                                                                    'ascii' : lambda temp_kelvin: temp_kelvin * 9.0/5.0 - 459.67,
-                                                                    'netcdf' : lambda temp_celcius: temp_celcius - 273.15,
-                                                                },
-                                        },
-                                    'temperature_f' :
-                                        {
-                                          'units' : {
-                                                        'ascii': 'F',
-                                                        'netcdf': 'C',
-                                                    },
-                                          'standard_name' : 'air_temperature',
-                                          'long_name' : 'Temperature',
-                                          'gssha_name' : 'temperature',
-                                          'hmet_name' : 'Temp',
-                                          'conversion_factor' : {
-                                                                    'ascii' : 1,
-                                                                    'netcdf' : 1,
-                                                                },
-                                          'conversion_function' : {
-                                                                    'ascii' : lambda temp_farenheight: temp_farenheight,
-                                                                    'netcdf' : lambda temp_farenheight: (temp_farenheight - 32) * 5.0/9.0,
-                                                                },
-                                        },
-                                    'direct_radiation' :
-                                        #DIRECT/BEAM/SOLAR RADIATION
-                                        #NOTE: LSM
-                                        #WRF: global_radiation * (1-DIFFUSIVE_FRACTION)
-                                        #units = "W m-2" ;
-                                        {
-                                          'units' : {
-                                                        'ascii': 'W hr m-2',
-                                                        'netcdf': 'W hr m-2',
-                                                    },
-                                          'standard_name' : 'surface_direct_downward_shortwave_flux',
-                                          'long_name' : 'Direct short wave radiation flux',
-                                          'gssha_name' : 'direct_radiation',
-                                          'hmet_name' : 'Drad',
-                                          'conversion_factor' : {
-                                                                    'ascii' : 1,
-                                                                    'netcdf' : 1,
-                                                                },
-                                        },
-                                    'diffusive_radiation' :
-                                        #DIFFUSIVE RADIATION
-                                        #NOTE: LSM
-                                        #WRF: global_radiation * DIFFUSIVE_FRACTION
-                                        #units = "W m-2" ;
-                                        {
-                                          'units' : {
-                                                        'ascii': 'W hr m-2',
-                                                        'netcdf': 'W hr m-2',
-                                                    },
-                                          'standard_name' : 'surface_diffusive_downward_shortwave_flux',
-                                          'long_name' : 'Diffusive short wave radiation flux',
-                                          'gssha_name' : 'diffusive_radiation',
-                                          'hmet_name' : 'Grad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
-                                          'conversion_factor' : {
-                                                                    'ascii' : 1,
-                                                                    'netcdf' : 1,
-                                                                },
-                                        },
-                                    'direct_radiation_cc' :
-                                        #DIRECT/BEAM/SOLAR RADIATION
-                                        #NOTE: LSM
-                                        #DIFFUSIVE_FRACTION = cloud_cover_pc/100
-                                        #WRF: global_radiation * (1-DIFFUSIVE_FRACTION)
-                                        #units = "W m-2" ;
-                                        {
-                                          'units' : {
-                                                        'ascii': 'W hr m-2',
-                                                        'netcdf': 'W hr m-2',
-                                                    },
-                                          'standard_name' : 'surface_direct_downward_shortwave_flux',
-                                          'long_name' : 'Direct short wave radiation flux',
-                                          'gssha_name' : 'direct_radiation',
-                                          'hmet_name' : 'Drad',
-                                          'conversion_factor' : {
-                                                                    'ascii' : 1,
-                                                                    'netcdf' : 1,
-                                                                },
-                                        },
-                                    'diffusive_radiation_cc' :
-                                        #DIFFUSIVE RADIATION
-                                        #NOTE: LSM
-                                        #DIFFUSIVE_FRACTION = cloud_cover_pc/100
-                                        #WRF: global_radiation * DIFFUSIVE_FRACTION
-                                        #units = "W m-2" ;
-                                        {
-                                          'units' : {
-                                                        'ascii': 'W hr m-2',
-                                                        'netcdf': 'W hr m-2',
-                                                    },
-                                          'standard_name' : 'surface_diffusive_downward_shortwave_flux',
-                                          'long_name' : 'Diffusive short wave radiation flux',
-                                          'gssha_name' : 'diffusive_radiation',
-                                          'hmet_name' : 'Grad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
-                                          'conversion_factor' : {
-                                                                    'ascii' : 1,
-                                                                    'netcdf' : 1,
-                                                                },
-                                        },
-                                    'cloud_cover' :
-                                        #NOTE: LSM
-                                        #Between 0-1 (0=No Clouds; 1=Clouds) ;
-                                        {
-                                          'units' : {
-                                                        'ascii': '%',
-                                                        'netcdf': '%/10',
-                                                    },
-                                          'standard_name' : 'cloud_cover_fraction',
-                                          'long_name' : 'Cloud cover fraction',
-                                          'gssha_name' : 'cloud_cover',
-                                          'hmet_name' : 'Clod',
-                                          'conversion_factor' : {
-                                                                    'ascii' : 100,
-                                                                    'netcdf' : 10,
-                                                                },
-                                          'four_dim_var_calc_method' : np.amax,
-                                        },
-                                    'cloud_cover_pc' :
-                                        {
-                                          'units' : {
-                                                        'ascii': '%',
-                                                        'netcdf': '%/10',
-                                                    },
-                                          'standard_name' : 'cloud_cover_fraction',
-                                          'long_name' : 'Cloud cover fraction',
-                                          'gssha_name' : 'cloud_cover',
-                                          'hmet_name' : 'Clod',
-                                          'conversion_factor' : {
-                                                                    'ascii' : 1,
-                                                                    'netcdf' : 0.1,
-                                                                },
-                                        },
-
-                                }
-
-    def _load_lsm_projection(self):
+    def _set_subset_indices(self, y_min, y_max, x_min, x_max):
         """
-        Loads the LSM projection in Proj4
-
-        Default is geographic
+        load subset based on extent
         """
-        self.lsm_proj4 = Proj(init='epsg:4326')
+        print(x_min)
+        print(x_max)
+        print(y_min)
+        print(y_max)
+        with self._get_xd() as xd:
+            x_coords, y_coords = xd.lsm.coords(as_2d=True)
+            dx = xd.lsm.dx
+            dy = xd.lsm.dy
 
-    def _get_subset_lat_lon(self, gssha_y_min, gssha_y_max, gssha_x_min, gssha_x_max):
-        """
-        load subset lat lon of grid list based on GSSHA extent
-        """
-        #these are the parameters to be defined
-        self.lsm_lat_indices = []
-        self.lsm_lon_indices = []
-        lsm_lat_list = []
-        lsm_lon_list = []
+        print(np.amin(x_coords))
+        print(np.amax(x_coords))
+        print(np.amin(y_coords))
+        print(np.amax(y_coords))
+        lsm_y_indices_from_y, lsm_x_indices_from_y = np.where((y_coords >= (y_min - 2*dy)) & (y_coords <= (y_max + 2*dy)))
+        lsm_y_indices_from_x, lsm_x_indices_from_x = np.where((x_coords >= (x_min - 2*dx)) & (x_coords <= (x_max + 2*dx)))
 
-        return lsm_lat_list, lsm_lon_list
+        lsm_y_indices = np.intersect1d(lsm_y_indices_from_y, lsm_y_indices_from_x)
+        lsm_x_indices = np.intersect1d(lsm_x_indices_from_y, lsm_x_indices_from_x)
+        if len(lsm_y_indices) <=0:
+            if len(lsm_y_indices_from_y)>0 and len(lsm_y_indices_from_x)<=0:
+                lsm_y_indices = np.unique(lsm_y_indices_from_y)
+            elif len(lsm_y_indices_from_x)>0 and len(lsm_y_indices_from_y)<=0:
+                lsm_y_indices = np.unique(lsm_y_indices_from_x)
 
-    def _load_gssha_and_lsm_extent(self):
+        if len(lsm_x_indices) <=0:
+            if len(lsm_x_indices_from_y)>0 and len(lsm_x_indices_from_x)<=0:
+                lsm_x_indices = np.unique(lsm_x_indices_from_y)
+            elif len(lsm_x_indices_from_x)>0 and len(lsm_x_indices_from_y)<=0:
+                lsm_x_indices = np.unique(lsm_x_indices_from_x)
+
+        print(lsm_x_indices)
+        self.x_index_min = np.amin(lsm_x_indices)
+        self.x_index_max = np.amax(lsm_x_indices)
+        self.y_index_min = np.amin(lsm_y_indices)
+        self.y_index_max = np.amax(lsm_y_indices)
+
+    def _get_xd(self):
+        """get xarray dataset file handle to LSM files"""
+        path_to_lsm_files = path.join(self.lsm_input_folder_path,
+                                      self.lsm_search_card)
+
+        xd = xr.open_mfdataset(path_to_lsm_files,
+                               concat_dim=self.lsm_time_dim)
+        xd.lsm.y_var = self.lsm_lat_var
+        xd.lsm.x_var = self.lsm_lon_var
+        xd.lsm.time_var = self.lsm_time_var
+        xd.lsm.y_dim = self.lsm_lat_dim
+        xd.lsm.x_dim = self.lsm_lon_dim
+        xd.lsm.time_dim = self.lsm_time_dim
+        return xd
+
+    def _load_modeling_extent(self):
         """
-        #Get extent from GSSHA Grid in Geographic coordinates
-        #Determine range within LSM Grid
+        # Get extent from GSSHA Grid in LSM coordinates
+        # Determine range within LSM Grid
         """
         ####
         #STEP 1: Get extent from GSSHA Grid in LSM coordinates
         ####
-        gssha_grid_path = path.join(self.gssha_project_folder,
-                                    self.gssha_grid_file_name)
+        chdir(self.gssha_project_folder)
+        sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
+        db_session = dbt.create_session(sqlalchemy_url, sql_engine)
+        project_manager = ProjectFile()
+        project_manager.read(directory=self.gssha_project_folder,
+                             filename=self.gssha_project_file_name,
+                             session=db_session)
 
-        #The projection file is named DIFFERENT as it is stored in the .PRO
-        #file in the GSSHA folder. This searched for the file.
-        gssha_projection_file_path = "{0}_prj.pro".format(path.splitext(gssha_grid_path)[0])
-        if not gssha_projection_file_path or not path.exists(gssha_projection_file_path):
-            gssha_projection_file_list = glob(path.join(self.gssha_project_folder, "*.pro"))
-            if len(gssha_projection_file_list) > 0:
-                gssha_projection_file_path = gssha_projection_file_list[0]
-                if len(gssha_projection_file_list) > 1:
-                    print("WARNING: Multiple GSSHA .pro files found. \n" \
-                          " To ensure that the correct .pro file is found, " \
-                          "only place one .pro file in the GSSHA directory. \n" \
-                          "Using: {}".format(gssha_projection_file_path))
-            else:
-                raise IndexError("GSSHA .pro file not found ...")
+        self.gssha_grid = project_manager.getGrid()
+        db_session.close()
 
-        self.gssha_grid = GSSHAGrid(gssha_grid_path, gssha_projection_file_path)
-
-        #get projection from LSM file (ASSUME GEOGRAPHIC IF LAT/LON)
-        self._load_lsm_projection()
         min_x, max_x, min_y, max_y = self.gssha_grid.bounds()
+        #get projection from LSM file (ASSUME GEOGRAPHIC IF LAT/LON)
+        with self._get_xd() as xd:
+            lsm_proj = Proj(xd.lsm.projection.ExportToProj4())
+
         x_ext, y_ext = transform(self.gssha_grid.proj,
-                                 self.lsm_proj4,
+                                 lsm_proj,
                                  [min_x, max_x, min_x, max_x],
                                  [min_y, max_y, max_y, min_y],
                                  )
 
-        gssha_y_min = min(y_ext)
-        gssha_y_max = max(y_ext)
-        gssha_x_min = min(x_ext)
-        gssha_x_max = max(x_ext)
 
-        lsm_lat_list, lsm_lon_list = self._get_subset_lat_lon(gssha_y_min, gssha_y_max,
-                                                                        gssha_x_min, gssha_x_max)
+        self._set_subset_indices(min(y_ext),
+                                 max(y_ext),
+                                 min(x_ext),
+                                 max(x_ext))
 
 
-
-        self.proj_lon_list, self.proj_lat_list = transform(self.lsm_proj4,
-                                                           self.gssha_grid.proj,
-                                                           lsm_lon_list,
-                                                           lsm_lat_list,
-                                                           )
-
-        #GET BOUNDS BASED ON AVERAGE (NOTE: LAT IS REVERSED)
-        #https://grass.osgeo.org/grass64/manuals/r.in.ascii.html
-        dy_n_avg = np.mean(np.absolute(self.proj_lat_list[-1] - self.proj_lat_list[-2]))
-        dy_s_avg = np.mean(np.absolute(self.proj_lat_list[1] - self.proj_lat_list[0]))
-        dx_e_avg = np.mean(np.absolute(self.proj_lon_list[:,-2] - self.proj_lon_list[:,-1]))
-        dx_w_avg = np.mean(np.absolute(self.proj_lon_list[:,0] - self.proj_lon_list[:,1]))
-
-        self.north_bound = np.mean(self.proj_lat_list[-1])+dy_n_avg/2.0
-        self.south_bound = np.mean(self.proj_lat_list[0])-dy_s_avg/2.0
-        self.east_bound = np.mean(self.proj_lon_list[:,-1])+dx_e_avg/2.0
-        self.west_bound = np.mean(self.proj_lon_list[:,0])-dx_w_avg/2.0
-        self.cell_size_ns = np.mean([dy_n_avg, dy_s_avg])
-        self.cell_size_ew = np.mean([dx_e_avg, dx_w_avg])
-        self.cell_size = np.mean([self.cell_size_ns, self.cell_size_ew])
-
-    def _load_sorted_lsm_list_and_time(self):
-        """
-        Loads in the sorted lsm list and sorted time
-        """
-        self.lsm_nc_list = np.array(glob(path.join(self.lsm_input_folder_path, self.lsm_search_card)), dtype=str)
-
-        if len(self.lsm_nc_list)<=0:
-            raise IndexError("No input HMET grid files found ...")
-
-        self.time_array = np.zeros(len(self.lsm_nc_list))
-
-        #LOAD IN TIME FROM DATA
-        convert_to_seconds = self._load_time_from_files()
-
-        #SORT BY TIME
-        sorted_indices = np.argsort(self.time_array)
-        self.time_array = self.time_array[sorted_indices]
-        self.lsm_nc_list = self.lsm_nc_list[sorted_indices]
-
-        #GET TIME STEP
-        self._load_time_step(convert_to_seconds)
-
-        #GET HOURLY TIME STEPS
-        self._load_hourly_time_steps()
-
-    def _load_time_from_files(self):
-        """
-        Loads in the time from the grid files
-        """
-        #add data to self.time_array
-        return
-
-    def _load_time_step(self, convert_to_seconds):
-        """
-        Loads in the time step
-        """
-        if self.time_step_seconds is None:
-            self.time_step_seconds = 3600 #default to 1 hour
-
-    def _load_hourly_time_steps(self):
-        """
-        Loads in hourly time steps from current time steps
-        """
-        self.hourly_time_index_array = None
-        idx = 0
-        current_datetime = datetime.utcfromtimestamp(self.time_array[0])
-        self.hourly_time_index_array = [0]
-        for time_sec in self.time_array:
-            var_datetime = datetime.utcfromtimestamp(time_sec)
-            if current_datetime.hour != var_datetime.hour:
-                 self.hourly_time_index_array.append(idx)
-            current_datetime = var_datetime
-            idx += 1
-
-        self.num_generated_files_per_timestep = 1
-        if self.time_step_seconds > 3600:
-            self.num_generated_files_per_timestep = self.time_step_seconds/3600.0
-
-        self.len_hourly_time_index_array = len(self.hourly_time_index_array)
-        self.hourly_time_array = np.zeros(self.len_hourly_time_index_array*int(self.num_generated_files_per_timestep))
-        for hourly_index, time_index in enumerate(self.hourly_time_index_array):
-            for i in range(int(self.num_generated_files_per_timestep)):
-                self.hourly_time_array[(hourly_index*int(self.num_generated_files_per_timestep)+i)] = self.time_array[time_index]+3600*i
-
-
-    def _time_to_string(self, time_int, conversion_string="%Y %m %d %H %M"):
+    def _time_to_string(self, xr_time, conversion_string="%Y %m %d %H %M"):
         """
         This converts a UTC time integer to a string
         """
+        t = pd.to_datetime(str(xr_time.values))
+        timestring = t.strftime(conversion_string)
+
         if self.output_timezone is not None:
-            return datetime.utcfromtimestamp(time_int) \
-                           .replace(tzinfo=utc) \
-                           .astimezone(self.output_timezone) \
-                           .strftime(conversion_string)
+            t = t.replace(tzinfo=utc) \
+                 .astimezone(self.output_timezone)
 
-        return time.strftime(conversion_string, time.gmtime(time_int))
+        return t.strftime(conversion_string)
 
-    def _load_lsm_data(self, data_var, conversion_factor=1, four_dim_var_calc_method=None):
+    def _load_lsm_data(self, data_var, conversion_factor=1,
+                       calc_4d_method=None,
+                       calc_4d_dim=None):
         """
-        This extracts the data into a 3d array
+        This extracts the LSM data from a folder of netcdf files
         """
-        self.data_np_array = np.zeros((len(self.lsm_nc_list),
-                                       len(self.lsm_lat_indices),
-                                       len(self.lsm_lon_indices)))
-
-
+        with self._get_xd() as xd:
+            data = xd.lsm.to_utm(data_var,
+                                 x_index_start=self.x_index_min,
+                                 x_index_end=self.x_index_max,
+                                 y_index_start=self.y_index_min,
+                                 y_index_end=self.y_index_max,
+                                 calc_4d_method=calc_4d_method,
+                                 calc_4d_dim=calc_4d_dim,
+                                 )
+            return data*conversion_factor
 
     def _load_converted_gssha_data_from_lsm(self, gssha_var, lsm_var, load_type):
         """
@@ -589,26 +570,30 @@ class GRIDtoGSSHA(object):
             if gssha_var.startswith('direct_radiation') and not isinstance(lsm_var, basestring):
                 #direct_radiation = (1-DIFFUSIVE_FRACION)*global_radiation
                 global_radiation_var, diffusive_fraction_var = lsm_var
-                self._load_lsm_data(global_radiation_var)
-                global_radiation = self.data_np_array
-                self._load_lsm_data(diffusive_fraction_var)
-                diffusive_fraction = self.data_np_array
+                global_radiation = self._load_lsm_data(global_radiation_var)
+                diffusive_fraction = self._load_lsm_data(diffusive_fraction_var)
                 if gssha_var.endswith("cc"):
-                    diffusive_fraction /= 100
-                self.data_np_array = (1-diffusive_fraction)*global_radiation*self.time_step_seconds/3600.0
+                    diffusive_fraction /= 100.0
+
+                self.data = ((1-diffusive_fraction[diffusive_fraction_var])
+                             *global_radiation[global_radiation_var]) \
+                            .to_dataset(name=gssha_var)
+
+
             elif gssha_var.startswith('diffusive_radiation') and not isinstance(lsm_var, basestring):
                 #diffusive_radiation = DIFFUSIVE_FRACION*global_radiation
                 global_radiation_var, diffusive_fraction_var = lsm_var
-                self._load_lsm_data(global_radiation_var)
-                global_radiation = self.data_np_array
-                self._load_lsm_data(diffusive_fraction_var)
-                diffusive_fraction = self.data_np_array
+                global_radiation = self._load_lsm_data(global_radiation_var)
+                diffusive_fraction = self._load_lsm_data(diffusive_fraction_var)
                 if gssha_var.endswith("cc"):
                     diffusive_fraction /= 100
-                self.data_np_array = diffusive_fraction*global_radiation*self.time_step_seconds/3600.0
+                self.data = (diffusive_fraction[diffusive_fraction_var]
+                             *global_radiation[global_radiation_var]) \
+                            .to_dataset(name=gssha_var)
+
             elif isinstance(lsm_var, basestring):
-                self._load_lsm_data(lsm_var, self.netcdf_attributes[gssha_var]['conversion_factor'][load_type])
-                self.data_np_array = self.data_np_array*self.time_step_seconds/3600.0
+                self.data = self._load_lsm_data(lsm_var, self.netcdf_attributes[gssha_var]['conversion_factor'][load_type])
+                self.data = self.data.rename({lsm_var: gssha_var})
             else:
                 raise IndexError("Invalid LSM variable ({0}) for GSSHA variable {1}".format(lsm_var, gssha_var))
 
@@ -622,22 +607,23 @@ class GRIDtoGSSHA(object):
             ##given the uncertainty in the model values themselves.
 
             specific_humidity_var, pressure_var, temperature_var = lsm_var
-            self._load_lsm_data(specific_humidity_var)
-            specific_humidity_array = self.data_np_array
-            self._load_lsm_data(pressure_var)
-            pressure_array = self.data_np_array
-            self._load_lsm_data(temperature_var)
-            temperature_array = self.data_np_array
-
+            specific_humidity = self._load_lsm_data(specific_humidity_var)
+            pressure = self._load_lsm_data(pressure_var)
+            temperature = self._load_lsm_data(temperature_var)
             ##METHOD 1:
             ##To compute the relative humidity at 2m,
             ##given T and Q (water vapor mixing ratio) at 2 m and PSFC (surface pressure):
             ##Es(saturation vapor pressure in Pa)=611.2*exp(17.62*(T2-273.16)/(243.12+T2-273.16))
             ##Qs(saturation mixing ratio)=(0.622*es)/(PSFC-es)
             ##RH = 100*Q/Qs
-
-            es_array = 611.2*np.exp(17.62*(temperature_array-273.16)/(243.12+temperature_array-273.16))
-            self.data_np_array = 100 * specific_humidity_array/((0.622*es_array)/(pressure_array-es_array))
+            print(np.amin(17.62*(temperature[temperature_var]-273.16)/(243.12+temperature[temperature_var].values-273.16)))
+            es = (611.2*np.exp(17.62*(temperature[temperature_var]-273.16)
+                  /(243.12+temperature[temperature_var]-273.16))) \
+                .to_dataset(name="es")
+            print(es)
+            self.data = (100 * specific_humidity[specific_humidity_var]/
+                         ((0.622*es["es"])/(pressure[pressure_var]-
+                         es["es"]))).to_dataset(name=gssha_var)
 
             ##METHOD 2:
             ##http://earthscience.stackexchange.com/questions/2360/how-do-i-convert-specific-humidity-to-relative-humidity
@@ -648,40 +634,42 @@ class GRIDtoGSSHA(object):
             # WRF:  http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
             u_vector_var, v_vector_var = lsm_var
             conversion_factor = self.netcdf_attributes[gssha_var]['conversion_factor'][load_type]
-            self._load_lsm_data(u_vector_var, conversion_factor)
-            u_vector_array = self.data_np_array
-            self._load_lsm_data(v_vector_var, conversion_factor)
-            v_vector_array = self.data_np_array
-            self.data_np_array = np.sqrt(u_vector_array**2 + v_vector_array**2)
+            u_vector = self._load_lsm_data(u_vector_var, conversion_factor)
+            v_vector = self._load_lsm_data(v_vector_var, conversion_factor)
+            self.data = (np.sqrt(u_vector[u_vector_var]**2
+                         + v_vector[v_vector_var]**2)) \
+                         .to_dataset(name=gssha_var)
+
         elif 'precipitation' in gssha_var and not isinstance(lsm_var, str):
             # WRF:  http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
             rain_c_var, rain_nc_var = lsm_var
             conversion_factor = self.netcdf_attributes[gssha_var]['conversion_factor'][load_type]
-            self._load_lsm_data(rain_c_var, conversion_factor)
-            rain_c_array = self.data_np_array
-            self._load_lsm_data(rain_nc_var, conversion_factor)
-            rain_nc_array = self.data_np_array
-            self.data_np_array = rain_c_array + rain_nc_array
+            rain_c = self._load_lsm_data(rain_c_var, conversion_factor)
+            rain_nc = self._load_lsm_data(rain_nc_var, conversion_factor)
+            self.data = (rain_c[rain_c_var] + rain_nc[rain_nc_var]) \
+                        .to_dataset(name=gssha_var)
         else:
-            self._load_lsm_data(lsm_var,
-                                self.netcdf_attributes[gssha_var]['conversion_factor'][load_type],
-                                self.netcdf_attributes[gssha_var].get('four_dim_var_calc_method'))
-
+            self.data = self._load_lsm_data(lsm_var,
+                                            self.netcdf_attributes[gssha_var]['conversion_factor'][load_type],
+                                            self.netcdf_attributes[gssha_var].get('calc_4d_method'),
+                                            self.netcdf_attributes[gssha_var].get('calc_4d_dim'),
+                                            )
+            self.data = self.data.rename({lsm_var: gssha_var})
             conversion_function = self.netcdf_attributes[gssha_var].get('conversion_function')
             if conversion_function:
-                self.data_np_array = self.netcdf_attributes[gssha_var]['conversion_function'][load_type](self.data_np_array)
+                self.data[gssha_var] = self.netcdf_attributes[gssha_var]['conversion_function'][load_type](self.data[gssha_var])
 
         if load_type == 'ascii' or load_type == 'netcdf':
             #CONVERT TO INCREMENTAL
             if gssha_var == 'precipitation_acc':
-                self.data_np_array = np.lib.pad(np.diff(self.data_np_array, axis=0),
-                                                ((1,0),(0,0),(0,0)),'constant',constant_values=0)
+                self.data[gssha_var].values = np.lib.pad(np.diff(self.data[gssha_var].values, axis=0),
+                                                  ((1,0),(0,0),(0,0)),'constant',constant_values=0)
 
             #CONVERT PRECIP TO RADAR (mm/hr) IN FILE
             if gssha_var == 'precipitation_inc' or gssha_var == 'precipitation_acc':
                 #convert to mm/hr from mm
-                self.data_np_array = self.data_np_array*3600/float(self.time_step_seconds)
-
+                time_step_hours = np.diff(self.data.time)[0]/np.timedelta64(1, 'h')
+                self.data[gssha_var] = self.data[gssha_var]*time_step_hours
 
 
     def _check_lsm_input(self, data_var_map_array):
@@ -693,8 +681,7 @@ class GRIDtoGSSHA(object):
 
         #make sure all required variables exist
         given_hmet_var_list = []
-        for data_var_map in data_var_map_array:
-            gssha_data_var, lsm_data_var = data_var_map
+        for gssha_data_var, lsm_data_var in data_var_map_array:
             gssha_data_hmet_name = self.netcdf_attributes[gssha_data_var]['hmet_name']
 
             if gssha_data_hmet_name in given_hmet_var_list:
@@ -711,57 +698,68 @@ class GRIDtoGSSHA(object):
         This retrives the calc function to convert
         to hourly data for the various HMET parameters
         """
-        calc_function = np.mean
+        calc_function = 'mean'
         if gssha_data_var == 'precipitation_inc' or gssha_data_var == 'precipitation_acc':
-            calc_function = np.sum
+            calc_function = 'sum'
 
         return calc_function
 
-    def _get_hourly_data(self, hourly_index, calc_function):
-        """
-        This function gets the data converted into
-        hourly data for ASCII or NetCDF output files
-        """
-        time_index_start = self.hourly_time_index_array[hourly_index]
-        if hourly_index+1 < self.len_hourly_time_index_array:
-            next_time_index = self.hourly_time_index_array[hourly_index+1]
-            return calc_function(self.data_np_array[time_index_start:next_time_index], axis=0)
-        elif hourly_index+1 == self.len_hourly_time_index_array:
-            if time_index_start < len(self.time_array) - 1:
-                return calc_function(self.data_np_array[time_index_start:], axis=0)
-            else:
-                return self.data_np_array[time_index_start]
+
+    def _resample_data(self, gssha_var):
+        '''
+        This function resamples the data to match the GSSHA grid
+        IN TESTING MODE
+        '''
+        self.data = self.data.lsm.resample(gssha_var, self.gssha_grid)
 
     def _convert_data_to_hourly(self, gssha_data_var):
         """
         This function converts the data to hourly data
         and then puts it into the data_np_array
         """
-        hourly_3d_array = np.zeros((self.len_hourly_time_index_array*int(self.num_generated_files_per_timestep), len(self.lsm_lat_indices), len(self.lsm_lon_indices)))
+        time_step_hours = np.diff(self.data.time)[0]/np.timedelta64(1, 'h')
         calc_function = self._get_calc_function(gssha_data_var)
 
-        for hourly_index in range(self.len_hourly_time_index_array):
-            for i in range(int(self.num_generated_files_per_timestep)):
-                hourly_3d_array[hourly_index*int(self.num_generated_files_per_timestep)+i] = self._get_hourly_data(hourly_index, calc_function)
+        if time_step_hours < 1:
+            self.data = self.data.resample('1H', dim='time', how=calc_function)
+        elif time_step_hours > 1:
+            resampled_data = self.data.resample('1H', dim='time')
 
-        self.data_np_array = hourly_3d_array
+            for time_idx in range(self.data.dims['time']):
+                if time_idx+1 < self.data.dims['time']:
+                    # interpolate between time steps
+                    start_time = self.data.time[time_idx].values
+                    end_time = self.data.time[time_idx+1].values
+                    slope_timeslice = slice(str(start_time), str(end_time))
+                    slice_size = resampled_data.sel(time=slope_timeslice).dims['time'] - 1
+                    first_timestep = resampled_data.sel(time=str(start_time))[gssha_data_var]
+                    slope = (resampled_data.sel(time=str(end_time))[gssha_data_var]
+                             - first_timestep)/float(slice_size)
 
-    def _resample_data(self, resample_method):
-        '''
-        This function resamples the data to match the GSSHA grid
-        IN TESTING MODE
-        '''
-        raw_data_grid = ArrayGrid(self.data_np_array, self.gssha_grid.wkt,
-                                  x_min=self.west_bound, x_pixel_size=self.cell_size_ew,
-                                  y_max=self.north_bound, y_pixel_size=self.cell_size_ns,
-                                  )
+                    data_timeslice = slice(str(start_time+np.timedelta64(1,'m')),
+                                            str(end_time-np.timedelta64(1,'m')))
+                    data_subset = resampled_data.sel(time=data_timeslice)
+                    for xidx in range(data_subset.dims['time']):
+                        data_subset[gssha_data_var][xidx] = first_timestep + slope * (xidx+1)
+                else:
+                    # just continue to repeat the timestep
+                    start_time = self.data.time[time_idx].values
+                    end_time = resampled_data.time[-1].values
+                    if end_time > start_time:
+                        first_timestep = resampled_data.sel(time=str(start_time))[gssha_data_var]
 
-        resampled_data_grid = resample_grid(original_grid=raw_data_grid,
-                                            match_grid=self.gssha_grid,
-                                            resample_method=resample_method,
-                                            as_gdal_grid=True)
+                        data_timeslice = slice(str(start_time), str(end_time))
+                        data_subset = resampled_data.sel(time=data_timeslice)
+                        slice_size = 1
+                        if calc_function == "mean":
+                            slice_size = data_subset.dims['time']
 
-        self.data_np_array = resampled_data_grid.np_array(band='all')
+                        for xidx in range(data_subset.dims['time']):
+                            data_subset[gssha_data_var][xidx] = first_timestep/float(slice_size)
+
+
+            self.data = resampled_data
+
 
     def lsm_precip_to_gssha_precip_gage(self, out_gage_file, lsm_data_var, precip_type="RADAR"):
         """This function takes array data and writes out a GSSHA precip gage file.
@@ -788,9 +786,9 @@ class GRIDtoGSSHA(object):
             from gsshapy.grid import LSMtoGSSHA
 
             #STEP 1: Initialize class
-            l2g = LSMtoGSSHA(
+            l2g = GRIDtoGSSHA(
                              #YOUR INIT PARAMETERS HERE
-                            )
+                             )
 
             #STEP 2: Generate GAGE data (from WRF)
             l2g.lsm_precip_to_gssha_precip_gage(out_gage_file="E:/GSSHA/wrf_gage_1.gag",
@@ -826,130 +824,37 @@ class GRIDtoGSSHA(object):
 
         self._load_converted_gssha_data_from_lsm(gssha_precip_type, lsm_data_var, 'gage')
 
-        if len(self.data_np_array.shape) > 2:
-            #LOOP THROUGH TIME
-            with io_open(out_gage_file, 'w', newline=self.default_line_ending ) as gage_file:
-                if len(self.time_array)>1:
-                    gage_file.write(u"EVENT \"Event of {0} to {1}\"\n".format(self._time_to_string(self.time_array[0]),
-                                                                             self._time_to_string(self.time_array[-1])))
-                else:
-                    gage_file.write(u"EVENT \"Event of {0}\"\n".format(self._time_to_string(self.time_array[0])))
-                gage_file.write(u"NRPDS {0}\n".format(self.data_np_array.shape[0]))
-                gage_file.write(u"NRGAG {0}\n".format(self.data_np_array.shape[1]*self.data_np_array.shape[2]))
-
-                for lat_idx in range(len(self.lsm_lat_indices)):
-                    for lon_idx in range(len(self.lsm_lon_indices)):
-                        coord_idx = lat_idx*len(self.lsm_lon_indices) + lon_idx
-                        gage_file.write(u"COORD {0} {1} \"center of pixel #{2}\"\n".format(self.proj_lon_list[lat_idx,lon_idx],
-                                                                                          self.proj_lat_list[lat_idx,lon_idx],
-                                                                                          coord_idx))
-                for time_idx, time_step_array in enumerate(self.data_np_array):
-                    date_str = self._time_to_string(self.time_array[time_idx])
-                    data_str = " ".join(time_step_array.ravel().astype(str))
-                    gage_file.write(u"{0} {1} {2}\n".format(precip_type, date_str, data_str))
-
-        elif len(self.data_np_array.shape) == 2:
-            with io_open(out_gage_file, 'w', newline=self.default_line_ending ) as gage_file:
-                date_str = self._time_to_string(self.time_array[0])
-                gage_file.write(u"EVENT \"Event of {0}\"\n".format(date_str))
-                gage_file.write(u"NRPDS 1\n")
-                gage_file.write(u"NRGAG {0}\n".format(self.data_np_array.shape[0]*self.data_np_array.shape[1]))
-                for lat_idx in range(len(self.lsm_lat_indices)):
-                    for lon_idx in range(len(self.lsm_lon_indices)):
-                        coord_idx = lat_idx*len(self.lsm_lon_indices) + lon_idx
-                        gage_file.write(u"COORD {0} {1} \"center of pixel #{2}\"\n".format(self.proj_lon_list[lat_idx,lon_idx],
-                                                                                          self.proj_lat_list[lat_idx,lon_idx],
-                                                                                          coord_idx))
-                data_str = " ".join(time_step_array.ravel().astype(str))
+        #LOOP THROUGH TIME
+        with io_open(out_gage_file, 'w') as gage_file:
+            if self.data.dims['time']>1:
+                gage_file.write(u"EVENT \"Event of {0} to {1}\"\n".format(self._time_to_string(self.data.time[0]),
+                                                                          self._time_to_string(self.data.time[-1])))
+            else:
+                gage_file.write(u"EVENT \"Event of {0}\"\n".format(self._time_to_string(self.data.time[0])))
+            gage_file.write(u"NRPDS {0}\n".format(self.data.dims['time']))
+            gage_file.write(u"NRGAG {0}\n".format(self.data.dims['x']*self.data.dims['y']))
+            for lat_idx in range(self.data.dims['y']):
+                for lon_idx in range(self.data.dims['x']):
+                    coord_idx = lat_idx*self.data.dims['x'] + lon_idx
+                    x_coord, y_coord = self.data.lsm.pixel2coord(lon_idx, lat_idx)
+                    gage_file.write(u"COORD {0} {1} \"center of pixel #{2}\"\n".format(x_coord,
+                                                                                       y_coord,
+                                                                                       coord_idx))
+            for time_idx in range(self.data.dims['time']):
+                date_str = self._time_to_string(self.data.time[time_idx])
+                data_str = " ".join(self.data[gssha_precip_type][time_idx].values.ravel().astype(str))
                 gage_file.write(u"{0} {1} {2}\n".format(precip_type, date_str, data_str))
-        else:
-            raise Exception("Invalid data array ...")
 
     def _write_hmet_card_file(self, hmet_card_file_path, main_output_folder):
         """
         This function writes the HMET_ASCII card file
         with ASCII file list for input to GSSHA
         """
-        with io_open(hmet_card_file_path, 'w', newline=self.default_line_ending ) as out_hmet_list_file:
-            for hour_time in self.hourly_time_array:
+        with io_open(hmet_card_file_path, 'w') as out_hmet_list_file:
+            for hour_time in self.data.time:
                 date_str = self._time_to_string(hour_time, "%Y%m%d%H")
                 out_hmet_list_file.write(u"{0}\n".format(path.join(main_output_folder, date_str)))
 
-    def _lsm_data_to_ascii(self, header_string,
-                                 data_var_map_array,
-                                 main_output_folder="",
-                                 hmet_card_file=""):
-        """
-        Writes extracted data to ASCII file format
-        required for GSSHA to read it in
-        GSSHA CARD: HMET_ASCII
-        NOTE: MUST HAVE LONG_TERM GSSHA CARD TO WORK
-        See: http://www.gsshawiki.com/Long-term_Simulations:Global_parameters
-
-        """
-        self._check_lsm_input(data_var_map_array)
-
-        if not main_output_folder:
-            main_output_folder = path.join(self.gssha_project_folder, "hmet_ascii_data")
-
-        try:
-            mkdir(main_output_folder)
-        except OSError:
-            pass
-
-        print("Outputting HMET data to {0}".format(main_output_folder))
-
-        #the csv module line ending behaves different than io.open in python 2.7 than 3
-        csv_newline = '\n'
-        if not self.output_unix_format:
-            #this is the case where we want windows style line endings
-            csv_newline = '\r\n'
-            header_string = header_string.replace('\n', '\r\n')
-
-        #PART 2: DATA
-        for data_var_map in data_var_map_array:
-            gssha_data_var, lsm_data_var = data_var_map
-            gssha_data_hmet_name = self.netcdf_attributes[gssha_data_var]['hmet_name']
-            self._load_converted_gssha_data_from_lsm(gssha_data_var, lsm_data_var, 'ascii')
-            if len(self.data_np_array.shape) == 3:
-                self._convert_data_to_hourly(gssha_data_var)
-
-                for hourly_index, hour_time in enumerate(self.hourly_time_array):
-                    date_str = self._time_to_string(hour_time, "%Y%m%d%H")
-                    ascii_file_path = path.join(main_output_folder,"{0}_{1}.asc".format(date_str, gssha_data_hmet_name))
-                    with open(ascii_file_path, 'w') as out_ascii_grid:
-                        out_ascii_grid.write(header_string)
-                        grid_writer = csv_writer(out_ascii_grid,
-                                                 delimiter=" ",
-                                                 lineterminator=csv_newline)
-                        grid_writer.writerows(self.data_np_array[hourly_index,::-1,:])
-            else:
-                raise Exception("Invalid data array ...")
-
-        #PART 3: HMET_ASCII card input file with ASCII file list
-        hmet_card_file_path = path.join(main_output_folder, 'hmet_file_list.txt')
-        self._write_hmet_card_file(hmet_card_file_path, main_output_folder)
-
-    def lsm_data_to_grass_ascii(self, data_var_map_array,
-                                      main_output_folder=""):
-        """
-        Writes extracted data to GRASS ASCII file format
-        DO NOT USE THIS!!!!! IT WILL NOT WORK!!!!
-        """
-        #PART 1: HEADER
-        #get data extremes
-        header_string = u"north: {0:.9f}\n".format(self.north_bound)
-        header_string += "south: {0:.9f}\n".format(self.south_bound)
-        header_string += "east: {0:.9f}\n".format(self.east_bound)
-        header_string += "west: {0:.9f}\n".format(self.west_bound)
-        header_string += "rows: {0}\n".format(len(self.lsm_lat_indices))
-        header_string += "cols: {0}\n".format(len(self.lsm_lon_indices))
-        header_string += "NODATA_value -9999\n"
-
-        #PART 2: DATA
-        self._lsm_data_to_ascii(header_string,
-                                data_var_map_array,
-                                main_output_folder)
 
     def lsm_data_to_arc_ascii(self, data_var_map_array,
                                     main_output_folder=""):
@@ -1028,19 +933,37 @@ class GRIDtoGSSHA(object):
             h2g.lsm_data_to_arc_ascii(data_var_map_array)
 
         """
-        #PART 1: HEADER
-        #get data extremes
-        header_string = u"ncols {0}\n".format(len(self.lsm_lon_indices))
-        header_string += "nrows {0}\n".format(len(self.lsm_lat_indices))
-        header_string += "xllcorner {0}\n".format(self.west_bound)
-        header_string += "yllcorner {0}\n".format(self.south_bound)
-        header_string += "cellsize {0}\n".format(self.cell_size)
-        header_string += "NODATA_value -9999\n"
+        self._check_lsm_input(data_var_map_array)
+
+        if not main_output_folder:
+            main_output_folder = path.join(self.gssha_project_folder, "hmet_ascii_data")
+
+        try:
+            mkdir(main_output_folder)
+        except OSError:
+            pass
+
+        print("Outputting HMET data to {0}".format(main_output_folder))
 
         #PART 2: DATA
-        self._lsm_data_to_ascii(header_string,
-                                data_var_map_array,
-                                main_output_folder)
+        for data_var_map in data_var_map_array:
+            gssha_data_var, lsm_data_var = data_var_map
+            gssha_data_hmet_name = self.netcdf_attributes[gssha_data_var]['hmet_name']
+            self._load_converted_gssha_data_from_lsm(gssha_data_var, lsm_data_var, 'ascii')
+            self._convert_data_to_hourly(gssha_data_var)
+
+            for time_idx in range(self.data.dims['time']):
+                arr_grid = ArrayGrid(in_array=self.data[gssha_data_var][time_idx].values,
+                                     wkt_projection=self.data.lsm.projection.ExportToWkt(),
+                                     geotransform=self.data.lsm.geotransform,
+                                     )
+                date_str = self._time_to_string(self.data.time[time_idx], "%Y%m%d%H")
+                ascii_file_path = path.join(main_output_folder,"{0}_{1}.asc".format(date_str, gssha_data_hmet_name))
+                arr_grid.to_arc_ascii(ascii_file_path)
+
+        #PART 3: HMET_ASCII card input file with ASCII file list
+        hmet_card_file_path = path.join(main_output_folder, 'hmet_file_list.txt')
+        self._write_hmet_card_file(hmet_card_file_path, main_output_folder)
 
     def lsm_data_to_subset_netcdf(self, netcdf_file_path,
                                         data_var_map_array,
@@ -1123,124 +1046,26 @@ class GRIDtoGSSHA(object):
         """
         self._check_lsm_input(data_var_map_array)
 
-        subset_nc = Dataset(netcdf_file_path, 'w')
-
-        #dimensions
-        #previously just added data, but needs to be hourly
-        #BEFORE: subset_nc.createDimension('time', len(self.time_array))
-        #NOW:
-        subset_nc.createDimension('time', len(self.hourly_time_array))
-        if resample_method:
-            subset_nc.createDimension('lat', self.gssha_grid.y_size)
-            subset_nc.createDimension('lon', self.gssha_grid.x_size)
-        else:
-            subset_nc.createDimension('lat', len(self.lsm_lat_indices))
-            subset_nc.createDimension('lon', len(self.lsm_lon_indices))
-
-        #time
-        #TODO: Convert to local time
-        time_var = subset_nc.createVariable('time', 'i4',
-                                            ('time',))
-        time_var.long_name = 'time'
-        time_var.standard_name = 'time'
-        time_var.units = 'seconds since 1970-01-01 00:00:00+00:00'
-        time_var.axis = 'T'
-        time_var.calendar = 'gregorian'
-        #previously just added data, but needs to be hourly
-        #BEFORE: time_var[:] = self.time_array
-        #NOW:
-        time_var[:] = self.hourly_time_array
-
-        ##2D GRID - Not Supported by ArcMap or QGIS
-        """
-        #longitude
-        lon_2d_var = subset_nc.createVariable('longitude', 'f8', ('lat','lon'),
-                                              fill_value=-9999.0)
-        lon_2d_var.long_name = 'longitude'
-        lon_2d_var.standard_name = 'longitude'
-        lon_2d_var.units = 'degrees_east'
-        lon_2d_var.coordinates = 'lat lon'
-        lon_2d_var.axis = 'X'
-
-        #latitude
-        lat_2d_var = subset_nc.createVariable('latitude', 'f8', ('lat','lon'),
-                                              fill_value=-9999.0)
-        lat_2d_var.long_name = 'latitude'
-        lat_2d_var.standard_name = 'latitude'
-        lat_2d_var.units = 'degrees_north'
-        lat_2d_var.coordinates = 'lat lon'
-        lat_2d_var.axis = 'Y'
-
-        lon_2d_var[:], lat_2d_var[:] = transform(self.gssha_grid.proj,
-                                                 Proj(init='epsg:4326'),
-                                                 self.proj_lon_list,
-                                                 self.proj_lat_list,
-                                                 )
-        """
-        ##1D GRID - Able to display in ArcMap/QGIS, but loose information
-        #longitude
-        lon_var = subset_nc.createVariable('lon', 'f8', ('lon'),
-                                           fill_value=-9999.0)
-        lon_var.long_name = 'longitude'
-        lon_var.standard_name = 'longitude'
-        lon_var.units = 'degrees_east'
-        lon_var.axis = 'X'
-
-        #latitude
-        lat_var = subset_nc.createVariable('lat', 'f8', ('lat'),
-                                           fill_value=-9999.0)
-        lat_var.long_name = 'latitude'
-        lat_var.standard_name = 'latitude'
-        lat_var.units = 'degrees_north'
-        lat_var.axis = 'Y'
-
-        if resample_method:
-            lat_var[:], lon_var[:] = self.gssha_grid.lat_lon()
-        else:
-
-            lon_2d, lat_2d = transform(self.gssha_grid.proj,
-                                       Proj(init='epsg:4326'),
-                                       self.proj_lon_list,
-                                       self.proj_lat_list,
-                                       )
-            lon_var[:] = lon_2d.mean(axis=0)
-            lat_var[:] = lat_2d.mean(axis=1)
-
+        output_datasets = []
         #DATA
         for gssha_var, lsm_var in data_var_map_array:
             if gssha_var in self.netcdf_attributes:
                 gssha_data_var_name = self.netcdf_attributes[gssha_var]['gssha_name']
-                net_var = subset_nc.createVariable(gssha_data_var_name, 'f4',
-                                                   ('time', 'lat', 'lon'),
-                                                   fill_value=-9999.0)
-                net_var.standard_name = self.netcdf_attributes[gssha_var]['standard_name']
-                net_var.long_name = self.netcdf_attributes[gssha_var]['long_name']
-                net_var.units = self.netcdf_attributes[gssha_var]['units']['netcdf']
                 self._load_converted_gssha_data_from_lsm(gssha_var, lsm_var, 'netcdf')
+                self.data.attrs['standard_name'] = self.netcdf_attributes[gssha_var]['standard_name']
+                self.data.attrs['long_name'] = self.netcdf_attributes[gssha_var]['long_name']
+                self.data.attrs['units'] = self.netcdf_attributes[gssha_var]['units']['netcdf']
                 #previously just added data, but needs to be hourly
                 self._convert_data_to_hourly(gssha_var)
                 if resample_method:
-                    self._resample_data(resample_method)
-                net_var[:] = self.data_np_array
+                    self._resample_data(gssha_var)
+                output_datasets.append(self.data)
             else:
                 raise IndexError("Invalid GSSHA variable name: {0} ...".format(gssha_var))
-
-        #projection
-        crs_var = subset_nc.createVariable('crs', 'i4')
-        crs_var.grid_mapping_name = 'latitude_longitude'
-        crs_var.epsg_code = 'EPSG:4326'  # WGS 84
-        crs_var.semi_major_axis = 6378137.0
-        crs_var.inverse_flattening = 298.257223563
-
+        output_dataset = xr.merge(output_datasets)
         #add global attributes
-        subset_nc.Conventions = 'CF-1.6'
-        subset_nc.title = 'GSSHA LSM Input'
-        subset_nc.history = 'date_created: {0}'.format(datetime.utcnow())
-        subset_nc.gssha_projection = self.gssha_grid.wkt
-        subset_nc.north = self.north_bound
-        subset_nc.south = self.south_bound
-        subset_nc.east = self.east_bound
-        subset_nc.west = self.west_bound
-        subset_nc.cell_size = self.cell_size
+        output_dataset.attrs['Convention'] = 'CF-1.6'
+        output_dataset.attrs['title'] = 'GSSHA LSM Input'
+        output_dataset.attrs['history'] = 'date_created: {0}'.format(datetime.utcnow())
 
-        subset_nc.close()
+        output_dataset.to_netcdf(netcdf_file_path)

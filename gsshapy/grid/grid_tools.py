@@ -5,28 +5,18 @@ import numpy as np
 from osgeo import gdal, gdalconst, ogr, osr
 from os import path, getcwd
 from pyproj import Proj, transform
-UTM_LOADED=False
-try:
-    import utm
-    UTM_LOADED=True
-except ImportError:
-    print("WARNING: utm package not loaded. The UTM functionality will not work ...")
-    pass
+import utm
+
 
 def utm_proj_from_latlon(latitude, longitude, as_wkt=False, as_osr=False):
     '''
     Returns UTM projection information from a latitude, longitude corrdinate pair
     '''
-    if not UTM_LOADED:
-        raise ImportError("utm package not loaded. 'utm_proj_from_latlon' "
-                          "will not work ...")
-
     # get utm coordinates
     utm_centroid_info = utm.from_latlon(latitude, longitude)
     easting, northing, zone_number, zone_letter = utm_centroid_info
-    """
-    # METHOD USING SetUTM. Not sure if better/worse
 
+    # METHOD USING SetUTM. Not sure if better/worse
     sp_ref = osr.SpatialReference()
     north_zone = True
     if zone_letter < 'N':
@@ -54,6 +44,7 @@ def utm_proj_from_latlon(latitude, longitude, as_wkt=False, as_osr=False):
     elif as_wkt:
         return sp_ref.ExportToWkt()
     return proj4_utm_string
+    """
 
 def project_to_geographic(x_coord, y_coord, osr_projetion):
     '''
@@ -551,7 +542,7 @@ def reproject_layer(in_path, out_path, outSpatialRef):
         prj_file.close()
 
 def gdal_reproject(src,
-                   dst,
+                   dst=None,
                    epsg=None,
                    src_srs=None,
                    dst_srs=None,
@@ -575,16 +566,21 @@ def gdal_reproject(src,
     if dst_srs is None:
         dst_srs = osr.SpatialReference()
         dst_srs.ImportFromEPSG(int(epsg))
-        dst_wkt = dst_srs.ExportToWkt()
+
+    dst_wkt = dst_srs.ExportToWkt()
 
     # Resampling might be passed as a string
     if not isinstance(resampling, int):
         resampling = getattr(gdal, resampling)
 
+    src_wkt = None
+    if src_srs is not None:
+        src_wkt = src_srs.ExportToWkt()
+
     # Call AutoCreateWarpedVRT() to fetch default values
     # for target raster dimensions and geotransform
     reprojected_ds = gdal.AutoCreateWarpedVRT(src_ds,
-                                              src_srs,
+                                              src_wkt,
                                               dst_wkt,
                                               resampling,
                                               error_threshold)

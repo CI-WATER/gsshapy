@@ -12,7 +12,7 @@ import unittest
 from shutil import copytree
 
 from .template import TestGridTemplate
-from gsshapy.grid import LSMtoGSSHA
+from gsshapy.grid import GRIDtoGSSHA
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -67,15 +67,16 @@ class TestLSMtoGSSHA(TestGridTemplate):
 ##                                  ]
 
         wrf_folder = os.path.join(self.writeDirectory, 'wrf_raw_data')
-        self.l2g = LSMtoGSSHA(gssha_project_folder=self.gssha_project_folder,
-                              gssha_grid_file_name='grid_standard.ele',
-                              lsm_input_folder_path=wrf_folder,
-                              lsm_search_card="gssha_d03_*.nc",
-                              lsm_lat_var='XLAT',
-                              lsm_lon_var='XLONG',
-                              lsm_time_var='time',
-                              lsm_file_date_naming_convention='gssha_d03_%Y_%m_%d_%H_%M_%S.nc',
-                              output_unix_format=(os.name != 'nt')
+        self.l2g = GRIDtoGSSHA(gssha_project_folder=self.gssha_project_folder,
+                               gssha_project_file_name='grid_standard.prj',
+                               lsm_input_folder_path=wrf_folder,
+                               lsm_search_card="gssha_d03_*.nc",
+                               lsm_lat_var='XLAT',
+                               lsm_lon_var='XLONG',
+                               lsm_time_var='Times',
+                               lsm_lat_dim='south_north',
+                               lsm_lon_dim='west_east',
+                               lsm_time_dim='Time',
                               )
 
     def _before_teardown(self):
