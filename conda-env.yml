@@ -15,7 +15,9 @@ dependencies:
 - psycopg2
 # REMOVED UNTIL DOCS PILLOW DEPENDENCY FIXED
 #- pygrib
+#- pynio
 - pyyaml
 - rapidpy
 - timezonefinder
 - utm
+- xarray
