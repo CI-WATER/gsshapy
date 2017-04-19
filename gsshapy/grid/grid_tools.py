@@ -371,22 +371,16 @@ def geotransform_from_latlon(lats, lons, proj=None):
                                      )
 
     # get cell size
-    x_cell_size = np.max(np.absolute(np.diff(lons_2d, axis=1)))
-    y_cell_size = -np.max(np.absolute(np.diff(lats_2d, axis=0)))
+    x_cell_size = np.mean(np.absolute(np.diff(lons_2d, axis=1)))
+    y_cell_size = np.mean(np.absolute(np.diff(lats_2d, axis=0)))
     # get top left corner
     min_x_tl = lons_2d[0,0] - x_cell_size/2.0
     max_y_tl = lats_2d[0,0] + y_cell_size/2.0
-    # get bottom rignt corner
-    max_x_br = lons_2d[-1,-1] + x_cell_size/2.0
-    min_y_br = lats_2d[-1,-1] - y_cell_size/2.0
-    # calculate size
-    x_size = lons_2d.shape[1]
-    y_size = lons_2d.shape[0]
-    # calculate skew
-    # x_skew = (max_x_br - min_x_tl - x_size * x_cell_size)/y_size
-    # y_skew = (min_y_br - max_y_tl - y_size * y_cell_size)/x_size
-    # geotransform = (min_x_tl, x_cell_size, x_skew, max_y_tl, y_skew, y_cell_size)
-    return (min_x_tl, x_cell_size, 0, max_y_tl, 0, y_cell_size)
+    #print(lons_2d[0,0])
+    #print(np.min(lons_2d))
+    #print(lats_2d[0,0])
+    #print(np.max(lats_2d))
+    return (min_x_tl, x_cell_size, 0, max_y_tl, 0, -y_cell_size)
 
 def load_raster(grid):
     '''
@@ -547,7 +541,8 @@ def gdal_reproject(src,
                    src_srs=None,
                    dst_srs=None,
                    error_threshold=0.125,
-                   resampling=gdal.GRA_NearestNeighbour):
+                   resampling=gdal.GRA_NearestNeighbour,
+                   as_gdal_grid=False):
     """
     FROM: https://github.com/OpenDataAnalytics/gaia/blob/master/gaia/geo/gdal_functions.py
     To be removed when gaia is conda package.
@@ -588,6 +583,8 @@ def gdal_reproject(src,
     # Create the final warped raster
     if dst:
         gdal.GetDriverByName('GTiff').CreateCopy(dst, reprojected_ds)
+    if as_gdal_grid:
+        return GDALGrid(reprojected_ds)
     return reprojected_ds
 
 

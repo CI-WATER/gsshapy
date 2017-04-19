@@ -20,7 +20,7 @@ from pyproj import Proj, transform
 import xarray as xr
 import extension
 
-from .grid_tools import ArrayGrid
+from .grid_tools import ArrayGrid, gdal_reproject
 from ..lib import db_tools as dbt
 from ..orm import ProjectFile
 
@@ -438,62 +438,47 @@ class GRIDtoGSSHA(object):
         self.lsm_lon_dim = lsm_lon_dim
         self.lsm_time_dim = lsm_time_dim
         self.output_timezone = output_timezone
+        self._xd = None
         self._load_modeling_extent()
+
+    @property
+    def xd(self):
+        """get xarray dataset file handle to LSM files"""
+        if self._xd is None:
+            path_to_lsm_files = path.join(self.lsm_input_folder_path,
+                                          self.lsm_search_card)
+
+            self._xd = xr.open_mfdataset(path_to_lsm_files,
+                                         concat_dim=self.lsm_time_dim)
+            self._xd.lsm.y_var = self.lsm_lat_var
+            self._xd.lsm.x_var = self.lsm_lon_var
+            self._xd.lsm.time_var = self.lsm_time_var
+            self._xd.lsm.y_dim = self.lsm_lat_dim
+            self._xd.lsm.x_dim = self.lsm_lon_dim
+            self._xd.lsm.time_dim = self.lsm_time_dim
+            self._xd.lsm.to_datetime()
+        return self._xd
 
     def _set_subset_indices(self, y_min, y_max, x_min, x_max):
         """
         load subset based on extent
         """
-        print(x_min)
-        print(x_max)
-        print(y_min)
-        print(y_max)
-        with self._get_xd() as xd:
-            x_coords, y_coords = xd.lsm.coords(as_2d=True)
-            dx = xd.lsm.dx
-            dy = xd.lsm.dy
+        y_coords, x_coords = self.xd.lsm.coords(as_2d=True)
+        dx = self.xd.lsm.dx
+        dy = self.xd.lsm.dy
 
-        print(np.amin(x_coords))
-        print(np.amax(x_coords))
-        print(np.amin(y_coords))
-        print(np.amax(y_coords))
         lsm_y_indices_from_y, lsm_x_indices_from_y = np.where((y_coords >= (y_min - 2*dy)) & (y_coords <= (y_max + 2*dy)))
         lsm_y_indices_from_x, lsm_x_indices_from_x = np.where((x_coords >= (x_min - 2*dx)) & (x_coords <= (x_max + 2*dx)))
 
         lsm_y_indices = np.intersect1d(lsm_y_indices_from_y, lsm_y_indices_from_x)
         lsm_x_indices = np.intersect1d(lsm_x_indices_from_y, lsm_x_indices_from_x)
-        if len(lsm_y_indices) <=0:
-            if len(lsm_y_indices_from_y)>0 and len(lsm_y_indices_from_x)<=0:
-                lsm_y_indices = np.unique(lsm_y_indices_from_y)
-            elif len(lsm_y_indices_from_x)>0 and len(lsm_y_indices_from_y)<=0:
-                lsm_y_indices = np.unique(lsm_y_indices_from_x)
 
-        if len(lsm_x_indices) <=0:
-            if len(lsm_x_indices_from_y)>0 and len(lsm_x_indices_from_x)<=0:
-                lsm_x_indices = np.unique(lsm_x_indices_from_y)
-            elif len(lsm_x_indices_from_x)>0 and len(lsm_x_indices_from_y)<=0:
-                lsm_x_indices = np.unique(lsm_x_indices_from_x)
-
-        print(lsm_x_indices)
         self.x_index_min = np.amin(lsm_x_indices)
         self.x_index_max = np.amax(lsm_x_indices)
         self.y_index_min = np.amin(lsm_y_indices)
         self.y_index_max = np.amax(lsm_y_indices)
 
-    def _get_xd(self):
-        """get xarray dataset file handle to LSM files"""
-        path_to_lsm_files = path.join(self.lsm_input_folder_path,
-                                      self.lsm_search_card)
 
-        xd = xr.open_mfdataset(path_to_lsm_files,
-                               concat_dim=self.lsm_time_dim)
-        xd.lsm.y_var = self.lsm_lat_var
-        xd.lsm.x_var = self.lsm_lon_var
-        xd.lsm.time_var = self.lsm_time_var
-        xd.lsm.y_dim = self.lsm_lat_dim
-        xd.lsm.x_dim = self.lsm_lon_dim
-        xd.lsm.time_dim = self.lsm_time_dim
-        return xd
 
     def _load_modeling_extent(self):
         """
@@ -514,22 +499,31 @@ class GRIDtoGSSHA(object):
         self.gssha_grid = project_manager.getGrid()
         db_session.close()
 
-        min_x, max_x, min_y, max_y = self.gssha_grid.bounds()
-        #get projection from LSM file (ASSUME GEOGRAPHIC IF LAT/LON)
-        with self._get_xd() as xd:
-            lsm_proj = Proj(xd.lsm.projection.ExportToProj4())
+        # reproject GSSHA grid and get bounds
+        lsm_proj = self.xd.lsm.projection
+        lsm_pyproj = Proj(self.xd.lsm.projection.ExportToProj4())
+        print(self.xd.lsm.geotransform)
+        print(self.xd.lsm.pixel2coord(0, 0))
+        print(self.xd.lsm.pixel2coord(self.xd.dims[self.lsm_lon_dim], self.xd.dims[self.lsm_lat_dim]))
 
+        min_x, max_x, min_y, max_y = self.gssha_grid.bounds()
         x_ext, y_ext = transform(self.gssha_grid.proj,
-                                 lsm_proj,
+                                 lsm_pyproj,
                                  [min_x, max_x, min_x, max_x],
                                  [min_y, max_y, max_y, min_y],
                                  )
-
-
-        self._set_subset_indices(min(y_ext),
-                                 max(y_ext),
-                                 min(x_ext),
-                                 max(x_ext))
+        min_x, max_x, min_y, max_y = min(x_ext),max(x_ext),min(y_ext),max(y_ext)
+        print((min(x_ext),max(x_ext),min(y_ext),max(y_ext)))
+        ggrid = gdal_reproject(self.gssha_grid.dataset,
+                               dst_srs=lsm_proj,
+                               as_gdal_grid=True)
+        print(ggrid.geotransform)
+        # min_x, max_x, min_y, max_y = ggrid.bounds()
+        print(ggrid.bounds())
+        self._set_subset_indices(min_y,
+                                 max_y,
+                                 min_x,
+                                 max_x)
 
 
     def _time_to_string(self, xr_time, conversion_string="%Y %m %d %H %M"):
@@ -545,14 +539,14 @@ class GRIDtoGSSHA(object):
 
         return t.strftime(conversion_string)
 
-    def _load_lsm_data(self, data_var, conversion_factor=1,
+    def _load_lsm_data(self, data_var,
+                       conversion_factor=1,
                        calc_4d_method=None,
                        calc_4d_dim=None):
         """
         This extracts the LSM data from a folder of netcdf files
         """
-        with self._get_xd() as xd:
-            data = xd.lsm.to_utm(data_var,
+        data = self.xd.lsm.get_subset(data_var,
                                  x_index_start=self.x_index_min,
                                  x_index_end=self.x_index_max,
                                  y_index_start=self.y_index_min,
@@ -560,7 +554,8 @@ class GRIDtoGSSHA(object):
                                  calc_4d_method=calc_4d_method,
                                  calc_4d_dim=calc_4d_dim,
                                  )
-            return data*conversion_factor
+        data.values *= conversion_factor
+        return data
 
     def _load_converted_gssha_data_from_lsm(self, gssha_var, lsm_var, load_type):
         """
@@ -575,9 +570,7 @@ class GRIDtoGSSHA(object):
                 if gssha_var.endswith("cc"):
                     diffusive_fraction /= 100.0
 
-                self.data = ((1-diffusive_fraction[diffusive_fraction_var])
-                             *global_radiation[global_radiation_var]) \
-                            .to_dataset(name=gssha_var)
+                self.data = ((1-diffusive_fraction)*global_radiation)
 
 
             elif gssha_var.startswith('diffusive_radiation') and not isinstance(lsm_var, basestring):
@@ -588,12 +581,10 @@ class GRIDtoGSSHA(object):
                 if gssha_var.endswith("cc"):
                     diffusive_fraction /= 100
                 self.data = (diffusive_fraction[diffusive_fraction_var]
-                             *global_radiation[global_radiation_var]) \
-                            .to_dataset(name=gssha_var)
+                             *global_radiation[global_radiation_var])
 
             elif isinstance(lsm_var, basestring):
                 self.data = self._load_lsm_data(lsm_var, self.netcdf_attributes[gssha_var]['conversion_factor'][load_type])
-                self.data = self.data.rename({lsm_var: gssha_var})
             else:
                 raise IndexError("Invalid LSM variable ({0}) for GSSHA variable {1}".format(lsm_var, gssha_var))
 
@@ -616,14 +607,13 @@ class GRIDtoGSSHA(object):
             ##Es(saturation vapor pressure in Pa)=611.2*exp(17.62*(T2-273.16)/(243.12+T2-273.16))
             ##Qs(saturation mixing ratio)=(0.622*es)/(PSFC-es)
             ##RH = 100*Q/Qs
-            print(np.amin(17.62*(temperature[temperature_var]-273.16)/(243.12+temperature[temperature_var].values-273.16)))
+            #print(np.amin(17.62*(temperature[temperature_var]-273.16)/(243.12+temperature[temperature_var].values-273.16)))
             es = (611.2*np.exp(17.62*(temperature[temperature_var]-273.16)
-                  /(243.12+temperature[temperature_var]-273.16))) \
-                .to_dataset(name="es")
-            print(es)
-            self.data = (100 * specific_humidity[specific_humidity_var]/
-                         ((0.622*es["es"])/(pressure[pressure_var]-
-                         es["es"]))).to_dataset(name=gssha_var)
+                  /(243.12+temperature[temperature_var]-273.16)))
+            #print(es)
+            self.data = (100 * specific_humidity/
+                         ((0.622*es["es"])/(pressure-
+                         es["es"])))
 
             ##METHOD 2:
             ##http://earthscience.stackexchange.com/questions/2360/how-do-i-convert-specific-humidity-to-relative-humidity
@@ -637,8 +627,7 @@ class GRIDtoGSSHA(object):
             u_vector = self._load_lsm_data(u_vector_var, conversion_factor)
             v_vector = self._load_lsm_data(v_vector_var, conversion_factor)
             self.data = (np.sqrt(u_vector[u_vector_var]**2
-                         + v_vector[v_vector_var]**2)) \
-                         .to_dataset(name=gssha_var)
+                         + v_vector[v_vector_var]**2))
 
         elif 'precipitation' in gssha_var and not isinstance(lsm_var, str):
             # WRF:  http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
@@ -646,31 +635,44 @@ class GRIDtoGSSHA(object):
             conversion_factor = self.netcdf_attributes[gssha_var]['conversion_factor'][load_type]
             rain_c = self._load_lsm_data(rain_c_var, conversion_factor)
             rain_nc = self._load_lsm_data(rain_nc_var, conversion_factor)
-            self.data = (rain_c[rain_c_var] + rain_nc[rain_nc_var]) \
-                        .to_dataset(name=gssha_var)
+            self.data = (rain_c + rain_nc)
+
         else:
             self.data = self._load_lsm_data(lsm_var,
                                             self.netcdf_attributes[gssha_var]['conversion_factor'][load_type],
                                             self.netcdf_attributes[gssha_var].get('calc_4d_method'),
                                             self.netcdf_attributes[gssha_var].get('calc_4d_dim'),
                                             )
-            self.data = self.data.rename({lsm_var: gssha_var})
             conversion_function = self.netcdf_attributes[gssha_var].get('conversion_function')
             if conversion_function:
-                self.data[gssha_var] = self.netcdf_attributes[gssha_var]['conversion_function'][load_type](self.data[gssha_var])
+                self.data.values = self.netcdf_attributes[gssha_var]['conversion_function'][load_type](self.data.values)
 
         if load_type == 'ascii' or load_type == 'netcdf':
             #CONVERT TO INCREMENTAL
             if gssha_var == 'precipitation_acc':
-                self.data[gssha_var].values = np.lib.pad(np.diff(self.data[gssha_var].values, axis=0),
-                                                  ((1,0),(0,0),(0,0)),'constant',constant_values=0)
+                self.data.values = np.lib.pad(np.diff(self.data.values, axis=0),
+                                              ((1,0),(0,0),(0,0)),'constant',constant_values=0)
 
             #CONVERT PRECIP TO RADAR (mm/hr) IN FILE
             if gssha_var == 'precipitation_inc' or gssha_var == 'precipitation_acc':
                 #convert to mm/hr from mm
-                time_step_hours = np.diff(self.data.time)[0]/np.timedelta64(1, 'h')
-                self.data[gssha_var] = self.data[gssha_var]*time_step_hours
+                time_step_hours = np.diff(self.xd[self.lsm_time_var].values)[0]/np.timedelta64(1, 'h')
+                self.data.values *= time_step_hours
 
+        # convert to dataset
+        self.data = self.data.to_dataset(name=gssha_var)
+        self.data.swap_dims({self.time_dim: 'time',
+                             self.x_dim: 'x',
+                             self.y_dim: 'y'
+                             },
+                            innplace=True)
+        self.data.rename({self.x_var: 'lon',
+                          self.y_var: 'lat'
+                          },
+                         innplace=True)
+
+
+        self.time_var
 
     def _check_lsm_input(self, data_var_map_array):
         """
@@ -823,6 +825,7 @@ class GRIDtoGSSHA(object):
             gssha_precip_type = "precipitation_rate"
 
         self._load_converted_gssha_data_from_lsm(gssha_precip_type, lsm_data_var, 'gage')
+        self.data = self.data.lsm.to_utm(gssha_precip_type)
 
         #LOOP THROUGH TIME
         with io_open(out_gage_file, 'w') as gage_file:
@@ -833,12 +836,12 @@ class GRIDtoGSSHA(object):
                 gage_file.write(u"EVENT \"Event of {0}\"\n".format(self._time_to_string(self.data.time[0])))
             gage_file.write(u"NRPDS {0}\n".format(self.data.dims['time']))
             gage_file.write(u"NRGAG {0}\n".format(self.data.dims['x']*self.data.dims['y']))
-            for lat_idx in range(self.data.dims['y']):
-                for lon_idx in range(self.data.dims['x']):
-                    coord_idx = lat_idx*self.data.dims['x'] + lon_idx
-                    x_coord, y_coord = self.data.lsm.pixel2coord(lon_idx, lat_idx)
-                    gage_file.write(u"COORD {0} {1} \"center of pixel #{2}\"\n".format(x_coord,
-                                                                                       y_coord,
+            y_coords, x_coords = self.data.lsm.coords(as_2d=True)
+            for y_idx in range(self.data.dims['y']):
+                for x_idx in range(self.data.dims['x']):
+                    coord_idx = y_idx*self.data.dims['x'] + x_idx
+                    gage_file.write(u"COORD {0} {1} \"center of pixel #{2}\"\n".format(x_coords[y_idx, x_idx],
+                                                                                       y_coords[y_idx, x_idx],
                                                                                        coord_idx))
             for time_idx in range(self.data.dims['time']):
                 date_str = self._time_to_string(self.data.time[time_idx])
@@ -951,6 +954,7 @@ class GRIDtoGSSHA(object):
             gssha_data_hmet_name = self.netcdf_attributes[gssha_data_var]['hmet_name']
             self._load_converted_gssha_data_from_lsm(gssha_data_var, lsm_data_var, 'ascii')
             self._convert_data_to_hourly(gssha_data_var)
+            self.data = self.data.lsm.to_utm(gssha_data_var)
 
             for time_idx in range(self.data.dims['time']):
                 arr_grid = ArrayGrid(in_array=self.data[gssha_data_var][time_idx].values,
@@ -1059,6 +1063,9 @@ class GRIDtoGSSHA(object):
                 self._convert_data_to_hourly(gssha_var)
                 if resample_method:
                     self._resample_data(gssha_var)
+                else:
+                    self.data = self.data.lsm.to_utm(gssha_var)
+
                 output_datasets.append(self.data)
             else:
                 raise IndexError("Invalid GSSHA variable name: {0} ...".format(gssha_var))

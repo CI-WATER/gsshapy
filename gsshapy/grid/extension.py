@@ -25,10 +25,9 @@ class LSMGridReader(object):
         self.x_var = 'lon'
         self.time_var = 'time'
         # set dimension information
-        self.y_dim = 'lat'
-        self.x_dim = 'lon'
+        self.y_dim = 'y'
+        self.x_dim = 'x'
         self.time_dim = 'time'
-
 
 
     def to_datetime(self):
@@ -53,14 +52,14 @@ class LSMGridReader(object):
         # BASED ON: https://github.com/Esri/python-toolbox-for-rapid/blob/master/toolbox/scripts/CreateWeightTableFromWRFGeogrid.py
         if map_proj == 1:
             # Lambert Conformal Conic
-            if standard_parallel_2 is not None:
-                print('    Using Standard Parallel 2 in Lambert Conformal Conic map projection.')
-                #http://www.remotesensing.org/geotiff/proj_list/lambert_conic_conformal_2sp.html
-            else:
+            if standard_parallel_2 is None:
                 # According to http://webhelp.esri.com/arcgisdesktop/9.2/index.cfm?TopicName=Lambert_Conformal_Conic
                 #http://www.remotesensing.org/geotiff/proj_list/lambert_conic_conformal_1sp.html
                 standard_parallel_2 = standard_parallel_1
                 latitude_of_origin = standard_parallel_1
+            #else:
+            #    print('    Using Standard Parallel 2 in Lambert Conformal Conic map projection.')
+            #    #http://www.remotesensing.org/geotiff/proj_list/lambert_conic_conformal_2sp.html
 
             Projection_String = ('PROJCS["North_America_Lambert_Conformal_Conic",'
                                  'GEOGCS["GCS_Sphere",'
@@ -156,6 +155,7 @@ class LSMGridReader(object):
 
         self._projection = osr.SpatialReference()
         self._projection.ImportFromESRI([Projection_String])
+        self._projection.MorphFromESRI()
         # make sure EPSG code identified
         self._projection.AutoIdentifyEPSG()
 
@@ -164,14 +164,17 @@ class LSMGridReader(object):
         """Get the osgeo.osr projection for the dataset."""
         if self._projection is None:
             # read projection information from global attributes
+            map_proj4 = self._obj.attrs.get('proj4')
             map_proj = self._obj.attrs.get('MAP_PROJ')
-            if map_proj is None:
+            if map_proj4 is not None:
+                self._projection = osr.SpatialReference()
+                self._projection.ImportFromProj4(map_proj4)
+            elif map_proj is not None:
+                self._load_wrf_projection()
+            else:
                 # default to EPSG 4326
                 self._projection = osr.SpatialReference()
                 self._projection.ImportFromEPSG(4326)
-            else:
-                self._load_wrf_projection()
-
         return self._projection
 
     @property
@@ -193,45 +196,20 @@ class LSMGridReader(object):
     def geotransform(self):
         """Get the osgeo geotransform for grid"""
         if self._geotransform is None:
-            if str(self.epsg) != '4326':
-                # BASED ON: https://github.com/Esri/python-toolbox-for-rapid/blob/master/toolbox/scripts/CreateWeightTableFromWRFGeogrid.py
-                corner_lats = self._obj.attrs.get('corner_lats')
-                corner_lons = self._obj.attrs.get('corner_lons')
-                dx = self._obj.attrs.get('DX')
-                dy = self._obj.attrs.get('DY')
-                if None not in (dx, dy) \
-                        and not hasattr(corner_lats, '__len__') \
-                        and hasattr(corner_lons, '__len__'):
-                    # Create a point geometry object from gathered corner point data
-                    pt_proj = osr.SpatialReference()
-                    # from http://www.emep.int/mscw/Grid/emep_grid.html
-                    pt_proj.ImportFromProj4('proj +ellps=sphere +a=127.4 +e=0 '
-                                            '+proj=stere +lat_0=90 +lon_0=-32 '
-                                            '+lat_ts=60 +x_0=8 +y_0=110')
-                    # pt_proj.ImportFromEPSG(104128) # Using EMEP Sphere (6370000m)
+            if self._obj.attrs.get('geotransform') is not None:
+                self._geotransform = [float(g) for g in self._obj.attrs.get('geotransform')]
 
-                    # get projected top/left corner
-                    tx = osr.CoordinateTransformation(pt_proj, self.projection)
-                    x_min_proj, y_max_proj, z =  tx.TransformPoint(float(corner_lons[0]),
-                                                                   float(corner_lats[1]))
+            elif str(self.epsg) != '4326':
+                proj_y, proj_x = self.coords()
+                if 'MAP_PROJ' in self._obj.attrs.keys():
+                    # the WRF grid is upside down
+                    proj_y = proj_y[::-1]
+                    proj_x = proj_x[::-1]
 
-                    self._geotransform = (x_min_proj, float(dx), 0,
-                                          y_max_proj, 0, -float(dy))
-                else:
-                    lons = self._obj[self.x_var]
-                    lats = self._obj[self.y_var]
-                    proj_lon, proj_lat = transform(Proj(init='epsg:4326'),
-                                                   Proj(self.projection.ExportToProj4()),
-                                                   self._obj[self.x_var][0].values,
-                                                   self._obj[self.y_var][0].values,
-                                                   )
-
-                    self._geotransform = geotransform_from_latlon(proj_lat,
-                                                                  proj_lon)
-
+                self._geotransform = geotransform_from_latlon(proj_y,
+                                                              proj_x)
             else:
-                self._geotransform = geotransform_from_latlon(self._obj[self.y_var],
-                                                              self._obj[self.x_var])
+                self._geotransform = geotransform_from_latlon(*self.latlon)
 
         return self._geotransform
 
@@ -248,8 +226,35 @@ class LSMGridReader(object):
         """
         return self.affine * (col+0.5, row+0.5)
 
+    @property
+    def latlon(self):
+        """Returns lat,lon"""
+        if self.x_var in self._obj \
+                and self.y_var in self._obj:
+
+            x_coords = self._obj[self.x_var].values
+            if x_coords.ndim == 3:
+                x_coords = x_coords[0]
+
+            y_coords = self._obj[self.y_var].values
+            if y_coords.ndim == 3:
+                y_coords = y_coords[0]
+
+            return y_coords, x_coords
+
+
     def coords(self, as_2d=False):
         """Returns x, y coordinate lists"""
+        latlon = self.latlon
+        if hasattr(latlon, "__len__"):
+            y_coords, x_coords = latlon
+            proj_x, proj_y = transform(Proj(init='epsg:4326'),
+                                       Proj(self.projection.ExportToProj4()),
+                                       x_coords,
+                                       y_coords,
+                                       )
+            return proj_y, proj_x
+
         x_size = self._obj.dims[self.x_dim]
         y_size = self._obj.dims[self.y_dim]
         x_2d_coords = np.zeros((y_size, x_size))
@@ -270,8 +275,7 @@ class LSMGridReader(object):
         if self._center is None:
             # we can use a cache on our accessor objects, because accessors
             # themselves are cached on instances that access them.
-            lon = self._obj[self.x_var]
-            lat = self._obj[self.y_var]
+            lat, lon = self.latlon
             self._center = (float(lon.mean()), float(lat.mean()))
         return self._center
 
@@ -304,8 +308,9 @@ class LSMGridReader(object):
                             },
                             attrs={'proj4': grid.proj4,
                                    'wkt': grid.wkt,
-                                   'geotransform': str(geotransform)}
-                            )
+                                   'geotransform': geotransform,
+                            }
+                        )
 
     def resample(self, variable, match_grid):
         """Resample data to grid."""
@@ -326,11 +331,37 @@ class LSMGridReader(object):
                                     resampled_data_grid, self.geotransform)
 
 
-    def to_utm(self, variable,
-               x_index_start=0, x_index_end=-1,
-               y_index_start=0, y_index_end=-1,
-               calc_4d_method=None,
-               calc_4d_dim=None):
+    def get_subset(self, variable,
+                   x_index_start=0, x_index_end=-1,
+                   y_index_start=0, y_index_end=-1,
+                   calc_4d_method=None,
+                   calc_4d_dim=None):
+        """Get Subset of variable"""
+        if len(self._obj[variable].dims) == 4:
+            if calc_4d_method is None or calc_4d_dim is None:
+                raise ValueError("The variable {var} has 4 dimension. "
+                                 "Need 'calc_4d_method' and 'calc_4d_dim' "
+                                 "to proceed ...".format(var=data_var))
+            data = self._obj[variable][:,:,
+                                       y_index_start:y_index_end,
+                                       x_index_start:x_index_end,
+                                       ]
+            data = getattr(data, calc_4d_method)(dim=calc_4d_dim)
+        else:
+            data = self._obj[variable][:,
+                                       y_index_start:y_index_end,
+                                       x_index_start:x_index_end,
+                                      ]
+
+        if 'MAP_PROJ' in self._obj.attrs.keys():
+            # WRF Y DIM IS BACKWARDS
+            data = data[:,::-1]
+
+        data[self.time_var] = self._obj[self.time_var]
+        data.attrs = self._obj.attrs
+        return data
+
+    def to_utm(self, variable):
         """Convert Grid to UTM Coordinates"""
         # get utm projection
         center_lon, center_lat = self.center
@@ -338,31 +369,17 @@ class LSMGridReader(object):
         geotransform = self.subset_geotransform(x_index_start, y_index_start)
         new_data = []
         for band in range(self._obj.dims[self.time_dim]):
-            if len(self._obj[variable].dims) == 4:
-                if calc_4d_method is None or calc_4d_dim is None:
-                    raise ValueError("The variable {var} has 4 dimension. "
-                                     "Need 'calc_4d_method' and 'calc_4d_dim' "
-                                     "to proceed ...".format(var=data_var))
-                data = self._obj[variable][band,:,
-                                           y_index_start:y_index_end,
-                                           x_index_start:x_index_end,
-                                           ]
-                data = getattr(data, calc_4d_method)(dim=calc_4d_dim).values
-            else:
-                data = self._obj[variable][band,
-                                           y_index_start:y_index_end,
-                                           x_index_start:x_index_end,
-                                           ].values
-            arr_grid = ArrayGrid(in_array=data,
+            arr_grid = ArrayGrid(in_array=self._obj[variable][band].values,
                                  wkt_projection=self.projection.ExportToWkt(),
                                  geotransform=geotransform,
                                  )
-            gdal_ds = gdal_reproject(arr_grid.dataset,
-                                     dst_srs=utm_proj)
-            new_data.append(np.array(gdal_ds.ReadAsArray()))
+            arr_grid.to_tif('test.tif')
+            ggrid = gdal_reproject(arr_grid.dataset,
+                                   dst_srs=utm_proj,
+                                   as_gdal_grid=True)
+            new_data.append(ggrid.np_array())
 
         self.to_datetime()
-        ggrid = GDALGrid(gdal_ds)
         return self._export_dataset(variable, np.array(new_data),
                                     ggrid, geotransform)
 
@@ -380,11 +397,11 @@ if __name__ == "__main__":
         xd.lsm.x_dim = "west_east"
         xd.lsm.time_dim = "Time"
         print(xd.lsm.geotransform)
-        """
         u10_ds = xd.lsm.to_utm("U10",
                                x_index_start=5, x_index_end=7,
                                y_index_start=25, y_index_end=77,
                               )
+        """
         v10_ds = xd.lsm.to_utm("V10",
                                x_index_start=5, x_index_end=7,
                                y_index_start=25, y_index_end=77,
