@@ -104,7 +104,6 @@ class GSSHAFramework(object):
             search_card = '*.nc'
             precip_data_var = ['RAINC', 'RAINNC']
             precip_type = 'ACCUM'
-            lsm_file_date_naming_convention='gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
 
             data_var_map_array = [
                                   ['precipitation_acc', ['RAINC', 'RAINNC']],
@@ -127,7 +126,6 @@ class GSSHAFramework(object):
                                 lsm_precip_type=precip_type,
                                 lsm_lat_var=lsm_lat_var,
                                 lsm_lon_var=lsm_lon_var,
-                                lsm_file_date_naming_convention=lsm_file_date_naming_convention,
                                 )
 
             gr.run_forecast()
@@ -323,9 +321,8 @@ class GSSHAFramework(object):
         # skip self.lsm_data_var_map_array because default in WRF Simulation
         lsm_required_vars =  (self.lsm_folder, self.lsm_precip_data_var,
                               self.lsm_precip_type, self.lsm_lat_var,
-                              self.lsm_lon_var,
-                              self.lsm_file_date_naming_convention,
-                              self.lsm_time_var, self.lsm_search_card)
+                              self.lsm_lon_var, self.lsm_time_var,
+                              self.lsm_search_card)
 
         return (None not in lsm_required_vars)
 
@@ -713,7 +710,7 @@ class GSSHAWRFFramework(GSSHAFramework):
 
     .. code:: python
 
-        from gsshapy.modeling import GSSHA_WRF_Framework
+        from gsshapy.modeling import GSSHAWRFFramework
 
         gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
         gssha_directory = "C:/Users/{username}/Documents/GSSHA"
@@ -721,21 +718,19 @@ class GSSHAWRFFramework(GSSHAFramework):
 
         #LSM TO GSSHA
         lsm_folder = '"C:/Users/{username}/Documents/GSSHA/wrf-sample-data-v1.0'
-        lsm_file_date_naming_convention = 'gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
 
         #RAPID TO GSSHA
         path_to_rapid_qout = "C:/Users/{username}/Documents/GSSHA/Qout.nc"
         connection_list_file = "C:/Users/{username}/Documents/GSSHA/rapid_to_gssha_connect.csv"
 
         #INITIALIZE CLASS AND RUN
-        gr = GSSHA_WRF_Framework(gssha_executable,
-                                 gssha_directory,
-                                 project_filename,
-                                 lsm_folder=lsm_folder,
-                                 lsm_file_date_naming_convention=lsm_file_date_naming_convention,
-                                 path_to_rapid_qout=path_to_rapid_qout,
-                                 connection_list_file=connection_list_file,
-                                )
+        gr = GSSHAWRFFramework(gssha_executable,
+                               gssha_directory,
+                               project_filename,
+                               lsm_folder=lsm_folder,
+                               path_to_rapid_qout=path_to_rapid_qout,
+                               connection_list_file=connection_list_file,
+                               )
 
         gr.run_forecast()
 
@@ -743,7 +738,7 @@ class GSSHAWRFFramework(GSSHAFramework):
 
     .. code:: python
 
-        from gsshapy.modeling import GSSHA_WRF_Framework
+        from gsshapy.modeling import GSSHAWRFFramework
 
         gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
         gssha_directory = "C:/Users/{username}/Documents/GSSHA"
@@ -751,7 +746,6 @@ class GSSHAWRFFramework(GSSHAFramework):
 
         #LSM TO GSSHA
         lsm_folder = '"C:/Users/{username}/Documents/GSSHA/wrf-sample-data-v1.0'
-        lsm_file_date_naming_convention = 'gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
 
         #RAPID TO GSSHA
         connection_list_file = "C:/Users/{username}/Documents/GSSHA/rapid_to_gssha_connect.csv"
@@ -765,19 +759,18 @@ class GSSHAWRFFramework(GSSHAFramework):
         spt_forecast_date_string='20160721.1200'
 
         #INITIALIZE CLASS AND RUN
-        gr = GSSHA_WRF_Framework(gssha_executable,
-                                 gssha_directory,
-                                 project_filename,
-                                 lsm_folder=lsm_folder,
-                                 lsm_file_date_naming_convention=lsm_file_date_naming_convention,
-                                 connection_list_file=connection_list_file,
-                                 ckan_engine_url=ckan_engine_url,
-                                 ckan_api_key=ckan_api_key,
-                                 ckan_owner_organization=ckan_owner_organization,
-                                 spt_watershed_name=spt_watershed_name,
-                                 spt_subbasin_name=spt_subbasin_name,
-                                 spt_forecast_date_string=spt_forecast_date_string,
-                                )
+        gr = GSSHAWRFFramework(gssha_executable,
+                               gssha_directory,
+                               project_filename,
+                               lsm_folder=lsm_folder,
+                               connection_list_file=connection_list_file,
+                               ckan_engine_url=ckan_engine_url,
+                               ckan_api_key=ckan_api_key,
+                               ckan_owner_organization=ckan_owner_organization,
+                               spt_watershed_name=spt_watershed_name,
+                               spt_subbasin_name=spt_subbasin_name,
+                               spt_forecast_date_string=spt_forecast_date_string,
+                               )
 
         gr.run_forecast()
 
@@ -786,7 +779,7 @@ class GSSHAWRFFramework(GSSHAFramework):
     .. code:: python
 
         from datetime import datetime, timedelta
-        from gsshapy.modeling import GSSHA_WRF_Framework
+        from gsshapy.modeling import GSSHAWRFFramework
 
         gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
         gssha_directory = "C:/Users/{username}/Documents/GSSHA"
@@ -796,7 +789,6 @@ class GSSHAWRFFramework(GSSHAFramework):
 
         #LSM
         lsm_folder = '"C:/Users/{username}/Documents/GSSHA/wrf-sample-data-v1.0'
-        lsm_file_date_naming_convention = 'gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
 
         #RAPID
         path_to_rapid_qout = "C:/Users/{username}/Documents/GSSHA/Qout.nc"
@@ -805,33 +797,31 @@ class GSSHAWRFFramework(GSSHAFramework):
         #--------------------------------------------------------------------------
         # MAIN RUN
         #--------------------------------------------------------------------------
-        mr = GSSHA_WRF_Framework(gssha_executable,
-                                 gssha_directory,
-                                 project_filename,
-                                 lsm_folder=lsm_folder,
-                                 lsm_file_date_naming_convention=lsm_file_date_naming_convention,
-                                 path_to_rapid_qout=path_to_rapid_qout,
-                                 connection_list_file=connection_list_file,
-                                 gssha_simulation_duration=full_gssha_simulation_duration,
-                                 read_hotstart=True,
-                                )
+        mr = GSSHAWRFFramework(gssha_executable,
+                               gssha_directory,
+                               project_filename,
+                               lsm_folder=lsm_folder,
+                               path_to_rapid_qout=path_to_rapid_qout,
+                               connection_list_file=connection_list_file,
+                               gssha_simulation_duration=full_gssha_simulation_duration,
+                               read_hotstart=True,
+                               )
 
         mr.run_forecast()
         #--------------------------------------------------------------------------
         # GENERATE HOTSTART FOR NEXT RUN
         #--------------------------------------------------------------------------
-        hr = GSSHA_WRF_Framework(gssha_executable,
-                                 gssha_directory,
-                                 project_filename,
-                                 lsm_folder=lsm_folder,
-                                 lsm_file_date_naming_convention=lsm_file_date_naming_convention,
-                                 path_to_rapid_qout=path_to_rapid_qout,
-                                 connection_list_file=connection_list_file,
-                                 gssha_simulation_duration=gssha_hotstart_offset_duration,
-                                 write_hotstart=True,
-                                 read_hotstart=True,
-                                 hotstart_minimal_mode=True,
-                                )
+        hr = GSSHAWRFFramework(gssha_executable,
+                               gssha_directory,
+                               project_filename,
+                               lsm_folder=lsm_folder,
+                               path_to_rapid_qout=path_to_rapid_qout,
+                               connection_list_file=connection_list_file,
+                               gssha_simulation_duration=gssha_hotstart_offset_duration,
+                               write_hotstart=True,
+                               read_hotstart=True,
+                               hotstart_minimal_mode=True,
+                               )
         hr.run_forecast()
     """
 

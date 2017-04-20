@@ -512,18 +512,14 @@ class GRIDtoGSSHA(object):
                                  max_x)
 
 
-    def _time_to_string(self, xr_time, conversion_string="%Y %m %d %H %M"):
+    def _time_to_string(self, dt, conversion_string="%Y %m %d %H %M"):
         """
         This converts a UTC time integer to a string
         """
-        t = pd.to_datetime(str(xr_time.values))
-        timestring = t.strftime(conversion_string)
-
         if self.output_timezone is not None:
-            t = t.replace(tzinfo=utc) \
-                 .astimezone(self.output_timezone)
-
-        return t.strftime(conversion_string)
+            dt = dt.replace(tzinfo=utc) \
+                   .astimezone(self.output_timezone)
+        return dt.strftime(conversion_string)
 
     def _load_lsm_data(self, data_var,
                        conversion_factor=1,
@@ -820,10 +816,10 @@ class GRIDtoGSSHA(object):
         #LOOP THROUGH TIME
         with io_open(out_gage_file, 'w') as gage_file:
             if self.data.dims['time']>1:
-                gage_file.write(u"EVENT \"Event of {0} to {1}\"\n".format(self._time_to_string(self.data.time[0]),
-                                                                          self._time_to_string(self.data.time[-1])))
+                gage_file.write(u"EVENT \"Event of {0} to {1}\"\n".format(self._time_to_string(self.data.lsm.datetime[0]),
+                                                                          self._time_to_string(self.data.lsm.datetime[-1])))
             else:
-                gage_file.write(u"EVENT \"Event of {0}\"\n".format(self._time_to_string(self.data.time[0])))
+                gage_file.write(u"EVENT \"Event of {0}\"\n".format(self._time_to_string(self.data.lsm.datetime[0])))
             gage_file.write(u"NRPDS {0}\n".format(self.data.dims['time']))
             gage_file.write(u"NRGAG {0}\n".format(self.data.dims['x']*self.data.dims['y']))
             y_coords, x_coords = self.data.lsm.coords(as_2d=True)
@@ -834,7 +830,7 @@ class GRIDtoGSSHA(object):
                                                                                        y_coords[y_idx, x_idx],
                                                                                        coord_idx))
             for time_idx in range(self.data.dims['time']):
-                date_str = self._time_to_string(self.data.time[time_idx])
+                date_str = self._time_to_string(self.data.lsm.datetime[time_idx])
                 data_str = " ".join(self.data[gssha_data_var_name][time_idx].values.ravel().astype(str))
                 gage_file.write(u"{0} {1} {2}\n".format(precip_type, date_str, data_str))
 
@@ -844,7 +840,7 @@ class GRIDtoGSSHA(object):
         with ASCII file list for input to GSSHA
         """
         with io_open(hmet_card_file_path, 'w') as out_hmet_list_file:
-            for hour_time in self.data.time:
+            for hour_time in self.data.lsm.datetime:
                 date_str = self._time_to_string(hour_time, "%Y%m%d%H")
                 out_hmet_list_file.write(u"{0}\n".format(path.join(main_output_folder, date_str)))
 
@@ -953,7 +949,7 @@ class GRIDtoGSSHA(object):
                                      wkt_projection=self.data.lsm.projection.ExportToWkt(),
                                      geotransform=self.data.lsm.geotransform,
                                      )
-                date_str = self._time_to_string(self.data.time[time_idx], "%Y%m%d%H")
+                date_str = self._time_to_string(self.data.lsm.datetime[time_idx], "%Y%m%d%H")
                 ascii_file_path = path.join(main_output_folder,"{0}_{1}.asc".format(date_str, gssha_data_hmet_name))
                 arr_grid.to_arc_ascii(ascii_file_path)
 

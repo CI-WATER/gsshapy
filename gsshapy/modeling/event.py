@@ -382,8 +382,10 @@ class LongTermMode(Event):
                          lsm_precip_type,
                          lsm_lat_var,
                          lsm_lon_var,
-                         lsm_file_date_naming_convention,
                          lsm_time_var,
+                         lsm_lat_dim,
+                         lsm_lon_dim,
+                         lsm_time_dim,
                          lsm_search_card,
                          hmet_ascii_output_folder=None,
                          netcdf_file_path=None,
@@ -425,14 +427,17 @@ class LongTermMode(Event):
 
         # SIMULATION TIME CARDS
         if self.simulation_start is None:
-            self._update_simulation_start(datetime.utcfromtimestamp(l2g.hourly_time_array[0])
-                                          .replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None))
+            ts = l2g.xd.lsm.datetime[0]
+            ts = ts.replace(tzinfo=utc) \
+                   .astimezone(tz=self.tz).replace(tzinfo=None)
+            self._update_simulation_start(ts)
 
         self._update_simulation_start_cards()
 
         # GSSHA simulation does not work after HMET data is finished
-        wrf_simulation_end = datetime.utcfromtimestamp(l2g.hourly_time_array[-1]) \
-            .replace(tzinfo=utc).astimezone(tz=self.tz).replace(tzinfo=None)
+        te = l2g.xd.lsm.datetime[-1]
+        wrf_simulation_end = te.replace(tzinfo=utc) \
+                               .astimezone(tz=self.tz).replace(tzinfo=None)
 
         if self.simulation_end is None:
             self.simulation_end = wrf_simulation_end

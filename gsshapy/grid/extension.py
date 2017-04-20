@@ -41,6 +41,11 @@ class LSMGridReader(object):
                 # ONE POTENTIAL WRF FORMAT
                 self._obj[self.time_var].values = pd.to_datetime(time_values,
                                                                  format="%Y-%m-%d_%H:%M:%S")
+    @property
+    def datetime(self):
+        """Get datetime object for time index"""
+        self.to_datetime()
+        return pd.to_datetime(self._obj[self.time_var].values)
 
     def _load_wrf_projection(self):
         """Get the osgeo.osr projection for WRF Grid.
@@ -195,13 +200,6 @@ class LSMGridReader(object):
             self._center = (float(lon.mean()), float(lat.mean()))
         return self._center
 
-    def subset_geotransform(self, x_index_start, y_index_start):
-        """Get the osgeo geotransform for grid subset"""
-        x_min, dx, x_skew, y_max, y_skew, dy = self.geotransform
-        new_x_min = x_min + dx*x_index_start
-        new_y_max = y_max + dy*y_index_start
-        return (new_x_min, dx, x_skew, new_y_max, y_skew, dy)
-
     def _export_dataset(self, variable, new_data, grid):
         """Export subset of dataset."""
         lats, lons = grid.lat_lon(two_dimensional=True)
@@ -325,33 +323,3 @@ if __name__ == "__main__":
         xd.lsm.x_dim = "west_east"
         xd.lsm.time_dim = "Time"
         xd.lsm.to_tif("U10", 10)
-        """
-        v10_ds = xd.lsm.to_utm("V10",
-                               x_index_start=5, x_index_end=7,
-                               y_index_start=25, y_index_end=77,
-                              )
-        data = u10_ds["U10"]+v10_ds["V10"]
-        data = data.to_dataset(name="velocity")
-        data = data.resample('3H', dim='time', how='mean')
-
-        resampled_data = data.resample('1H', dim='time')
-        print(data.dims['time'])
-        for time_idx in range(data.dims['time']):
-            if time_idx+1 < data.dims['time']:
-                # interpolate between time steps
-                start_time = data.time[time_idx].values
-                end_time = data.time[time_idx+1].values
-                slope_timeslice = slice(str(start_time), str(end_time))
-                slice_size = resampled_data.sel(time=slope_timeslice).dims['time'] - 1
-                first_timestep = resampled_data.sel(time=str(start_time)).velocity
-                slope = (resampled_data.sel(time=str(end_time)).velocity
-                         - first_timestep)/float(slice_size)
-                data_timeslice = slice(str(start_time+np.timedelta64(1,'m')),
-                                        str(end_time-np.timedelta64(1,'m')))
-                data_subset = resampled_data.sel(time=data_timeslice)
-                for xidx in range(data_subset.dims['time']):
-                    resampled_data.sel(time=data_timeslice).velocity[xidx] = first_timestep + slope * (xidx+1)
-        print(resampled_data.velocity[1])
-        #for row in data['velocity']:
-        #    print(row.values.ravel().astype(str))
-        """
