@@ -20,7 +20,7 @@ from pyproj import Proj, transform
 import xarray as xr
 import extension
 
-from .grid_tools import ArrayGrid, gdal_reproject
+from ..lib.grid_tools import ArrayGrid, gdal_reproject
 from ..lib import db_tools as dbt
 from ..orm import ProjectFile
 

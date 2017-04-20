@@ -24,13 +24,13 @@ from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
 
-from ..grid.grid_tools import resample_grid
 from . import DeclarativeBase
 from .lnd import LinkNodeDatasetFile
 from ..base.file_base import GsshaPyFileObjectBase
 from .idx import IndexMap
 from ..lib import parsetools as pt
 from ..lib import cmt_chunk as mtc
+from ..lib.grid_tools import resample_grid
 from ..lib.parsetools import valueReadPreprocessor as vrp, valueWritePreprocessor as vwp
 
 

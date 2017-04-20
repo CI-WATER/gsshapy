@@ -7,9 +7,9 @@ from pyproj import Proj, transform
 import wrf
 import xarray as xr
 
-from grid_tools import (geotransform_from_latlon, gdal_reproject,
-                        resample_grid, utm_proj_from_latlon,
-                        ArrayGrid, GDALGrid)
+from ..lib.grid_tools import (geotransform_from_latlon, gdal_reproject,
+                              resample_grid, utm_proj_from_latlon,
+                              ArrayGrid, GDALGrid)
 
 @xr.register_dataset_accessor('lsm')
 class LSMGridReader(object):

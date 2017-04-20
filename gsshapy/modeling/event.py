@@ -15,7 +15,7 @@ from pytz import timezone, utc
 from RAPIDpy import RAPIDDataset
 from timezonefinder import TimezoneFinder
 
-from ..grid import LSMtoGSSHA
+from ..grid import GRIDtoGSSHA
 
 class Event(object):
     '''
@@ -375,7 +375,7 @@ class LongTermMode(Event):
 
             self._update_card('GMT', offset_string)
 
-    def prepare_wrf_data(self,
+    def prepare_lsm_data(self,
                          lsm_folder,
                          lsm_data_var_map_array,
                          lsm_precip_data_var,
@@ -389,18 +389,20 @@ class LongTermMode(Event):
                          netcdf_file_path=None,
                          ):
         """
-        Prepares WRF forecast for GSSHA simulation
+        Prepares LSM output for GSSHA simulation
 
         Parameters:
-            lsm_folder(str): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
-            lsm_data_var_map_array(str): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.`
-            lsm_precip_data_var(list or str): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
-            lsm_precip_type(str): Type of precipitation. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
-            lsm_lat_var(str): Name of the latitude variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
-            lsm_lon_var(str): Name of the longitude variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
-            lsm_file_date_naming_convention(str): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.LSMtoGSSHA`.
-            lsm_time_var(str): Name of the time variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
-            lsm_search_card(str): Glob search pattern for LSM files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
+            lsm_folder(str): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gsshapy.grid.GRIDtoGSSHA`.
+            lsm_data_var_map_array(str): Array with connections for LSM output and GSSHA input. See: :func:`~gsshapy.grid.GRIDtoGSSHA.`
+            lsm_precip_data_var(list or str): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gsshapy.grid.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+            lsm_precip_type(str): Type of precipitation. See: :func:`~gsshapy.grid.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+            lsm_lat_var(str): Name of the latitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+            lsm_lon_var(str): Name of the longitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+            lsm_time_var(str): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+            lsm_lat_dim(str): Name of the latitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+            lsm_lon_dim(str): Name of the longitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+            lsm_time_dim(str): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+            lsm_search_card(str): Glob search pattern for LSM files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
             hmet_ascii_output_folder(Optional[str]): Path to diretory to output HMET ASCII files. Mutually exclusice with netcdf_file_path. Default is None.
             netcdf_file_path(Optional[str]): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Mutually exclusice with hmet_ascii_output_folder. Default is None.
         """
@@ -408,16 +410,17 @@ class LongTermMode(Event):
         if gssha_msk_card is None:
             raise Exception("ERROR: WATERSHED_MASK card not found ...")
 
-        l2g = LSMtoGSSHA(gssha_project_folder=self.gssha_directory,
-                         gssha_grid_file_name=gssha_msk_card.value.strip('"').strip("'"),
-                         lsm_input_folder_path=lsm_folder,
-                         lsm_search_card=lsm_search_card,
-                         lsm_lat_var=lsm_lat_var,
-                         lsm_lon_var=lsm_lon_var,
-                         lsm_time_var=lsm_time_var,
-                         lsm_file_date_naming_convention=lsm_file_date_naming_convention,
-                         output_timezone=self.tz,
-                         output_unix_format=(os.name!='nt')
+        l2g = GRIDtoGSSHA(gssha_project_folder=self.gssha_directory,
+                          gssha_project_file_name="{0}.prj".format(self.project_manager.name),
+                          lsm_input_folder_path=lsm_folder,
+                          lsm_search_card=lsm_search_card,
+                          lsm_lat_var=lsm_lat_var,
+                          lsm_lon_var=lsm_lon_var,
+                          lsm_time_var=lsm_time_var,
+                          lsm_lat_dim=lsm_lat_dim,
+                          lsm_lon_dim=lsm_lon_dim,
+                          lsm_time_dim=lsm_time_dim,
+                          output_timezone=self.tz,
                          )
 
         # SIMULATION TIME CARDS

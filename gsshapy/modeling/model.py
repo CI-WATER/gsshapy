@@ -13,7 +13,7 @@ from .event import EventMode, LongTermMode
 from ..orm import (ProjectFile, WatershedMaskFile, ElevationGridFile,
                          MapTableFile)
 from ..lib import db_tools as dbt
-from ..grid.grid_tools import GDALGrid
+from ..lib.grid_tools import GDALGrid
 
 class GSSHAModel(object):
     '''

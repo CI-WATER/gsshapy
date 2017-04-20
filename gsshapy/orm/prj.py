@@ -23,7 +23,7 @@ from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from ..grid.grid_tools import GSSHAGrid
+from ..lib.grid_tools import GSSHAGrid
 from . import DeclarativeBase
 from ..base.file_base import GsshaPyFileObjectBase
 from .file_io import *

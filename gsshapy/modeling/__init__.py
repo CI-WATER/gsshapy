@@ -1,3 +1,3 @@
-from .framework import GSSHAFramework, GSSHA_WRF_Framework
+from .framework import GSSHAFramework, GSSHAWRFFramework
 from .event import EventMode, LongTermMode
 from .model import GSSHAModel

@@ -136,120 +136,10 @@ class LSMtoGSSHA(GRIDtoGSSHA):
         """
         Loads the LSM projection in Proj4
         """
-        self.lsm_projection = None
-        if self.lsm_grid_type=='geographic':
-            self.lsm_proj4 = Proj(init='epsg:4326')
-        elif self.lsm_grid_type=='wrf':
-            lsm_nc = Dataset(self.lsm_nc_list[0])
-
-            #####################Start of script adaption###############################################################
-            #BASED ON: CreateWeightTableFromWRFGeogrid.py at github.com/Esri/python-toolbox-for-rapid
-
-            # read projection information from global attributes
-            map_proj = lsm_nc.__dict__['MAP_PROJ']
-            standard_parallel_1 = lsm_nc.__dict__['TRUELAT1']
-            standard_parallel_2 = lsm_nc.__dict__['TRUELAT2']
-            central_meridian = lsm_nc.__dict__['STAND_LON']
-            latitude_of_origin = lsm_nc.__dict__['CEN_LAT']
-
-            if map_proj == 1:
-                # Lambert Conformal Conic
-                if 'standard_parallel_2' in locals():
-                    print('    Using Standard Parallel 2 in Lambert Conformal Conic map projection.')
-                    #http://www.remotesensing.org/geotiff/proj_list/lambert_conic_conformal_2sp.html
-                else:
-                    # According to http://webhelp.esri.com/arcgisdesktop/9.2/index.cfm?TopicName=Lambert_Conformal_Conic
-                    #http://www.remotesensing.org/geotiff/proj_list/lambert_conic_conformal_1sp.html
-                    standard_parallel_2 = standard_parallel_1
-                    latitude_of_origin = standard_parallel_1
-
-                lsm_proj4_str = ('+proj=lcc'
-                                 ' +lat_0={0}'   #latitude_of_origin
-                                 ' +lat_1={1}'   #standard_parallel_1
-                                 ' +lat_2={2}'   #standard_parallel_2
-                                 ' +lon_0={3}'   #central_meridian
-                                 ' +x_0=0.0'     #false_easting
-                                 ' +y_0=0.0'     #false_northing
-                                 ).format(latitude_of_origin,
-                                          standard_parallel_1,
-                                          standard_parallel_2,
-                                          central_meridian)
-
-                self.lsm_proj4 = Proj(lsm_proj4_str)
-
-            elif map_proj == 2:
-                # Polar Stereographic
-
-                # Set up pole latitude
-                phi1 = float(standard_parallel_1)
-
-                ### Back out the central_scale_factor (minimum scale factor?) using formula below using Snyder 1987 p.157 (USGS Paper 1395)
-                ##phi = math.copysign(float(pole_latitude), float(latitude_of_origin))    # Get the sign right for the pole using sign of CEN_LAT (latitude_of_origin)
-                ##central_scale_factor = (1 + (math.sin(math.radians(phi1))*math.sin(math.radians(phi))) + (math.cos(math.radians(float(phi1)))*math.cos(math.radians(phi))))/2
-
-                # Method where central scale factor is k0, Derivation from C. Rollins 2011, equation 1: http://earth-info.nga.mil/GandG/coordsys/polar_stereographic/Polar_Stereo_phi1_from_k0_memo.pdf
-                # Using Rollins 2011 to perform central scale factor calculations. For a sphere, the equation collapses to be much  more compact (e=0, k90=1)
-                central_scale_factor = (1 + math.sin(math.radians(abs(phi1))))/2                            # Equation for k0, assumes k90 = 1, e=0. This is a sphere, so no flattening
-
-                lsm_prj_str = ('PROJCS["Sphere_Stereographic",'
-                               'GEOGCS["GCS_Sphere",'
-                               'DATUM["D_Sphere",'
-                               'SPHEROID["Sphere",6370000.0,0.0]],'
-                               'PRIMEM["Greenwich",0.0],'
-                               'UNIT["Degree",0.0174532925199433]],'
-                               'PROJECTION["Stereographic"],'
-                               'PARAMETER["False_Easting",0.0],'
-                               'PARAMETER["False_Northing",0.0],'
-                               'PARAMETER["Central_Meridian",{0}],'
-                               'PARAMETER["Scale_Factor",{1}],'
-                               'PARAMETER["Latitude_Of_Origin",{2}],'
-                               'UNIT["Meter",1.0]]').format(central_meridian,
-                                                            central_scale_factor,
-                                                            standard_parallel_1)
-
-                lsm_srs=osr.SpatialReference()
-                lsm_srs.ImportFromWkt(lsm_prj_str)
-                self.lsm_proj4 = Proj(lsm_srs.ExportToProj4())
-            elif map_proj == 3:
-                # Mercator Projection
-                lsm_prj_str = ('ESRI::PROJCS["Sphere_Mercator",'
-                               'GEOGCS["GCS_Sphere",'
-                               'DATUM["D_Sphere",'
-                               'SPHEROID["Sphere",6370000.0,0.0]],'
-                               'PRIMEM["Greenwich",0.0],'
-                               'UNIT["Degree",0.0174532925199433]],'
-                               'PROJECTION["Mercator"],'
-                               'PARAMETER["False_Easting",0.0],'
-                               'PARAMETER["False_Northing",0.0],'
-                               'PARAMETER["Central_Meridian",{0}],'
-                               'PARAMETER["Standard_Parallel_1",{1}],'
-                               'UNIT["Meter",1.0],AUTHORITY["ESRI",53004]]').format(central_meridian,
-                                                                                    standard_parallel_1)
-                lsm_srs=osr.SpatialReference()
-                lsm_srs.ImportFromWkt(lsm_prj_str)
-                self.lsm_proj4 = Proj(lsm_srs.ExportToProj4())
-            elif map_proj == 6:
-                # Cylindrical Equidistant (or Rotated Pole)
-                # Check units (linear unit not used in this projection).  GCS?
-                lsm_prj_str = ('ESRI::PROJCS["Sphere_Equidistant_Cylindrical",'
-                               'GEOGCS["GCS_Sphere",'
-                               'DATUM["D_Sphere",'
-                               'SPHEROID["Sphere",6370000.0,0.0]],'
-                               'PRIMEM["Greenwich",0.0],'
-                               'UNIT["Degree",0.0174532925199433]],'
-                               'PROJECTION["Equidistant_Cylindrical"],'
-                               'PARAMETER["False_Easting",0.0],'
-                               'PARAMETER["False_Northing",0.0],'
-                               'PARAMETER["Central_Meridian",{0}],'
-                               'PARAMETER["Standard_Parallel_1",{1}],'
-                               'UNIT["Meter",1.0],AUTHORITY["ESRI",53002]]').format(central_meridian,
-                                                                                    standard_parallel_1)
-
-                lsm_srs=osr.SpatialReference()
-                lsm_srs.ImportFromWkt(lsm_prj_str)
-                self.lsm_proj4 = Proj(lsm_srs.ExportToProj4())
-        else:
-            raise IndexError("Invalid mode to retrieve LSM projection ...")
+        self.lsm_proj4 = Proj(init='epsg:4326')
+        if 'MAP_PROJ' in lsm_nc:
+            # WRF GRID
+            return
 
     def _get_subset_lat_lon(self, gssha_y_min, gssha_y_max, gssha_x_min, gssha_x_max):
         """
@@ -259,84 +149,26 @@ class LSMtoGSSHA(GRIDtoGSSHA):
         #STEP 1: Load latitude and longiute
         ######
 
-        if self.lsm_grid_type=='geographic':
-            lsm_nc = Dataset(self.lsm_nc_list[0])
-            lsm_lon_array = lsm_nc.variables[self.lsm_lon_var][:] #assume [-180, 180]
-            lsm_lat_array = lsm_nc.variables[self.lsm_lat_var][:] #assume [-90,90]
-            lsm_nc.close()
+        lsm_nc = Dataset(self.lsm_nc_list[0])
+        lsm_lon_array = lsm_nc.variables[self.lsm_lon_var][:] #assume [-180, 180]
+        lsm_lat_array = lsm_nc.variables[self.lsm_lat_var][:] #assume [-90,90]
+        lsm_nc.close()
 
-            #convert 3d to 2d if time dimension
-            if(len(lsm_lon_array.shape) == 3):
-                lsm_lon_array = lsm_lon_array[0]
-                lsm_lat_array = lsm_lat_array[0]
-
-        elif self.lsm_grid_type=='wrf':
-            #EXPERIMENTAL CODE
-
-            #generate grid from information
-            lsm_nc = Dataset(self.lsm_nc_list[0])
-
-            #METHOD 1: USE CORNER LATS/LONS FROM METADATA
-            #LOWER LEFT CELL CENTER FROM LOWER LEFT CORNER
-            #map_projection = getattr(lsm_nc, "MAP_PROJECTION")
-            #south_west_corner_lat = getattr(lsm_nc, "SOUTH_WEST_CORNER_LAT")
-            #south_west_corner_lon = getattr(lsm_nc, "SOUTH_WEST_CORNER_LON")
-            """
-            x_min, y_min = transform(Proj(init='epsg:4326'),
-                                     self.lsm_proj4,
-                                     [float(lsm_nc.__dict__['corner_lons'][0])],
-                                     [float(lsm_nc.__dict__['corner_lats'][0])],
-                                     )
-            DX = float(lsm_nc.__dict__['DX'])
-            DY = float(lsm_nc.__dict__['DY'])
-            min_lon_cell_center = x_min[0]+DX/2.0
-            min_lat_cell_center = y_min[0]+DY/2.0
-
-            size_xdim = len(lsm_nc.dimensions['west_east'])
-            size_ydim = len(lsm_nc.dimensions['south_north'])
-            lsm_lon = np.array([min_lon_cell_center + DX*i_x for i_x in range(size_xdim)])
-            lsm_lat = np.array([min_lat_cell_center + DX*i_y for i_y in range(size_ydim)])
-            """
-            #METHOD 2: USE LAT/LON FROM LSM
-            lsm_lon_array, lsm_lat_array = transform(Proj(init='epsg:4326'),
-                                                     self.lsm_proj4,
-                                                     lsm_nc.variables[self.lsm_lon_var][:],
-                                                     lsm_nc.variables[self.lsm_lat_var][:],
-                                                     )
-            #convert 3d to 2d if time dimension
-            if(len(lsm_lon_array.shape) == 3):
-                lsm_lon_array = lsm_lat_array[0]
-                lsm_lat_array = lsm_lat_array[0]
-
-        else:
-            raise IndexError("Invalid mode to retrieve LSM Lat/Lon lists ...")
-
+        #convert 3d to 2d if time dimension
+        if(len(lsm_lon_array.shape) == 3):
+            lsm_lon_array = lsm_lon_array[0]
+            lsm_lat_array = lsm_lat_array[0]
 
         ######
         #STEP 2: Determine range within LSM Grid
         ######
 
-        #get general buffer size
-        lsm_dx = None
-        lsm_dy = None
-        if self.lsm_grid_type=='wrf':
-            try:
-                lsm_nc = Dataset(self.lsm_nc_list[0])
-                lsm_dx = getattr(lsm_nc, "DX")
-                lsm_dy = getattr(lsm_nc, "DY")
-                lsm_nc.close()
-            except AttributeError:
-                lsm_nc.close()
-                pass
-
-        if lsm_dx is None:
-            lsm_dx = np.max(np.absolute(np.diff(lsm_lon_array)))
+        lsm_dx = np.max(np.absolute(np.diff(lsm_lon_array)))
 
         # Extract the lat and lon within buffered extent
         #IF LAT LON IS !D:
         if len(lsm_lat_array.shape) == 1:
-            if lsm_dy is None:
-                lsm_dy = np.max(np.absolute(np.diff(lsm_lat_array)))
+            lsm_dy = np.max(np.absolute(np.diff(lsm_lat_array)))
 
             self.lsm_lat_indices = np.where((lsm_lat_array >= (gssha_y_min - lsm_dy)) & (lsm_lat_array <= (gssha_y_max + lsm_dy)))[0]
             self.lsm_lon_indices = np.where((lsm_lon_array >= (gssha_x_min - lsm_dx)) & (lsm_lon_array <= (gssha_x_max + lsm_dx)))[0]
@@ -344,8 +176,7 @@ class LSMtoGSSHA(GRIDtoGSSHA):
             lsm_lon_list, lsm_lat_list = np.meshgrid(lsm_lon_array[self.lsm_lon_indices], lsm_lat_array[self.lsm_lat_indices])
         #IF LAT LON IS 2D:
         elif len(lsm_lat_array.shape) == 2:
-            if lsm_dy is None:
-                lsm_dy = np.max(np.absolute(np.diff(lsm_lat_array, axis=0)))
+            lsm_dy = np.max(np.absolute(np.diff(lsm_lat_array, axis=0)))
             lsm_lat_indices_from_lat, lsm_lon_indices_from_lat = np.where((lsm_lat_array >= (gssha_y_min - lsm_dy)) & (lsm_lat_array <= (gssha_y_max + lsm_dy)))
             lsm_lat_indices_from_lon, lsm_lon_indices_from_lon = np.where((lsm_lon_array >= (gssha_x_min - lsm_dx)) & (lsm_lon_array <= (gssha_x_max + lsm_dx)))
 

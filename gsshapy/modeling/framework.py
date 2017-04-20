@@ -67,15 +67,17 @@ class GSSHAFramework(object):
         ckan_owner_organization(Optional[str]): CKAN owner organization.
         path_to_rapid_qout(Optional[str]): Path to the RAPID Qout file. Use this if you do NOT want to download the forecast and you want to use RAPID streamflows.
         connection_list_file(Optional[str]): CSV file with list connecting GSSHA rivers to RAPID river network. See: http://rapidpy.readthedocs.io/en/latest/rapid_to_gssha.html
-        lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
-        lsm_data_var_map_array(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.`
-        lsm_precip_data_var(Optional[list or str]): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
-        lsm_precip_type(Optional[str]): Type of precipitation. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
-        lsm_lat_var(Optional[str]): Name of the latitude variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
-        lsm_lon_var(Optional[str]): Name of the longitude variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
-        lsm_file_date_naming_convention(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gridtogssha.LSMtoGSSHA`.
-        lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
-        lsm_search_card(Optional[str]): Glob search pattern for LSM files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
+        lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gsshapy.grid.grid_to_gssha.GRIDtoGSSHA`.
+        lsm_data_var_map_array(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gsshapy.grid.grid_to_gssha.GRIDtoGSSHA.`
+        lsm_precip_data_var(Optional[list or str]): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gsshapy.grid.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+        lsm_precip_type(Optional[str]): Type of precipitation. See: :func:`~gsshapy.grid.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+        lsm_lat_var(Optional[str]): Name of the latitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lon_var(Optional[str]): Name of the longitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lat_dim(Optional[str]): Name of the latitude dimension in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lon_dim(Optional[str]): Name of the longitude dimension in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_time_dim(Optional[str]): Name of the time dimension in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_search_card(Optional[str]): Glob search pattern for LSM files. See: :func:`~gsshapy.grid.grid_to_gssha.GRIDtoGSSHA`.
         precip_interpolation_type(Optional[str]): Type of interpolation for LSM precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
         event_min_q(Optional[double]): Threshold discharge for continuing runoff events in m3/s. Default is 60.0.
         et_calc_mode(Optional[str]): Type of evapo-transpitation calculation for GSSHA. Can be "PENMAN" or "DEARDORFF". Default is "PENMAN".
@@ -94,7 +96,6 @@ class GSSHAFramework(object):
             gssha_executable = 'C:/Program Files/WMS 10.1 64-bit/gssha/gssha.exe'
             gssha_directory = "C:/Users/{username}/Documents/GSSHA"
             project_filename = "gssha_project.prj"
-            connection_list_file = "C:/Users/{username}/Documents/GSSHA/rapid_to_gssha_connect.csv"
 
             #WRF INPUTS
             lsm_folder = '"C:/Users/{username}/Documents/GSSHA/wrf-sample-data-v1.0'
@@ -120,12 +121,6 @@ class GSSHAFramework(object):
             gr = GSSHAFramework(gssha_executable,
                                 gssha_directory,
                                 project_filename,
-                                ckan_engine_url='http://ckan/api/3/action',
-                                ckan_api_key='your-api-key',
-                                ckan_owner_organization='your_organization',
-                                spt_watershed_name='watershed_name',
-                                spt_subbasin_name='subbasin_name',
-                                spt_forecast_date_string='20160721.1200'
                                 lsm_folder=lsm_folder,
                                 lsm_data_var_map_array=data_var_map_array,
                                 lsm_precip_data_var=precip_data_var,
@@ -133,7 +128,6 @@ class GSSHAFramework(object):
                                 lsm_lat_var=lsm_lat_var,
                                 lsm_lon_var=lsm_lon_var,
                                 lsm_file_date_naming_convention=lsm_file_date_naming_convention,
-                                connection_list_file=connection_list_file,
                                 )
 
             gr.run_forecast()
@@ -214,8 +208,10 @@ class GSSHAFramework(object):
                  lsm_precip_type=None,
                  lsm_lat_var=None,
                  lsm_lon_var=None,
-                 lsm_file_date_naming_convention=None,
                  lsm_time_var='time',
+                 lsm_lat_dim=None,
+                 lsm_lon_dim=None,
+                 lsm_time_dim='time',
                  lsm_search_card="*.nc",
                  precip_interpolation_type=None,
                  event_min_q=None,
@@ -246,8 +242,10 @@ class GSSHAFramework(object):
         self.lsm_precip_type = lsm_precip_type
         self.lsm_lat_var = lsm_lat_var
         self.lsm_lon_var = lsm_lon_var
-        self.lsm_file_date_naming_convention = lsm_file_date_naming_convention
         self.lsm_time_var = lsm_time_var
+        self.lsm_lat_dim = lsm_lat_dim
+        self.lsm_lon_dim = lsm_lon_var
+        self.lsm_time_dim = lsm_time_dim
         self.lsm_search_card = lsm_search_card
         self.output_netcdf = output_netcdf
         self.write_hotstart = write_hotstart
@@ -553,14 +551,16 @@ class GSSHAFramework(object):
                 if self.hotstart_minimal_mode:
                     hmet_ascii_output_folder += "_hotstart"
 
-            self.event_manager.prepare_wrf_data(self.lsm_folder,
+            self.event_manager.prepare_lsm_data(self.lsm_folder,
                                                 self.lsm_data_var_map_array,
                                                 self.lsm_precip_data_var,
                                                 self.lsm_precip_type,
                                                 self.lsm_lat_var,
                                                 self.lsm_lon_var,
-                                                self.lsm_file_date_naming_convention,
                                                 self.lsm_time_var,
+                                                self.lsm_lat_dim,
+                                                self.lsm_lon_dim,
+                                                self.lsm_time_dim,
                                                 self.lsm_search_card,
                                                 hmet_ascii_output_folder,
                                                 netcdf_file_path,
@@ -656,7 +656,7 @@ class GSSHAFramework(object):
         return self.run()
 
 
-class GSSHA_WRF_Framework(GSSHAFramework):
+class GSSHAWRFFramework(GSSHAFramework):
     """
     This class is for automating the connection between RAPID to GSSHA and WRF to GSSHA.
     There are several different configurations depending upon what you choose.
@@ -689,15 +689,17 @@ class GSSHA_WRF_Framework(GSSHAFramework):
         ckan_owner_organization(Optional[str]): CKAN owner organization.
         path_to_rapid_qout(Optional[str]): Path to the RAPID Qout file. Use this if you do NOT want to download the forecast and you want to use RAPID streamflows.
         connection_list_file(Optional[str]): CSV file with list connecting GSSHA rivers to RAPID river network. See: http://rapidpy.readthedocs.io/en/latest/rapid_to_gssha.html
-        lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
-        lsm_data_var_map_array(Optional[str]): Array with connections for WRF output and GSSHA input. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.`
-        lsm_precip_data_var(Optional[list or str]): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
-        lsm_precip_type(Optional[str]): Type of precipitation. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
-        lsm_lat_var(Optional[str]): Name of the latitude variable in the WRF netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
-        lsm_lon_var(Optional[str]): Name of the longitude variable in the WRF netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
-        lsm_file_date_naming_convention(Optional[str]): Array with connections for WRF output and GSSHA input. See: :func:`~gridtogssha.LSMtoGSSHA`.
-        lsm_time_var(Optional[str]): Name of the time variable in the WRF netCDF files. See: :func:`~gridtogssha.LSMtoGSSHA`.
-        lsm_search_card(Optional[str]): Glob search pattern for WRF files. See: :func:`~gridtogssha.grid_to_gssha.GRIDtoGSSHA`.
+        lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_data_var_map_array(Optional[str]): Array with connections for WRF output and GSSHA input. See: :func:`~gsshapy.grid.GRIDtoGSSHA.`
+        lsm_precip_data_var(Optional[list or str]): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gsshapy.grid.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+        lsm_precip_type(Optional[str]): Type of precipitation. See: :func:`~gsshapy.grid.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+        lsm_lat_var(Optional[str]): Name of the latitude variable in the WRF netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lon_var(Optional[str]): Name of the longitude variable in the WRF netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_time_var(Optional[str]): Name of the time variable in the WRF netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lat_dim(Optional[str]): Name of the latitude dimension in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lon_dim(Optional[str]): Name of the longitude dimension in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_time_dim(Optional[str]): Name of the time dimension in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_search_card(Optional[str]): Glob search pattern for WRF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
         precip_interpolation_type(Optional[str]): Type of interpolation for WRF precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
         event_min_q(Optional[double]): Threshold discharge for continuing runoff events in m3/s. Default is 60.0.
         et_calc_mode(Optional[str]): Type of evapo-transpitation calculation for GSSHA. Can be "PENMAN" or "DEARDORFF". Default is "PENMAN".
@@ -855,8 +857,10 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                  lsm_precip_type='ACCUM',
                  lsm_lat_var='XLAT',
                  lsm_lon_var='XLONG',
-                 lsm_file_date_naming_convention=None,
-                 lsm_time_var='time',
+                 lsm_time_var='Times',
+                 lsm_lat_dim='south_north',
+                 lsm_lon_dim='west_east',
+                 lsm_time_dim='Time',
                  lsm_search_card="*.nc",
                  precip_interpolation_type=None,
                  event_min_q=None,
@@ -882,15 +886,15 @@ class GSSHA_WRF_Framework(GSSHAFramework):
                                       ['cloud_cover' , 'CLDFRA'],
                                      ]
 
-        super(GSSHA_WRF_Framework, self).__init__(gssha_executable, gssha_directory, project_filename,
-                                                  gssha_simulation_start, gssha_simulation_end,
-                                                  gssha_simulation_duration, load_simulation_datetime,
-                                                  spt_watershed_name, spt_subbasin_name,
-                                                  spt_forecast_date_string, ckan_engine_url,
-                                                  ckan_api_key, ckan_owner_organization, path_to_rapid_qout,
-                                                  connection_list_file, lsm_folder, lsm_data_var_map_array,
-                                                  lsm_precip_data_var, lsm_precip_type, lsm_lat_var, lsm_lon_var,
-                                                  lsm_file_date_naming_convention, lsm_time_var,
-                                                  lsm_search_card, precip_interpolation_type, event_min_q,
-                                                  et_calc_mode, soil_moisture_depth, output_netcdf,
-                                                  write_hotstart, read_hotstart, hotstart_minimal_mode)
+        super(GSSHAWRFFramework, self).__init__(gssha_executable, gssha_directory, project_filename,
+                                                gssha_simulation_start, gssha_simulation_end,
+                                                gssha_simulation_duration, load_simulation_datetime,
+                                                spt_watershed_name, spt_subbasin_name,
+                                                spt_forecast_date_string, ckan_engine_url,
+                                                ckan_api_key, ckan_owner_organization, path_to_rapid_qout,
+                                                connection_list_file, lsm_folder, lsm_data_var_map_array,
+                                                lsm_precip_data_var, lsm_precip_type, lsm_lat_var, lsm_lon_var,
+                                                lsm_time_var, lsm_lat_dim, lsm_lon_dim, lsm_time_dim,
+                                                lsm_search_card, precip_interpolation_type, event_min_q,
+                                                et_calc_mode, soil_moisture_depth, output_netcdf,
+                                                write_hotstart, read_hotstart, hotstart_minimal_mode)

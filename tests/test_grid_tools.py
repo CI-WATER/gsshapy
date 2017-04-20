@@ -14,7 +14,7 @@ from shutil import copy
 
 from .template import TestGridTemplate
 
-from gsshapy.grid.grid_tools import GDALGrid, ArrayGrid, GSSHAGrid
+from gsshapy.lib.grid_tools import GDALGrid, ArrayGrid, GSSHAGrid
 
 class TestResampleShapefile(TestGridTemplate):
     def setUp(self):
