@@ -79,7 +79,7 @@ class LSMGridReader(object):
             if map_proj4 is not None:
                 self._projection = osr.SpatialReference()
                 self._projection.ImportFromProj4(map_proj4)
-            elif map_proj is not None:
+            elif 'MAP_PROJ' in self._obj.attrs:
                 self._load_wrf_projection()
             else:
                 # default to EPSG 4326
@@ -111,11 +111,6 @@ class LSMGridReader(object):
 
             elif str(self.epsg) != '4326':
                 proj_y, proj_x = self.coords()
-                if 'MAP_PROJ' in self._obj.attrs.keys():
-                    # the WRF grid is upside down
-                    proj_y = proj_y[::-1]
-                    proj_x = proj_x[::-1]
-
                 self._geotransform = geotransform_from_latlon(proj_y,
                                                               proj_x)
             else:
@@ -137,11 +132,21 @@ class LSMGridReader(object):
         return self.affine * (col+0.5, row+0.5)
 
     @property
+    def x_size(self):
+        return self._obj.dims[self.x_dim]
+
+    @property
+    def y_size(self):
+        return self._obj.dims[self.y_dim]
+
+    @property
     def latlon(self):
         """Returns lat,lon"""
-
         if 'MAP_PROJ' in self._obj.attrs:
             lat, lon = wrf.latlon_coords(self._obj, as_np=True)
+            # WRF Grid is upside down
+            lat = lat[::-1]
+            lon = lon[::-1]
         else:
             lon = self._obj[self.x_var].values
             lat = self._obj[self.y_var].values
@@ -166,8 +171,8 @@ class LSMGridReader(object):
         except KeyError:
             pass
 
-        x_size = self._obj.dims[self.x_dim]
-        y_size = self._obj.dims[self.y_dim]
+        x_size = self.x_size
+        y_size = self.y_size
         x_2d_coords = np.zeros((y_size, x_size))
         y_2d_coords = np.zeros((y_size, x_size))
 
@@ -218,7 +223,6 @@ class LSMGridReader(object):
                                              ),
                             },
                             attrs={'proj4': grid.proj4,
-                                   'wkt': grid.wkt,
                                    'geotransform': geotransform,
                             }
                         )
@@ -248,6 +252,11 @@ class LSMGridReader(object):
                    calc_4d_method=None,
                    calc_4d_dim=None):
         """Get Subset of variable"""
+        if 'MAP_PROJ' in self._obj.attrs:
+            # WRF Y DIM IS BACKWARDS
+            y_index_start = self.y_size - y_index_start - 1
+            y_index_end = self.y_size - y_index_end - 1
+
         if len(self._obj[variable].dims) == 4:
             if calc_4d_method is None or calc_4d_dim is None:
                 raise ValueError("The variable {var} has 4 dimension. "
@@ -264,7 +273,7 @@ class LSMGridReader(object):
                                        x_index_start:x_index_end,
                                       ]
 
-        if 'MAP_PROJ' in self._obj.attrs.keys():
+        if 'MAP_PROJ' in self._obj.attrs:
             # WRF Y DIM IS BACKWARDS
             data = data[:,::-1]
 
@@ -284,7 +293,6 @@ class LSMGridReader(object):
                                  wkt_projection=self.projection.ExportToWkt(),
                                  geotransform=geotransform,
                                  )
-            arr_grid.to_tif('test.tif')
             ggrid = gdal_reproject(arr_grid.dataset,
                                    dst_srs=utm_proj,
                                    as_gdal_grid=True)
@@ -299,11 +307,11 @@ if __name__ == "__main__":
     # path to files
     path_to_files = '/home/rdchlads/scripts/gsshapy/tests/grid_standard/wrf_raw_data/gssha_d03_nc/*.nc'
     with xr.open_mfdataset(path_to_files, concat_dim='Time') as xd:
-        xd.lsm.y_var = "XLAT"
-        xd.lsm.x_var = "XLONG"
+        #xd.lsm.y_var = "XLAT"
+        #xd.lsm.x_var = "XLONG"
         xd.lsm.time_var = "Times"
-        xd.lsm.y_dim = "south_north"
-        xd.lsm.x_dim = "west_east"
+        #xd.lsm.y_dim = "south_north"
+        #xd.lsm.x_dim = "west_east"
         xd.lsm.time_dim = "Time"
         print(xd.lsm.geotransform)
         xd.lsm.latlon
