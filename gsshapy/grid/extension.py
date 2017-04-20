@@ -202,7 +202,7 @@ class LSMGridReader(object):
         new_y_max = y_max + dy*y_index_start
         return (new_x_min, dx, x_skew, new_y_max, y_skew, dy)
 
-    def _export_dataset(self, variable, new_data, grid, geotransform):
+    def _export_dataset(self, variable, new_data, grid):
         """Export subset of dataset."""
         lats, lons = grid.lat_lon(two_dimensional=True)
         return xr.Dataset({variable: (['time', 'y', 'x'],
@@ -223,7 +223,7 @@ class LSMGridReader(object):
                                              ),
                             },
                             attrs={'proj4': grid.proj4,
-                                   'geotransform': geotransform,
+                                   'geotransform': self.geotransform,
                             }
                         )
 
@@ -243,19 +243,22 @@ class LSMGridReader(object):
 
         self.to_datetime()
         return self._export_dataset(variable, np.array(new_data),
-                                    resampled_data_grid, self.geotransform)
+                                    resampled_data_grid)
 
 
     def get_subset(self, variable,
-                   x_index_start=0, x_index_end=-1,
-                   y_index_start=0, y_index_end=-1,
+                   x_index_start=0,
+                   x_index_end=-1,
+                   y_index_start=0,
+                   y_index_end=-1,
                    calc_4d_method=None,
                    calc_4d_dim=None):
         """Get Subset of variable"""
         if 'MAP_PROJ' in self._obj.attrs:
             # WRF Y DIM IS BACKWARDS
-            y_index_start = self.y_size - y_index_start - 1
-            y_index_end = self.y_size - y_index_end - 1
+            original_y_index_start = y_index_start
+            y_index_start = self.y_size - y_index_end - 1
+            y_index_end = self.y_size - original_y_index_start - 1
 
         if len(self._obj[variable].dims) == 4:
             if calc_4d_method is None or calc_4d_dim is None:
@@ -278,7 +281,7 @@ class LSMGridReader(object):
             data = data[:,::-1]
 
         data[self.time_var] = self._obj[self.time_var]
-        data.attrs = self._obj.attrs
+        data.attrs = {'proj4': self.projection.ExportToProj4()}
         return data
 
     def to_utm(self, variable):
@@ -286,12 +289,11 @@ class LSMGridReader(object):
         # get utm projection
         center_lon, center_lat = self.center
         utm_proj = utm_proj_from_latlon(center_lat, center_lon, as_osr=True)
-        geotransform = self.subset_geotransform(x_index_start, y_index_start)
         new_data = []
         for band in range(self._obj.dims[self.time_dim]):
             arr_grid = ArrayGrid(in_array=self._obj[variable][band].values,
                                  wkt_projection=self.projection.ExportToWkt(),
-                                 geotransform=geotransform,
+                                 geotransform=self.geotransform,
                                  )
             ggrid = gdal_reproject(arr_grid.dataset,
                                    dst_srs=utm_proj,
@@ -300,7 +302,7 @@ class LSMGridReader(object):
 
         self.to_datetime()
         return self._export_dataset(variable, np.array(new_data),
-                                    ggrid, geotransform)
+                                    ggrid)
 
 
 if __name__ == "__main__":

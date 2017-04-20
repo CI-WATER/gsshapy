@@ -502,9 +502,6 @@ class GRIDtoGSSHA(object):
         # reproject GSSHA grid and get bounds
         lsm_proj = self.xd.lsm.projection
         lsm_pyproj = Proj(self.xd.lsm.projection.ExportToProj4())
-        print(self.xd.lsm.geotransform)
-        print(self.xd.lsm.pixel2coord(0, 0))
-        print(self.xd.lsm.pixel2coord(self.xd.dims[self.lsm_lon_dim], self.xd.dims[self.lsm_lat_dim]))
 
         min_x, max_x, min_y, max_y = self.gssha_grid.bounds()
         x_ext, y_ext = transform(self.gssha_grid.proj,
@@ -513,13 +510,13 @@ class GRIDtoGSSHA(object):
                                  [min_y, max_y, max_y, min_y],
                                  )
         min_x, max_x, min_y, max_y = min(x_ext),max(x_ext),min(y_ext),max(y_ext)
-        print((min(x_ext),max(x_ext),min(y_ext),max(y_ext)))
+        #print((min(x_ext),max(x_ext),min(y_ext),max(y_ext)))
         ggrid = gdal_reproject(self.gssha_grid.dataset,
                                dst_srs=lsm_proj,
                                as_gdal_grid=True)
-        print(ggrid.geotransform)
+        #print(ggrid.geotransform)
         # min_x, max_x, min_y, max_y = ggrid.bounds()
-        print(ggrid.bounds())
+        #print(ggrid.bounds())
         self._set_subset_indices(min_y,
                                  max_y,
                                  min_x,
@@ -547,13 +544,13 @@ class GRIDtoGSSHA(object):
         This extracts the LSM data from a folder of netcdf files
         """
         data = self.xd.lsm.get_subset(data_var,
-                                 x_index_start=self.x_index_min,
-                                 x_index_end=self.x_index_max,
-                                 y_index_start=self.y_index_min,
-                                 y_index_end=self.y_index_max,
-                                 calc_4d_method=calc_4d_method,
-                                 calc_4d_dim=calc_4d_dim,
-                                 )
+                                      x_index_start=self.x_index_min,
+                                      x_index_end=self.x_index_max,
+                                      y_index_start=self.y_index_min,
+                                      y_index_end=self.y_index_max,
+                                      calc_4d_method=calc_4d_method,
+                                      calc_4d_dim=calc_4d_dim,
+                                      )
         data.values *= conversion_factor
         return data
 
@@ -580,8 +577,7 @@ class GRIDtoGSSHA(object):
                 diffusive_fraction = self._load_lsm_data(diffusive_fraction_var)
                 if gssha_var.endswith("cc"):
                     diffusive_fraction /= 100
-                self.data = (diffusive_fraction[diffusive_fraction_var]
-                             *global_radiation[global_radiation_var])
+                self.data = (diffusive_fraction*global_radiation)
 
             elif isinstance(lsm_var, basestring):
                 self.data = self._load_lsm_data(lsm_var, self.netcdf_attributes[gssha_var]['conversion_factor'][load_type])
@@ -608,12 +604,12 @@ class GRIDtoGSSHA(object):
             ##Qs(saturation mixing ratio)=(0.622*es)/(PSFC-es)
             ##RH = 100*Q/Qs
             #print(np.amin(17.62*(temperature[temperature_var]-273.16)/(243.12+temperature[temperature_var].values-273.16)))
-            es = (611.2*np.exp(17.62*(temperature[temperature_var]-273.16)
-                  /(243.12+temperature[temperature_var]-273.16)))
+            es = (611.2*np.exp(17.62*(temperature-273.16)
+                  /(243.12+temperature-273.16)))
             #print(es)
             self.data = (100 * specific_humidity/
-                         ((0.622*es["es"])/(pressure-
-                         es["es"])))
+                         ((0.622*es)/(pressure-
+                         es)))
 
             ##METHOD 2:
             ##http://earthscience.stackexchange.com/questions/2360/how-do-i-convert-specific-humidity-to-relative-humidity
@@ -626,8 +622,7 @@ class GRIDtoGSSHA(object):
             conversion_factor = self.netcdf_attributes[gssha_var]['conversion_factor'][load_type]
             u_vector = self._load_lsm_data(u_vector_var, conversion_factor)
             v_vector = self._load_lsm_data(v_vector_var, conversion_factor)
-            self.data = (np.sqrt(u_vector[u_vector_var]**2
-                         + v_vector[v_vector_var]**2))
+            self.data = (np.sqrt(u_vector**2 + v_vector**2))
 
         elif 'precipitation' in gssha_var and not isinstance(lsm_var, str):
             # WRF:  http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
@@ -635,7 +630,7 @@ class GRIDtoGSSHA(object):
             conversion_factor = self.netcdf_attributes[gssha_var]['conversion_factor'][load_type]
             rain_c = self._load_lsm_data(rain_c_var, conversion_factor)
             rain_nc = self._load_lsm_data(rain_nc_var, conversion_factor)
-            self.data = (rain_c + rain_nc)
+            self.data = rain_c + rain_nc
 
         else:
             self.data = self._load_lsm_data(lsm_var,
@@ -661,18 +656,14 @@ class GRIDtoGSSHA(object):
 
         # convert to dataset
         self.data = self.data.to_dataset(name=gssha_var)
-        self.data.swap_dims({self.time_dim: 'time',
-                             self.x_dim: 'x',
-                             self.y_dim: 'y'
-                             },
-                            innplace=True)
-        self.data.rename({self.x_var: 'lon',
-                          self.y_var: 'lat'
+        self.data.rename({self.lsm_time_dim: 'time',
+                          self.lsm_lon_dim: 'x',
+                          self.lsm_lat_dim: 'y',
+                          self.lsm_time_var: 'time',
+                          self.lsm_lon_var: 'lon',
+                          self.lsm_lat_var: 'lat'
                           },
-                         innplace=True)
-
-
-        self.time_var
+                         inplace=True)
 
     def _check_lsm_input(self, data_var_map_array):
         """
