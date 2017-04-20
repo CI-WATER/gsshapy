@@ -1,7 +1,7 @@
 from affine import Affine
 import math
 import numpy as np
-from osgeo import osr
+from osgeo import osr, gdalconst
 import pandas as pd
 from pyproj import Proj, transform
 import wrf
@@ -145,8 +145,8 @@ class LSMGridReader(object):
         if 'MAP_PROJ' in self._obj.attrs:
             lat, lon = wrf.latlon_coords(self._obj, as_np=True)
             # WRF Grid is upside down
-            lat = lat[::-1]
-            lon = lon[::-1]
+            lat = lat[0, ::-1]
+            lon = lon[0, ::-1]
         else:
             lon = self._obj[self.x_var].values
             lat = self._obj[self.y_var].values
@@ -209,7 +209,7 @@ class LSMGridReader(object):
                                       new_data,
                                       self._obj[variable].attrs),
                            },
-                            coords={'lat': (['y', 'x'],
+                           coords={'lat': (['y', 'x'],
                                             lats,
                                             self._obj[variable].coords[self.y_var].attrs
                                             ),
@@ -223,7 +223,7 @@ class LSMGridReader(object):
                                              ),
                             },
                             attrs={'proj4': grid.proj4,
-                                   'geotransform': self.geotransform,
+                                   'geotransform': grid.geotransform,
                             }
                         )
 
@@ -281,7 +281,7 @@ class LSMGridReader(object):
             data = data[:,::-1]
 
         data[self.time_var] = self._obj[self.time_var]
-        data.attrs = {'proj4': self.projection.ExportToProj4()}
+
         return data
 
     def to_utm(self, variable):
@@ -296,7 +296,9 @@ class LSMGridReader(object):
                                  geotransform=self.geotransform,
                                  )
             ggrid = gdal_reproject(arr_grid.dataset,
+                                   src_srs=self.projection,
                                    dst_srs=utm_proj,
+                                   resampling=gdalconst.GRA_Average,
                                    as_gdal_grid=True)
             new_data.append(ggrid.np_array())
 
@@ -304,6 +306,13 @@ class LSMGridReader(object):
         return self._export_dataset(variable, np.array(new_data),
                                     ggrid)
 
+    def to_tif(self, variable, time_index, out_path):
+        """Dump to TIFF"""
+        arr_grid = ArrayGrid(in_array=self._obj[variable][time_index].values,
+                             wkt_projection=self.projection.ExportToWkt(),
+                             geotransform=self.geotransform,
+                             )
+        arr_grid.to_tif(out_path)
 
 if __name__ == "__main__":
     # path to files
@@ -312,17 +321,11 @@ if __name__ == "__main__":
         #xd.lsm.y_var = "XLAT"
         #xd.lsm.x_var = "XLONG"
         xd.lsm.time_var = "Times"
-        #xd.lsm.y_dim = "south_north"
-        #xd.lsm.x_dim = "west_east"
+        xd.lsm.y_dim = "south_north"
+        xd.lsm.x_dim = "west_east"
         xd.lsm.time_dim = "Time"
-        print(xd.lsm.geotransform)
-        xd.lsm.latlon
-        xd.lsm.coords
+        xd.lsm.to_tif("U10", 10)
         """
-        u10_ds = xd.lsm.to_utm("U10",
-                               x_index_start=5, x_index_end=7,
-                               y_index_start=25, y_index_end=77,
-                              )
         v10_ds = xd.lsm.to_utm("V10",
                                x_index_start=5, x_index_end=7,
                                y_index_start=25, y_index_end=77,

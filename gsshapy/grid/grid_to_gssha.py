@@ -478,8 +478,6 @@ class GRIDtoGSSHA(object):
         self.y_index_min = np.amin(lsm_y_indices)
         self.y_index_max = np.amax(lsm_y_indices)
 
-
-
     def _load_modeling_extent(self):
         """
         # Get extent from GSSHA Grid in LSM coordinates
@@ -501,22 +499,13 @@ class GRIDtoGSSHA(object):
 
         # reproject GSSHA grid and get bounds
         lsm_proj = self.xd.lsm.projection
-        lsm_pyproj = Proj(self.xd.lsm.projection.ExportToProj4())
-
-        min_x, max_x, min_y, max_y = self.gssha_grid.bounds()
-        x_ext, y_ext = transform(self.gssha_grid.proj,
-                                 lsm_pyproj,
-                                 [min_x, max_x, min_x, max_x],
-                                 [min_y, max_y, max_y, min_y],
-                                 )
-        min_x, max_x, min_y, max_y = min(x_ext),max(x_ext),min(y_ext),max(y_ext)
-        #print((min(x_ext),max(x_ext),min(y_ext),max(y_ext)))
         ggrid = gdal_reproject(self.gssha_grid.dataset,
+                               src_srs=self.gssha_grid.projection,
                                dst_srs=lsm_proj,
                                as_gdal_grid=True)
-        #print(ggrid.geotransform)
-        # min_x, max_x, min_y, max_y = ggrid.bounds()
-        #print(ggrid.bounds())
+        min_x, max_x, min_y, max_y = ggrid.bounds()
+
+        # set subset indices
         self._set_subset_indices(min_y,
                                  max_y,
                                  min_x,
@@ -603,10 +592,8 @@ class GRIDtoGSSHA(object):
             ##Es(saturation vapor pressure in Pa)=611.2*exp(17.62*(T2-273.16)/(243.12+T2-273.16))
             ##Qs(saturation mixing ratio)=(0.622*es)/(PSFC-es)
             ##RH = 100*Q/Qs
-            #print(np.amin(17.62*(temperature[temperature_var]-273.16)/(243.12+temperature[temperature_var].values-273.16)))
             es = (611.2*np.exp(17.62*(temperature-273.16)
                   /(243.12+temperature-273.16)))
-            #print(es)
             self.data = (100 * specific_humidity/
                          ((0.622*es)/(pressure-
                          es)))
@@ -665,26 +652,36 @@ class GRIDtoGSSHA(object):
                           },
                          inplace=True)
 
+        self.data.attrs = {'proj4': self.xd.lsm.projection.ExportToProj4()}
+        self.data[gssha_var].attrs = {
+           'standard_name': self.netcdf_attributes[gssha_var]['standard_name'],
+           'long_name': self.netcdf_attributes[gssha_var]['long_name'],
+           'units': self.netcdf_attributes[gssha_var]['units'][load_type],
+        }
+
     def _check_lsm_input(self, data_var_map_array):
         """
         This function checks the input var map array
         to ensure the required input variables exist
         """
-        REQUIRED_HMET_VAR_LIST = ['Prcp', 'Pres', 'Temp', 'Clod', 'RlHm', 'Drad', 'Grad', 'WndS']
+        REQUIRED_HMET_VAR_LIST = ['Prcp', 'Pres', 'Temp', 'Clod',
+                                  'RlHm', 'Drad', 'Grad', 'WndS']
 
-        #make sure all required variables exist
+        # make sure all required variables exist
         given_hmet_var_list = []
         for gssha_data_var, lsm_data_var in data_var_map_array:
             gssha_data_hmet_name = self.netcdf_attributes[gssha_data_var]['hmet_name']
 
             if gssha_data_hmet_name in given_hmet_var_list:
-                raise IndexError("Duplicate parameter for HMET variable {0}".format(gssha_data_hmet_name))
+                raise IndexError("Duplicate parameter for HMET variable {0}"
+                                 .format(gssha_data_hmet_name))
             else:
                 given_hmet_var_list.append(gssha_data_hmet_name)
 
         for REQUIRED_HMET_VAR in REQUIRED_HMET_VAR_LIST:
             if REQUIRED_HMET_VAR not in given_hmet_var_list:
-                raise Exception("ERROR: HMET param is required to continue {0} ...".format(REQUIRED_HMET_VAR))
+                raise Exception("ERROR: HMET param is required to continue "
+                                "{0} ...".format(REQUIRED_HMET_VAR))
 
     def _get_calc_function(self, gssha_data_var):
         """
@@ -692,7 +689,8 @@ class GRIDtoGSSHA(object):
         to hourly data for the various HMET parameters
         """
         calc_function = 'mean'
-        if gssha_data_var == 'precipitation_inc' or gssha_data_var == 'precipitation_acc':
+        if gssha_data_var == 'precipitation_inc' or \
+                gssha_data_var == 'precipitation_acc':
             calc_function = 'sum'
 
         return calc_function
@@ -752,7 +750,6 @@ class GRIDtoGSSHA(object):
 
 
             self.data = resampled_data
-
 
     def lsm_precip_to_gssha_precip_gage(self, out_gage_file, lsm_data_var, precip_type="RADAR"):
         """This function takes array data and writes out a GSSHA precip gage file.
@@ -1047,9 +1044,6 @@ class GRIDtoGSSHA(object):
             if gssha_var in self.netcdf_attributes:
                 gssha_data_var_name = self.netcdf_attributes[gssha_var]['gssha_name']
                 self._load_converted_gssha_data_from_lsm(gssha_var, lsm_var, 'netcdf')
-                self.data.attrs['standard_name'] = self.netcdf_attributes[gssha_var]['standard_name']
-                self.data.attrs['long_name'] = self.netcdf_attributes[gssha_var]['long_name']
-                self.data.attrs['units'] = self.netcdf_attributes[gssha_var]['units']['netcdf']
                 #previously just added data, but needs to be hourly
                 self._convert_data_to_hourly(gssha_var)
                 if resample_method:
@@ -1065,5 +1059,7 @@ class GRIDtoGSSHA(object):
         output_dataset.attrs['Convention'] = 'CF-1.6'
         output_dataset.attrs['title'] = 'GSSHA LSM Input'
         output_dataset.attrs['history'] = 'date_created: {0}'.format(datetime.utcnow())
+        output_dataset.attrs['proj4'] = self.data.attrs['proj4']
+        output_dataset.attrs['geotransform'] = self.data.attrs['geotransform']
 
         output_dataset.to_netcdf(netcdf_file_path)
