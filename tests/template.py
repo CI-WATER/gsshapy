@@ -47,12 +47,8 @@ class TestGridTemplate(unittest.TestCase):
         assert_almost_equal(dO.variables['temperature'][:], dN.variables['temperature'][:], decimal=5)
         assert_almost_equal(dO.variables['cloud_cover'][:], dN.variables['cloud_cover'][:], decimal=5)
 
-        self.assertEqual(dO.getncattr("north"),dN.getncattr("north"))
-        self.assertEqual(dO.getncattr("south"),dN.getncattr("south"))
-        self.assertEqual(dO.getncattr("east"),dN.getncattr("east"))
-        self.assertEqual(dO.getncattr("west"),dN.getncattr("west"))
-        assert_almost_equal(dO.getncattr("cell_size"), dN.getncattr("cell_size"), decimal=9)
-
+        self.assertEqual(dO.getncattr("proj4"),dN.getncattr("proj4"))
+        assert_almost_equal(dO.getncattr("geotransform"),dN.getncattr("geotransform"))
         dO.close()
         dN.close()
 

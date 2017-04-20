@@ -642,7 +642,8 @@ class GRIDtoGSSHA(object):
                 self.data.values *= time_step_hours
 
         # convert to dataset
-        self.data = self.data.to_dataset(name=gssha_var)
+        gssha_data_var_name = self.netcdf_attributes[gssha_var]['gssha_name']
+        self.data = self.data.to_dataset(name=gssha_data_var_name)
         self.data.rename({self.lsm_time_dim: 'time',
                           self.lsm_lon_dim: 'x',
                           self.lsm_lat_dim: 'y',
@@ -653,7 +654,7 @@ class GRIDtoGSSHA(object):
                          inplace=True)
 
         self.data.attrs = {'proj4': self.xd.lsm.projection.ExportToProj4()}
-        self.data[gssha_var].attrs = {
+        self.data[gssha_data_var_name].attrs = {
            'standard_name': self.netcdf_attributes[gssha_var]['standard_name'],
            'long_name': self.netcdf_attributes[gssha_var]['long_name'],
            'units': self.netcdf_attributes[gssha_var]['units'][load_type],
@@ -813,7 +814,8 @@ class GRIDtoGSSHA(object):
             gssha_precip_type = "precipitation_rate"
 
         self._load_converted_gssha_data_from_lsm(gssha_precip_type, lsm_data_var, 'gage')
-        self.data = self.data.lsm.to_utm(gssha_precip_type)
+        gssha_data_var_name = self.netcdf_attributes[gssha_precip_type]['gssha_name']
+        self.data = self.data.lsm.to_utm(gssha_data_var_name)
 
         #LOOP THROUGH TIME
         with io_open(out_gage_file, 'w') as gage_file:
@@ -833,7 +835,7 @@ class GRIDtoGSSHA(object):
                                                                                        coord_idx))
             for time_idx in range(self.data.dims['time']):
                 date_str = self._time_to_string(self.data.time[time_idx])
-                data_str = " ".join(self.data[gssha_precip_type][time_idx].values.ravel().astype(str))
+                data_str = " ".join(self.data[gssha_data_var_name][time_idx].values.ravel().astype(str))
                 gage_file.write(u"{0} {1} {2}\n".format(precip_type, date_str, data_str))
 
     def _write_hmet_card_file(self, hmet_card_file_path, main_output_folder):
@@ -940,12 +942,14 @@ class GRIDtoGSSHA(object):
         for data_var_map in data_var_map_array:
             gssha_data_var, lsm_data_var = data_var_map
             gssha_data_hmet_name = self.netcdf_attributes[gssha_data_var]['hmet_name']
+            gssha_data_var_name = self.netcdf_attributes[gssha_data_var]['gssha_name']
+
             self._load_converted_gssha_data_from_lsm(gssha_data_var, lsm_data_var, 'ascii')
-            self._convert_data_to_hourly(gssha_data_var)
-            self.data = self.data.lsm.to_utm(gssha_data_var)
+            self._convert_data_to_hourly(gssha_data_var_name)
+            self.data = self.data.lsm.to_utm(gssha_data_var_name)
 
             for time_idx in range(self.data.dims['time']):
-                arr_grid = ArrayGrid(in_array=self.data[gssha_data_var][time_idx].values,
+                arr_grid = ArrayGrid(in_array=self.data[gssha_data_var_name][time_idx].values,
                                      wkt_projection=self.data.lsm.projection.ExportToWkt(),
                                      geotransform=self.data.lsm.geotransform,
                                      )
@@ -1042,14 +1046,14 @@ class GRIDtoGSSHA(object):
         #DATA
         for gssha_var, lsm_var in data_var_map_array:
             if gssha_var in self.netcdf_attributes:
-                gssha_data_var_name = self.netcdf_attributes[gssha_var]['gssha_name']
                 self._load_converted_gssha_data_from_lsm(gssha_var, lsm_var, 'netcdf')
                 #previously just added data, but needs to be hourly
-                self._convert_data_to_hourly(gssha_var)
+                gssha_data_var_name = self.netcdf_attributes[gssha_var]['gssha_name']
+                self._convert_data_to_hourly(gssha_data_var_name)
                 if resample_method:
-                    self._resample_data(gssha_var)
+                    self._resample_data(gssha_data_var_name)
                 else:
-                    self.data = self.data.lsm.to_utm(gssha_var)
+                    self.data = self.data.lsm.to_utm(gssha_data_var_name)
 
                 output_datasets.append(self.data)
             else:
