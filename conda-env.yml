@@ -20,4 +20,4 @@ dependencies:
 - rapidpy
 - timezonefinder
 - utm
-- xarray
+- wrf-python

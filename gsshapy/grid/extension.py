@@ -4,6 +4,7 @@ import numpy as np
 from osgeo import osr
 import pandas as pd
 from pyproj import Proj, transform
+import wrf
 import xarray as xr
 
 from grid_tools import (geotransform_from_latlon, gdal_reproject,
@@ -42,122 +43,31 @@ class LSMGridReader(object):
                                                                  format="%Y-%m-%d_%H:%M:%S")
 
     def _load_wrf_projection(self):
-        """Get the osgeo.osr projection for WRF Grid."""
-        map_proj = self._obj.attrs.get('MAP_PROJ')
-        standard_parallel_1 = self._obj.attrs.get('TRUELAT1')
-        standard_parallel_2 = self._obj.attrs.get('TRUELAT2')
-        central_meridian = self._obj.attrs.get('STAND_LON')
-        latitude_of_origin = self._obj.attrs.get('CEN_LAT')
-        # WRF GRID
-        # BASED ON: https://github.com/Esri/python-toolbox-for-rapid/blob/master/toolbox/scripts/CreateWeightTableFromWRFGeogrid.py
-        if map_proj == 1:
-            # Lambert Conformal Conic
-            if standard_parallel_2 is None:
-                # According to http://webhelp.esri.com/arcgisdesktop/9.2/index.cfm?TopicName=Lambert_Conformal_Conic
-                #http://www.remotesensing.org/geotiff/proj_list/lambert_conic_conformal_1sp.html
-                standard_parallel_2 = standard_parallel_1
-                latitude_of_origin = standard_parallel_1
-            #else:
-            #    print('    Using Standard Parallel 2 in Lambert Conformal Conic map projection.')
-            #    #http://www.remotesensing.org/geotiff/proj_list/lambert_conic_conformal_2sp.html
+        """Get the osgeo.osr projection for WRF Grid.
 
-            Projection_String = ('PROJCS["North_America_Lambert_Conformal_Conic",'
-                                 'GEOGCS["GCS_Sphere",'
-                                 'DATUM["D_Sphere",SPHEROID["Sphere",6370000.0,0.0]],'
-                                 'PRIMEM["Greenwich",0.0],'
-                                 'UNIT["Degree",0.0174532925199433]],'
-                                 'PROJECTION["Lambert_Conformal_Conic"],'
-                                 'PARAMETER["false_easting",0.0],'
-                                 'PARAMETER["false_northing",0.0],'
-                                 'PARAMETER["central_meridian",{central_meridian}],'
-                                 'PARAMETER["standard_parallel_1",{standard_parallel_1}],'
-                                 'PARAMETER["standard_parallel_2",{standard_parallel_2}],'
-                                 'PARAMETER["latitude_of_origin",{latitude_of_origin}],'
-                                 'UNIT["Meter",1.0]]') \
-                                 .format(central_meridian=central_meridian,
-                                         standard_parallel_1=standard_parallel_1,
-                                         standard_parallel_2=standard_parallel_2,
-                                         latitude_of_origin=latitude_of_origin)
+        - 'MAP_PROJ': The map projection type as an integer.
+        - 'TRUELAT1': True latitude 1.
+        - 'TRUELAT2': True latitude 2.
+        - 'MOAD_CEN_LAT': Mother of all domains center latitude.
+        - 'STAND_LON': Standard longitude.
+        - 'POLE_LAT': Pole latitude.
+        - 'POLE_LON': Pole longitude.
+        """
+        # load in params from WRF Global Attributes
+        possible_proj_params = ('MAP_PROJ', 'TRUELAT1', 'TRUELAT2',
+                                'MOAD_CEN_LAT', 'STAND_LON', 'POLE_LAT',
+                                'POLE_LON')
+        proj_params = dict()
+        for proj_param in possible_proj_params:
+            if proj_param in self._obj.attrs:
+                proj_params[proj_param] = self._obj.attrs[proj_param]
 
-        elif map_proj == 2:
-            # Polar Stereographic
+        # determine projection from WRF Grid
+        proj = wrf.projection.getproj(**proj_params)
 
-            # Set up pole latitude
-            phi1 = float(standard_parallel_1)
-
-            ### Back out the central_scale_factor (minimum scale factor?) using
-            # formula below using Snyder 1987 p.157 (USGS Paper 1395)
-            ## phi = math.copysign(float(pole_latitude), float(latitude_of_origin))
-            #  Get the sign right for the pole using sign of CEN_LAT (latitude_of_origin)
-            ## central_scale_factor = (1 + (math.sin(math.radians(phi1))*math.sin(math.radians(phi))) +
-            # (math.cos(math.radians(float(phi1)))*math.cos(math.radians(phi))))/2
-
-            # Method where central scale factor is k0, Derivation from C. Rollins 2011,
-            # equation 1: http://earth-info.nga.mil/GandG/coordsys/polar_stereographic/Polar_Stereo_phi1_from_k0_memo.pdf
-            # Using Rollins 2011 to perform central scale factor calculations.
-            # For a sphere, the equation collapses to be much  more compact (e=0, k90=1)
-
-            central_scale_factor = (1 + math.sin(math.radians(abs(phi1))))/2
-            # Equation for k0, assumes k90 = 1, e=0. This is a sphere, so no flattening
-
-            print('      Central Scale Factor: {0}'.format(central_scale_factor))
-            Projection_String = ('PROJCS["Sphere_Stereographic",'
-                                 'GEOGCS["GCS_Sphere",'
-                                 'DATUM["D_Sphere",'
-                                 'SPHEROID["Sphere",6370000.0,0.0]],'
-                                 'PRIMEM["Greenwich",0.0],'
-                                 'UNIT["Degree",0.0174532925199433]],'
-                                 'PROJECTION["Stereographic"],'
-                                 'PARAMETER["False_Easting",0.0],'
-                                 'PARAMETER["False_Northing",0.0],'
-                                 'PARAMETER["Central_Meridian",{central_meridian}],'
-                                 'PARAMETER["Scale_Factor",{central_scale_factor}],'
-                                 'PARAMETER["Latitude_Of_Origin",{standard_parallel_1}],'
-                                 'UNIT["Meter",1.0]]') \
-                                 .format(central_meridian=central_meridian,
-                                         central_scale_factor=central_scale_factor,
-                                         standard_parallel_1=standard_parallel_1)
-
-        elif map_proj == 3:
-            # Mercator Projection
-            Projection_String = ('PROJCS["Sphere_Mercator",'
-                                 'GEOGCS["GCS_Sphere",'
-                                 'DATUM["D_Sphere",'
-                                 'SPHEROID["Sphere",6370000.0,0.0]],'
-                                 'PRIMEM["Greenwich",0.0],'
-                                 'UNIT["Degree",0.0174532925199433]],'
-                                 'PROJECTION["Mercator"],'
-                                 'PARAMETER["False_Easting",0.0],'
-                                 'PARAMETER["False_Northing",0.0],'
-                                 'PARAMETER["Central_Meridian",{central_meridian}],'
-                                 'PARAMETER["Standard_Parallel_1",{standard_parallel_1}],'
-                                 'UNIT["Meter",1.0],AUTHORITY["ESRI",53004]]') \
-                                 .format(central_meridian=central_meridian,
-                                         standard_parallel_1=standard_parallel_1)
-
-        elif map_proj == 6:
-            # Cylindrical Equidistant (or Rotated Pole)
-            # Check units (linear unit not used in this projection).  GCS?
-            Projection_String = ('PROJCS["Sphere_Equidistant_Cylindrical",'
-                                 'GEOGCS["GCS_Sphere",'
-                                 'DATUM["D_Sphere",'
-                                 'SPHEROID["Sphere",6370000.0,0.0]],'
-                                 'PRIMEM["Greenwich",0.0],'
-                                 'UNIT["Degree",0.0174532925199433]],'
-                                 'PROJECTION["Equidistant_Cylindrical"],'
-                                 'PARAMETER["False_Easting",0.0],'
-                                 'PARAMETER["False_Northing",0.0],'
-                                 'PARAMETER["Central_Meridian",{central_meridian}],'
-                                 'PARAMETER["Standard_Parallel_1",{standard_parallel_1}],'
-                                 'UNIT["Meter",1.0],AUTHORITY["ESRI",53002]]') \
-                                 .format(central_meridian=central_meridian,
-                                         standard_parallel_1=standard_parallel_1)
-
+        # export to Proj4 and add as osr projection
         self._projection = osr.SpatialReference()
-        self._projection.ImportFromESRI([Projection_String])
-        self._projection.MorphFromESRI()
-        # make sure EPSG code identified
-        self._projection.AutoIdentifyEPSG()
+        self._projection.ImportFromProj4(str(proj.proj4()))
 
     @property
     def projection(self):
@@ -229,31 +139,32 @@ class LSMGridReader(object):
     @property
     def latlon(self):
         """Returns lat,lon"""
-        if self.x_var in self._obj \
-                and self.y_var in self._obj:
 
-            x_coords = self._obj[self.x_var].values
-            if x_coords.ndim == 3:
-                x_coords = x_coords[0]
+        if 'MAP_PROJ' in self._obj.attrs:
+            lat, lon = wrf.latlon_coords(self._obj, as_np=True)
+        else:
+            lon = self._obj[self.x_var].values
+            lat = self._obj[self.y_var].values
 
-            y_coords = self._obj[self.y_var].values
-            if y_coords.ndim == 3:
-                y_coords = y_coords[0]
+        if lat.ndim == 3:
+            lat = lat[0]
+        if lon.ndim == 3:
+            lon = lon[0]
 
-            return y_coords, x_coords
-
+        return lat, lon
 
     def coords(self, as_2d=False):
         """Returns x, y coordinate lists"""
-        latlon = self.latlon
-        if hasattr(latlon, "__len__"):
-            y_coords, x_coords = latlon
+        try:
+            y_coords, x_coords = self.latlon
             proj_x, proj_y = transform(Proj(init='epsg:4326'),
                                        Proj(self.projection.ExportToProj4()),
                                        x_coords,
                                        y_coords,
                                        )
             return proj_y, proj_x
+        except KeyError:
+            pass
 
         x_size = self._obj.dims[self.x_dim]
         y_size = self._obj.dims[self.y_dim]
@@ -385,8 +296,6 @@ class LSMGridReader(object):
 
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    import numpy as np
     # path to files
     path_to_files = '/home/rdchlads/scripts/gsshapy/tests/grid_standard/wrf_raw_data/gssha_d03_nc/*.nc'
     with xr.open_mfdataset(path_to_files, concat_dim='Time') as xd:
@@ -397,11 +306,13 @@ if __name__ == "__main__":
         xd.lsm.x_dim = "west_east"
         xd.lsm.time_dim = "Time"
         print(xd.lsm.geotransform)
+        xd.lsm.latlon
+        xd.lsm.coords
+        """
         u10_ds = xd.lsm.to_utm("U10",
                                x_index_start=5, x_index_end=7,
                                y_index_start=25, y_index_end=77,
                               )
-        """
         v10_ds = xd.lsm.to_utm("V10",
                                x_index_start=5, x_index_end=7,
                                y_index_start=25, y_index_end=77,
