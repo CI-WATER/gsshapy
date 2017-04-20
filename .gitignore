@@ -91,4 +91,4 @@ ENV/
 # Mac OS
 *.DS_Store
 
-
+!gsshapy/lib
