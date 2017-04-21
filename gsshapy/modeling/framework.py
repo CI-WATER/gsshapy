@@ -242,7 +242,7 @@ class GSSHAFramework(object):
         self.lsm_lon_var = lsm_lon_var
         self.lsm_time_var = lsm_time_var
         self.lsm_lat_dim = lsm_lat_dim
-        self.lsm_lon_dim = lsm_lon_var
+        self.lsm_lon_dim = lsm_lon_dim
         self.lsm_time_dim = lsm_time_dim
         self.lsm_search_card = lsm_search_card
         self.output_netcdf = output_netcdf
