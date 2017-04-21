@@ -7,7 +7,7 @@ from pyproj import Proj, transform
 import wrf
 import xarray as xr
 
-from ..lib.grid_tools import (geotransform_from_latlon, gdal_reproject,
+from gsshapy.lib.grid_tools import (geotransform_from_latlon, gdal_reproject,
                               resample_grid, utm_proj_from_latlon,
                               ArrayGrid, GDALGrid)
 
@@ -61,7 +61,7 @@ class LSMGridReader(object):
         # load in params from WRF Global Attributes
         possible_proj_params = ('MAP_PROJ', 'TRUELAT1', 'TRUELAT2',
                                 'MOAD_CEN_LAT', 'STAND_LON', 'POLE_LAT',
-                                'POLE_LON')
+                                'POLE_LON', 'CEN_LAT', 'CEN_LON', 'DX', 'DY')
         proj_params = dict()
         for proj_param in possible_proj_params:
             if proj_param in self._obj.attrs:
@@ -73,6 +73,40 @@ class LSMGridReader(object):
         # export to Proj4 and add as osr projection
         self._projection = osr.SpatialReference()
         self._projection.ImportFromProj4(str(proj.proj4()))
+
+    def _load_grib_projection(self):
+        """Get the osgeo.osr projection for Grib Grid.
+            - grid_type:  Lambert Conformal (secant, tangent, conical or bipolar)
+            - Latin1:     True latitude 1.
+            - Latin2:     True latitude 2.
+            - Lov:        Central meridian.
+            - Lo1:        Pole longitude.
+            - La1:        Pole latitude.
+            - Dx:         [ 3.]
+            - Dy:         [ 3.]
+        """
+        lat_var_attrs = self._obj[self.y_var].attrs
+        if 'Lambert Conformal' in lat_var_attrs['grid_type']:
+            proj4_str = ("+proj=lcc "
+                         "+lat_1={true_lat_1} "
+                         "+lat_2={true_lat_2} "
+                         "+lat_0={latitude_of_origin} "
+                         "+lon_0={central_meridian} "
+                         "+x_0=0 +y_0=0 "
+                         "+ellps=WGS84 +datum=WGS84 "
+                         "+units=m +no_defs") \
+                         .format(true_lat_1=lat_var_attrs['Latin1'][0],
+                                 true_lat_2=lat_var_attrs['Latin2'][0],
+                                 latitude_of_origin=self._obj[self.y_var].mean().values,
+                                 central_meridian=lat_var_attrs['Lov'][0],
+                         )
+        else:
+            raise ValueError("Unsupported projection: {grid_type}"
+                             .format(grid_type))
+
+        # export to Proj4 and add as osr projection
+        self._projection = osr.SpatialReference()
+        self._projection.ImportFromProj4(proj4_str)
 
     @property
     def projection(self):
@@ -86,6 +120,8 @@ class LSMGridReader(object):
                 self._projection.ImportFromProj4(map_proj4)
             elif 'MAP_PROJ' in self._obj.attrs:
                 self._load_wrf_projection()
+            elif 'grid_type' in self._obj[self.y_var].attrs:
+                self._load_grib_projection()
             else:
                 # default to EPSG 4326
                 self._projection = osr.SpatialReference()
@@ -339,13 +375,18 @@ if __name__ == "__main__":
     # path to files
     path_to_file = '/home/rdchlads/scripts/gsshapy/tests/grid_standard/hrrr_raw_data/20160914/hrrr.t01z.wrfsfcf00.grib2'
     with xr.open_dataset(path_to_file, engine='pynio') as xd:
-        print(xd['TMP_P0_L1_GLC0'])
-        print(xd._file_obj.ds)
-    path_to_files = '/home/rdchlads/scripts/gsshapy/tests/grid_standard/wrf_raw_data/gssha_d03_nc/*.nc'
+        xd.lsm.y_var = "gridlat_0"
+        xd.lsm.x_var = "gridlon_0"
+        print(xd.lsm.projection)
+        #print(xd['gridlon_0'])
+        #print(xd['gridlon_0'].mean().values)
+        #print(xd['gridlat_0'].attrs)
+        print(pd.to_datetime(xd['TMP_P0_L1_GLC0'].attrs['initial_time'], format="%m/%d/%Y (%H:%M)"))
+    #path_to_files = '/home/rdchlads/scripts/gsshapy/tests/grid_standard/wrf_raw_data/gssha_d03_nc/*.nc'
     #path_to_files = '/home/rdchlads/scripts/gsshapy/tests/grid_standard/hrrr_raw_data/20160914/*.grib2'
-    with xr.open_mfdataset(path_to_files, concat_dim='Time') as xd:
+    #with xr.open_mfdataset(path_to_files, concat_dim='Time') as xd:
         #print(xd)
-        print(xd._file_obj.file_objs)
+        #print(xd._file_obj.file_objs)
         #xd.lsm.y_var = "XLAT"
         #xd.lsm.x_var = "XLONG"
         #xd.lsm.time_var = "Times"
