@@ -18,6 +18,7 @@ from past.builtins import basestring
 from pytz import utc
 from pyproj import Proj, transform
 import xarray as xr
+import xarray.ufuncs as xu
 import extension
 
 from ..lib.grid_tools import ArrayGrid, gdal_reproject
@@ -588,7 +589,7 @@ class GRIDtoGSSHA(object):
             ##Es(saturation vapor pressure in Pa)=611.2*exp(17.62*(T2-273.16)/(243.12+T2-273.16))
             ##Qs(saturation mixing ratio)=(0.622*es)/(PSFC-es)
             ##RH = 100*Q/Qs
-            es = (611.2*np.exp(17.62*(temperature-273.16)
+            es = (611.2*xu.exp(17.62*(temperature-273.16)
                   /(243.12+temperature-273.16)))
             self.data = (100 * specific_humidity/
                          ((0.622*es)/(pressure-
@@ -605,7 +606,7 @@ class GRIDtoGSSHA(object):
             conversion_factor = self.netcdf_attributes[gssha_var]['conversion_factor'][load_type]
             u_vector = self._load_lsm_data(u_vector_var, conversion_factor)
             v_vector = self._load_lsm_data(v_vector_var, conversion_factor)
-            self.data = (np.sqrt(u_vector**2 + v_vector**2))
+            self.data = (xu.sqrt(u_vector**2 + v_vector**2))
 
         elif 'precipitation' in gssha_var and not isinstance(lsm_var, str):
             # WRF:  http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
