@@ -243,40 +243,63 @@ class LSMGridReader(object):
         return self._export_dataset(variable, np.array(new_data),
                                     resampled_data_grid)
 
+    def _getvar(self, variable, xslice, yslice):
+        """Get the variable either directly or calculated"""
+        #FAILED ATTEMPT TO USE wrf.getvar
+        #if 'MAP_PROJ' in self._obj.attrs:
+        #    try:
+        #        nc_file = self._obj._file_obj.ds
+        #    except AttributeError:
+        #        nc_file = self._obj._file_obj.file_objs
+        #    var = wrf.getvar(nc_file, variable)
+        var = self._obj[variable]
+        sl = [slice(None)] * var.ndim
+        sl[var.get_axis_num(self.x_dim)] = xslice
+        sl[var.get_axis_num(self.y_dim)] = yslice
+        if var.ndim == 4:
+            var = var[:,:,sl[-2], sl[-1]]
+        else:
+            var = var[:,sl[-2], sl[-1]]
+        return var
 
-    def get_subset(self, variable,
-                   x_index_start=0,
-                   x_index_end=-1,
-                   y_index_start=0,
-                   y_index_end=-1,
-                   calc_4d_method=None,
-                   calc_4d_dim=None):
+    def getvar(self, variable,
+               x_index_start=0,
+               x_index_end=-1,
+               y_index_start=0,
+               y_index_end=-1,
+               calc_4d_method=None,
+               calc_4d_dim=None):
         """Get Subset of variable"""
         if 'MAP_PROJ' in self._obj.attrs:
             # WRF Y DIM IS BACKWARDS
             original_y_index_start = y_index_start
             y_index_start = self.y_size - y_index_end - 1
+            if y_index_end < 0:
+                y_index_start = -y_index_end - 1
             y_index_end = self.y_size - original_y_index_start - 1
+            if original_y_index_start < 0:
+                y_index_end = -y_index_start
 
-        if len(self._obj[variable].dims) == 4:
+        data = self._getvar(variable,
+                            slice(x_index_start, x_index_end),
+                            slice(y_index_start, y_index_end),
+                            )
+
+        if data.ndim == 4:
             if calc_4d_method is None or calc_4d_dim is None:
                 raise ValueError("The variable {var} has 4 dimension. "
                                  "Need 'calc_4d_method' and 'calc_4d_dim' "
                                  "to proceed ...".format(var=data_var))
-            data = self._obj[variable][:,:,
-                                       y_index_start:y_index_end,
-                                       x_index_start:x_index_end,
-                                       ]
             data = getattr(data, calc_4d_method)(dim=calc_4d_dim)
-        else:
-            data = self._obj[variable][:,
-                                       y_index_start:y_index_end,
-                                       x_index_start:x_index_end,
-                                      ]
 
         if 'MAP_PROJ' in self._obj.attrs:
-            # WRF Y DIM IS BACKWARDS
-            data = data[:,::-1]
+            # Y DIM IS BACKWARDS
+            sl = [slice(None)] * data.ndim
+            sl[data.get_axis_num(self.y_dim)] = slice(None, None, -1)
+            if data.ndim == 3:
+                data = data[:, sl[-2], sl[-1]]
+            else:
+                data = data[sl[-2], sl[-1]]
 
         data[self.time_var] = self._obj[self.time_var]
 
@@ -314,12 +337,19 @@ class LSMGridReader(object):
 
 if __name__ == "__main__":
     # path to files
+    path_to_file = '/home/rdchlads/scripts/gsshapy/tests/grid_standard/hrrr_raw_data/20160914/hrrr.t01z.wrfsfcf00.grib2'
+    with xr.open_dataset(path_to_file, engine='pynio') as xd:
+        print(xd['TMP_P0_L1_GLC0'])
+        print(xd._file_obj.ds)
     path_to_files = '/home/rdchlads/scripts/gsshapy/tests/grid_standard/wrf_raw_data/gssha_d03_nc/*.nc'
+    #path_to_files = '/home/rdchlads/scripts/gsshapy/tests/grid_standard/hrrr_raw_data/20160914/*.grib2'
     with xr.open_mfdataset(path_to_files, concat_dim='Time') as xd:
+        #print(xd)
+        print(xd._file_obj.file_objs)
         #xd.lsm.y_var = "XLAT"
         #xd.lsm.x_var = "XLONG"
-        xd.lsm.time_var = "Times"
-        xd.lsm.y_dim = "south_north"
-        xd.lsm.x_dim = "west_east"
-        xd.lsm.time_dim = "Time"
-        xd.lsm.to_tif("U10", 10)
+        #xd.lsm.time_var = "Times"
+        #xd.lsm.y_dim = "south_north"
+        #xd.lsm.x_dim = "west_east"
+        #xd.lsm.time_dim = "Time"
+        #xd.lsm.to_tif("U10", 10)

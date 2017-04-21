@@ -528,14 +528,14 @@ class GRIDtoGSSHA(object):
         """
         This extracts the LSM data from a folder of netcdf files
         """
-        data = self.xd.lsm.get_subset(data_var,
-                                      x_index_start=self.x_index_min,
-                                      x_index_end=self.x_index_max,
-                                      y_index_start=self.y_index_min,
-                                      y_index_end=self.y_index_max,
-                                      calc_4d_method=calc_4d_method,
-                                      calc_4d_dim=calc_4d_dim,
-                                      )
+        data = self.xd.lsm.getvar(data_var,
+                                  x_index_start=self.x_index_min,
+                                  x_index_end=self.x_index_max,
+                                  y_index_start=self.y_index_min,
+                                  y_index_end=self.y_index_max,
+                                  calc_4d_method=calc_4d_method,
+                                  calc_4d_dim=calc_4d_dim,
+                                  )
         data.values *= conversion_factor
         return data
 
