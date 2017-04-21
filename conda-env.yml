@@ -13,8 +13,7 @@ dependencies:
 - affine
 - mapkit
 - psycopg2
-# REMOVED UNTIL DOCS PILLOW DEPENDENCY FIXED
-#- pygrib
+# pynio does not work on Windows
 #- pynio
 - pyyaml
 - rapidpy

@@ -1,28 +1,16 @@
 # -*- coding: utf-8 -*-
 ##
-##  lsm_to_gssha.py
+##  hrrr_to_gssha.py
 ##  GSSHApy
 ##
 ##  Created by Alan D Snow, 2016.
 ##  License BSD 3-Clause
 
-from datetime import datetime
+import numpy as np
+import pandas as pd
 from os import mkdir, path, remove
-
-#extra dependencies
-try:
-    import numpy as np
-    from pyproj import Proj
-    import requests
-except ImportError:
-    print("To use HRRRtoGSSHA, you must have the numpy, pyproj, and requests packages installed.")
-    raise
-
-try:
-    import pygrib
-except ImportError:
-    print("WARNING: HRRRtoGSSHA will not work as pygrib is not installed properly ...")
-    pass
+import requests
+import xarray as xr
 
 from .grid_to_gssha import GRIDtoGSSHA
 
@@ -151,155 +139,99 @@ class HRRRtoGSSHA(GRIDtoGSSHA):
 
     Attributes:
         gssha_project_folder(str): Path to the GSSHA project folder
-        gssha_grid_file_name(str): Name of the GSSHA elevation grid file.
+        gssha_project_file_name(str): Name of the GSSHA elevation grid file.
         lsm_input_folder_path(str): Path to the input folder for the LSM files.
         lsm_search_card(str): Glob search pattern for LSM files. Ex. "*.grib2".
-        lsm_file_date_naming_convention(Optional[str]): Use Pythons datetime conventions to find file.
-                                              Ex. "gssha_ddd_%Y_%m_%d_%H_%M_%S.nc".
-        time_step_seconds(Optional[int]): If the time step is not able to be determined automatically,
-                                this parameter defines the time step in seconds for the LSM files.
-        output_unix_format(Optional[bool]): If True, it will output to "unix" format.
-                                        Otherwise, it will output in "dos" (Windows) format. Default is False.
+        lsm_lat_var(Optional[str]): Name of the latitude variable in the LSM netCDF files. Defaults to 'lat'.
+        lsm_lon_var(Optional[str]): Name of the longitude variable in the LSM netCDF files. Defaults to 'lon'.
+        lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. Defaults to 'time'.
+        lsm_lat_dim(Optional[str]): Name of the latitude dimension in the LSM netCDF files. Defaults to 'lat'.
+        lsm_lon_dim(Optional[str]): Name of the longitude dimension in the LSM netCDF files. Defaults to 'lon'.
+        lsm_time_dim(Optional[str]): Name of the time dimension in the LSM netCDF files. Defaults to 'time'.
         output_timezone(Optional[tzinfo]): This is the timezone to output the dates for the data. Default is UTC.
+                                           This option does NOT currently work for NetCDF output.
 
     Example::
 
         from gsshapy.grid import HRRRtoGSSHA
 
         l2g = HRRRtoGSSHA(gssha_project_folder='E:\\GSSHA',
-                          gssha_grid_file_name='gssha.ele',
+                          gssha_project_file_name='gssha.prj',
                           lsm_input_folder_path='E:\\GSSHA\\hrrr-data',
-                          lsm_search_card="*.nc",
-                          lsm_file_date_naming_convention='gssha_d02_%Y_%m_%d_%H_%M_%S.nc'
+                          lsm_search_card="*.grib2",
                           )
+
+        # example data var map
+        data_var_map_array = [
+                               ['precipitation_rate', 'PRATE_P0_L1_GLC0'],
+                               ['pressure', 'PRES_P0_L1_GLC0'],
+                               ['relative_humidity', 'RH_P0_L103_GLC0'],
+                               ['wind_speed', ['UGRD_P0_L103_GLC0', 'VGRD_P0_L103_GLC0']],
+                               ['direct_radiation_cc', ['DSWRF_P0_L1_GLC0', 'TCDC_P0_L10_GLC0']],
+                               ['diffusive_radiation_cc', ['DSWRF_P0_L1_GLC0', 'TCDC_P0_L10_GLC0']],
+                               ['temperature', 'TMP_P0_L1_GLC0'],
+                               ['cloud_cover_pc', 'TCDC_P0_L10_GLC0'],
+                              ]
 
     """
     def __init__(self,
                  gssha_project_folder,
-                 gssha_grid_file_name,
+                 gssha_project_file_name,
                  lsm_input_folder_path,
                  lsm_search_card,
-                 lsm_file_date_naming_convention=None,
-                 time_step_seconds=None,
-                 output_unix_format=False,
+                 lsm_lat_var='gridlat_0',
+                 lsm_lon_var='gridlon_0',
+                 lsm_time_var='time',
+                 lsm_lat_dim='ygrid_0',
+                 lsm_lon_dim='xgrid_0',
+                 lsm_time_dim='time',
                  output_timezone=None,
                  ):
         """
         Initializer function for the HRRRtoGSSHA class
         """
         super(HRRRtoGSSHA, self).__init__(gssha_project_folder,
-                                          gssha_grid_file_name,
+                                          gssha_project_file_name,
                                           lsm_input_folder_path,
                                           lsm_search_card,
-                                          lsm_file_date_naming_convention,
-                                          time_step_seconds,
-                                          output_unix_format,
+                                          lsm_lat_var,
+                                          lsm_lon_var,
+                                          lsm_time_var,
+                                          lsm_lat_dim,
+                                          lsm_lon_dim,
+                                          lsm_time_dim,
                                           output_timezone)
-    def _load_lsm_projection(self):
-        """
-        Loads the LSM projection in Proj4
-        """
-        self.lsm_proj4 = Proj(init='epsg:4326')
 
-    def _get_subset_lat_lon(self, gssha_y_min, gssha_y_max, gssha_x_min, gssha_x_max):
-        """
-        #subset lat lon list based on GSSHA extent
-        """
-        ######
-        #STEP 1: Load latitude and longiute
-        ######
-        grb_file = pygrib.open(self.lsm_nc_list[0])[1]
-        lsm_lat_array,lsm_lon_array = grb_file.latlons()
+    @property
+    def xd(self):
+        """get xarray dataset file handle to LSM files"""
+        if self._xd is None:
+            path_to_lsm_files = path.join(self.lsm_input_folder_path,
+                                          self.lsm_search_card)
+            def extract_date(ds):
+                for var in ds.variables:
+                    if 'initial_time' in ds[var].attrs.keys():
+                        grid_time = pd.to_datetime(ds[var].attrs['initial_time'],
+                                                   format="%m/%d/%Y (%H:%M)")
+                        if 'forecast_time' in ds[var].attrs.keys():
+                            time_units = 'h'
+                            if 'forecast_time_units' in ds[var].attrs.keys():
+                                time_units =  str(ds[var].attrs['forecast_time_units'][0])
+                            grid_time += np.timedelta64(int(ds[var].attrs['forecast_time'][0]),
+                                                        time_units)
 
-        ######
-        #STEP 2: Determine range within LSM Grid
-        ######
-        #get general buffer size
-        lsm_dx = np.max(np.absolute(np.diff(lsm_lon_array)))
-        lsm_dy = np.max(np.absolute(np.diff(lsm_lat_array, axis=0)))
+                        return ds.assign(time=grid_time)
+                raise ValueError("Time attribute missing: {0}".format(self.search_time_attr))
 
-        ##determine the bounds of the data with grid preservation
-        lsm_lat_indices_from_lat, lsm_lon_indices_from_lat = np.where((lsm_lat_array >= (gssha_y_min - lsm_dy)) & (lsm_lat_array <= (gssha_y_max + lsm_dy)))
-        lsm_lat_indices_from_lon, lsm_lon_indices_from_lon = np.where((lsm_lon_array >= (gssha_x_min - lsm_dx)) & (lsm_lon_array <= (gssha_x_max + lsm_dx)))
-
-        self.lsm_lat_indices = np.intersect1d(lsm_lat_indices_from_lat, lsm_lat_indices_from_lon)
-        self.lsm_lon_indices = np.intersect1d(lsm_lon_indices_from_lat, lsm_lon_indices_from_lon)
-
-        lsm_lat_list = lsm_lat_array[self.lsm_lat_indices,:][:,self.lsm_lon_indices]
-        lsm_lon_list = lsm_lon_array[self.lsm_lat_indices,:][:,self.lsm_lon_indices]
-        """
-        #TODO: ANOTHER METHOD TO TEST
-        lat_where = np.where((lsm_lat_array >= (gssha_y_min - lsm_dy)) & (lsm_lat_array <= (gssha_y_max + lsm_dy)))[0]
-        lon_where = np.where((lsm_lon_array >= (gssha_x_min - lsm_dx)) & (lsm_lon_array <= (gssha_x_max + lsm_dx)))[1]
-
-        min_lat_index = lat_where.min()
-        max_lat_index = lat_where.max()
-        if(max_lat_index-min_lat_index == 0):
-            max_lat_index+=1
-
-        max_lon_index = lon_where.max()
-        min_lon_index = lon_where.min()
-        if(max_lon_index-min_lon_index == 0):
-            max_lon_index+=1
-
-        self.lsm_lat_indices = range(min_lat_index,max_lat_index+1)
-        self.lsm_lon_indices = range(min_lon_index,max_lon_index+1)
-
-        lsm_lat_list = lsm_lat_array[min_lat_index:max_lat_index,min_lon_index:max_lon_index]
-        lsm_lon_list = lsm_lon_array[min_lat_index:max_lat_index,min_lon_index:max_lon_index]
-        """
-        if lsm_lat_list.size<=0 or lsm_lon_list.size<=0:
-            raise IndexError("The GSSHA grid is not inside the HRRR domain ...")
-
-        return (lsm_lat_list,
-                lsm_lon_list)
-
-
-    def _load_time_from_files(self):
-        """
-        Loads in the time from the grid files
-        """
-        epoch = datetime.utcfromtimestamp(0)
-
-        if self.lsm_file_date_naming_convention is not None:
-            #METHOD 1: LOAD FROM TIME STRING IN FILES
-            for lsm_idx, lsm_nc_file in enumerate(self.lsm_nc_list):
-                self.time_array[lsm_idx] = (datetime.strptime(path.basename(lsm_nc_file),self.lsm_file_date_naming_convention)-epoch).total_seconds()
-        else:
-            #METHOD 2: LOAD FROM TIME IN GRIB FILE
-            for lsm_idx, lsm_nc_file in enumerate(self.lsm_nc_list):
-                grb_file = pygrib.open(lsm_nc_file)[1]
-                self.time_array[lsm_idx] = (grb_file.validDate-epoch).total_seconds()
-
-        convert_to_seconds = 1
-        return convert_to_seconds
-
-    def _load_time_step(self, convert_to_seconds):
-        """
-        Loads in the time step
-        """
-        #GET TIME STEP
-        if self.time_step_seconds is None:
-            try:
-                self.time_step_seconds = self.time_array[1] - self.time_array[0]
-            except IndexError:
-                raise IndexError("ERROR: Time delta not found. Please set time_step_seconds" \
-                                 " in the HRRRtoGSSHA class initialization.")
-
-    def _load_lsm_data(self, data_var, conversion_factor=1, four_dim_var_calc_method=None):
-        """
-        This extracts the LSM data from a folder of netcdf files
-        """
-        self.data_np_array = np.zeros((len(self.lsm_nc_list),
-                                       len(self.lsm_lat_indices),
-                                       len(self.lsm_lon_indices)))
-
-        for lsm_idx, lsm_nc_file in enumerate(self.lsm_nc_list):
-            grb_file = pygrib.open(lsm_nc_file)
-            grb = grb_file.select(shortName=data_var)[0]
-            #EXTRACT DATA WITHIN EXTENT
-            if four_dim_var_calc_method is None:
-                self.data_np_array[lsm_idx] = grb.values[self.lsm_lat_indices,:][:,self.lsm_lon_indices]*conversion_factor
-            else:
-                self.data_np_array[lsm_idx] = four_dim_var_calc_method(grb.values[:, self.lsm_lat_indices, self.lsm_lon_indices]*conversion_factor, axis=0)
-            grb_file.close()
+            self._xd = xr.open_mfdataset(path_to_lsm_files,
+                                         concat_dim='time',
+                                         preprocess=extract_date,
+                                         engine='pynio')
+            self._xd.lsm.y_var = self.lsm_lat_var
+            self._xd.lsm.x_var = self.lsm_lon_var
+            self._xd.lsm.time_var = self.lsm_time_var
+            self._xd.lsm.y_dim = self.lsm_lat_dim
+            self._xd.lsm.x_dim = self.lsm_lon_dim
+            self._xd.lsm.time_dim = self.lsm_time_dim
+            self._xd.lsm.to_datetime()
+        return self._xd

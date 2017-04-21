@@ -56,22 +56,21 @@ class TestHRRRtoGSSHA(TestGridTemplate):
                      os.path.join(self.writeDirectory, "hrrr_raw_data"))
         except OSError:
             pass
-
         self.data_var_map_array = [
-                                   ['precipitation_rate', 'prate'],
-                                   ['pressure', 'sp'],
-                                   ['relative_humidity', '2r'],
-                                   ['wind_speed', ['10u', '10v']],
-                                   ['direct_radiation_cc', ['dswrf', 'tcc']],
-                                   ['diffusive_radiation_cc', ['dswrf', 'tcc']],
-                                   ['temperature', 't'],
-                                   ['cloud_cover_pc', 'tcc'],
+                                   ['precipitation_rate', 'PRATE_P0_L1_GLC0'],
+                                   ['pressure', 'PRES_P0_L1_GLC0'],
+                                   ['relative_humidity', 'RH_P0_L103_GLC0'],
+                                   ['wind_speed', ['UGRD_P0_L103_GLC0', 'VGRD_P0_L103_GLC0']],
+                                   ['direct_radiation_cc', ['DSWRF_P0_L1_GLC0', 'TCDC_P0_L10_GLC0']],
+                                   ['diffusive_radiation_cc', ['DSWRF_P0_L1_GLC0', 'TCDC_P0_L10_GLC0']],
+                                   ['temperature', 'TMP_P0_L1_GLC0'],
+                                   ['cloud_cover_pc', 'TCDC_P0_L10_GLC0'],
                                   ]
         if os.name != "nt":
             hrrr_folder = os.path.join(self.writeDirectory,
                                        'hrrr_raw_data', '20160914')
             self.h2g = HRRRtoGSSHA(gssha_project_folder=self.gssha_project_folder,
-                                   gssha_grid_file_name='grid_standard.ele',
+                                   gssha_project_file_name='grid_standard.prj',
                                    lsm_input_folder_path=hrrr_folder,
                                    lsm_search_card="hrrr.t01z.wrfsfcf*.grib2",
                                    )
@@ -84,7 +83,7 @@ class TestHRRRtoGSSHA(TestGridTemplate):
             out_gage_file = os.path.join(self.writeDirectory,
                                          'gage_test_hrrr.gag')
             self.h2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
-                                                     lsm_data_var='prate',
+                                                     lsm_data_var='PRATE_P0_L1_GLC0',
                                                      precip_type='RADAR')
 
             # Test
@@ -120,7 +119,6 @@ class TestHRRRtoGSSHA(TestGridTemplate):
                                       self.hmet_write_directory,
                                       ignore_file="hmet_file_list.txt",
                                       raster=True)
-
 
 if __name__ == '__main__':
     unittest.main()

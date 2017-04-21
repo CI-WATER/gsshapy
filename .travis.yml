@@ -47,7 +47,7 @@ before_install:
 # Install required python packages
 #-----------------------------------------------------------------------------
 - conda config --add channels conda-forge
-- conda install --yes pygrib
+- conda install --yes pynio
 - conda install --yes pytest pytest-cov
 - pip install coveralls
 

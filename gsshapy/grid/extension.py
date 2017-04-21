@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+##
+##  extension.py
+##  GSSHApy
+##
+##  Created by Alan D Snow, 2017.
+##  License BSD 3-Clause
+
 from affine import Affine
 import math
 import numpy as np
@@ -370,27 +378,3 @@ class LSMGridReader(object):
                              geotransform=self.geotransform,
                              )
         arr_grid.to_tif(out_path)
-
-if __name__ == "__main__":
-    # path to files
-    path_to_file = '/home/rdchlads/scripts/gsshapy/tests/grid_standard/hrrr_raw_data/20160914/hrrr.t01z.wrfsfcf00.grib2'
-    with xr.open_dataset(path_to_file, engine='pynio') as xd:
-        xd.lsm.y_var = "gridlat_0"
-        xd.lsm.x_var = "gridlon_0"
-        print(xd.lsm.projection)
-        #print(xd['gridlon_0'])
-        #print(xd['gridlon_0'].mean().values)
-        #print(xd['gridlat_0'].attrs)
-        print(pd.to_datetime(xd['TMP_P0_L1_GLC0'].attrs['initial_time'], format="%m/%d/%Y (%H:%M)"))
-    #path_to_files = '/home/rdchlads/scripts/gsshapy/tests/grid_standard/wrf_raw_data/gssha_d03_nc/*.nc'
-    #path_to_files = '/home/rdchlads/scripts/gsshapy/tests/grid_standard/hrrr_raw_data/20160914/*.grib2'
-    #with xr.open_mfdataset(path_to_files, concat_dim='Time') as xd:
-        #print(xd)
-        #print(xd._file_obj.file_objs)
-        #xd.lsm.y_var = "XLAT"
-        #xd.lsm.x_var = "XLONG"
-        #xd.lsm.time_var = "Times"
-        #xd.lsm.y_dim = "south_north"
-        #xd.lsm.x_dim = "west_east"
-        #xd.lsm.time_dim = "Time"
-        #xd.lsm.to_tif("U10", 10)
