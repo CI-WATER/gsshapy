@@ -80,6 +80,7 @@ class TestLSMtoGSSHA(TestGridTemplate):
                               )
 
     def _before_teardown(self):
+        self.l2g.xd.close()
         self.l2g = None
 
     def test_wrf_gage_file_write(self):

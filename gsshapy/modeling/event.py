@@ -468,5 +468,8 @@ class LongTermMode(Event):
             self._update_card("HMET_ASCII", os.path.join(hmet_ascii_output_folder, 'hmet_file_list.txt'), True)
             self.project_manager.deleteCard('HMET_NETCDF', self.db_session)
 
+        # make sure xarray dataset closed
+        l2g.xd.close()
+            
         # UPDATE GMT CARD
         self._update_gmt()
