@@ -12,6 +12,7 @@ __all__ = ['TimeSeriesFile',
            'TimeSeries',
            'TimeSeriesValue']
 
+import logging
 import pandas as pd
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
@@ -20,6 +21,9 @@ from sqlalchemy.orm import relationship
 from . import DeclarativeBase
 from ..base.file_base import GsshaPyFileObjectBase
 from ..lib.pivot import pivot
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
 
 
 class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
@@ -154,8 +158,8 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Associate with appropriate TimeSeries object via the index
                     tsVal.timeSeries = series[index]
         except IndexError:
-            print(('WARNING: %s was opened, but the contents of the file were empty.'
-                   'This file will not be read into the database.') % filename)
+            log.warn(('%s was opened, but the contents of the file were empty.'
+                     'This file will not be read into the database.') % filename)
         except:
             raise
 

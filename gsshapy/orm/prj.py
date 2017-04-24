@@ -12,10 +12,11 @@ __all__ = ['ProjectFile',
            'ProjectCard']
 
 import json
-import re
-import shlex
+import logging
 import numpy as np
 import os
+import re
+import shlex
 import xml.etree.ElementTree as ET
 
 from sqlalchemy import ForeignKey, Column
@@ -27,6 +28,9 @@ from ..lib.grid_tools import GSSHAGrid
 from . import DeclarativeBase
 from ..base.file_base import GsshaPyFileObjectBase
 from .file_io import *
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
 
 
 class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
@@ -810,7 +814,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Validate
         if 'streamLineColor' in styles:
             if len(styles['streamLineColor']) < 4:
-                print('WARNING: streamLineColor style must be a list or a tuple of four elements representing integer RGBA values.')
+                log.warn('streamLineColor style must be a list or a tuple of '
+                         'four elements representing integer RGBA values.')
             else:
                 userLineColor = styles['streamLineColor']
                 streamLineColorValue = (userLineColor[3], userLineColor[2], userLineColor[1], userLineColor[0])
@@ -821,7 +826,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 streamLineWidthValue = styles['streamLineWidth']
 
             except ValueError:
-                print('WARNING: streamLineWidth must be a valid number representing the width of the line in pixels.')
+                log.warn('streamLineWidth must be a valid '
+                         'number representing the width of the line in pixels.')
 
         if 'nodeIconHref' in styles:
             nodeIconHrefValue = styles['nodeIconHref']
@@ -832,18 +838,21 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 nodeIconScaleValue = styles['nodeIconScale']
 
             except ValueError:
-                print('WARNING: nodeIconScaleValue must be a valid number representing the width of the line in pixels.')
+                log.warn('nodeIconScaleValue must be a valid number representing'
+                         ' the width of the line in pixels.')
 
         if 'maskLineColor' in styles:
             if len(styles['maskLineColor']) < 4:
-                print('WARNING: maskLineColor style must be a list or a tuple of four elements representing integer RGBA values.')
+                log.warn('maskLineColor style must be a list or a tuple of four '
+                         'elements representing integer RGBA values.')
             else:
                 userLineColor = styles['maskLineColor']
                 maskLineColorValue = (userLineColor[3], userLineColor[2], userLineColor[1], userLineColor[0])
 
         if 'maskFillColor' in styles:
             if len(styles['maskFillColor']) < 4:
-                print('WARNING: maskFillColor style must be a list or a tuple of four elements representing integer RGBA values.')
+                log.warn('maskFillColor style must be a list or a tuple of four '
+                         'elements representing integer RGBA values.')
             else:
                 userLineColor = styles['maskFillColor']
                 maskFillColorValue = (userLineColor[3], userLineColor[2], userLineColor[1], userLineColor[0])
@@ -854,7 +863,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 maskLineWidthValue = styles['maskLineWidth']
 
             except ValueError:
-                print('WARNING: maskLineWidth must be a valid number representing the width of the line in pixels.')
+                log.warn('maskLineWidth must be a valid number representing '
+                         'the width of the line in pixels.')
 
         if not documentName:
             documentName = self.name
@@ -920,7 +930,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     lineString = ET.fromstring(linkKML)
                     placemark.append(lineString)
                 else:
-                    print("WARNING: No geometry found for link with id {0}".format(link.id))
+                    log.warning("No geometry found for link with id {0}".format(link.id))
 
                 if withNodes:
                     # Create the node styles
@@ -1266,15 +1276,15 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 int(srid)
                 self.srid = srid
                 spatialReferenceID = srid
-                print("INFO: Automatic spatial reference ID lookup succeded. Using id: {0}".format(spatialReferenceID))
+                log.info("Automatic spatial reference ID lookup succeded. Using id: {0}".format(spatialReferenceID))
             except:
                 # Otherwise, use the default id
                 spatialReferenceID = DEFAULT_SPATIAL_REFERENCE_ID
-                print("WARNING: Automatic spatial reference ID lookup failed. Using default id: {0}".format(DEFAULT_SPATIAL_REFERENCE_ID))
+                log.warn("Automatic spatial reference ID lookup failed. Using default id: {0}".format(DEFAULT_SPATIAL_REFERENCE_ID))
         else:
             # If there is no projection card in the project file, use default
             spatialReferenceID = DEFAULT_SPATIAL_REFERENCE_ID
-            print("WARNING: Automatic spatial reference ID lookup failed. Using default id: {0}".format(DEFAULT_SPATIAL_REFERENCE_ID))
+            log.warn("Automatic spatial reference ID lookup failed. Using default id: {0}".format(DEFAULT_SPATIAL_REFERENCE_ID))
 
         return spatialReferenceID
 
@@ -1296,7 +1306,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Create directory if it doesn't exist
         if not os.path.isdir(batchDirectory):
             os.mkdir(batchDirectory)
-            print('INFO: Creating directory for batch output: {0}'.format(batchDirectory))
+            log.info('Creating directory for batch output: {0}'.format(batchDirectory))
 
         return batchDirectory
 
@@ -1352,7 +1362,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                          spatialReferenceID=spatialReferenceID,
                                          replaceParamFile=replaceParamFile)
 
-            print('WARNING: Could not read map files. MAP_TYPE {0} not supported.'.format(self.mapType))
+            log.warn('Could not read map files. '
+                     'MAP_TYPE {0} not supported.'.format(self.mapType))
 
     def _readWMSDatasets(self, datasetCards, directory, session, spatial=False, spatialReferenceID=4236):
         """
@@ -1448,7 +1459,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         numFilesRead = 0
 
         for batchFile in batchFiles:
-            print(batchFile)
             instance = fileIO()
             instance.projectFile = self
 
@@ -1463,17 +1473,17 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Issue warnings
         if '[' in filename or ']' in filename:
-            print('INFO: A file cannot be read, because the path to the '
-                  'file in the project file has been replaced with '
-                  'replacement variable {0}.'.format(filename))
+            log.info('A file cannot be read, because the path to the '
+                     'file in the project file has been replaced with '
+                     'replacement variable {0}.'.format(filename))
 
         elif numFilesRead == 0:
-            print('WARNING: {0} listed in project file, but no such '
-                  'file exists.'.format(filename))
+            log.warn('{0} listed in project file, but no such '
+                     'file exists.'.format(filename))
 
         else:
-            print('INFO: Batch mode output detected. {0} files read '
-                  'for file {1}'.format(numFilesRead, filename))
+            log.info('Batch mode output detected. {0} files read '
+                     'for file {1}'.format(numFilesRead, filename))
 
     def _invokeRead(self, fileIO, directory, filename, session, spatial=False,
                     spatialReferenceID=4236, replaceParamFile=None, **kwargs):
@@ -1507,9 +1517,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
                 # Check for replacement variables
                 if '[' in filename or ']' in filename:
-                    print('INFO: The file for project card {0} cannot be '
-                          'written, because the path has been replaced '
-                          'with replacement variable {1}.'.format(card.name, filename))
+                    log.info('The file for project card {0} cannot be '
+                             'written, because the path has been replaced '
+                             'with replacement variable {1}.'.format(card.name, filename))
                     return
 
                 # Determine new filename
@@ -1560,8 +1570,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                           filename=filename,
                                           replaceParamFile=replaceParamFile)
 
-            print('Error: Could not write map files. MAP_TYPE {0} '
-                  'not supported.'.format(self.mapType))
+            log.error('Could not write map files. MAP_TYPE {0} '
+                      'not supported.'.format(self.mapType))
 
     def _writeWMSDatasets(self, session, directory, wmsDatasetCards, name=None):
         """
@@ -1597,8 +1607,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     except NoResultFound:
                         # Handle case when there is no file in database but
                         # the card is listed in the project file
-                        print('WARNING: {0} listed as card in project file, '
-                              'but the file is not found in the database.'.format(filename))
+                        log.warn('{0} listed as card in project file, '
+                                 'but the file is not found in the database.'.format(filename))
 
                     except MultipleResultsFound:
                         # Write all instances
@@ -1612,8 +1622,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                         wmsDataset.write(session=session, directory=directory,
                                          name=filename, maskMap=maskMap)
         else:
-            print('Error: Could not write WMS Dataset files. '
-                  'MAP_TYPE {0} not supported.'.format(self.mapType))
+            log.error('Could not write WMS Dataset files. '
+                      'MAP_TYPE {0} not supported.'.format(self.mapType))
 
     def _writeReplacementFiles(self, session, directory, name):
         """
@@ -1651,8 +1661,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                    name=prefixFilename,
                                    replaceParamFile=replaceParamFile)
 
-        print('INFO: Batch mode output detected. {1} files written '
-              'having extension {0}.'.format(extension, index + 1))
+        log.info('Batch mode output detected. {1} files written '
+                 'having extension {0}.'.format(extension, index + 1))
 
     def _invokeWrite(self, fileIO, session, directory, filename, replaceParamFile):
         """
@@ -1683,8 +1693,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             except NoResultFound:
                 # Handle case when there is no file in database but the
                 # card is listed in the project file
-                print('WARNING: {0} listed as card in project file, but '
-                      'the file is not found in the database.'.format(filename))
+                log.warn('{0} listed as card in project file, but '
+                         'the file is not found in the database.'.format(filename))
             except MultipleResultsFound:
                 self._invokeWriteForMultipleOfType(directory, extension, fileIO,
                                                    filename, session,

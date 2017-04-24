@@ -6,6 +6,7 @@
 ##  Created by Alan D Snow, 2016.
 ##  License BSD 3-Clause
 
+import logging
 import numpy as np
 import pandas as pd
 from os import mkdir, path, remove
@@ -13,6 +14,9 @@ import requests
 import xarray as xr
 
 from .grid_to_gssha import GRIDtoGSSHA
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
 
 #------------------------------------------------------------------------------
 # HELPER FUNCTIONS
@@ -119,7 +123,7 @@ def download_hrrr_for_gssha(main_directory,
                 for chunk in r.iter_content(chunk_size=1024):
                     fd.write(chunk)
         else:
-            print("ERROR: Problem downloading {0}".format(file_name))
+            log.error("Problem downloading {0}".format(file_name))
             for filename in downloaded_file_list:
                 try:
                     remove(filename)

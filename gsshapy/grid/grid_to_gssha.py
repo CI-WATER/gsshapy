@@ -10,6 +10,7 @@ from builtins import range
 from csv import writer as csv_writer
 from datetime import datetime
 from io import open as io_open
+import logging
 import numpy as np
 from os import chdir, mkdir, path
 from osgeo import gdal, osr
@@ -25,6 +26,8 @@ from ..lib.grid_tools import ArrayGrid, gdal_reproject
 from ..lib import db_tools as dbt
 from ..orm import ProjectFile
 
+logging.basicConfig()
+log = logging.getLogger(__name__)
 #------------------------------------------------------------------------------
 # HELPER FUNCTIONS
 #------------------------------------------------------------------------------
@@ -933,7 +936,7 @@ class GRIDtoGSSHA(object):
         except OSError:
             pass
 
-        print("Outputting HMET data to {0}".format(main_output_folder))
+        log.info("Outputting HMET data to {0}".format(main_output_folder))
 
         #PART 2: DATA
         for data_var_map in data_var_map_array:

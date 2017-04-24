@@ -8,8 +8,12 @@
 ********************************************************************************
 """
 
+import logging
 import shlex
 import re
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
 
 # CONSTANTS
 REPLACE_NO_VALUE = -999999
@@ -78,7 +82,7 @@ def valueReadPreprocessor(valueString, replaceParamsFile=None):
         str: Processed value as a string
     """
     if type(valueString) is bool:
-        print("Warning: Only numerical variable types can be handled by the valueReadPreprocessor function.")
+        log.warn("Only numerical variable types can be handled by the valueReadPreprocessor function.")
         return valueString
 
     # Default
@@ -112,7 +116,7 @@ def valueWritePreprocessor(valueString, replaceParamsFile=None):
         str: Processed value as a string
     """
     if type(valueString) is bool:
-        print("Warning: Only numerical variable types can be handled by the valueReadPreprocessor function.")
+        log.warn("Only numerical variable types can be handled by the valueReadPreprocessor function.")
         return valueString
 
     # Default

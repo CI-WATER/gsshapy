@@ -11,8 +11,9 @@
 
 __all__ = ['WMSDatasetFile', 'WMSDatasetRaster']
 
-import os
 from datetime import datetime, timedelta
+import logging
+import os
 from zipfile import ZipFile
 
 from sqlalchemy import Column, ForeignKey
@@ -27,6 +28,9 @@ from ..base.file_base import GsshaPyFileObjectBase
 from ..lib import parsetools as pt, wms_dataset_chunk as wdc
 from .map import RasterMapFile
 from ..base.rast import RasterObjectBase
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
 
 
 class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
@@ -136,7 +140,7 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             session.rollback()
 
             # Issue warning
-            print('WARNING: {0} listed in project file, but no such file exists.'.format(filename))
+            log.warn('{0} listed in project file, but no such file exists.'.format(filename))
 
     def write(self, session, directory, name, maskMap):
         """
@@ -383,7 +387,8 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             session.add(self)
 
         else:
-            print("WARNING: Could not read {0}. Mask Map must be supplied to read WMS Datasets.".format(filename))
+            log.warn("Could not read {0}. Mask Map must be supplied "
+                     "to read WMS Datasets.".format(filename))
 
     def _write(self, session, openFile, maskMap):
         """

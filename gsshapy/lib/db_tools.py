@@ -8,7 +8,7 @@
 ********************************************************************************
 """
 
-
+import logging
 import os
 import time
 
@@ -18,6 +18,8 @@ from sqlalchemy.pool import SingletonThreadPool
 
 from ..orm import metadata
 
+logging.basicConfig()
+log = logging.getLogger(__name__)
 
 def del_sqlite_db(path):
     """
@@ -26,7 +28,7 @@ def del_sqlite_db(path):
     try:
         os.remove(path)
     except:
-        print('Error: No DB at this location to delete.')
+        log.error('No DB at this location to delete.')
 
 
 def init_db(sqlalchemy_url):

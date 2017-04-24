@@ -16,6 +16,7 @@ __all__ = ['MapTableFile',
            'MTSediment']
 
 from future.utils import iteritems
+import logging
 import numpy as np
 import pandas as pd
 import os
@@ -33,6 +34,8 @@ from ..lib import cmt_chunk as mtc
 from ..lib.grid_tools import resample_grid
 from ..lib.parsetools import valueReadPreprocessor as vrp, valueWritePreprocessor as vwp
 
+logging.basicConfig()
+log = logging.getLogger(__name__)
 
 class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
@@ -288,9 +291,9 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                     self._createValueObjects(mt['valueList'], mt['varList'], mapTable, indexMap, None, replaceParamFile)
 
             except KeyError:
-                print(('INFO: Index Map "%s" for Mapping Table "%s" not found in list of index maps in the mapping '
-                       'table file. The Mapping Table was not read into the database.') % (
-                       mt['indexMapName'], mt['name']))
+                log.info(('Index Map "%s" for Mapping Table "%s" not found in list of index maps in the mapping '
+                          'table file. The Mapping Table was not read into the database.') % (
+                          mt['indexMapName'], mt['name']))
 
     def _createValueObjects(self, valueList, varList, mapTable, indexMap, contaminant, replaceParamFile):
         """
@@ -345,7 +348,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                                          spatial=spatial,
                                          spatialReferenceID=spatialReferenceID)
             except:
-                print('WARNING: Attempted to read Contaminant Transport Output file {0}, but failed.'.format(chanFile))
+                log.warning('Attempted to read Contaminant Transport Output file {0}, but failed.'.format(chanFile))
 
     def _writeMapTable(self, session, fileObject, mapTable, replaceParamFile):
         """

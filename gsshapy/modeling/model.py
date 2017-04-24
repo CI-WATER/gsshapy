@@ -7,6 +7,7 @@
 #  BSD 3-Clause
 
 from datetime import timedelta
+import logging
 from os import chdir
 
 from .event import EventMode, LongTermMode
@@ -14,6 +15,9 @@ from ..orm import (ProjectFile, WatershedMaskFile, ElevationGridFile,
                          MapTableFile)
 from ..lib import db_tools as dbt
 from ..lib.grid_tools import GDALGrid
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
 
 class GSSHAModel(object):
     '''
@@ -133,8 +137,8 @@ class GSSHAModel(object):
                     y_cell_size = (utm_bounds[3] - utm_bounds[2])/ele_grid.y_size
                     grid_cell_size = min(x_cell_size, y_cell_size)
                     ele_grid = None
-                    print("INFO: Calculated cell size is {grid_cell_size}"
-                          .format(grid_cell_size=grid_cell_size))
+                    log.info("Calculated cell size is {grid_cell_size}"
+                             .format(grid_cell_size=grid_cell_size))
 
                 self.set_mask_from_shapefile(mask_shapefile, grid_cell_size)
                 self.set_elevation(elevation_grid_path)

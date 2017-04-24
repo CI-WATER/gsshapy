@@ -7,13 +7,15 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
-
+import logging
 import os
 
 from sqlalchemy.exc import IntegrityError
 
 __all__ = ['GsshaPyFileObjectBase']
 
+logging.basicConfig()
+log = logging.getLogger(__name__)
 
 class GsshaPyFileObjectBase:
     """
@@ -74,7 +76,7 @@ class GsshaPyFileObjectBase:
             session.rollback()
 
             # Print warning
-            print('WARNING: Could not find file named {0}. File not read.'.format(filename))
+            log.warn('Could not find file named {0}. File not read.'.format(filename))
 
     def write(self, session, directory, name, replaceParamFile=None, **kwargs):
         """
@@ -126,7 +128,7 @@ class GsshaPyFileObjectBase:
             session.commit()
         except IntegrityError:
             # Raise special error if the commit fails due to empty files
-            print('ERROR: Commit to database failed. %s' % errorMessage)
+            log.error('Commit to database failed. %s' % errorMessage)
         except:
             # Raise other errors as normal
             raise

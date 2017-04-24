@@ -16,6 +16,7 @@ __all__ = ['LinkNodeDatasetFile',
 import xml.etree.ElementTree as ET
 from datetime import timedelta, datetime
 from future.utils import iteritems
+import logging
 
 from sqlalchemy import Column, ForeignKey, func
 from sqlalchemy.types import Integer, String, Float
@@ -27,6 +28,9 @@ from mapkit.ColorRampGenerator import ColorRampEnum, ColorRampGenerator
 from . import DeclarativeBase
 from ..base.file_base import GsshaPyFileObjectBase
 from ..lib import parsetools as pt
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
 
 
 class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
@@ -173,7 +177,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 zScale = styles['zScale']
 
             except ValueError:
-                print('WARNING: zScale must be a valid number representing z dimension multiplier.')
+                log.warn('zScale must be a valid number representing z dimension multiplier.')
 
         if 'radius' in styles:
             try:
@@ -181,7 +185,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 radiusMeters = styles['radius'] * DECMIAL_DEGREE_METER
 
             except ValueError:
-                print('WARNING: radius must be a number representing the radius of the value cylinders in meters.')
+                log.warn('radius must be a number representing the radius of the value cylinders in meters.')
 
         if 'colorRampEnum' in styles:
             colorRampEnum = styles['colorRampEnum']

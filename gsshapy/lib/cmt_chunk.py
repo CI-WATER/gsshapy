@@ -8,9 +8,14 @@
 ********************************************************************************
 """
 
+import logging
 import shlex
 #local
 from . import parsetools as pt
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
+
 
 def indexMapChunk(key, chunk):
     # Create return/result object
@@ -42,8 +47,8 @@ def mapTableChunk(key, chunk):
     # index map name. If now index map name, stop
     # processing.
     if idxName == '':
-        print(('INFO: No index map assigned to %s table. The table will '
-               'not be read into the database.') % mtName)
+        log.info('No index map assigned to %s table. The table will '
+                 'not be read into the database.', mtName)
         # No need to process if the index map is empty
         return None
 
@@ -93,8 +98,8 @@ def contamChunk(key, chunk):
     # Check if there are any contaminants. No need
     # to process further if there are 0.
     if numVars['NUM_CONTAM'] == 0:
-        print('INFO: No contaminants found in the CONTAMINANT_TRANSPORT TABLE (NUM_CONTAM = 0).'
-              'This table will not be read into the database.')
+        log.info('No contaminants found in the CONTAMINANT_TRANSPORT TABLE (NUM_CONTAM = 0).'
+                 'This table will not be read into the database.')
         return None
 
     # Parse the chunk into a data structure
@@ -169,8 +174,8 @@ def sedimentChunk(key, chunk):
         elif token == 'NUM_SED':
             if int(sline[1]) == 0:
                 # If there are no sediments return nothing
-                print('INFO: No sediments found in the SEDIMENTS table (NUM_SED = 0).'
-                      'This table will not be read into the database.')
+                log.info('No sediments found in the SEDIMENTS table (NUM_SED = 0).'
+                         'This table will not be read into the database.')
                 return None
             else:
                 # This is the test for an empty

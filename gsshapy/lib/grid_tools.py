@@ -374,10 +374,6 @@ def geotransform_from_latlon(lats, lons, proj=None):
     # get top left corner
     min_x_tl = lons_2d[0,0] - x_cell_size/2.0
     max_y_tl = lats_2d[0,0] + y_cell_size/2.0
-    #print(lons_2d[0,0])
-    #print(np.min(lons_2d))
-    #print(lats_2d[0,0])
-    #print(np.max(lats_2d))
     return (min_x_tl, x_cell_size, 0, max_y_tl, 0, -y_cell_size)
 
 def load_raster(grid):
@@ -463,7 +459,6 @@ def resample_grid(original_grid,
         if as_gdal_grid:
             return GDALGrid(dst)
         else:
-            # print(dst.GetRasterBand(1).ReadAsArray())
             return dst
     else:
         del dst

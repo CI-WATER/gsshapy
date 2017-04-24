@@ -9,19 +9,24 @@
 from datetime import datetime
 from distutils.spawn import find_executable
 from glob import glob
+import logging
 import os
 from shutil import copy, move
 import subprocess
 
+logging.basicConfig()
+log = logging.getLogger(__name__)
+
 try:
     from spt_dataset_manager import ECMWFRAPIDDatasetManager
 except ImportError:
-    print("WARNING: spt_dataset_manager is not installed. The SPT functionality will not work.")
+    log.warn("spt_dataset_manager is not installed. The SPT functionality will not work.")
     pass
 
 from ..lib import db_tools as dbt
 from ..orm import ProjectCard, ProjectFile
 from .event import EventMode, LongTermMode
+
 
 def replace_file(from_file, to_file):
     """
@@ -359,7 +364,7 @@ class GSSHAFramework(object):
                 try:
                     move(original_location, new_location)
                 except OSError as ex:
-                    print(ex)
+                    log.warn(ex)
                     pass
 
     def download_spt_forecast(self, extract_directory):
@@ -387,7 +392,7 @@ class GSSHAFramework(object):
             return glob(os.path.join(extract_directory, self.spt_forecast_date_string, "Qout*52.nc"))[0]
 
         elif needed_vars.count(None) == len(needed_vars):
-            print("Skipping streamflow forecast download ...")
+            log.info("Skipping streamflow forecast download ...")
             return None
         else:
             raise ValueError("To download the forecasts, you need to set: \n"
@@ -495,7 +500,7 @@ class GSSHAFramework(object):
                                     # Like normal if the ID isn't there
                                     gssha_card.value = '"{0}"'.format(new_path)
                             else:
-                                print("WARNING: {0} {1} not found in project directory ...".format("#INDEXGRID_GUID", updated_path))
+                                log.warn("{0} {1} not found in project directory ...".format("#INDEXGRID_GUID", updated_path))
 
         # make sure project path is ""
         self._update_card("PROJECT_PATH", "", True)
@@ -510,20 +515,25 @@ class GSSHAFramework(object):
 
         # RUN SIMULATION
         if self.gssha_executable and find_executable(self.gssha_executable) is not None:
-            print("RUNNING GSSHA SIMULATION ...")
+            log.info("Running GSSHA simulation ...")
 
             run_gssha_command = [self.gssha_executable,
                                  os.path.join(working_directory, self.project_filename)]
 
             try:
                 out = subprocess.check_output(run_gssha_command)
+                log.info("GSSHA output:")
+                gssha_output_formatter = logging.Formatter('%(message)s')
+                original_formatter = log.formatter
+                log.setFormatter(gssha_output_formatter)
                 for line in out.split(b'\n'):
-                    print(line)
+                    log.info(line.strip(b'\r'))
+                log.setFormatter(original_formatter)
             except subprocess.CalledProcessError as ex:
-                print("ERROR {0}: {1}".format(ex.returncode, ex.output))
+                log.error("{0}: {1}".format(ex.returncode, ex.output))
 
         else:
-            print("GSSHA EXECTUABLE NOT FOUND. SKIPPING GSSHA SIMULATION RUN ...")
+            log.warning("GSSHA executable not found. Skipping GSSHA simulation run ...")
 
         return working_directory
 
@@ -621,8 +631,8 @@ class GSSHAFramework(object):
                 self._update_card("READ_OV_HOTSTART", os.path.join("..", expected_ov_hotstart), True)
             else:
                 self._delete_card("READ_OV_HOTSTART")
-                print("WARNING: READ_OV_HOTSTART not included as "
-                      "{0} does not exist ...".format(expected_ov_hotstart))
+                log.warn("READ_OV_HOTSTART not included as "
+                         "{0} does not exist ...".format(expected_ov_hotstart))
 
             # CHANNEL
             expected_chan_hotstart = os.path.join('hotstart',
@@ -633,8 +643,8 @@ class GSSHAFramework(object):
                 self._update_card("READ_CHAN_HOTSTART", os.path.join("..", expected_chan_hotstart), True)
             else:
                 self._delete_card("READ_CHAN_HOTSTART")
-                print("WARNING: READ_CHAN_HOTSTART not included as "
-                      "{0}.qht and/or {0}.dht does not exist ...".format(expected_chan_hotstart))
+                log.warn("READ_CHAN_HOTSTART not included as "
+                         "{0}.qht and/or {0}.dht does not exist ...".format(expected_chan_hotstart))
 
             # INFILTRATION
             expected_sm_hotstart = os.path.join('hotstart',
@@ -644,8 +654,8 @@ class GSSHAFramework(object):
                 self._update_card("READ_SM_HOTSTART", os.path.join("..", expected_sm_hotstart), True)
             else:
                 self._delete_card("READ_SM_HOTSTART")
-                print("WARNING: READ_SM_HOTSTART not included as"
-                      " {0} does not exist ...".format(expected_sm_hotstart))
+                log.warn("READ_SM_HOTSTART not included as"
+                         " {0} does not exist ...".format(expected_sm_hotstart))
 
         # ----------------------------------------------------------------------
         # Run GSSHA

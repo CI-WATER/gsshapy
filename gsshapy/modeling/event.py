@@ -7,6 +7,7 @@
 #  BSD 3-Clause
 
 from datetime import datetime, timedelta
+import logging
 from numpy import mean
 import os
 from osgeo import gdal, osr
@@ -16,6 +17,9 @@ from RAPIDpy import RAPIDDataset
 from timezonefinder import TimezoneFinder
 
 from ..grid import GRIDtoGSSHA
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
 
 class Event(object):
     '''
@@ -187,8 +191,8 @@ class Event(object):
                 # GSSHA STARTS INGESTING STREAMFLOW AT SECOND TIME STEP
                 if self.simulation_start is not None:
                     if self.simulation_start == time_array[0]:
-                        print("WARNING: First timestep of streamflow skipped "
-                              "in order for GSSHA to capture the streamflow.")
+                        log.warn("First timestep of streamflow skipped "
+                                 "in order for GSSHA to capture the streamflow.")
                         time_index_range = time_index_range[1:]
                         time_array = time_array[1:]
 
@@ -207,7 +211,7 @@ class Event(object):
                                                              date_search_end=self.simulation_end,
                                                              )
             else:
-                print("WARNING: No streamflow values found in time range ...")
+                log.warn("No streamflow values found in time range ...")
 
         if len(time_index_range) > 0:
             # update cards
