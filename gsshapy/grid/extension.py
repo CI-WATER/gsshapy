@@ -15,7 +15,7 @@ from pyproj import Proj, transform
 import wrf
 import xarray as xr
 
-from gsshapy.lib.grid_tools import (geotransform_from_latlon, gdal_reproject,
+from ..lib.grid_tools import (geotransform_from_latlon, gdal_reproject,
                               resample_grid, utm_proj_from_latlon,
                               ArrayGrid, GDALGrid)
 
