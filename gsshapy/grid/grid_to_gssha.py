@@ -825,7 +825,8 @@ class GRIDtoGSSHA(object):
 
         self._load_converted_gssha_data_from_lsm(gssha_precip_type, lsm_data_var, 'gage')
         gssha_data_var_name = self.netcdf_attributes[gssha_precip_type]['gssha_name']
-        self.data = self.data.lsm.to_utm(gssha_data_var_name)
+        self.data = self.data.lsm.to_projection(gssha_data_var_name,
+                                                projection=self.gssha_grid.projection)
 
         #LOOP THROUGH TIME
         with io_open(out_gage_file, 'w') as gage_file:
@@ -956,7 +957,8 @@ class GRIDtoGSSHA(object):
 
             self._load_converted_gssha_data_from_lsm(gssha_data_var, lsm_data_var, 'ascii')
             self._convert_data_to_hourly(gssha_data_var_name)
-            self.data = self.data.lsm.to_utm(gssha_data_var_name)
+            self.data = self.data.lsm.to_projection(gssha_data_var_name,
+                                                    projection=self.gssha_grid.projection)
 
             for time_idx in range(self.data.dims['time']):
                 arr_grid = ArrayGrid(in_array=self.data[gssha_data_var_name][time_idx].values,
@@ -1063,7 +1065,8 @@ class GRIDtoGSSHA(object):
                 if resample_method:
                     self._resample_data(gssha_data_var_name)
                 else:
-                    self.data = self.data.lsm.to_utm(gssha_data_var_name)
+                    self.data = self.data.lsm.to_projection(gssha_data_var_name,
+                                                            projection=self.gssha_grid.projection)
 
                 output_datasets.append(self.data)
             else:

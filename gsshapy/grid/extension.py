@@ -349,11 +349,19 @@ class LSMGridReader(object):
 
         return data
 
-    def to_utm(self, variable):
-        """Convert Grid to UTM Coordinates"""
-        # get utm projection
-        center_lon, center_lat = self.center
-        utm_proj = utm_proj_from_latlon(center_lat, center_lon, as_osr=True)
+    def to_projection(self, variable, projection=None, as_utm=False):
+        """Convert Grid to New Projection. Optional UTM Coordinates"""
+        dst_proj = None
+        if as_utm:
+            # get utm projection
+            center_lon, center_lat = self.center
+            dst_proj = utm_proj_from_latlon(center_lat, center_lon, as_osr=True)
+        elif projection is not None:
+            dst_proj = projection
+
+        if dst_proj is None:
+            raise ValueError("Need projection or as_utm.")
+
         new_data = []
         for band in range(self._obj.dims[self.time_dim]):
             arr_grid = ArrayGrid(in_array=self._obj[variable][band].values,
@@ -362,7 +370,7 @@ class LSMGridReader(object):
                                  )
             ggrid = gdal_reproject(arr_grid.dataset,
                                    src_srs=self.projection,
-                                   dst_srs=utm_proj,
+                                   dst_srs=dst_proj,
                                    resampling=gdalconst.GRA_Average,
                                    as_gdal_grid=True)
             new_data.append(ggrid.np_array())
