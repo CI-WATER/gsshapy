@@ -369,8 +369,8 @@ def geotransform_from_latlon(lats, lons, proj=None):
                                      )
 
     # get cell size
-    x_cell_size = np.mean(np.absolute(np.diff(lons_2d, axis=1)))
-    y_cell_size = np.mean(np.absolute(np.diff(lats_2d, axis=0)))
+    x_cell_size = np.nanmean(np.absolute(np.diff(lons_2d, axis=1)))
+    y_cell_size = np.nanmean(np.absolute(np.diff(lats_2d, axis=0)))
     # get top left corner
     min_x_tl = lons_2d[0,0] - x_cell_size/2.0
     max_y_tl = lats_2d[0,0] + y_cell_size/2.0
