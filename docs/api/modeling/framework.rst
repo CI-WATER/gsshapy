@@ -17,5 +17,5 @@ GSSHAFramework
 GSSHA_WRF_Framework
 ===================
 
-.. autoclass:: gsshapy.modeling.GSSHA_WRF_Framework
+.. autoclass:: gsshapy.modeling.GSSHAWRFFramework
     :show-inheritance:
