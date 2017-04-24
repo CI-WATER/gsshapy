@@ -22,7 +22,6 @@ from . import DeclarativeBase
 from ..base.file_base import GsshaPyFileObjectBase
 from ..lib.pivot import pivot
 
-logging.basicConfig()
 log = logging.getLogger(__name__)
 
 

@@ -1,11 +1,10 @@
 """
 ********************************************************************************
-* Name: gsshapy
-* Author: Nathan Swain
-* Created On: Mar 18, 2013
-* License: BSD 2-Clause
+* Name: metadata
+* Author: Alan D. Snow
+* Created On: April 24, 2017
+* License: BSD-3 Clause
 ********************************************************************************
 """
-from .util import log_to_file, log_to_console, version
-
-__version__ = version()
+def version():
+    return '2.2.0'

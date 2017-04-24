@@ -14,7 +14,6 @@ from sqlalchemy.exc import IntegrityError
 
 __all__ = ['GsshaPyFileObjectBase']
 
-logging.basicConfig()
 log = logging.getLogger(__name__)
 
 class GsshaPyFileObjectBase:

@@ -18,7 +18,6 @@ from timezonefinder import TimezoneFinder
 
 from ..grid import GRIDtoGSSHA
 
-logging.basicConfig()
 log = logging.getLogger(__name__)
 
 class Event(object):
@@ -474,6 +473,6 @@ class LongTermMode(Event):
 
         # make sure xarray dataset closed
         l2g.xd.close()
-            
+
         # UPDATE GMT CARD
         self._update_gmt()

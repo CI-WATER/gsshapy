@@ -15,7 +15,6 @@ import xarray as xr
 
 from .grid_to_gssha import GRIDtoGSSHA
 
-logging.basicConfig()
 log = logging.getLogger(__name__)
 
 #------------------------------------------------------------------------------

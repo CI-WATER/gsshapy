@@ -37,7 +37,6 @@ from ..base.file_base import GsshaPyFileObjectBase
 from ..lib import parsetools as pt, cif_chunk as cic
 from ..lib.parsetools import valueReadPreprocessor as vrp, valueWritePreprocessor as vwp
 
-logging.basicConfig()
 log = logging.getLogger(__name__)
 
 

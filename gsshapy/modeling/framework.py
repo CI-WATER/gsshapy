@@ -14,7 +14,6 @@ import os
 from shutil import copy, move
 import subprocess
 
-logging.basicConfig()
 log = logging.getLogger(__name__)
 
 try:
@@ -517,20 +516,35 @@ class GSSHAFramework(object):
         if self.gssha_executable and find_executable(self.gssha_executable) is not None:
             log.info("Running GSSHA simulation ...")
 
-            run_gssha_command = [self.gssha_executable,
-                                 os.path.join(working_directory, self.project_filename)]
+            gssha_output_formatter = logging.Formatter('%(message)s')
+
+            # add GSSHA output to file log
+            log_file_path = os.path.join(working_directory, 'simulation.log')
+            fh = logging.FileHandler(log_file_path)
+            fh.setFormatter(gssha_output_formatter)
+            fh.setLevel(logging.DEBUG)
+            log.addHandler(fh)
+
+            # modify main handler for GSSHA output
+            original_formatter = log.formatter
+            log.setFormatter(gssha_output_formatter)
 
             try:
+                run_gssha_command = [self.gssha_executable,
+                                     os.path.join(working_directory, self.project_filename)]
+                # run GSSHA
                 out = subprocess.check_output(run_gssha_command)
-                log.info("GSSHA output:")
-                gssha_output_formatter = logging.Formatter('%(message)s')
-                original_formatter = log.formatter
-                log.setFormatter(gssha_output_formatter)
+
+                # write out GSSHA output
                 for line in out.split(b'\n'):
                     log.info(line.strip(b'\r'))
-                log.setFormatter(original_formatter)
+
             except subprocess.CalledProcessError as ex:
                 log.error("{0}: {1}".format(ex.returncode, ex.output))
+
+            # reset to original logging methods
+            log.setFormatter(original_formatter)
+            log.removeHandler(fh)
 
         else:
             log.warning("GSSHA executable not found. Skipping GSSHA simulation run ...")

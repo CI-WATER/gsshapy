@@ -29,7 +29,6 @@ from ..lib import parsetools as pt, wms_dataset_chunk as wdc
 from .map import RasterMapFile
 from ..base.rast import RasterObjectBase
 
-logging.basicConfig()
 log = logging.getLogger(__name__)
 
 

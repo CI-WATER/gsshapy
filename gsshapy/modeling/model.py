@@ -16,7 +16,6 @@ from ..orm import (ProjectFile, WatershedMaskFile, ElevationGridFile,
 from ..lib import db_tools as dbt
 from ..lib.grid_tools import GDALGrid
 
-logging.basicConfig()
 log = logging.getLogger(__name__)
 
 class GSSHAModel(object):

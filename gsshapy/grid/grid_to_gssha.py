@@ -26,8 +26,9 @@ from ..lib.grid_tools import ArrayGrid, gdal_reproject
 from ..lib import db_tools as dbt
 from ..orm import ProjectFile
 
-logging.basicConfig()
 log = logging.getLogger(__name__)
+
+
 #------------------------------------------------------------------------------
 # HELPER FUNCTIONS
 #------------------------------------------------------------------------------

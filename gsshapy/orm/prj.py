@@ -29,7 +29,6 @@ from . import DeclarativeBase
 from ..base.file_base import GsshaPyFileObjectBase
 from .file_io import *
 
-logging.basicConfig()
 log = logging.getLogger(__name__)
 
 

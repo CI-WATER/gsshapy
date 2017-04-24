@@ -6,19 +6,22 @@
 GsshaPy Documentation
 =====================
 
-An ORM for GSSHA model files.
+GsshaPy is an object relational model (ORM) for the Gridded Surface Subsurface
+Hydrologic Analysis (GSSHA) model and a toolkit to convert gridded input into
+GSSHA input.
 
 Contents
 --------
 
 .. toctree::
-	:maxdepth: 3
-	
-	intro
-	tutorial
-	changes
-	support
-	api
+  :maxdepth: 3
+
+  intro
+  logging
+  tutorial
+  changes
+  support
+  api
 
 
 Indices and Tables
@@ -26,4 +29,3 @@ Indices and Tables
 
 * :ref:`genindex`
 * :ref:`search`
-

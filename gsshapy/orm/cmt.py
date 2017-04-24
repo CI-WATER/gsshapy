@@ -34,8 +34,8 @@ from ..lib import cmt_chunk as mtc
 from ..lib.grid_tools import resample_grid
 from ..lib.parsetools import valueReadPreprocessor as vrp, valueWritePreprocessor as vwp
 
-logging.basicConfig()
 log = logging.getLogger(__name__)
+
 
 class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
     """
