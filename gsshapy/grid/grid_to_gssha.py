@@ -642,8 +642,10 @@ class GRIDtoGSSHA(object):
         if load_type == 'ascii' or load_type == 'netcdf':
             #CONVERT TO INCREMENTAL
             if gssha_var == 'precipitation_acc':
-                self.data.values = np.lib.pad(np.diff(self.data.values, axis=0),
-                                              ((1,0),(0,0),(0,0)),'constant',constant_values=0)
+                self.data.values = np.lib.pad(self.data.diff(self.lsm_time_dim).values,
+                                              ((1,0),(0,0),(0,0)),
+                                              'constant',
+                                              constant_values=0)
 
             #CONVERT PRECIP TO RADAR (mm/hr) IN FILE
             if gssha_var == 'precipitation_inc' or gssha_var == 'precipitation_acc':
