@@ -52,7 +52,7 @@ class TestGridTemplate(unittest.TestCase):
         dO.close()
         dN.close()
 
-    def _compare_files(self, original, new, raster=False):
+    def _compare_files(self, original, new, raster=False, precision=7):
         '''
         Compare the contents of two files
         '''
@@ -63,7 +63,7 @@ class TestGridTemplate(unittest.TestCase):
             # compare data
             rO = array(dsO.ReadAsArray())
             rN = array(dsN.ReadAsArray())
-            assert_almost_equal(rO, rN)
+            assert_almost_equal(rO, rN, decimal=precision)
 
             # compare geotransform
             assert_almost_equal(dsO.GetGeoTransform(), dsN.GetGeoTransform(),
@@ -93,7 +93,7 @@ class TestGridTemplate(unittest.TestCase):
                 except ValueError:
                     self.assertEqual(linesO, linesN)
 
-    def _compare_directories(self, dir1, dir2, ignore_file=None, raster=False):
+    def _compare_directories(self, dir1, dir2, ignore_file=None, raster=False, precision=7):
         '''
         Compare the contents of the files of two directories
         '''
@@ -106,7 +106,8 @@ class TestGridTemplate(unittest.TestCase):
                 try:
                     self._compare_files(os.path.join(dir1, afile),
                                         os.path.join(dir2, afile),
-                                        raster=raster)
+                                        raster=raster,
+                                        precision=precision)
                 except AssertionError:
                     print(os.path.join(dir1, afile))
                     print(os.path.join(dir2, afile))

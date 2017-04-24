@@ -54,17 +54,17 @@ class TestLSMtoGSSHA(TestGridTemplate):
                                    ['temperature', 'T2'],
                                    ['cloud_cover', 'CLDFRA'],
                                   ]
-##Pre computed
-##        self.data_var_map_array = [
-##                                   ['precipitation_acc', 'RUNPCP'],
-##                                   ['pressure_hg', 'PSFCInHg'],
-##                                   ['relative_humidity', 'RH2'],
-##                                   ['direct_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
-##                                   ['diffusive_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
-##                                   ['wind_speed_kts', 'SPEED10'],
-##                                   ['temperature_f', 'T2F'],
-##                                   ['cloud_cover_pc' , 'SKYCOVER'],
-##                                  ]
+        # pre computed
+        self.data_var_map_array_pre = [
+                                   ['precipitation_acc', 'RUNPCP'],
+                                   ['pressure_hg', 'PSFCInHg'],
+                                   ['relative_humidity', 'RH2'],
+                                   ['direct_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
+                                   ['diffusive_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
+                                   ['wind_speed_kts', 'SPEED10'],
+                                   ['temperature_f', 'T2F'],
+                                   ['cloud_cover_pc' , 'SKYCOVER'],
+                                  ]
 
         wrf_folder = os.path.join(self.writeDirectory, 'wrf_raw_data')
         self.l2g = GRIDtoGSSHA(gssha_project_folder=self.gssha_project_folder,
@@ -135,6 +135,21 @@ class TestLSMtoGSSHA(TestGridTemplate):
                                   compare_directory,
                                   ignore_file="hmet_file_list.txt",
                                   raster=True)
+
+    def test_wrf_ascii_file_write_pre(self):
+        '''
+        Test WRF lsm_data_to_arc_ascii write method pre-computed
+        '''
+        self.l2g.lsm_data_to_arc_ascii(self.data_var_map_array_pre,
+                                       self.hmet_write_directory)
+
+        # Compare all files
+        compare_directory = os.path.join(self.readDirectory, "wrf_hmet_data")
+        self._compare_directories(self.hmet_write_directory,
+                                  compare_directory,
+                                  ignore_file="hmet_file_list.txt",
+                                  raster=True,
+                                  precision=1)
 
 
 if __name__ == '__main__':
