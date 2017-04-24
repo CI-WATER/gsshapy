@@ -241,7 +241,7 @@ class LSMGridReader(object):
             # we can use a cache on our accessor objects, because accessors
             # themselves are cached on instances that access them.
             lat, lon = self.latlon
-            self._center = (float(lon.mean()), float(lat.mean()))
+            self._center = (float(np.nanmean(lon)), float(np.nanmean(lat)))
         return self._center
 
     def _export_dataset(self, variable, new_data, grid):
