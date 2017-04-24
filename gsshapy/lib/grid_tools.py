@@ -25,7 +25,7 @@ def utm_proj_from_latlon(latitude, longitude, as_wkt=False, as_osr=False):
             south_string = ', +south'
         proj4_utm_string = ('+proj=utm +zone={zone_number}{zone_letter}'
                             '{south_string} +ellps=WGS84 +datum=WGS84 '
-                            '+units=m +no_defs').format(zone_number=zone_number,
+                            '+units=m +no_defs').format(zone_number=abs(zone_number),
                                                         zone_letter=zone_letter,
                                                         south_string=south_string)
         sp_ref.ImportFromProj4(proj4_utm_string)
@@ -33,7 +33,7 @@ def utm_proj_from_latlon(latitude, longitude, as_wkt=False, as_osr=False):
         north_zone = True
         if zone_letter < 'N':
             north_zone = False
-        sp_ref.SetUTM(zone_number, north_zone)
+        sp_ref.SetUTM(abs(zone_number), north_zone)
 
     sp_ref.AutoIdentifyEPSG()
 
