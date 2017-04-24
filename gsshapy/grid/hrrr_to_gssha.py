@@ -227,9 +227,11 @@ class HRRRtoGSSHA(GRIDtoGSSHA):
                 raise ValueError("Time attribute missing: {0}".format(self.search_time_attr))
 
             self._xd = xr.open_mfdataset(path_to_lsm_files,
-                                         concat_dim='time',
+                                         autoclose=True,
+                                         concat_dim=self.lsm_time_dim,
                                          preprocess=extract_date,
                                          engine='pynio')
+                                         
             self._xd.lsm.y_var = self.lsm_lat_var
             self._xd.lsm.x_var = self.lsm_lon_var
             self._xd.lsm.time_var = self.lsm_time_var
