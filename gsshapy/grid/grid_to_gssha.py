@@ -452,16 +452,17 @@ class GRIDtoGSSHA(object):
         if self._xd is None:
             path_to_lsm_files = path.join(self.lsm_input_folder_path,
                                           self.lsm_search_card)
+            def define_coords(ds):
+                if self.lsm_lat_var not in ds.coords \
+                        or self.lsm_lon_var not in ds.coords:
+                    ds.set_coords([self.lsm_lat_var, self.lsm_lon_var],
+                                  inplace=True)
+                return ds
+
             self._xd = xr.open_mfdataset(path_to_lsm_files,
                                          autoclose=True,
+                                         preprocess=define_coords,
                                          concat_dim=self.lsm_time_dim)
-
-            if self.lsm_lat_var not in self._xd.coords:
-                self._xd.set_coords(self.lsm_lat_var,
-                                    inplace=True)
-            if self.lsm_lon_var not in self._xd.coords:
-                self._xd.set_coords(self.lsm_lon_var,
-                                    inplace=True)
 
             self._xd.lsm.y_var = self.lsm_lat_var
             self._xd.lsm.x_var = self.lsm_lon_var
