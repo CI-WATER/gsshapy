@@ -1,0 +1,12 @@
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082402
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082403
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082404
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082405
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082406
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082407
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082408
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082409
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082410
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082411
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082412
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082413
