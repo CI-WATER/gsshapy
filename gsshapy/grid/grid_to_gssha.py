@@ -1,23 +1,20 @@
 # -*- coding: utf-8 -*-
-##
-##  grid_to_gssha.py
-##  GSSHApy
-##
-##  Created by Alan D Snow, 2016.
-##  License BSD 3-Clause
+#
+#  grid_to_gssha.py
+#  GSSHApy
+#
+#  Created by Alan D Snow, 2016.
+#  License BSD 3-Clause
 
 from builtins import range
-from csv import writer as csv_writer
 from datetime import datetime
 from io import open as io_open
 import logging
 import numpy as np
-from os import chdir, mkdir, path
-from osgeo import gdal, osr
-import pandas as pd
+from os import chdir, mkdir, path, remove, rename
 from past.builtins import basestring
 from pytz import utc
-from pyproj import Proj, transform
+from shutil import copy
 import xarray as xr
 import xarray.ufuncs as xu
 
@@ -28,9 +25,9 @@ from ..orm import ProjectFile
 log = logging.getLogger(__name__)
 
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # HELPER FUNCTIONS
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 def update_hmet_card_file(hmet_card_file_path, new_hmet_data_path):
     """This function updates the paths in the HMET card file to the new
     location of the HMET data. This is necessary because the file paths
@@ -60,7 +57,7 @@ def update_hmet_card_file(hmet_card_file_path, new_hmet_data_path):
         with open(hmet_card_file_path) as old_hmet_list_file:
             for date_path in old_hmet_list_file:
                 out_hmet_list_file.write(u"{0}\n".format(path.join(new_hmet_data_path,
-                                                        path.basename(date_path))))
+                                                         path.basename(date_path))))
     try:
         remove(hmet_card_file_path)
     except OSError:
@@ -99,11 +96,11 @@ class GRIDtoGSSHA(object):
                          )
 
     """
-    ##DEFAULT GSSHA NetCDF Attributes
+    # DEFAULT GSSHA NetCDF Attributes
     netcdf_attributes = {
                         'precipitation_rate' :
-                            #NOTE: LSM INFO
-                            #units = "kg m-2 s-1" ; i.e. mm s-1
+                            # NOTE: LSM INFO
+                            # units = "kg m-2 s-1" ; i.e. mm s-1
                             {
                               'units' : {
                                             'gage': 'mm hr-1',
@@ -122,8 +119,8 @@ class GRIDtoGSSHA(object):
                                                     },
                             },
                         'precipitation_acc' :
-                            #NOTE: LSM INFO
-                            #units = "kg m-2" ; i.e. mm
+                            # NOTE: LSM INFO
+                            # units = "kg m-2" ; i.e. mm
                             {
                               'units' : {
                                             'gage': 'mm hr-1',
@@ -132,40 +129,40 @@ class GRIDtoGSSHA(object):
                                         },
                               'units_netcdf' : 'mm hr-1',
                               'standard_name' : 'rainfall_flux',
-                              'long_name' : 'Rain precipitation rate',
-                              'gssha_name' : 'precipitation',
-                              'hmet_name' : 'Prcp',
-                              'conversion_factor' : {
+                              'long_name': 'Rain precipitation rate',
+                              'gssha_name': 'precipitation',
+                              'hmet_name': 'Prcp',
+                              'conversion_factor': {
                                                         'gage' : 1,
                                                         'ascii' : 1,
                                                         'netcdf' : 1,
                                                     },
                             },
-                        'precipitation_inc' :
-                            #NOTE: LSM INFO
-                            #units = "kg m-2" ; i.e. mm
+                        'precipitation_inc':
+                            # NOTE: LSM INFO
+                            # units = "kg m-2" ; i.e. mm
                             {
                               'units' : {
                                             'gage': 'mm hr-1',
                                             'ascii': 'mm hr-1',
                                             'netcdf': 'mm hr-1',
                                         },
-                              'units_netcdf' : 'mm hr-1',
-                              'standard_name' : 'rainfall_flux',
-                              'long_name' : 'Rain precipitation rate',
-                              'gssha_name' : 'precipitation',
-                              'hmet_name' : 'Prcp',
-                              'conversion_factor' : {
+                              'units_netcdf': 'mm hr-1',
+                              'standard_name': 'rainfall_flux',
+                              'long_name': 'Rain precipitation rate',
+                              'gssha_name': 'precipitation',
+                              'hmet_name': 'Prcp',
+                              'conversion_factor': {
                                                         'gage' : 1,
                                                         'ascii' : 1,
                                                         'netcdf' : 1,
                                                     },
                             },
-                        'pressure' :
-                            #NOTE: LSM INFO
-                            #units = "Pa" ;
+                        'pressure':
+                            # NOTE: LSM INFO
+                            # units = "Pa" ;
                             {
-                              'units' : {
+                              'units': {
                                             'ascii': 'in. Hg',
                                             'netcdf': 'mb',
                                         },
@@ -178,9 +175,9 @@ class GRIDtoGSSHA(object):
                                                         'netcdf' : 0.01,
                                                     },
                             },
-                        'pressure_hg' :
+                        'pressure_hg':
                             {
-                              'units' : {
+                              'units': {
                                             'ascii': 'in. Hg',
                                             'netcdf': 'mb',
                                         },
@@ -415,6 +412,7 @@ class GRIDtoGSSHA(object):
                             },
 
                     }
+
     def __init__(self,
                  gssha_project_folder,
                  gssha_project_file_name,
@@ -639,18 +637,18 @@ class GRIDtoGSSHA(object):
                 self.data.values = self.netcdf_attributes[gssha_var]['conversion_function'][load_type](self.data.values)
 
         if load_type == 'ascii' or load_type == 'netcdf':
-            #CONVERT TO INCREMENTAL
+            # CONVERT TO INCREMENTAL
             if gssha_var == 'precipitation_acc':
                 self.data.values = np.lib.pad(self.data.diff(self.lsm_time_dim).values,
                                               ((1,0),(0,0),(0,0)),
                                               'constant',
                                               constant_values=0)
 
-            #CONVERT PRECIP TO RADAR (mm/hr) IN FILE
+            # CONVERT PRECIP TO RADAR (mm/hr) IN FILE
             if gssha_var == 'precipitation_inc' or gssha_var == 'precipitation_acc':
-                #convert to mm/hr from mm
+                # convert from mm to mm/hr
                 time_step_hours = np.diff(self.xd[self.lsm_time_var].values)[0]/np.timedelta64(1, 'h')
-                self.data.values *= time_step_hours
+                self.data.values /= time_step_hours
 
         # convert to dataset
         gssha_data_var_name = self.netcdf_attributes[gssha_var]['gssha_name']
@@ -695,7 +693,15 @@ class GRIDtoGSSHA(object):
                 raise Exception("ERROR: HMET param is required to continue "
                                 "{0} ...".format(REQUIRED_HMET_VAR))
 
-    def _get_calc_function(self, gssha_data_var):
+    def _resample_data(self, gssha_var):
+        """
+        This function resamples the data to match the GSSHA grid
+        IN TESTING MODE
+        """
+        self.data = self.data.lsm.resample(gssha_var, self.gssha_grid)
+
+    @staticmethod
+    def _get_calc_function(gssha_data_var):
         """
         This retrives the calc function to convert
         to hourly data for the various HMET parameters
@@ -703,30 +709,27 @@ class GRIDtoGSSHA(object):
         calc_function = 'mean'
         if gssha_data_var == 'precipitation_inc' or \
                 gssha_data_var == 'precipitation_acc':
+            # acc computed as inc previously
             calc_function = 'sum'
 
         return calc_function
-
-
-    def _resample_data(self, gssha_var):
-        '''
-        This function resamples the data to match the GSSHA grid
-        IN TESTING MODE
-        '''
-        self.data = self.data.lsm.resample(gssha_var, self.gssha_grid)
 
     def _convert_data_to_hourly(self, gssha_data_var):
         """
         This function converts the data to hourly data
         and then puts it into the data_np_array
+        USED WHEN GENERATING HMET DATA ONLY
         """
         time_step_hours = np.diff(self.data.time)[0]/np.timedelta64(1, 'h')
         calc_function = self._get_calc_function(gssha_data_var)
-
+        resampled_data = None
         if time_step_hours < 1:
-            self.data = self.data.resample('1H', dim='time', how=calc_function)
+            resampled_data = self.data.resample('1H', dim='time',
+                                                how=calc_function,
+                                                keep_attrs=True)
         elif time_step_hours > 1:
-            resampled_data = self.data.resample('1H', dim='time')
+            resampled_data = self.data.resample('1H', dim='time',
+                                                keep_attrs=True)
 
             for time_idx in range(self.data.dims['time']):
                 if time_idx+1 < self.data.dims['time']:
@@ -739,8 +742,8 @@ class GRIDtoGSSHA(object):
                     slope = (resampled_data.sel(time=str(end_time))[gssha_data_var]
                              - first_timestep)/float(slice_size)
 
-                    data_timeslice = slice(str(start_time+np.timedelta64(1,'m')),
-                                            str(end_time-np.timedelta64(1,'m')))
+                    data_timeslice = slice(str(start_time+np.timedelta64(1, 'm')),
+                                            str(end_time-np.timedelta64(1, 'm')))
                     data_subset = resampled_data.sel(time=data_timeslice)
                     for xidx in range(data_subset.dims['time']):
                         data_subset[gssha_data_var][xidx] = first_timestep + slope * (xidx+1)
@@ -760,7 +763,12 @@ class GRIDtoGSSHA(object):
                         for xidx in range(data_subset.dims['time']):
                             data_subset[gssha_data_var][xidx] = first_timestep/float(slice_size)
 
-
+        if resampled_data is not None:
+            # make sure coordinates copied
+            if self.data.lsm.x_var not in resampled_data.coords:
+                resampled_data.coords[self.data.lsm.x_var] = self.data.coords[self.data.lsm.x_var]
+            if self.data.lsm.y_var not in resampled_data.coords:
+                resampled_data.coords[self.data.lsm.y_var] = self.data.coords[self.data.lsm.y_var]
             self.data = resampled_data
 
     def lsm_precip_to_gssha_precip_gage(self, out_gage_file, lsm_data_var, precip_type="RADAR"):
