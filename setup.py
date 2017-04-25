@@ -14,14 +14,12 @@ requires = [
     ]
 
 setup(name='gsshapy',
-      version='2.2.1',
+      version='2.2.2',
       description='An SQLAlchemy ORM for GSSHA model files and a toolkit'
-                  ' to convert gridded input into GSSHA input'
-                  ' (http://gsshapy.readthedocs.io).'
-,
+                  ' to convert gridded input into GSSHA input.',
       long_description='Documentation can be found at '
-                       'http://gsshapy.readthedocs.io. '
-                       '.. image:: https://zenodo.org/badge/26494532.svg'
+                       'http://gsshapy.readthedocs.io. \n\n'
+                       '.. image:: https://zenodo.org/badge/26494532.svg \n'
                        '    :target: https://zenodo.org/badge/latestdoi/26494532',
       author='Nathan Swain, Alan D. Snow, and Scott D. Christensen',
       author_email='nathan.swain@byu.net',
