@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ##
-##  extension.py
+##  xarray_lsm.py
 ##  GSSHApy
 ##
 ##  Created by Alan D Snow, 2017.

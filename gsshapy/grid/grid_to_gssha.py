@@ -20,7 +20,6 @@ from pytz import utc
 from pyproj import Proj, transform
 import xarray as xr
 import xarray.ufuncs as xu
-import extension
 
 from ..lib.grid_tools import ArrayGrid, gdal_reproject
 from ..lib import db_tools as dbt
