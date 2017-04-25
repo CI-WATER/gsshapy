@@ -23,7 +23,7 @@ except ImportError:
     pass
 
 from ..lib import db_tools as dbt
-from ..orm import ProjectCard, ProjectFile
+from ..orm import ProjectFile
 from .event import EventMode, LongTermMode
 
 

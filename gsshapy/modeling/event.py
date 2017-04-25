@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 import logging
 from numpy import mean
 import os
-from osgeo import gdal, osr
 from pyproj import Proj, transform
 from pytz import timezone, utc
 from RAPIDpy import RAPIDDataset
