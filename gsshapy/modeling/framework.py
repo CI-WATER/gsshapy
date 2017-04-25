@@ -516,19 +516,6 @@ class GSSHAFramework(object):
         if self.gssha_executable and find_executable(self.gssha_executable) is not None:
             log.info("Running GSSHA simulation ...")
 
-            gssha_output_formatter = logging.Formatter('%(message)s')
-
-            # add GSSHA output to file log
-            log_file_path = os.path.join(working_directory, 'simulation.log')
-            fh = logging.FileHandler(log_file_path)
-            fh.setFormatter(gssha_output_formatter)
-            fh.setLevel(logging.DEBUG)
-            log.addHandler(fh)
-
-            # modify main handler for GSSHA output
-            original_formatter = log.formatter
-            log.setFormatter(gssha_output_formatter)
-
             try:
                 run_gssha_command = [self.gssha_executable,
                                      os.path.join(working_directory, self.project_filename)]
@@ -536,15 +523,16 @@ class GSSHAFramework(object):
                 out = subprocess.check_output(run_gssha_command)
 
                 # write out GSSHA output
-                for line in out.split(b'\n'):
-                    log.info(line.strip(b'\r'))
+                log_file_path = os.path.join(working_directory, 'simulation.log')
+                with open(log_file_path, mode='w') as logfile:
+                    logfile.write(out)
+                    # log to other logger if debug mode on
+                    if log.isEnabledFor(logging.DEBUG):
+                        for line in out.split(b'\n'):
+                            log.debug(line)
 
             except subprocess.CalledProcessError as ex:
                 log.error("{0}: {1}".format(ex.returncode, ex.output))
-
-            # reset to original logging methods
-            log.setFormatter(original_formatter)
-            log.removeHandler(fh)
 
         else:
             log.warning("GSSHA executable not found. Skipping GSSHA simulation run ...")
