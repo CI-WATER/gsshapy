@@ -92,9 +92,9 @@ class GRIDtoGSSHA(object):
 
         from gsshapy.grid import GRIDtoGSSHA
 
-        l2g = GRIDtoGSSHA(gssha_project_folder='E:/GSSHA',
+        g2g = GRIDtoGSSHA(gssha_project_folder='E:/GSSHA',
                           gssha_project_file_name='gssha.prj',
-                          lsm_input_folder_path='E:/GSSHA/wrf-data',
+                          lsm_input_folder_path='E:/GSSHA/lsm-data',
                           lsm_search_card="*.nc",
                          )
 
@@ -781,19 +781,27 @@ class GRIDtoGSSHA(object):
                                           (see: http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables).
             precip_type(Optional[str]): This tells if the data is the ACCUM, RADAR, or GAGES data type. Default is 'RADAR'.
 
-        LSMtoGSSHA Example:
+        GRIDtoGSSHA Example:
 
         .. code:: python
 
-            from gsshapy.grid import LSMtoGSSHA
+            from gsshapy.grid import GRIDtoGSSHA
 
             #STEP 1: Initialize class
-            l2g = GRIDtoGSSHA(
-                             #YOUR INIT PARAMETERS HERE
-                             )
+            g2g = GRIDtoGSSHA(gssha_project_folder='/path/to/gssha_project',
+                              gssha_project_file_name='gssha_project.prj',
+                              lsm_input_folder_path='/path/to/wrf-data',
+                              lsm_search_card='*.nc',
+                              lsm_lat_var='XLAT',
+                              lsm_lon_var='XLONG',
+                              lsm_time_var='Times',
+                              lsm_lat_dim='south_north',
+                              lsm_lon_dim='west_east',
+                              lsm_time_dim='Time',
+                              )
 
             #STEP 2: Generate GAGE data (from WRF)
-            l2g.lsm_precip_to_gssha_precip_gage(out_gage_file="E:/GSSHA/wrf_gage_1.gag",
+            g2g.lsm_precip_to_gssha_precip_gage(out_gage_file="E:/GSSHA/wrf_gage_1.gag",
                                                 lsm_data_var=['RAINC', 'RAINNC'],
                                                 precip_type='ACCUM')
 
@@ -809,7 +817,7 @@ class GRIDtoGSSHA(object):
                              )
 
             #STEP 2: Generate GAGE data
-            l2g.lsm_precip_to_gssha_precip_gage(out_gage_file="E:/GSSHA/hrrr_gage_1.gag",
+            g2g.lsm_precip_to_gssha_precip_gage(out_gage_file="E:/GSSHA/hrrr_gage_1.gag",
                                                 lsm_data_var='prate',
                                                 precip_type='RADAR')
 
@@ -881,16 +889,24 @@ class GRIDtoGSSHA(object):
                                         If not included, it defaults to
                                         os.path.join(self.gssha_project_folder, "hmet_ascii_data").
 
-        LSMtoGSSHA Example:
+        GRIDtoGSSHA Example:
 
         .. code:: python
 
-            from gsshapy.grid import LSMtoGSSHA
+            from gsshapy.grid import GRIDtoGSSHA
 
             #STEP 1: Initialize class
-            l2g = LSMtoGSSHA(
-                             #YOUR INIT PARAMETERS HERE
-                            )
+            g2g = GRIDtoGSSHA(gssha_project_folder='/path/to/gssha_project',
+                              gssha_project_file_name='gssha_project.prj',
+                              lsm_input_folder_path='/path/to/wrf-data',
+                              lsm_search_card='*.nc',
+                              lsm_lat_var='XLAT',
+                              lsm_lon_var='XLONG',
+                              lsm_time_var='Times',
+                              lsm_lat_dim='south_north',
+                              lsm_lon_dim='west_east',
+                              lsm_time_dim='Time',
+                              )
 
             #STEP 2: Generate ASCII DATA
 
@@ -908,7 +924,7 @@ class GRIDtoGSSHA(object):
                                   ['cloud_cover' , 'CLDFRA'], #'CLOUD_FRACTION'
                                  ]
 
-            l2g.lsm_data_to_arc_ascii(data_var_map_array)
+            g2g.lsm_data_to_arc_ascii(data_var_map_array)
 
         HRRRtoGSSHA Example:
 
@@ -995,16 +1011,24 @@ class GRIDtoGSSHA(object):
             resample_method(Optional[gdalconst]): Resample input method to match hmet data to GSSHA grid for NetCDF output. Default is None.
 
 
-        LSMtoGSSHA Example:
+        GRIDtoGSSHA Example:
 
         .. code:: python
 
-            from gsshapy.grid import LSMtoGSSHA
+            from gsshapy.grid import GRIDtoGSSHA
 
             #STEP 1: Initialize class
-            l2g = LSMtoGSSHA(
-                             #YOUR INIT PARAMETERS HERE
-                            )
+            g2g = GRIDtoGSSHA(gssha_project_folder='/path/to/gssha_project',
+                              gssha_project_file_name='gssha_project.prj',
+                              lsm_input_folder_path='/path/to/wrf-data',
+                              lsm_search_card='*.nc',
+                              lsm_lat_var='XLAT',
+                              lsm_lon_var='XLONG',
+                              lsm_time_var='Times',
+                              lsm_lat_dim='south_north',
+                              lsm_lon_dim='west_east',
+                              lsm_time_dim='Time',
+                              )
 
             #STEP 2: Generate NetCDF DATA
 
@@ -1022,7 +1046,7 @@ class GRIDtoGSSHA(object):
                                   ['cloud_cover' , 'CLDFRA'], #'CLOUD_FRACTION'
                                  ]
 
-            l2g.lsm_data_to_subset_netcdf("E/GSSHA/gssha_wrf_data.nc",
+            g2g.lsm_data_to_subset_netcdf("E/GSSHA/gssha_wrf_data.nc",
                                           data_var_map_array)
 
         HRRRtoGSSHA Example:
