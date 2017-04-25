@@ -16,7 +16,9 @@ setup(name='gsshapy',
       version='2.2.0',
       description='An SQLAlchemy ORM for GSSHA model files and a toolkit'
                   ' to convert gridded input into GSSHA input'
-                  ' (http://gsshapy.readthedocs.io).',
+                  ' (http://gsshapy.readthedocs.io). '
+                  '.. image:: https://zenodo.org/badge/26494532.svg'
+                  '    :target: https://zenodo.org/badge/latestdoi/26494532',
       long_description='',
       author='Nathan Swain, Alan D. Snow, and Scott D. Christensen',
       author_email='nathan.swain@byu.net',

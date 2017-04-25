@@ -11,7 +11,10 @@ development environment by reading them into an SQL database. The files
 can also be written back to file for model execution. GsshaPy is built on top of
 the powerful SQLAlchemy ORM.
 
+.. image:: https://zenodo.org/badge/26494532.svg
+   :target: https://zenodo.org/badge/latestdoi/26494532
 
+   
 What is GSSHA?
 ==============
 

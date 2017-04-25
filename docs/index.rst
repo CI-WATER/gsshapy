@@ -10,6 +10,10 @@ GsshaPy is an object relational model (ORM) for the Gridded Surface Subsurface
 Hydrologic Analysis (GSSHA) model and a toolkit to convert gridded input into
 GSSHA input.
 
+
+.. image:: https://zenodo.org/badge/26494532.svg
+   :target: https://zenodo.org/badge/latestdoi/26494532
+   
 Contents
 --------
 

@@ -3,6 +3,8 @@ An SQLAlchemy ORM for GSSHA model files and a toolkit to convert gridded input i
 
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-yellow.svg)](https://github.com/ci-water/gsshapy/blob/master/LICENSE)
 
+[![DOI](https://zenodo.org/badge/26494532.svg)](https://zenodo.org/badge/latestdoi/26494532)
+
 [![PyPI version](https://badge.fury.io/py/gsshapy.svg)](https://badge.fury.io/py/gsshapy)
 
 [![Build Status](https://travis-ci.org/CI-WATER/gsshapy.svg)](https://travis-ci.org/CI-WATER/gsshapy)
