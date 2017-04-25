@@ -10,6 +10,7 @@ requires = [
     'timezonefinder',
     'utm',
     'pyyaml',
+    'wrf-python',
     ]
 
 setup(name='gsshapy',
