@@ -13,7 +13,6 @@ from .metadata import version
 logger = logging.getLogger('gsshapy')
 null_handler = logging.NullHandler()
 logger.addHandler(null_handler)
-logger.propagate = False
 
 default_log_dir = appdirs.user_log_dir('gsshapy', 'logs')
 default_log_file = os.path.join(default_log_dir, 'gsshapy.log')
