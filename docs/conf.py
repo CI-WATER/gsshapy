@@ -26,7 +26,7 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return Mock()
 
-MOCK_MODULES = ['pygrib', 'osgeo']
+MOCK_MODULES = ['osgeo']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 ##END TEMP SECTION UNTIL UNTIL PILLOW/GDAL DEPENDENCIES FIXED
 
