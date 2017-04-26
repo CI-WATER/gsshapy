@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 # HELPER FUNCTIONS
 #------------------------------------------------------------------------------
 
-def get_grib_subset(grb,lat0,lat1,lon0,lon1):
+def get_grib_subset(grb, lat0, lat1, lon0, lon1):
     """
     Extracts a subset from the grib file based on lat/lon bounds
     """
@@ -141,18 +141,17 @@ class HRRRtoGSSHA(GRIDtoGSSHA):
     This class inheris from class:`GRIDtoGSSHA`.
 
     Attributes:
-        gssha_project_folder(str): Path to the GSSHA project folder
-        gssha_project_file_name(str): Name of the GSSHA elevation grid file.
-        lsm_input_folder_path(str): Path to the input folder for the LSM files.
-        lsm_search_card(str): Glob search pattern for LSM files. Ex. "*.grib2".
-        lsm_lat_var(Optional[str]): Name of the latitude variable in the LSM netCDF files. Defaults to 'lat'.
-        lsm_lon_var(Optional[str]): Name of the longitude variable in the LSM netCDF files. Defaults to 'lon'.
-        lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. Defaults to 'time'.
-        lsm_lat_dim(Optional[str]): Name of the latitude dimension in the LSM netCDF files. Defaults to 'lat'.
-        lsm_lon_dim(Optional[str]): Name of the longitude dimension in the LSM netCDF files. Defaults to 'lon'.
-        lsm_time_dim(Optional[str]): Name of the time dimension in the LSM netCDF files. Defaults to 'time'.
-        output_timezone(Optional[tzinfo]): This is the timezone to output the dates for the data. Default is UTC.
-                                           This option does NOT currently work for NetCDF output.
+        gssha_project_folder(:obj:`str`): Path to the GSSHA project folder
+        gssha_project_file_name(:obj:`str`): Name of the GSSHA elevation grid file.
+        lsm_input_folder_path(:obj:`str`): Path to the input folder for the LSM files.
+        lsm_search_card(:obj:`str`): Glob search pattern for LSM files. Ex. "*.grib2".
+        lsm_lat_var(Optional[:obj:`str`]): Name of the latitude variable in the LSM netCDF files. Defaults to 'lat'.
+        lsm_lon_var(Optional[:obj:`str`]): Name of the longitude variable in the LSM netCDF files. Defaults to 'lon'.
+        lsm_time_var(Optional[:obj:`str`]): Name of the time variable in the LSM netCDF files. Defaults to 'time'.
+        lsm_lat_dim(Optional[:obj:`str`]): Name of the latitude dimension in the LSM netCDF files. Defaults to 'lat'.
+        lsm_lon_dim(Optional[:obj:`str`]): Name of the longitude dimension in the LSM netCDF files. Defaults to 'lon'.
+        lsm_time_dim(Optional[:obj:`str`]): Name of the time dimension in the LSM netCDF files. Defaults to 'time'.
+        output_timezone(Optional[:obj:`tzinfo`]): This is the timezone to output the dates for the data. Default is the timezone of your GSSHA model. This option does NOT currently work for NetCDF output.
 
     Example::
 
@@ -231,7 +230,7 @@ class HRRRtoGSSHA(GRIDtoGSSHA):
                                          concat_dim=self.lsm_time_dim,
                                          preprocess=extract_date,
                                          engine='pynio')
-                                         
+
             self._xd.lsm.y_var = self.lsm_lat_var
             self._xd.lsm.x_var = self.lsm_lon_var
             self._xd.lsm.time_var = self.lsm_time_var

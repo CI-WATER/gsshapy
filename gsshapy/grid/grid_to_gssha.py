@@ -72,18 +72,17 @@ class GRIDtoGSSHA(object):
     """This class converts the LSM output data to GSSHA formatted input.
 
     Attributes:
-        gssha_project_folder(str): Path to the GSSHA project folder
-        gssha_project_file_name(str): Name of the GSSHA elevation grid file.
-        lsm_input_folder_path(str): Path to the input folder for the LSM files.
-        lsm_search_card(str): Glob search pattern for LSM files. Ex. "*.nc".
-        lsm_lat_var(Optional[str]): Name of the latitude variable in the LSM netCDF files. Defaults to 'lat'.
-        lsm_lon_var(Optional[str]): Name of the longitude variable in the LSM netCDF files. Defaults to 'lon'.
-        lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. Defaults to 'time'.
-        lsm_lat_dim(Optional[str]): Name of the latitude dimension in the LSM netCDF files. Defaults to 'lat'.
-        lsm_lon_dim(Optional[str]): Name of the longitude dimension in the LSM netCDF files. Defaults to 'lon'.
-        lsm_time_dim(Optional[str]): Name of the time dimension in the LSM netCDF files. Defaults to 'time'.
-        output_timezone(Optional[tzinfo]): This is the timezone to output the dates for the data. Default is UTC.
-                                           This option does NOT currently work for NetCDF output.
+        gssha_project_folder(:obj:`str`): Path to the GSSHA project folder
+        gssha_project_file_name(:obj:`str`): Name of the GSSHA elevation grid file.
+        lsm_input_folder_path(:obj:`str`): Path to the input folder for the LSM files.
+        lsm_search_card(:obj:`str`): Glob search pattern for LSM files. Ex. "*.nc".
+        lsm_lat_var(Optional[:obj:`str`]): Name of the latitude variable in the LSM netCDF files. Defaults to 'lat'.
+        lsm_lon_var(Optional[:obj:`str`]): Name of the longitude variable in the LSM netCDF files. Defaults to 'lon'.
+        lsm_time_var(Optional[:obj:`str`]): Name of the time variable in the LSM netCDF files. Defaults to 'time'.
+        lsm_lat_dim(Optional[:obj:`str`]): Name of the latitude dimension in the LSM netCDF files. Defaults to 'lat'.
+        lsm_lon_dim(Optional[:obj:`str`]): Name of the longitude dimension in the LSM netCDF files. Defaults to 'lon'.
+        lsm_time_dim(Optional[:obj:`str`]): Name of the time dimension in the LSM netCDF files. Defaults to 'time'.
+        output_timezone(Optional[:obj:`tzinfo`]): This is the timezone to output the dates for the data. Default is the timezone of your GSSHA model. This option does NOT currently work for NetCDF output.
 
     Example::
 
@@ -506,6 +505,8 @@ class GRIDtoGSSHA(object):
                              session=db_session)
 
         self.gssha_grid = project_manager.getGrid()
+        if self.output_timezone is None:
+            self.output_timezone = project_manager.timezone
         db_session.close()
 
         # reproject GSSHA grid and get bounds
