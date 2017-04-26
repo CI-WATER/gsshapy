@@ -7,6 +7,8 @@ An SQLAlchemy ORM for GSSHA model files and a toolkit to convert gridded input i
 
 [![PyPI version](https://badge.fury.io/py/gsshapy.svg)](https://badge.fury.io/py/gsshapy)
 
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/gsshapy/badges/version.svg)](https://anaconda.org/conda-forge/gsshapy)
+
 [![Build Status](https://travis-ci.org/CI-WATER/gsshapy.svg)](https://travis-ci.org/CI-WATER/gsshapy)
 
 [![Build status](https://ci.appveyor.com/api/projects/status/cjngdb82x2wu7ds2?svg=true)](https://ci.appveyor.com/project/snowman2/gsshapy)
