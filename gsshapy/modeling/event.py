@@ -8,12 +8,9 @@
 
 from datetime import datetime, timedelta
 import logging
-from numpy import mean
 import os
-from pyproj import Proj, transform
-from pytz import timezone, utc
+from pytz import utc
 from RAPIDpy import RAPIDDataset
-from timezonefinder import TimezoneFinder
 
 from ..grid import GRIDtoGSSHA
 
@@ -117,24 +114,7 @@ class Event(object):
         This function updates the centroid and timezone
         based of off GSSHA elevation grid
         """
-        # GET CENTROID FROM GSSHA GRID
-        gssha_grid = self.project_manager.getGrid()
-
-        min_x, max_x, min_y, max_y = gssha_grid.bounds()
-        x_ext, y_ext = transform(gssha_grid.proj,
-                                 Proj(init='epsg:4326'),
-                                 [min_x, max_x, min_x, max_x],
-                                 [min_y, max_y, max_y, min_y],
-                                 )
-
-        self.center_lat = mean(y_ext)
-        self.center_lon = mean(x_ext)
-
-        # update time zone
-        tf = TimezoneFinder()
-        tz_name = tf.timezone_at(lng=self.center_lon, lat=self.center_lat)
-
-        self.tz = timezone(tz_name)
+        self.tz = self.project_manager.timezone
 
     def set_simulation_duration(self, simulation_duration):
         '''
@@ -317,10 +297,11 @@ class LongTermMode(Event):
             self.project_manager.deleteCard(evt_mode_card, self.db_session)
         # UPDATE GSSHA LONG TERM CARDS
         # make sure long term added as it is required for reading in HMET
+        center_lat, center_lon = self.project_manager.centerLatLon()
         self._update_card('LONG_TERM', '')
         self._update_card('SEASONAL_RS', '')
-        self._update_card('LATITUDE', str(self.center_lat))
-        self._update_card('LONGITUDE', str(self.center_lon))
+        self._update_card('LATITUDE', str(center_lat))
+        self._update_card('LONGITUDE', str(center_lon))
 
         # EVENT_MIN_Q
         if event_min_q is None:

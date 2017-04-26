@@ -15,8 +15,11 @@ import json
 import logging
 import numpy as np
 import os
+from pyproj import Proj, transform
+from pytz import timezone
 import re
 import shlex
+from timezonefinder import TimezoneFinder
 import xml.etree.ElementTree as ET
 
 from sqlalchemy import ForeignKey, Column
@@ -101,7 +104,6 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     MAP_TYPES_SUPPORTED = (1,)
     ALWAYS_READ_AND_WRITE_MAPS = ('ele', 'msk')
     OUTPUT_DIRECTORIES_SUPPORTED = ('REPLACE_FOLDER',)
-
 
     INPUT_FILES = {'#PROJECTION_FILE': ProjectionFile,  # WMS
                    '#CHANNEL_POINT_INPUT_WMS': GenericFile,
@@ -225,6 +227,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         if map_type is not None:
             self.mapType = map_type
             self.setCard(name='MAP_TYPE', value=str(map_type))
+
+        # object Properties
+        self._tz = None # grid timezone
 
     def _read(self, directory, filename, session, path, name, extension,
               spatial, spatialReferenceID, replaceParamFile,
@@ -1251,6 +1256,36 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             outslope = 0.001
 
         self.setCard("OUTSLOPE", str(outslope))
+
+    @property
+    def timezone(self):
+        """
+        timezone of GSSHA model
+        """
+        if self._tz is None:
+            # GET CENTROID FROM GSSHA GRID
+            cen_lat, cen_lon = self.centerLatLon()
+            # update time zone
+            tf = TimezoneFinder()
+            tz_name = tf.timezone_at(lng=cen_lon, lat=cen_lat)
+
+            self._tz = timezone(tz_name)
+        return self._tz
+
+    def centerLatLon(self):
+        """
+        Get the center lat/lon of model
+        """
+        # GET CENTROID FROM GSSHA GRID
+        gssha_grid = self.getGrid()
+
+        min_x, max_x, min_y, max_y = gssha_grid.bounds()
+        x_ext, y_ext = transform(gssha_grid.proj,
+                                 Proj(init='epsg:4326'),
+                                 [min_x, max_x, min_x, max_x],
+                                 [min_y, max_y, max_y, min_y],
+                                 )
+        return (np.mean(y_ext), np.mean(x_ext))
 
     def _automaticallyDeriveSpatialReferenceId(self, directory):
         """
