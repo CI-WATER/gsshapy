@@ -46,7 +46,7 @@ class TestWRF3toGSSHA(TestGridTemplate):
             pass
 
         wrf_data_dir = os.path.join(self.readDirectory, "wrf_raw_data", "gssha_d03_nc")
-        for wrf_file in glob(os.path.join(wrf_data_dir, "*.nc"))[::3]:
+        for wrf_file in sorted(glob(os.path.join(wrf_data_dir, "*.nc")))[::3]:
             try:
                 copy(wrf_file,
                      os.path.join(dest_wrf_data_dir, os.path.basename(wrf_file)))

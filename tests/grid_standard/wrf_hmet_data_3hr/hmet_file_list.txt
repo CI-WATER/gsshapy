@@ -1,3 +1,7 @@
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082322
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082323
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082400
+/home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082401
 /home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082402
 /home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082403
 /home/rdchlads/scripts/gsshapy/tests/out/wrf_hmet_data_3hr/2016082404
