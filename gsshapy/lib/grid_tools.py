@@ -122,23 +122,29 @@ class GDALGrid(object):
     def bounds(self, as_geographic=False, as_utm=False):
         """Returns bounding coordinates for raster
         """
+        new_proj = None
         x_min, y_min = self.affine * (0, self.dataset.RasterYSize)
         x_max, y_max = self.affine * (self.dataset.RasterXSize, 0)
-        if as_geographic or as_utm:
+
+        if as_geographic:
+            new_proj = osr.SpatialReference()
+            new_proj.ImportFromEPSG(4326)
+        elif as_utm:
             lon_min, lat_max, ulz = project_to_geographic(x_min, y_max,
                                                           self.projection)
             lon_max, lat_min, brz = project_to_geographic(x_max, y_min,
                                                           self.projection)
-            if as_geographic:
-                return(lon_min, lon_max, lat_min, lat_max)
-
             # convert to UTM
-            utm_osr = utm_proj_from_latlon((lat_min+lat_max)/2.0,
-                                           (lon_min+lon_max)/2.0,
-                                           as_osr=True)
-            tx = osr.CoordinateTransformation(self.projection, utm_osr)
-            x_min, y_max, ulz = tx.TransformPoint(x_min, y_max)
-            x_max, y_min, brz = tx.TransformPoint(x_max, y_min)
+            new_proj = utm_proj_from_latlon((lat_min+lat_max)/2.0,
+                                            (lon_min+lon_max)/2.0,
+                                            as_osr=True)
+
+        if new_proj is not None:
+            ggrid = gdal_reproject(self.dataset,
+                                   src_srs=self.projection,
+                                   dst_srs=new_proj,
+                                   as_gdal_grid=True)
+            return ggrid.bounds()
 
         return (x_min, x_max, y_min, y_max)
 

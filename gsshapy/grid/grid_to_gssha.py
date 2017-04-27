@@ -65,6 +65,18 @@ def update_hmet_card_file(hmet_card_file_path, new_hmet_data_path):
 
     rename(hmet_card_file_path_temp, hmet_card_file_path)
 
+def esat(temp):
+    """
+    saturation water vapour pressure is expressed with the Teten’s formula
+    http://www.ecmwf.int/sites/default/files/elibrary/2016/16648-part-iv-physical-processes.pdf
+    7.2.1 (b) eqn. 7.5
+    esat(T) = a1*exp(a3*((T − T0)/(T − a4)))
+    a1 = 611.21 Pa, a3 = 17.502 and a4 = 32.19 K for saturation over water
+    T0 = 273.16 K
+    note: ignoring saturation over ice & mixed
+    """
+    return 611.21*xu.exp(17.502*(temp-273.16)/(temp-32.19))
+
 #------------------------------------------------------------------------------
 # MAIN CLASS
 #------------------------------------------------------------------------------
@@ -119,7 +131,8 @@ class GRIDtoGSSHA(object):
                             },
                         'precipitation_acc' :
                             # NOTE: LSM INFO
-                            # units = "kg m-2" ; i.e. mm
+                            # assumes units = "kg m-2" ; i.e. mm
+                            # checks for units: "m"
                             {
                               'units' : {
                                             'gage': 'mm hr-1',
@@ -139,7 +152,8 @@ class GRIDtoGSSHA(object):
                             },
                         'precipitation_inc':
                             # NOTE: LSM INFO
-                            # units = "kg m-2" ; i.e. mm
+                            # assumes units = "kg m-2" ; i.e. mm
+                            # checks for units: "m"
                             {
                               'units' : {
                                             'gage': 'mm hr-1',
@@ -194,6 +208,22 @@ class GRIDtoGSSHA(object):
                             #units = "kg kg-1" ;
                             #standard_name = "specific_humidity" ;
                             #long_name = "Specific humidity" ;
+                            {
+                              'units' : {
+                                            'ascii': '%',
+                                            'netcdf': '%',
+                                        },
+                              'standard_name' : 'relative_humidity',
+                              'long_name' : 'Relative humidity',
+                              'gssha_name' : 'relative_humidity',
+                              'hmet_name' : 'RlHm',
+                              'conversion_factor' : {
+                                                        'ascii' : 1,
+                                                        'netcdf' : 1,
+                                                    },
+                            },
+                        'relative_humidity_dew' :
+                            #NOTE: ECMWF provides dew point temperature
                             {
                               'units' : {
                                             'ascii': '%',
@@ -316,6 +346,24 @@ class GRIDtoGSSHA(object):
                                                         'netcdf' : 1,
                                                     },
                             },
+                        'direct_radiation_j' :
+                            #DIRECT/BEAM/SOLAR RADIATION
+                            #NOTE: LSM
+                            #units = "J m-2" ;
+                            {
+                              'units' : {
+                                            'ascii': 'W hr m-2',
+                                            'netcdf': 'W hr m-2',
+                                        },
+                              'standard_name' : 'surface_direct_downward_shortwave_flux',
+                              'long_name' : 'Direct short wave radiation flux',
+                              'gssha_name' : 'direct_radiation',
+                              'hmet_name' : 'Drad',
+                              'conversion_factor' : {
+                                                        'ascii' : 1/3600.0,
+                                                        'netcdf' : 1/3600.0,
+                                                    },
+                            },
                         'diffusive_radiation' :
                             #DIFFUSIVE RADIATION
                             #NOTE: LSM
@@ -333,6 +381,25 @@ class GRIDtoGSSHA(object):
                               'conversion_factor' : {
                                                         'ascii' : 1,
                                                         'netcdf' : 1,
+                                                    },
+                            },
+                        'diffusive_radiation_j' :
+                            #DIFFUSIVE RADIATION
+                            #NOTE: LSM
+                            #ERA5: global_radiation - diffusive_radiation
+                            #units = "J m-2" ;
+                            {
+                              'units' : {
+                                            'ascii': 'W hr m-2',
+                                            'netcdf': 'W hr m-2',
+                                        },
+                              'standard_name' : 'surface_diffusive_downward_shortwave_flux',
+                              'long_name' : 'Diffusive short wave radiation flux',
+                              'gssha_name' : 'diffusive_radiation',
+                              'hmet_name' : 'Grad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
+                              'conversion_factor' : {
+                                                        'ascii' : 1/3600.0,
+                                                        'netcdf' : 1/3600.0,
                                                     },
                             },
                         'direct_radiation_cc' :
@@ -440,6 +507,21 @@ class GRIDtoGSSHA(object):
         self.lsm_time_dim = lsm_time_dim
         self.output_timezone = output_timezone
         self._xd = None
+        # load in GSSHA model files
+        chdir(self.gssha_project_folder)
+        sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
+        db_session = dbt.create_session(sqlalchemy_url, sql_engine)
+        project_manager = ProjectFile()
+        project_manager.read(directory=self.gssha_project_folder,
+                             filename=self.gssha_project_file_name,
+                             session=db_session)
+
+        self.gssha_grid = project_manager.getGrid()
+        if self.output_timezone is None:
+            self.output_timezone = project_manager.timezone
+        db_session.close()
+
+        # load in modeling extent
         self._load_modeling_extent()
 
     @property
@@ -449,6 +531,12 @@ class GRIDtoGSSHA(object):
             path_to_lsm_files = path.join(self.lsm_input_folder_path,
                                           self.lsm_search_card)
             def define_coords(ds):
+                # remove time dimension from coordinates
+                if ds[self.lsm_lat_var].ndim == 3:
+                    ds[self.lsm_lat_var] = ds[self.lsm_lat_var].squeeze(self.lsm_time_dim)
+                if ds[self.lsm_lon_var].ndim == 3:
+                    ds[self.lsm_lon_var] = ds[self.lsm_lon_var].squeeze(self.lsm_time_dim)
+                # make sure coords are defined as coords
                 if self.lsm_lat_var not in ds.coords \
                         or self.lsm_lon_var not in ds.coords:
                     ds.set_coords([self.lsm_lat_var, self.lsm_lon_var],
@@ -496,19 +584,6 @@ class GRIDtoGSSHA(object):
         ####
         #STEP 1: Get extent from GSSHA Grid in LSM coordinates
         ####
-        chdir(self.gssha_project_folder)
-        sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
-        db_session = dbt.create_session(sqlalchemy_url, sql_engine)
-        project_manager = ProjectFile()
-        project_manager.read(directory=self.gssha_project_folder,
-                             filename=self.gssha_project_file_name,
-                             session=db_session)
-
-        self.gssha_grid = project_manager.getGrid()
-        if self.output_timezone is None:
-            self.output_timezone = project_manager.timezone
-        db_session.close()
-
         # reproject GSSHA grid and get bounds
         lsm_proj = self.xd.lsm.projection
         ggrid = gdal_reproject(self.gssha_grid.dataset,
@@ -556,21 +631,21 @@ class GRIDtoGSSHA(object):
         This function loads data from LSM and converts to GSSHA format
         """
         if 'radiation' in gssha_var:
+            conversion_factor = self.netcdf_attributes[gssha_var]['conversion_factor'][load_type]
             if gssha_var.startswith('direct_radiation') and not isinstance(lsm_var, basestring):
                 #direct_radiation = (1-DIFFUSIVE_FRACION)*global_radiation
                 global_radiation_var, diffusive_fraction_var = lsm_var
-                global_radiation = self._load_lsm_data(global_radiation_var)
+                global_radiation = self._load_lsm_data(global_radiation_var, conversion_factor)
                 diffusive_fraction = self._load_lsm_data(diffusive_fraction_var)
                 if gssha_var.endswith("cc"):
                     diffusive_fraction /= 100.0
 
                 self.data = ((1-diffusive_fraction)*global_radiation)
 
-
             elif gssha_var.startswith('diffusive_radiation') and not isinstance(lsm_var, basestring):
                 #diffusive_radiation = DIFFUSIVE_FRACION*global_radiation
                 global_radiation_var, diffusive_fraction_var = lsm_var
-                global_radiation = self._load_lsm_data(global_radiation_var)
+                global_radiation = self._load_lsm_data(global_radiation_var, conversion_factor)
                 diffusive_fraction = self._load_lsm_data(diffusive_fraction_var)
                 if gssha_var.endswith("cc"):
                     diffusive_fraction /= 100
@@ -579,7 +654,7 @@ class GRIDtoGSSHA(object):
             elif isinstance(lsm_var, basestring):
                 self.data = self._load_lsm_data(lsm_var, self.netcdf_attributes[gssha_var]['conversion_factor'][load_type])
             else:
-                raise IndexError("Invalid LSM variable ({0}) for GSSHA variable {1}".format(lsm_var, gssha_var))
+                raise ValueError("Invalid LSM variable ({0}) for GSSHA variable {1}".format(lsm_var, gssha_var))
 
         elif gssha_var == 'relative_humidity' and not isinstance(lsm_var, str):
             ##CONVERSION ASSUMPTIONS:
@@ -594,22 +669,22 @@ class GRIDtoGSSHA(object):
             specific_humidity = self._load_lsm_data(specific_humidity_var)
             pressure = self._load_lsm_data(pressure_var)
             temperature = self._load_lsm_data(temperature_var)
-            ##METHOD 1:
             ##To compute the relative humidity at 2m,
-            ##given T and Q (water vapor mixing ratio) at 2 m and PSFC (surface pressure):
-            ##Es(saturation vapor pressure in Pa)=611.2*exp(17.62*(T2-273.16)/(243.12+T2-273.16))
+            ##given T, Q (water vapor mixing ratio) at 2 m and PSFC (surface pressure):
+            ##Es(saturation vapor pressure in Pa)
             ##Qs(saturation mixing ratio)=(0.622*es)/(PSFC-es)
             ##RH = 100*Q/Qs
-            es = (611.2*xu.exp(17.62*(temperature-273.16)
-                  /(243.12+temperature-273.16)))
-            self.data = (100 * specific_humidity/
-                         ((0.622*es)/(pressure-
-                         es)))
+            es = esat(temperature)
+            self.data = 100 * specific_humidity/((0.622*es)/(pressure-es))
 
-            ##METHOD 2:
-            ##http://earthscience.stackexchange.com/questions/2360/how-do-i-convert-specific-humidity-to-relative-humidity
-            #pressure in Pa, temperature in K
-            ##self.data_np_array = 0.263*pressure_array*specific_humidity_array/np.exp(17.67*(temperature_array-273.16)/(temperature_array-29.65))
+        elif gssha_var == 'relative_humidity_dew':
+            # https://software.ecmwf.int/wiki/display/CKB/Do+ERA+datasets+contain+parameters+for+near-surface+humidity
+            # temperature in Kelvin
+            # RH = 100 * es(Td)/es(T)
+            dew_point_temp_var, temperature_var = lsm_var
+            dew_point_temp = self._load_lsm_data(dew_point_temp_var)
+            temperature = self._load_lsm_data(temperature_var)
+            self.data = 100 * esat(dew_point_temp)/esat(temperature)
 
         elif gssha_var == 'wind_speed' and not isinstance(lsm_var, str):
             # WRF:  http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
@@ -651,6 +726,12 @@ class GRIDtoGSSHA(object):
                 time_step_hours = np.diff(self.xd[self.lsm_time_var].values)[0]/np.timedelta64(1, 'h')
                 self.data.values /= time_step_hours
 
+        if 'precipitation' in gssha_var and not isinstance(lsm_var, str):
+            if 'units' in self.data.attrs:
+                if self.data.attrs['units'] == 'm':
+                    # convert from m to mm
+                    self.data.values *= 1000
+
         # convert to dataset
         gssha_data_var_name = self.netcdf_attributes[gssha_var]['gssha_name']
         self.data = self.data.to_dataset(name=gssha_data_var_name)
@@ -684,15 +765,15 @@ class GRIDtoGSSHA(object):
             gssha_data_hmet_name = self.netcdf_attributes[gssha_data_var]['hmet_name']
 
             if gssha_data_hmet_name in given_hmet_var_list:
-                raise IndexError("Duplicate parameter for HMET variable {0}"
+                raise ValueError("Duplicate parameter for HMET variable {0}"
                                  .format(gssha_data_hmet_name))
             else:
                 given_hmet_var_list.append(gssha_data_hmet_name)
 
         for REQUIRED_HMET_VAR in REQUIRED_HMET_VAR_LIST:
             if REQUIRED_HMET_VAR not in given_hmet_var_list:
-                raise Exception("ERROR: HMET param is required to continue "
-                                "{0} ...".format(REQUIRED_HMET_VAR))
+                raise ValueError("ERROR: HMET param is required to continue "
+                                 "{0} ...".format(REQUIRED_HMET_VAR))
 
     def _resample_data(self, gssha_var):
         """
@@ -833,7 +914,7 @@ class GRIDtoGSSHA(object):
         """
         VALID_TYPES = ["ACCUM", "RADAR", "GAGES"] #NOTE: "RATES" currently not supported
         if precip_type not in VALID_TYPES:
-            raise IndexError("ERROR: {0} is not a valid type. Valid types include: {1}".format(type, VALID_TYPES))
+            raise ValueError("ERROR: {0} is not a valid type. Valid types include: {1}".format(type, VALID_TYPES))
 
         gssha_precip_type = "precipitation_inc"
         if precip_type == "ACCUM":
@@ -1104,7 +1185,7 @@ class GRIDtoGSSHA(object):
 
                 output_datasets.append(self.data)
             else:
-                raise IndexError("Invalid GSSHA variable name: {0} ...".format(gssha_var))
+                raise ValueError("Invalid GSSHA variable name: {0} ...".format(gssha_var))
         output_dataset = xr.merge(output_datasets)
         #add global attributes
         output_dataset.attrs['Convention'] = 'CF-1.6'

@@ -391,10 +391,6 @@ class LongTermMode(Event):
             hmet_ascii_output_folder(Optional[str]): Path to diretory to output HMET ASCII files. Mutually exclusice with netcdf_file_path. Default is None.
             netcdf_file_path(Optional[str]): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Mutually exclusice with hmet_ascii_output_folder. Default is None.
         """
-        gssha_msk_card = self.project_manager.getCard("WATERSHED_MASK")
-        if gssha_msk_card is None:
-            raise Exception("ERROR: WATERSHED_MASK card not found ...")
-
         l2g = GRIDtoGSSHA(gssha_project_folder=self.gssha_directory,
                           gssha_project_file_name="{0}.prj".format(self.project_manager.name),
                           lsm_input_folder_path=lsm_folder,

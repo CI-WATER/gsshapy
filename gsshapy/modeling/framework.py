@@ -71,10 +71,10 @@ class GSSHAFramework(object):
         ckan_owner_organization(Optional[str]): CKAN owner organization.
         path_to_rapid_qout(Optional[str]): Path to the RAPID Qout file. Use this if you do NOT want to download the forecast and you want to use RAPID streamflows.
         connection_list_file(Optional[str]): CSV file with list connecting GSSHA rivers to RAPID river network. See: http://rapidpy.readthedocs.io/en/latest/rapid_to_gssha.html
-        lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gsshapy.grid.grid_to_gssha.GRIDtoGSSHA`.
-        lsm_data_var_map_array(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gsshapy.grid.grid_to_gssha.GRIDtoGSSHA.`
-        lsm_precip_data_var(Optional[list or str]): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gsshapy.grid.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
-        lsm_precip_type(Optional[str]): Type of precipitation. See: :func:`~gsshapy.grid.grid_to_gssha.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+        lsm_folder(Optional[str]): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_data_var_map_array(Optional[str]): Array with connections for LSM output and GSSHA input. See: :func:`~gsshapy.grid.GRIDtoGSSHA.`
+        lsm_precip_data_var(Optional[list or str]): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gsshapy.grid.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+        lsm_precip_type(Optional[str]): Type of precipitation. See: :func:`~gsshapy.grid.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
         lsm_lat_var(Optional[str]): Name of the latitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
         lsm_lon_var(Optional[str]): Name of the longitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
         lsm_time_var(Optional[str]): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.

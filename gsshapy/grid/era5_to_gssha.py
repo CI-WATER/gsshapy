@@ -7,11 +7,7 @@
 #  License BSD 3-Clause
 
 import logging
-import numpy as np
-import pandas as pd
-from os import mkdir, part
 from datetime import timedelta
-from ecmwfapi import ECMWFDataServer
 from os import mkdir, path
 import xarray as xr
 
@@ -58,6 +54,10 @@ def download_era5_for_gssha(main_directory,
         download_hrrr_for_gssha(era5_folder, leftlon, rightlon, toplat, bottomlat)
 
     """
+    # parameters: https://software.ecmwf.int/wiki/display/CKB/ERA5_test+data+documentation#ERA5_testdatadocumentation-Parameterlistings
+
+    # import here to make sure it is not required to run
+    from ecmwfapi import ECMWFDataServer
     server = ECMWFDataServer()
 
     try:
@@ -65,33 +65,84 @@ def download_era5_for_gssha(main_directory,
     except OSError:
         pass
 
-    while start_datetime < end_datetime:
-        download_file = path.join(main_directory, "era5_gssha_{0}.grib".format(start_datetime.strftime("%Y%m%d")))
-        server.retrieve({
-            'dataset': "era5_test",
-            #  'oper' specifies the high resolution daily data, as opposed to monthly means, wave, eda edmm, etc.
-            'stream': "oper",
-            #  We want instantaneous parameters, which are archived as type Analysis ('an') as opposed to forecast (fc)
-            'type': "an",
-            #  Surface level, as opposed to pressure level (pl) or model level (ml)
-            'levtype': "sfc",
-            # For parameter codes see the ECMWF parameter database at http://apps.ecmwf.int/codes/grib/param-db
-            'param': "tcrw/2t/168.128/sp/10u/10v/aluvp/aluvd/tcc",
-            # The spatial resolution in ERA5 is 31 km globally on a Gaussian grid.
-            # Here we us lat/long with 0.25 degrees, which is approximately the equivalent of 31km.
-            'grid': "0.25/0.25",
-            # ERA5 provides hourly analysis
-            'time': "00/to/23/by/1",
-            # area:  N/W/S/E
-            'area': "{toplat}/{leftlon}/{bottomlat)/{rightlon}".format(toplat=toplat,
-                                                                       leftlon=leftlon,
-                                                                       bottomlat=bottomlat,
-                                                                       rightlon=rightlon),
-            'date': start_datetime.strftime("%Y-%m-%d"),
-            'target': download_file  # Default output format is GRIB
-        })
-        start_datetime += timedelta(1)
+    download_area = "{toplat}/{leftlon}/{bottomlat}/{rightlon}".format(toplat=toplat,
+                                                               leftlon=leftlon,
+                                                               bottomlat=bottomlat,
+                                                               rightlon=rightlon)
+    download_datetime = start_datetime
+    while download_datetime <= end_datetime:
+        download_file = path.join(main_directory, "era5_gssha_{0}.nc".format(download_datetime.strftime("%Y%m%d")))
+        download_date = download_datetime.strftime("%Y-%m-%d")
+        if not path.exists(download_file):
+            server.retrieve({
+                'dataset': "era5_test",
+                #  'oper' specifies the high resolution daily data, as opposed to monthly means, wave, eda edmm, etc.
+                'stream': "oper",
+                #  We want instantaneous parameters, which are archived as type Analysis ('an') as opposed to forecast (fc)
+                'type': "an",
+                #  Surface level, as opposed to pressure level (pl) or model level (ml)
+                'levtype': "sfc",
+                # For parameter codes see the ECMWF parameter database at http://apps.ecmwf.int/codes/grib/param-db
+                'param': "2t/2d/sp/10u/10v/tcc",
+                # The spatial resolution in ERA5 is 31 km globally on a Gaussian grid.
+                # Here we us lat/long with 0.25 degrees, which is approximately the equivalent of 31km.
+                'grid': "0.25/0.25",
+                # ERA5 provides hourly analysis
+                'time': "00/to/23/by/1",
+                # area:  N/W/S/E
+                'area': download_area,
+                'date': download_date,
+                'target': download_file,
+                'format': 'netcdf',
+            })
 
+        era5_request = {
+            'dataset': "era5_test",
+            'stream': "oper",
+            'type': "fc",
+            'levtype': "sfc",
+            'param': "tp/ssr/ssrd",
+            'grid': "0.25/0.25",
+            'area': download_area,
+            'format': 'netcdf',
+        }
+        prec_download_file = path.join(main_directory, "era5_gssha_{0}_fc.nc".format(download_datetime.strftime("%Y%m%d")))
+        loc_download_file0 = path.join(main_directory, "era5_gssha_{0}_0_fc.nc".format(download_datetime.strftime("%Y%m%d")))
+        loc_download_file1 = path.join(main_directory, "era5_gssha_{0}_1_fc.nc".format(download_datetime.strftime("%Y%m%d")))
+        if download_datetime <= start_datetime and not path.exists(loc_download_file0):
+            loc_download_date = (download_datetime-timedelta(1)).strftime("%Y-%m-%d")
+            # precipitation 0000-0600
+            era5_request['step'] = "6/to/12/by/1"
+            era5_request['time'] = "18"
+            era5_request['target'] = loc_download_file0
+            era5_request['date'] = loc_download_date
+            server.retrieve(era5_request)
+
+        if download_datetime == end_datetime and not path.exists(loc_download_file0):
+            loc_download_date = download_datetime.strftime("%Y-%m-%d")
+            # precipitation 0600-1800
+            era5_request['step'] = "1/to/12/by/1"
+            era5_request['time'] = "06"
+            era5_request['target'] = loc_download_file0
+            era5_request['date'] = loc_download_date
+            server.retrieve(era5_request)
+        if download_datetime == end_datetime and not path.exists(loc_download_file1):
+            loc_download_date = download_datetime.strftime("%Y-%m-%d")
+            # precipitation 1800-2300
+            era5_request['step'] = "1/to/5/by/1"
+            era5_request['time'] = "18"
+            era5_request['target'] = loc_download_file1
+            era5_request['date'] = loc_download_date
+            server.retrieve(era5_request)
+        if download_datetime < end_datetime and not path.exists(prec_download_file):
+            # precipitation 0600-0600 (next day)
+            era5_request['step'] = "1/to/12/by/1"
+            era5_request['time'] = "06/18"
+            era5_request['target'] = prec_download_file
+            era5_request['date'] = download_date
+            server.retrieve(era5_request)
+
+        download_datetime += timedelta(1)
 
 # ------------------------------------------------------------------------------
 # MAIN CLASS
@@ -99,6 +150,8 @@ def download_era5_for_gssha(main_directory,
 class ERA5toGSSHA(GRIDtoGSSHA):
     """This class converts the ERA5 output data to GSSHA formatted input.
     This class inherits from class:`GRIDtoGSSHA`.
+
+    .. note:: https://software.ecmwf.int/wiki/display/CKB/How+to+download+ERA5+test+data+via+the+ECMWF+Web+API
 
     Attributes:
         gssha_project_folder(:obj:`str`): Path to the GSSHA project folder
@@ -115,43 +168,58 @@ class ERA5toGSSHA(GRIDtoGSSHA):
 
     Example::
 
+        from datetime import datetime
         from gsshapy.grid import ERA5toGSSHA
 
         e2g = ERA5toGSSHA(gssha_project_folder='E:\\GSSHA',
                           gssha_project_file_name='gssha.prj',
                           lsm_input_folder_path='E:\\GSSHA\\era5-data',
                           lsm_search_card="*.grib",
+                          #download_start_datetime=datetime(2016,1,2),
+                          #download_end_datetime=datetime(2016,1,4),
                           )
 
-        # example data var map
+
+        out_gage_file = 'E:\\GSSHA\\era5_rain1.gag
+        e2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
+                                            lsm_data_var="tp",
+                                            precip_type="GAGES")
+
         data_var_map_array = [
-                               ['precipitation_acc', 'TCRW_GDS0_SFC'],
-                               ['pressure', 'SP_GDS0_SFC'],
-                               ['relative_humidity', ['2D_GDS0_SFC','2T_GDS0_SFC']],
-                               ['wind_speed', ['UGRD_P0_L103_GLC0', 'VGRD_P0_L103_GLC0']],
-                               ['direct_radiation', 'ALUVD_GDS0_SFC'],
-                               ['diffusive_radiation', 'ALUVP_GDS0_SFC'],
-                               ['temperature', '2T_GDS0_SFC'],
-                               ['cloud_cover', 'TCC_GDS0_SFC'],
+                               ['precipitation_inc', 'tp'],
+                               ['pressure', 'sp'],
+                               ['relative_humidity_dew', ['d2m','t2m']],
+                               ['wind_speed', ['u10', 'v10']],
+                               ['direct_radiation', 'aluvp'],
+                               ['diffusive_radiation', 'aluvd'],
+                               ['temperature', 't2m'],
+                               ['cloud_cover', 'tcc'],
                               ]
 
+        e2g.lsm_data_to_arc_ascii(data_var_map_array)
     """
     def __init__(self,
                  gssha_project_folder,
                  gssha_project_file_name,
                  lsm_input_folder_path,
-                 lsm_search_card,
-                 lsm_lat_var='g0_lat_1',
-                 lsm_lon_var='g0_lon_2',
-                 lsm_time_var='initial_time0_hours',
-                 lsm_lat_dim='g0_lat_1',
-                 lsm_lon_dim='g0_lon_2',
-                 lsm_time_dim='initial_time0_hours',
+                 lsm_search_card="*.nc",
+                 lsm_lat_var='latitude',
+                 lsm_lon_var='longitude',
+                 lsm_time_var='time',
+                 lsm_lat_dim='latitude',
+                 lsm_lon_dim='longitude',
+                 lsm_time_dim='time',
                  output_timezone=None,
+                 download_start_datetime=None,
+                 download_end_datetime=None,
+                 lsm_precip_folder_path=None,
                  ):
         """
         Initializer function for the HRRRtoGSSHA class
         """
+        self.download_start_datetime = download_start_datetime
+        self.download_end_datetime = download_end_datetime
+
         super(ERA5toGSSHA, self).__init__(gssha_project_folder,
                                           gssha_project_file_name,
                                           lsm_input_folder_path,
@@ -164,21 +232,29 @@ class ERA5toGSSHA(GRIDtoGSSHA):
                                           lsm_time_dim,
                                           output_timezone)
 
+    def _download(self):
+        """download ERA5 data for GSSHA domain"""
+        log.info("Downloading ERA5 data ...")
+        # reproject GSSHA grid and get bounds
+        min_x, max_x, min_y, max_y = self.gssha_grid.bounds(as_geographic=True)
+        download_era5_for_gssha(self.lsm_input_folder_path,
+                                self.download_start_datetime,
+                                self.download_end_datetime,
+                                leftlon=min_x-0.5,
+                                rightlon=max_x+0.5,
+                                toplat=max_y+0.5,
+                                bottomlat=min_y-0.5)
+
     @property
     def xd(self):
         """get xarray dataset file handle to LSM files"""
         if self._xd is None:
+            # download files if the user requests
+            if None not in (self.download_start_datetime, self.download_end_datetime):
+                self._download()
+
             path_to_lsm_files = path.join(self.lsm_input_folder_path,
                                           self.lsm_search_card)
-            self._xd = xr.open_mfdataset(path_to_lsm_files,
-                                         autoclose=True,
-                                         engine='pynio')
-                                         
-            self._xd.lsm.y_var = self.lsm_lat_var
-            self._xd.lsm.x_var = self.lsm_lon_var
-            self._xd.lsm.time_var = self.lsm_time_var
-            self._xd.lsm.y_dim = self.lsm_lat_dim
-            self._xd.lsm.x_dim = self.lsm_lon_dim
-            self._xd.lsm.time_dim = self.lsm_time_dim
-            self._xd.lsm.to_datetime()
+            self._xd = super(ERA5toGSSHA, self).xd
+            self._xd.lsm.lon_to_180 = True
         return self._xd

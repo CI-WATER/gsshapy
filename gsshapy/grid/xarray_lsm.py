@@ -37,6 +37,8 @@ class LSMGridReader(object):
         self.y_dim = 'y'
         self.x_dim = 'x'
         self.time_dim = 'time'
+        # convert lon from [0 to 360] to [-180 to 180]
+        self.lon_to_180 = False
 
 
     def to_datetime(self):
@@ -194,46 +196,48 @@ class LSMGridReader(object):
         if 'MAP_PROJ' in self._obj.attrs:
             lat, lon = wrf.latlon_coords(self._obj, as_np=True)
             # WRF Grid is upside down
-            lat = lat[0, ::-1]
-            lon = lon[0, ::-1]
+            lat = lat[::-1]
+            lon = lon[::-1]
         else:
             lon = self._obj[self.x_var].values
             lat = self._obj[self.y_var].values
 
         if lat.ndim == 3:
-            lat = lat[0]
+            lat = lat.squeeze(self.time_dim)
         if lon.ndim == 3:
-            lon = lon[0]
+            lon = lon.squeeze(self.time_dim)
+
+        if self.lon_to_180:
+            lon = (lon + 180) % 360 - 180 # convert [0, 360] to [-180, 180]
+
+        if lat.ndim < 2:
+            lon, lat = np.meshgrid(lon, lat)
 
         return lat, lon
 
     def coords(self, as_2d=False):
         """Returns x, y coordinate lists"""
         try:
-            y_coords, x_coords = self.latlon
-            proj_x, proj_y = transform(Proj(init='epsg:4326'),
-                                       Proj(self.projection.ExportToProj4()),
-                                       x_coords,
-                                       y_coords,
-                                       )
-            return proj_y, proj_x
+            lat, lon = self.latlon
+            x_coords, y_coords = transform(Proj(init='epsg:4326'),
+                                           Proj(self.projection.ExportToProj4()),
+                                           lon,
+                                           lat,
+                                           )
         except KeyError:
+            x_size = self.x_size
+            y_size = self.y_size
+            x_coords = np.zeros((y_size, x_size))
+            y_coords = np.zeros((y_size, x_size))
+
+            for x in range(x_size):
+                for y in range(y_size):
+                    x_coords[y, x], y_coords[y, x] = self.pixel2coord(x,y)
             pass
 
-        x_size = self.x_size
-        y_size = self.y_size
-        x_2d_coords = np.zeros((y_size, x_size))
-        y_2d_coords = np.zeros((y_size, x_size))
-
-        for x in range(x_size):
-            for y in range(y_size):
-                x_2d_coords[y, x], y_2d_coords[y, x] = self.pixel2coord(x,y)
-
         if not as_2d:
-            return y_coords.mean(axis=1), x_2d_coords.mean(axis=0)
-
-        return y_2d_coords, x_2d_coords
-
+            return y_coords.mean(axis=1), x_coords.mean(axis=0)
+        return y_coords, x_coords
     @property
     def center(self):
         """Return the geographic center point of this dataset."""
