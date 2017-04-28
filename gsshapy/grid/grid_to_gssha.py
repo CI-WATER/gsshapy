@@ -530,7 +530,9 @@ class GRIDtoGSSHA(object):
         if self._xd is None:
             path_to_lsm_files = path.join(self.lsm_input_folder_path,
                                           self.lsm_search_card)
+
             def define_coords(ds):
+                """xarray loader to ensure coordinates are loaded correctly"""
                 # remove time dimension from coordinates
                 if ds[self.lsm_lat_var].ndim == 3:
                     ds[self.lsm_lat_var] = ds[self.lsm_lat_var].squeeze(self.lsm_time_dim)
@@ -561,7 +563,7 @@ class GRIDtoGSSHA(object):
         """
         load subset based on extent
         """
-        y_coords, x_coords = self.xd.lsm.coords(as_2d=True)
+        y_coords, x_coords = self.xd.lsm.coords
         dx = self.xd.lsm.dx
         dy = self.xd.lsm.dy
 
@@ -582,7 +584,7 @@ class GRIDtoGSSHA(object):
         # Determine range within LSM Grid
         """
         ####
-        #STEP 1: Get extent from GSSHA Grid in LSM coordinates
+        # STEP 1: Get extent from GSSHA Grid in LSM coordinates
         ####
         # reproject GSSHA grid and get bounds
         lsm_proj = self.xd.lsm.projection
@@ -936,7 +938,7 @@ class GRIDtoGSSHA(object):
                 gage_file.write(u"EVENT \"Event of {0}\"\n".format(self._time_to_string(self.data.lsm.datetime[0])))
             gage_file.write(u"NRPDS {0}\n".format(self.data.dims['time']))
             gage_file.write(u"NRGAG {0}\n".format(self.data.dims['x']*self.data.dims['y']))
-            y_coords, x_coords = self.data.lsm.coords(as_2d=True)
+            y_coords, x_coords = self.data.lsm.coords
             for y_idx in range(self.data.dims['y']):
                 for x_idx in range(self.data.dims['x']):
                     coord_idx = y_idx*self.data.dims['x'] + x_idx

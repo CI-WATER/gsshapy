@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-##
-##  xarray_lsm.py
-##  GSSHApy
-##
-##  Created by Alan D Snow, 2017.
-##  License BSD 3-Clause
+#
+#  xarray_lsm.py
+#  GSSHApy
+#
+#  Created by Alan D Snow, 2017.
+#  License BSD 3-Clause
 
 from affine import Affine
-import math
 import numpy as np
 from osgeo import osr, gdalconst
 import pandas as pd
@@ -17,7 +16,8 @@ import xarray as xr
 
 from ..lib.grid_tools import (geotransform_from_latlon, gdal_reproject,
                               resample_grid, utm_proj_from_latlon,
-                              ArrayGrid, GDALGrid)
+                              ArrayGrid)
+
 
 @xr.register_dataset_accessor('lsm')
 class LSMGridReader(object):
@@ -40,7 +40,6 @@ class LSMGridReader(object):
         # convert lon from [0 to 360] to [-180 to 180]
         self.lon_to_180 = False
 
-
     def to_datetime(self):
         """Converts time to datetime."""
         time_values = self._obj[self.time_var].values
@@ -48,9 +47,10 @@ class LSMGridReader(object):
             try:
                 self._obj[self.time_var].values = pd.to_datetime(time_values)
             except ValueError:
-                # ONE POTENTIAL WRF FORMAT
+                # WRF DATETIME FORMAT
                 self._obj[self.time_var].values = pd.to_datetime(time_values,
                                                                  format="%Y-%m-%d_%H:%M:%S")
+
     @property
     def datetime(self):
         """Get datetime object for time index"""
@@ -112,7 +112,7 @@ class LSMGridReader(object):
                          )
         else:
             raise ValueError("Unsupported projection: {grid_type}"
-                             .format(grid_type))
+                             .format(lat_var_attrs['grid_type']))
 
         # export to Proj4 and add as osr projection
         self._projection = osr.SpatialReference()
@@ -124,7 +124,6 @@ class LSMGridReader(object):
         if self._projection is None:
             # read projection information from global attributes
             map_proj4 = self._obj.attrs.get('proj4')
-            map_proj = self._obj.attrs.get('MAP_PROJ')
             if map_proj4 is not None:
                 self._projection = osr.SpatialReference()
                 self._projection.ImportFromProj4(map_proj4)
@@ -161,7 +160,7 @@ class LSMGridReader(object):
                 self._geotransform = [float(g) for g in self._obj.attrs.get('geotransform')]
 
             elif str(self.epsg) != '4326':
-                proj_y, proj_x = self.coords()
+                proj_y, proj_x = self.coords
                 self._geotransform = geotransform_from_latlon(proj_y,
                                                               proj_x)
             else:
@@ -192,52 +191,42 @@ class LSMGridReader(object):
 
     @property
     def latlon(self):
-        """Returns lat,lon"""
+        """Returns lat,lon arrays"""
         if 'MAP_PROJ' in self._obj.attrs:
             lat, lon = wrf.latlon_coords(self._obj, as_np=True)
-            # WRF Grid is upside down
-            lat = lat[::-1]
-            lon = lon[::-1]
         else:
             lon = self._obj[self.x_var].values
             lat = self._obj[self.y_var].values
 
         if lat.ndim == 3:
-            lat = lat.squeeze(self.time_dim)
+            lat = lat[0]
         if lon.ndim == 3:
-            lon = lon.squeeze(self.time_dim)
+            lon = lon[0]
+
+        if 'MAP_PROJ' in self._obj.attrs:
+            # WRF Grid is upside down
+            lat = lat[::-1]
+            lon = lon[::-1]
 
         if self.lon_to_180:
-            lon = (lon + 180) % 360 - 180 # convert [0, 360] to [-180, 180]
+            lon = (lon + 180) % 360 - 180  # convert [0, 360] to [-180, 180]
 
         if lat.ndim < 2:
             lon, lat = np.meshgrid(lon, lat)
 
         return lat, lon
 
-    def coords(self, as_2d=False):
-        """Returns x, y coordinate lists"""
-        try:
-            lat, lon = self.latlon
-            x_coords, y_coords = transform(Proj(init='epsg:4326'),
-                                           Proj(self.projection.ExportToProj4()),
-                                           lon,
-                                           lat,
-                                           )
-        except KeyError:
-            x_size = self.x_size
-            y_size = self.y_size
-            x_coords = np.zeros((y_size, x_size))
-            y_coords = np.zeros((y_size, x_size))
-
-            for x in range(x_size):
-                for y in range(y_size):
-                    x_coords[y, x], y_coords[y, x] = self.pixel2coord(x,y)
-            pass
-
-        if not as_2d:
-            return y_coords.mean(axis=1), x_coords.mean(axis=0)
+    @property
+    def coords(self):
+        """Returns y, x coordinate arrays"""
+        lat, lon = self.latlon
+        x_coords, y_coords = transform(Proj(init='epsg:4326'),
+                                       Proj(self.projection.ExportToProj4()),
+                                       lon,
+                                       lat,
+                                       )
         return y_coords, x_coords
+
     @property
     def center(self):
         """Return the geographic center point of this dataset."""
@@ -255,23 +244,23 @@ class LSMGridReader(object):
                                       new_data,
                                       self._obj[variable].attrs),
                            },
-                           coords={'lat': (['y', 'x'],
-                                            lats,
-                                            self._obj[variable].coords[self.y_var].attrs
-                                            ),
-                                    'lon': (['y', 'x'],
-                                            lons,
-                                            self._obj[variable].coords[self.x_var].attrs
-                                            ),
-                                    'time': (['time'],
-                                             self._obj[self.time_var].values,
-                                             self._obj[self.time_var].attrs,
-                                             ),
-                            },
-                            attrs={'proj4': grid.proj4,
-                                   'geotransform': grid.geotransform,
-                            }
-                        )
+                          coords={'lat': (['y', 'x'],
+                                          lats,
+                                          self._obj[variable].coords[self.y_var].attrs
+                                          ),
+                                  'lon': (['y', 'x'],
+                                          lons,
+                                          self._obj[variable].coords[self.x_var].attrs
+                                          ),
+                                  'time': (['time'],
+                                           self._obj[self.time_var].values,
+                                           self._obj[self.time_var].attrs,
+                                           ),
+                                  },
+                          attrs={'proj4': grid.proj4,
+                                 'geotransform': grid.geotransform,
+                                 }
+                          )
 
     def resample(self, variable, match_grid):
         """Resample data to grid."""
@@ -305,9 +294,9 @@ class LSMGridReader(object):
         sl[var.get_axis_num(self.x_dim)] = xslice
         sl[var.get_axis_num(self.y_dim)] = yslice
         if var.ndim == 4:
-            var = var[:,:,sl[-2], sl[-1]]
+            var = var[:, :, sl[-2], sl[-1]]
         else:
-            var = var[:,sl[-2], sl[-1]]
+            var = var[:, sl[-2], sl[-1]]
         return var
 
     def getvar(self, variable,
@@ -326,7 +315,7 @@ class LSMGridReader(object):
                 y_index_start = -y_index_end - 1
             y_index_end = self.y_size - original_y_index_start - 1
             if original_y_index_start < 0:
-                y_index_end = -y_index_start
+                y_index_end = -original_y_index_start
 
         data = self._getvar(variable,
                             slice(x_index_start, x_index_end),
