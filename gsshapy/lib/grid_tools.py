@@ -201,7 +201,7 @@ class GDALGrid(object):
 
         return proj_lats, proj_lons
 
-    def np_array(self, band=1):
+    def np_array(self, band=1, masked=True):
         """Returns the raster band as a numpy array
         """
         if band == 'all':
@@ -210,7 +210,7 @@ class GDALGrid(object):
             raster_band = self.dataset.GetRasterBand(band)
             grid_data = raster_band.ReadAsArray()
             nodata_value = raster_band.GetNoDataValue()
-            if nodata_value is not None:
+            if nodata_value is not None and masked:
                 return np.ma.array(data=grid_data,
                                    mask=(grid_data==nodata_value))
         return np.array(grid_data)
@@ -247,7 +247,7 @@ class GDALGrid(object):
             out_ascii_grid.write(header_string)
             grid_writer = csv_writer(out_ascii_grid,
                                      delimiter=" ")
-            grid_writer.writerows(self.np_array(band))
+            grid_writer.writerows(self.np_array(band, masked=False))
 
     def to_grass_ascii(self, file_path, band=1, print_nodata=True):
         """Writes data to GRASS ASCII file format.
