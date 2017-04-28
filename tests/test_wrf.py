@@ -14,8 +14,6 @@ from shutil import copytree
 from .template import TestGridTemplate
 from gsshapy.grid import GRIDtoGSSHA
 
-SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
-
 
 class TestLSMtoGSSHA(TestGridTemplate):
     def setUp(self):

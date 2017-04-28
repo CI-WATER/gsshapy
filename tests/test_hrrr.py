@@ -26,8 +26,6 @@ from gsshapy.grid import HRRRtoGSSHA
 ##Precipitation rate, prate
 ##Downward short-wave radiation flux, dswrf
 
-SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
-
 
 class TestHRRRtoGSSHA(TestGridTemplate):
     def setUp(self):
