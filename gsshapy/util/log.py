@@ -31,20 +31,22 @@ def log_to_console(status=True, level=None):
       """
 
     if status:
-
-        console_handler = logging.StreamHandler()
-
-        logger.addHandler(console_handler)
-
         if level is not None:
             logger.setLevel(level)
+
+        console_handler = logging.StreamHandler()
+        # create formatter
+        formatter = logging.Formatter('%(levelname)s-%(name)s: %(message)s')
+        # add formatter to handler
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
 
         logger.info("GSSHApy {0}".format(version()))
 
     else:
-        for i, j in enumerate(logger.handlers):
-            if type(j).__name__ == 'StreamHandler':
-                logger.removeHandler(logger.handlers[i])
+        for h in logger.handlers:
+            if type(h).__name__ == 'StreamHandler':
+                logger.removeHandler(h)
 
 
 
@@ -63,20 +65,24 @@ def log_to_file(status=True, filename=default_log_file, level=None):
       """
 
     if status:
+        if level is not None:
+            logger.setLevel(level)
+
         try:
             os.mkdir(os.path.dirname(filename))
         except OSError:
             pass
 
         file_handler = logging.FileHandler(filename)
+        # create formatter
+        formatter = logging.Formatter('%(levelname)s-%(name)s: %(message)s')
+        # add formatter to handler
+        file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
-
-        if level is not None:
-            logger.setLevel(level)
 
         logger.info("GSSHApy {0}".format(version()))
 
     else:
-        for i, j in enumerate(logger.handlers):
-            if type(j).__name__ == 'FileHandler':
-                logger.removeHandler(logger.handlers[i])
+        for h in logger.handlers:
+            if type(h).__name__ == 'FileHandler':
+                logger.removeHandler(h)
