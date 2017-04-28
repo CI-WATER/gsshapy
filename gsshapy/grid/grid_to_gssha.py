@@ -625,6 +625,7 @@ class GRIDtoGSSHA(object):
                                   calc_4d_method=calc_4d_method,
                                   calc_4d_dim=calc_4d_dim,
                                   )
+        data = data.fillna(0)
         data.values *= conversion_factor
         return data
 

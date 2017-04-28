@@ -11,9 +11,7 @@ import unittest
 from shutil import copytree
 
 from .template import TestGridTemplate
-from gsshapy.grid import ERA5toGSSHA
-
-SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
+from gsshapy.grid import ERAtoGSSHA
 
 
 class TestERA5toGSSHA(TestGridTemplate):
@@ -55,10 +53,10 @@ class TestERA5toGSSHA(TestGridTemplate):
                                   ]
 
         era5_folder = os.path.join(self.writeDirectory, 'era5_raw_data')
-        self.l2g = ERA5toGSSHA(gssha_project_folder=self.gssha_project_folder,
-                               gssha_project_file_name='grid_standard.prj',
-                               lsm_input_folder_path=era5_folder,
-                               )
+        self.l2g = ERAtoGSSHA(gssha_project_folder=self.gssha_project_folder,
+                              gssha_project_file_name='grid_standard.prj',
+                              lsm_input_folder_path=era5_folder,
+                              )
 
     def _before_teardown(self):
         self.l2g.xd.close()
