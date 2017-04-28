@@ -71,9 +71,9 @@ class TestResampleShapefile(TestGridTemplate):
                              15.008194444444445,
                              16.008194444444445))
         assert_almost_equal(grid.bounds(as_utm=True),
-                            (285973.61070139543,
-                             392476.93554595835,
-                             1659475.3710990744,
+                            (284940.2424665766,
+                             393009.70510977274,
+                             1659170.2715823832,
                              1770872.3212051827))
         x_loc, y_loc = grid.pixel2coord(5,10)
         assert_almost_equal((x_loc, y_loc),
