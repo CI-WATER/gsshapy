@@ -101,8 +101,7 @@ class TestERA5toGSSHA(TestGridTemplate):
                                   compare_directory,
                                   ignore_file="hmet_file_list.txt",
                                   raster=True)
-    def tearDown(self):
-        return
+
 
 if __name__ == '__main__':
     unittest.main()
