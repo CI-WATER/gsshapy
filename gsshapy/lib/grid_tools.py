@@ -349,37 +349,33 @@ class ArrayGrid(GDALGrid):
 
         super(ArrayGrid, self).__init__(dataset)
 
-def geotransform_from_latlon(lats, lons, proj=None):
+def geotransform_from_yx(y_arr, x_arr, y_cell_size=None, x_cell_size=None):
     '''
-    get geotransform from arrays of latitude and longitude
-    WORKING PROGRESS
+    Calculates geotransform from arrays of y and x coords.
+    Assumes Y max and X min are at [0,0].
 
     Parameters:
-        lats(numpy array): Array of latitudes.
-        lons(numpy array): Array of longitudes.
-        proj(pyproj.Proj): Output projection.
+        y_arr(:obj:`numpy.array`): Array of latitudes or y coordinates.
+        x_arr(:obj:`numpy.array`): Array of longitudes or x coordinates.
+        y_cell_size(:obj:`numpy.array`, optional): Y cell size in projected coordinates.
+        x_cell_size(:obj:`numpy.array`, optional): X cell size from projected coordinates.
 
+    Returns:
+        geotransform: (x_min, x_cell_size, x_skew, y_max, y_skew, -y_cell_size)
     '''
-    if lats.ndim < 2:
-        lons_2d, lats_2d = np.meshgrid(lons, lats)
+    if y_arr.ndim < 2:
+        x_2d, y_2d = np.meshgrid(x_arr, y_arr)
     else:
-        lons_2d = lons
-        lats_2d = lats
-
-    if proj:
-        # get projected transform
-        lons_2d, lats_2d = transform(Proj(init='epsg:4326'),
-                                     proj,
-                                     lons_2d,
-                                     lats_2d,
-                                     )
-
+        x_2d = x_arr
+        y_2d = y_arr
     # get cell size
-    x_cell_size = np.nanmean(np.absolute(np.diff(lons_2d, axis=1)))
-    y_cell_size = np.nanmean(np.absolute(np.diff(lats_2d, axis=0)))
+    if x_cell_size is None:
+        x_cell_size = np.nanmean(np.absolute(np.diff(x_2d, axis=1)))
+    if y_cell_size is None:
+        y_cell_size = np.nanmean(np.absolute(np.diff(y_2d, axis=0)))
     # get top left corner
-    min_x_tl = lons_2d[0,0] - x_cell_size/2.0
-    max_y_tl = lats_2d[0,0] + y_cell_size/2.0
+    min_x_tl = x_2d[0,0] - x_cell_size/2.0
+    max_y_tl = y_2d[0,0] + y_cell_size/2.0
     return (min_x_tl, x_cell_size, 0, max_y_tl, 0, -y_cell_size)
 
 def load_raster(grid):

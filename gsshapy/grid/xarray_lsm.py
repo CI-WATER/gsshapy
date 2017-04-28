@@ -14,7 +14,7 @@ from pyproj import Proj, transform
 import wrf
 import xarray as xr
 
-from ..lib.grid_tools import (geotransform_from_latlon, gdal_reproject,
+from ..lib.grid_tools import (geotransform_from_yx, gdal_reproject,
                               resample_grid, utm_proj_from_latlon,
                               ArrayGrid)
 
@@ -161,10 +161,10 @@ class LSMGridReader(object):
 
             elif str(self.epsg) != '4326':
                 proj_y, proj_x = self.coords
-                self._geotransform = geotransform_from_latlon(proj_y,
-                                                              proj_x)
+                self._geotransform = geotransform_from_yx(proj_y,
+                                                          proj_x)
             else:
-                self._geotransform = geotransform_from_latlon(*self.latlon)
+                self._geotransform = geotransform_from_yx(*self.latlon)
 
         return self._geotransform
 
