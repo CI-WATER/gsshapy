@@ -75,7 +75,7 @@ def log_to_file(status=True, filename=default_log_file, level=None):
 
         file_handler = logging.FileHandler(filename)
         # create formatter
-        formatter = logging.Formatter('%(levelname)s-%(name)s: %(message)s')
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s-%(name)s: %(message)s')
         # add formatter to handler
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
