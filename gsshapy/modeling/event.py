@@ -12,9 +12,15 @@ import os
 from pytz import utc
 from RAPIDpy import RAPIDDataset
 
-from ..grid import GRIDtoGSSHA
+from ..grid import GRIDtoGSSHA, HRRRtoGSSHA, ERAtoGSSHA
 
 log = logging.getLogger(__name__)
+
+GRID_MODULES = {
+    'grid': GRIDtoGSSHA,
+    'hrrr': HRRRtoGSSHA,
+    'era' : ERAtoGSSHA
+}
 
 class Event(object):
     '''
@@ -32,6 +38,15 @@ class Event(object):
         simulation_end(Optional[datetime]): Date of simulation end.
         simulation_duration(Optional[timedelta]): Datetime timedelta object with duration of GSSHA simulation.
         load_simulation_datetime(Optional[bool]): If True, this will load in datetime information from the project file. Default is False.
+        lsm_folder(:obj:`str`, optional): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lat_var(:obj:`str`, optional): Name of the latitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lon_var(:obj:`str`, optional): Name of the longitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_time_var(:obj:`str`, optional): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lat_dim(:obj:`str`, optional): Name of the latitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lon_dim(:obj:`str`, optional): Name of the longitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_time_dim(:obj:`str`, optional): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_search_card(:obj:`str`, optional): Glob search pattern for LSM files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        grid_module(:obj:`str`, optional): The name of the LSM tool needed. Options are 'grid', 'hrrr', or 'era'.
     '''
     PRECIP_INTERP_TYPES = ('THIESSEN', 'INV_DISTANCE')
     ET_CALC_MODES = ("PENMAN", "DEARDORFF")
@@ -51,6 +66,15 @@ class Event(object):
                  simulation_end=None,
                  simulation_duration=None,
                  load_simulation_datetime=False,
+                 lsm_folder=None,
+                 lsm_lat_var=None,
+                 lsm_lon_var=None,
+                 lsm_time_var=None,
+                 lsm_lat_dim=None,
+                 lsm_lon_dim=None,
+                 lsm_time_dim=None,
+                 lsm_search_card=None,
+                 grid_module=None,
                  ):
 
         self.project_manager = project_manager
@@ -78,6 +102,32 @@ class Event(object):
             self._update_simulation_start(simulation_start)
 
         self._update_centroid_timezone()
+
+        # IF NEEDED, LOAD IN GRID CONVERTER
+        required_grid_args = (grid_module, lsm_folder, lsm_search_card,
+                              lsm_lat_var, lsm_lon_var, lsm_time_var,
+                              lsm_lat_dim, lsm_lon_dim, lsm_time_dim)
+
+        self.l2g = None
+        if None not in required_grid_args:
+            self.l2g = GRID_MODULES[grid_module](gssha_project_folder=self.gssha_directory,
+                                                 gssha_project_file_name="{0}.prj".format(self.project_manager.name),
+                                                 lsm_input_folder_path=lsm_folder,
+                                                 lsm_search_card=lsm_search_card,
+                                                 lsm_lat_var=lsm_lat_var,
+                                                 lsm_lon_var=lsm_lon_var,
+                                                 lsm_time_var=lsm_time_var,
+                                                 lsm_lat_dim=lsm_lat_dim,
+                                                 lsm_lon_dim=lsm_lon_dim,
+                                                 lsm_time_dim=lsm_time_dim,
+                                                 output_timezone=self.tz,
+                                                 )
+        # SIMULATION TIME CARDS
+        if self.simulation_start is None and self.l2g is not None:
+            ts = self.l2g.xd.lsm.datetime[0]
+            ts = ts.replace(tzinfo=utc) \
+                   .astimezone(tz=self.tz).replace(tzinfo=None)
+            self._update_simulation_start(ts)
 
     def _update_card(self, card_name, new_value, add_quotes=False):
         """
@@ -149,6 +199,37 @@ class Event(object):
                 self._update_card('RAIN_THIESSEN', '')
                 self.project_manager.deleteCard('RAIN_INV_DISTANCE', self.db_session)
 
+
+    def prepare_gag_lsm(self, lsm_precip_data_var, lsm_precip_type):
+        """
+        Prepares Gage output for GSSHA simulation
+
+        Parameters:
+            lsm_precip_data_var(list or str): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gsshapy.grid.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+            lsm_precip_type(str): Type of precipitation. See: :func:`~gsshapy.grid.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+        """
+        if self.l2g is None:
+            raise ValueError("LSM converter not loaded ...")
+
+        # PRECIPITATION CARD
+        out_gage_file = '{0}.gag'.format(self.project_manager.name)
+        self.l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
+                                                 lsm_data_var=lsm_precip_data_var,
+                                                 precip_type=lsm_precip_type)
+
+        # SIMULATION TIME CARDS
+        if self.simulation_start is None:
+            ts = self.l2g.xd.lsm.datetime[0]
+            ts = ts.replace(tzinfo=utc) \
+                   .astimezone(tz=self.tz).replace(tzinfo=None)
+            self._update_simulation_start(ts)
+
+        # precip file read in
+        self.add_precip_file(out_gage_file)
+
+        # make sure xarray dataset closed
+        self.l2g.xd.close()
+
     def prepare_rapid_streamflow(self, path_to_rapid_qout, connection_list_file):
         """
         Prepares RAPID streamflow for GSSHA simulation
@@ -212,6 +293,23 @@ class Event(object):
 class EventMode(Event):
     '''
     Object for ensuring required cards are active for EventMode
+
+    Parameters:
+        project_manager(ProjectFile): GSSHApy ProjecFile object.
+        db_session(Database session): Database session object.
+        simulation_start(datetime): Date of simulation start.
+        simulation_end(Optional[datetime]): Date of simulation end.
+        simulation_duration(Optional[timedelta]): Datetime timedelta object with duration of GSSHA simulation.
+        load_simulation_datetime(Optional[bool]): If True, this will load in datetime information from the project file. Default is False.
+        lsm_folder(:obj:`str`, optional): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lat_var(:obj:`str`, optional): Name of the latitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lon_var(:obj:`str`, optional): Name of the longitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_time_var(:obj:`str`, optional): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lat_dim(:obj:`str`, optional): Name of the latitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lon_dim(:obj:`str`, optional): Name of the longitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_time_dim(:obj:`str`, optional): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_search_card(:obj:`str`, optional): Glob search pattern for LSM files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        grid_module(:obj:`str`, optional): The name of the LSM tool needed. Options are 'grid', 'hrrr', or 'era'.            lsm_folder(:obj:`str`, optional): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gsshapy.grid.GRIDtoGSSHA`.
     '''
     def __init__(self,
                  project_manager,
@@ -221,7 +319,15 @@ class EventMode(Event):
                  simulation_end=None,
                  simulation_duration=None,
                  load_simulation_datetime=False,
-                 ):
+                 lsm_folder=None,
+                 lsm_lat_var=None,
+                 lsm_lon_var=None,
+                 lsm_time_var=None,
+                 lsm_lat_dim=None,
+                 lsm_lon_dim=None,
+                 lsm_time_dim=None,
+                 lsm_search_card=None,
+                 grid_module=None):
 
         if simulation_duration is None and None not in \
                 (simulation_start, simulation_end):
@@ -230,7 +336,10 @@ class EventMode(Event):
         super(EventMode, self).__init__(project_manager, db_session,
                                         gssha_directory, simulation_start,
                                         simulation_end, simulation_duration,
-                                        load_simulation_datetime)
+                                        load_simulation_datetime, lsm_folder,
+                                        lsm_lat_var, lsm_lon_var, lsm_time_var,
+                                        lsm_lat_dim, lsm_lon_dim, lsm_time_dim,
+                                        lsm_search_card, grid_module)
 
         # Clean up any long term mode cards
         for long_term_mode_card in self.LONG_TERM_MODE_CARDS:
@@ -269,6 +378,15 @@ class LongTermMode(Event):
         simulation_start(Optional[datetime]): Date of simulation start.
         simulation_end(Optional[datetime]): Date of simulation end.
         load_simulation_datetime(Optional[bool]): If True, this will load in datetime information from the project file. Default is False.
+        lsm_folder(:obj:`str`, optional): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lat_var(:obj:`str`, optional): Name of the latitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lon_var(:obj:`str`, optional): Name of the longitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_time_var(:obj:`str`, optional): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lat_dim(:obj:`str`, optional): Name of the latitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_lon_dim(:obj:`str`, optional): Name of the longitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_time_dim(:obj:`str`, optional): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        lsm_search_card(:obj:`str`, optional): Glob search pattern for LSM files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
+        grid_module(:obj:`str`, optional): The name of the LSM tool needed. Options are 'grid', 'hrrr', or 'era'.            lsm_folder(:obj:`str`, optional): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gsshapy.grid.GRIDtoGSSHA`.
         event_min_q(Optional[double]): Threshold discharge for continuing runoff events in m3/s. Default is 60.0.
         et_calc_mode(Optional[str]): Type of evapo-transpitation calculation for GSSHA. Can be "PENMAN" or "DEARDORFF". Default is "PENMAN".
         soil_moisture_depth(Optional[double]): Depth of the active soil moisture layer from which ET occurs (m). Default is 0.0.
@@ -282,6 +400,15 @@ class LongTermMode(Event):
                  simulation_end=None,
                  simulation_duration=None,
                  load_simulation_datetime=False,
+                 lsm_folder=None,
+                 lsm_lat_var=None,
+                 lsm_lon_var=None,
+                 lsm_time_var=None,
+                 lsm_lat_dim=None,
+                 lsm_lon_dim=None,
+                 lsm_time_dim=None,
+                 lsm_search_card=None,
+                 grid_module=None,
                  event_min_q=None,
                  et_calc_mode=None,
                  soil_moisture_depth=None,
@@ -290,7 +417,11 @@ class LongTermMode(Event):
         super(LongTermMode, self).__init__(project_manager, db_session,
                                            gssha_directory, simulation_start,
                                            simulation_end, simulation_duration,
-                                           load_simulation_datetime)
+                                           load_simulation_datetime, lsm_folder,
+                                           lsm_lat_var, lsm_lon_var,
+                                           lsm_time_var, lsm_lat_dim,
+                                           lsm_lon_dim, lsm_time_dim,
+                                           lsm_search_card, grid_module)
 
         # Clean up any event mode cards
         for evt_mode_card in self.EVENT_MODE_CARDS:
@@ -358,63 +489,22 @@ class LongTermMode(Event):
 
             self._update_card('GMT', offset_string)
 
-    def prepare_lsm_data(self,
-                         lsm_folder,
-                         lsm_data_var_map_array,
-                         lsm_precip_data_var,
-                         lsm_precip_type,
-                         lsm_lat_var,
-                         lsm_lon_var,
-                         lsm_time_var,
-                         lsm_lat_dim,
-                         lsm_lon_dim,
-                         lsm_time_dim,
-                         lsm_search_card,
+    def prepare_hmet_lsm(self, lsm_data_var_map_array,
                          hmet_ascii_output_folder=None,
-                         netcdf_file_path=None,
-                         ):
+                         netcdf_file_path=None):
         """
-        Prepares LSM output for GSSHA simulation
+        Prepares HMET data for GSSHA simulation from land surface model data.
 
         Parameters:
-            lsm_folder(str): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gsshapy.grid.GRIDtoGSSHA`.
             lsm_data_var_map_array(str): Array with connections for LSM output and GSSHA input. See: :func:`~gsshapy.grid.GRIDtoGSSHA.`
-            lsm_precip_data_var(list or str): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gsshapy.grid.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
-            lsm_precip_type(str): Type of precipitation. See: :func:`~gsshapy.grid.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
-            lsm_lat_var(str): Name of the latitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
-            lsm_lon_var(str): Name of the longitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
-            lsm_time_var(str): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
-            lsm_lat_dim(str): Name of the latitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
-            lsm_lon_dim(str): Name of the longitude variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
-            lsm_time_dim(str): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
-            lsm_search_card(str): Glob search pattern for LSM files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
             hmet_ascii_output_folder(Optional[str]): Path to diretory to output HMET ASCII files. Mutually exclusice with netcdf_file_path. Default is None.
             netcdf_file_path(Optional[str]): If you want the HMET data output as a NetCDF4 file for input to GSSHA. Mutually exclusice with hmet_ascii_output_folder. Default is None.
         """
-        l2g = GRIDtoGSSHA(gssha_project_folder=self.gssha_directory,
-                          gssha_project_file_name="{0}.prj".format(self.project_manager.name),
-                          lsm_input_folder_path=lsm_folder,
-                          lsm_search_card=lsm_search_card,
-                          lsm_lat_var=lsm_lat_var,
-                          lsm_lon_var=lsm_lon_var,
-                          lsm_time_var=lsm_time_var,
-                          lsm_lat_dim=lsm_lat_dim,
-                          lsm_lon_dim=lsm_lon_dim,
-                          lsm_time_dim=lsm_time_dim,
-                          output_timezone=self.tz,
-                         )
-
-        # SIMULATION TIME CARDS
-        if self.simulation_start is None:
-            ts = l2g.xd.lsm.datetime[0]
-            ts = ts.replace(tzinfo=utc) \
-                   .astimezone(tz=self.tz).replace(tzinfo=None)
-            self._update_simulation_start(ts)
-
-        self._update_simulation_start_cards()
+        if self.l2g is None:
+            raise ValueError("LSM converter not loaded ...")
 
         # GSSHA simulation does not work after HMET data is finished
-        te = l2g.xd.lsm.datetime[-1]
+        te = self.l2g.xd.lsm.datetime[-1]
         wrf_simulation_end = te.replace(tzinfo=utc) \
                                .astimezone(tz=self.tz).replace(tzinfo=None)
 
@@ -424,31 +514,20 @@ class LongTermMode(Event):
             self.simulation_end = wrf_simulation_end
         self._update_card("END_TIME", self.simulation_end.strftime("%Y %m %d %H %M"))
 
-        # PRECIPITATION CARDS
-        out_gage_file = '{0}.gag'.format(self.project_manager.name)
-        l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
-                                            lsm_data_var=lsm_precip_data_var,
-                                            precip_type=lsm_precip_type)
-
-        # precip file read in
-        self.add_precip_file(out_gage_file)
-
         # HMET CARDS
         if netcdf_file_path is not None:
-            l2g.lsm_data_to_subset_netcdf(netcdf_file_path, lsm_data_var_map_array)
+            self.l2g.lsm_data_to_subset_netcdf(netcdf_file_path, lsm_data_var_map_array)
             self._update_card("HMET_NETCDF", netcdf_file_path, True)
             self.project_manager.deleteCard('HMET_ASCII', self.db_session)
         else:
             if "{0}" in hmet_ascii_output_folder and "{1}" in hmet_ascii_output_folder:
                 hmet_ascii_output_folder = hmet_ascii_output_folder.format(self.simulation_start.strftime("%Y%m%d%H%M"),
                                                                            self.simulation_end.strftime("%Y%m%d%H%M"))
-            l2g.lsm_data_to_arc_ascii(lsm_data_var_map_array, main_output_folder=os.path.join(self.gssha_directory,
-                                                                                                   hmet_ascii_output_folder))
+            self.l2g.lsm_data_to_arc_ascii(lsm_data_var_map_array,
+                                           main_output_folder=os.path.join(self.gssha_directory,
+                                                                      hmet_ascii_output_folder))
             self._update_card("HMET_ASCII", os.path.join(hmet_ascii_output_folder, 'hmet_file_list.txt'), True)
             self.project_manager.deleteCard('HMET_NETCDF', self.db_session)
-
-        # make sure xarray dataset closed
-        l2g.xd.close()
 
         # UPDATE GMT CARD
         self._update_gmt()

@@ -39,10 +39,10 @@ EVENT_MIN_Q              0.0
 SOIL_MOIST_DEPTH         0.0
 ET_CALC_PENMAN
 END_TIME                 2002 08 24 03 59
-PRECIP_FILE              "grid_standard.gag"
-RAIN_THIESSEN
 HMET_ASCII               "hmet_file_list.txt"
 GMT                      -7.0
+PRECIP_FILE              "grid_standard.gag"
+RAIN_THIESSEN
 WRITE_OV_HOTSTART        "../hotstart/grid_standard_ov_hotstart_20020824_0359.ovh"
 WRITE_CHAN_HOTSTART      "../hotstart/grid_standard_chan_hotstart_20020824_0359"
 WRITE_SM_HOTSTART        "../hotstart/grid_standard_sm_hotstart_20020824_0359.smh"

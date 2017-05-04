@@ -39,7 +39,8 @@ EVENT_MIN_Q              0.0
 SOIL_MOIST_DEPTH         0.0
 ET_CALC_PENMAN
 END_TIME                 2016 08 24 07 00
-PRECIP_FILE              "grid_standard.gag"
-RAIN_THIESSEN
 HMET_ASCII               "hmet_file_list.txt"
 GMT                      -7.0
+PRECIP_FILE              "grid_standard.gag"
+RAIN_THIESSEN
+

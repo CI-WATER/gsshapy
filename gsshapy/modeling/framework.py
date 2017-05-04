@@ -90,6 +90,7 @@ class GSSHAFramework(object):
         write_hotstart(Optional[bool]): If you want to automatically generate all hotstart files, set to True. Default is False.
         read_hotstart(Optional[bool]): If you want to automatically search for and read in hotstart files, set to True. Default is False.
         hotstart_minimal_mode(Optional[bool]): If you want to turn off all outputs to only generate the hotstart file, set to True. Default is False.
+        grid_module(:obj:`str`): The name of the LSM tool needed. Options are 'grid', 'hrrr', or 'era'. Default is 'grid'.
 
     Example modifying parameters during class initialization:
 
@@ -223,6 +224,7 @@ class GSSHAFramework(object):
                  write_hotstart=False,
                  read_hotstart=False,
                  hotstart_minimal_mode=False,
+                 grid_module='grid',
                  ):
         """
         Initializer
@@ -242,13 +244,6 @@ class GSSHAFramework(object):
         self.lsm_data_var_map_array = lsm_data_var_map_array
         self.lsm_precip_data_var = lsm_precip_data_var
         self.lsm_precip_type = lsm_precip_type
-        self.lsm_lat_var = lsm_lat_var
-        self.lsm_lon_var = lsm_lon_var
-        self.lsm_time_var = lsm_time_var
-        self.lsm_lat_dim = lsm_lat_dim
-        self.lsm_lon_dim = lsm_lon_dim
-        self.lsm_time_dim = lsm_time_dim
-        self.lsm_search_card = lsm_search_card
         self.output_netcdf = output_netcdf
         self.write_hotstart = write_hotstart
         self.read_hotstart = read_hotstart
@@ -295,7 +290,33 @@ class GSSHAFramework(object):
                                        session=self.db_session)
             self.db_session.commit()
 
-        if not self._connect_to_lsm():
+        required_grid_args = (grid_module, lsm_folder, lsm_search_card,
+                              lsm_lat_var, lsm_lon_var, lsm_time_var,
+                              lsm_lat_dim, lsm_lon_dim, lsm_time_dim)
+
+        self.lsm_input_valid = None not in required_grid_args
+
+        if self._prepare_lsm_hmet:
+            self.event_manager = LongTermMode(project_manager=self.project_manager,
+                                              db_session=self.db_session,
+                                              gssha_directory=self.gssha_directory,
+                                              simulation_start=gssha_simulation_start,
+                                              simulation_end=gssha_simulation_end,
+                                              simulation_duration=gssha_simulation_duration,
+                                              load_simulation_datetime=load_simulation_datetime,
+                                              lsm_folder=lsm_folder,
+                                              lsm_search_card=lsm_search_card,
+                                              lsm_lat_var=lsm_lat_var,
+                                              lsm_lon_var=lsm_lon_var,
+                                              lsm_time_var=lsm_time_var,
+                                              lsm_lat_dim=lsm_lat_dim,
+                                              lsm_lon_dim=lsm_lon_dim,
+                                              lsm_time_dim=lsm_time_dim,
+                                              grid_module=grid_module,
+                                              event_min_q=event_min_q,
+                                              et_calc_mode=et_calc_mode,
+                                              soil_moisture_depth=soil_moisture_depth)
+        else:
             self.event_manager = EventMode(project_manager=self.project_manager,
                                            db_session=self.db_session,
                                            gssha_directory=self.gssha_directory,
@@ -303,32 +324,32 @@ class GSSHAFramework(object):
                                            simulation_end=gssha_simulation_end,
                                            simulation_duration=gssha_simulation_duration,
                                            load_simulation_datetime=load_simulation_datetime,
-                                          )
-        else:
-            self.event_manager = LongTermMode(project_manager=self.project_manager,
-                                              db_session=self.db_session,
-                                              gssha_directory=self.gssha_directory,
-                                              simulation_start=gssha_simulation_start,
-                                              simulation_end=gssha_simulation_end,
-                                              simulation_duration=gssha_simulation_duration,
-                                              event_min_q=event_min_q,
-                                              et_calc_mode=et_calc_mode,
-                                              soil_moisture_depth=soil_moisture_depth,
-                                              load_simulation_datetime=load_simulation_datetime,
-                                             )
+                                           lsm_folder=lsm_folder,
+                                           lsm_search_card=lsm_search_card,
+                                           lsm_lat_var=lsm_lat_var,
+                                           lsm_lon_var=lsm_lon_var,
+                                           lsm_time_var=lsm_time_var,
+                                           lsm_lat_dim=lsm_lat_dim,
+                                           lsm_lon_dim=lsm_lon_dim,
+                                           lsm_time_dim=lsm_time_dim,
+                                           grid_module=grid_module)
 
-
-    def _connect_to_lsm(self):
+    @property
+    def _prepare_lsm_hmet(self):
         '''
-        Determines whether to connect to LSM
+        Determines whether to prepare HMET data from LSM
         '''
-        # skip self.lsm_data_var_map_array because default in WRF Simulation
-        lsm_required_vars =  (self.lsm_folder, self.lsm_precip_data_var,
-                              self.lsm_precip_type, self.lsm_lat_var,
-                              self.lsm_lon_var, self.lsm_time_var,
-                              self.lsm_search_card)
+        return self.lsm_input_valid and self.lsm_data_var_map_array
 
-        return (None not in lsm_required_vars)
+    @property
+    def _prepare_lsm_gag(self):
+        '''
+        Determines whether to prepare gage data from LSM
+        '''
+        lsm_required_vars =  (self.lsm_precip_data_var,
+                              self.lsm_precip_type)
+
+        return self.lsm_input_valid and (None not in lsm_required_vars)
 
     def _update_class_var(self, var_name, new_value):
         """
@@ -398,13 +419,123 @@ class GSSHAFramework(object):
                              "spt_watershed_name, spt_subbasin_name, spt_forecast_date_string \n"
                              "ckan_engine_url, ckan_api_key, and ckan_owner_organization."
                              )
+    def prepare_hmet(self):
+        """
+        Prepare HMET data for simulation
+        """
+        if self._prepare_lsm_hmet:
+            netcdf_file_path = None
+            hmet_ascii_output_folder = None
+            if self.output_netcdf:
+                netcdf_file_path = os.path.join('{0}_hmet.nc'.format(self.project_manager.name))
+                if self.hotstart_minimal_mode:
+                    netcdf_file_path = os.path.join('{0}_hmet_hotstart.nc'.format(self.project_manager.name))
+            else:
+                hmet_ascii_output_folder = 'hmet_data_{0}to{1}'
+                if self.hotstart_minimal_mode:
+                    hmet_ascii_output_folder += "_hotstart"
 
-    def download_wrf_forecast(self):
+            self.event_manager.prepare_hmet_lsm(self.lsm_data_var_map_array,
+                                                hmet_ascii_output_folder,
+                                                netcdf_file_path)
+            self.simulation_modified_input_cards += ["HMET_NETCDF",
+                                                     "HMET_ASCII"]
+        else:
+            log.info("HMET preparation skipped due to missing parameters ...")
+
+    def prepare_gag(self):
         """
-        Downloads WRF forecast data
+        Prepare gage data for simulation
         """
-        # TODO: Download WRF Forecasts
-        return
+        if self._prepare_lsm_gag:
+            self.event_manager.prepare_gag_lsm(self.lsm_precip_data_var,
+                                               self.lsm_precip_type)
+            self.simulation_modified_input_cards.append("PRECIP_FILE")
+        else:
+            log.info("Gage file preparation skipped due to missing parameters ...")
+
+    def rapid_to_gssha(self):
+        """
+        Prepare RAPID data for simulation
+        """
+        # if no streamflow given, download forecast
+        if self.path_to_rapid_qout is None and self.connection_list_file:
+            rapid_qout_directory = os.path.join(self.gssha_directory, 'rapid_streamflow')
+            try:
+                os.mkdir(rapid_qout_directory)
+            except OSError:
+                pass
+            self.path_to_rapid_qout = self.download_spt_forecast(rapid_qout_directory)
+
+        # prepare input for GSSHA if user wants
+        if self.path_to_rapid_qout is not None and self.connection_list_file:
+            self.event_manager.prepare_rapid_streamflow(self.path_to_rapid_qout,
+                                                        self.connection_list_file)
+            self.simulation_modified_input_cards.append('CHAN_POINT_INPUT')
+
+    def hotstart(self):
+        """
+        Prepare simulation hotstart info
+        """
+        if self.write_hotstart:
+            hotstart_time_str = self.event_manager.simulation_end.strftime("%Y%m%d_%H%M")
+            try:
+                os.mkdir('hotstart')
+            except OSError:
+                pass
+
+            ov_hotstart_path = os.path.join('..', 'hotstart',
+                                            '{0}_ov_hotstart_{1}.ovh'.format(self.project_manager.name,
+                                                                             hotstart_time_str))
+            self._update_card("WRITE_OV_HOTSTART", ov_hotstart_path, True)
+            chan_hotstart_path = os.path.join('..', 'hotstart',
+                                              '{0}_chan_hotstart_{1}'.format(self.project_manager.name,
+                                                                             hotstart_time_str))
+            self._update_card("WRITE_CHAN_HOTSTART", chan_hotstart_path, True)
+            sm_hotstart_path = os.path.join('..', 'hotstart',
+                                           '{0}_sm_hotstart_{1}.smh'.format(self.project_manager.name,
+                                                                            hotstart_time_str))
+            self._update_card("WRITE_SM_HOTSTART", sm_hotstart_path, True)
+        else:
+            self._delete_card("WRITE_OV_HOTSTART")
+            self._delete_card("WRITE_CHAN_HOTSTART")
+            self._delete_card("WRITE_SM_HOTSTART")
+
+        if self.read_hotstart:
+            hotstart_time_str = self.event_manager.simulation_start.strftime("%Y%m%d_%H%M")
+            # OVERLAND
+            expected_ov_hotstart = os.path.join('hotstart',
+                                                '{0}_ov_hotstart_{1}.ovh'.format(self.project_manager.name,
+                                                                                  hotstart_time_str))
+            if os.path.exists(expected_ov_hotstart):
+                self._update_card("READ_OV_HOTSTART", os.path.join("..", expected_ov_hotstart), True)
+            else:
+                self._delete_card("READ_OV_HOTSTART")
+                log.warn("READ_OV_HOTSTART not included as "
+                         "{0} does not exist ...".format(expected_ov_hotstart))
+
+            # CHANNEL
+            expected_chan_hotstart = os.path.join('hotstart',
+                                                  '{0}_chan_hotstart_{1}'.format(self.project_manager.name,
+                                                                                 hotstart_time_str))
+            if os.path.exists("{0}.qht".format(expected_chan_hotstart)) \
+                    and os.path.exists("{0}.dht".format(expected_chan_hotstart)):
+                self._update_card("READ_CHAN_HOTSTART", os.path.join("..", expected_chan_hotstart), True)
+            else:
+                self._delete_card("READ_CHAN_HOTSTART")
+                log.warn("READ_CHAN_HOTSTART not included as "
+                         "{0}.qht and/or {0}.dht does not exist ...".format(expected_chan_hotstart))
+
+            # INFILTRATION
+            expected_sm_hotstart = os.path.join('hotstart',
+                                                '{0}_sm_hotstart_{1}.smh'.format(self.project_manager.name,
+                                                                                 hotstart_time_str))
+            if os.path.exists(expected_sm_hotstart):
+                self._update_card("READ_SM_HOTSTART", os.path.join("..", expected_sm_hotstart), True)
+            else:
+                self._delete_card("READ_SM_HOTSTART")
+                log.warn("READ_SM_HOTSTART not included as"
+                         " {0} does not exist ...".format(expected_sm_hotstart))
 
     def run(self, subdirectory=None):
         """
@@ -547,117 +678,18 @@ class GSSHAFramework(object):
         # ----------------------------------------------------------------------
         # LSM to GSSHA
         # ----------------------------------------------------------------------
-        if self._connect_to_lsm():
-            self.download_wrf_forecast()
-            netcdf_file_path = None
-            hmet_ascii_output_folder = None
-            if self.output_netcdf:
-                netcdf_file_path = os.path.join('{0}_hmet.nc'.format(self.project_manager.name))
-                if self.hotstart_minimal_mode:
-                    netcdf_file_path = os.path.join('{0}_hmet_hotstart.nc'.format(self.project_manager.name))
-            else:
-                hmet_ascii_output_folder = 'hmet_data_{0}to{1}'
-                if self.hotstart_minimal_mode:
-                    hmet_ascii_output_folder += "_hotstart"
-
-            self.event_manager.prepare_lsm_data(self.lsm_folder,
-                                                self.lsm_data_var_map_array,
-                                                self.lsm_precip_data_var,
-                                                self.lsm_precip_type,
-                                                self.lsm_lat_var,
-                                                self.lsm_lon_var,
-                                                self.lsm_time_var,
-                                                self.lsm_lat_dim,
-                                                self.lsm_lon_dim,
-                                                self.lsm_time_dim,
-                                                self.lsm_search_card,
-                                                hmet_ascii_output_folder,
-                                                netcdf_file_path,
-                                                )
-
-            self.simulation_modified_input_cards += ["HMET_NETCDF",
-                                                     "HMET_ASCII",
-                                                     "PRECIP_FILE"]
+        self.prepare_hmet()
+        self.prepare_gag()
 
         # ----------------------------------------------------------------------
         # RAPID to GSSHA
         # ----------------------------------------------------------------------
-        # if no streamflow given, download forecast
-        if self.path_to_rapid_qout is None and self.connection_list_file:
-            rapid_qout_directory = os.path.join(self.gssha_directory, 'rapid_streamflow')
-            try:
-                os.mkdir(rapid_qout_directory)
-            except OSError:
-                pass
-            self.path_to_rapid_qout = self.download_spt_forecast(rapid_qout_directory)
+        self.rapid_to_gssha()
 
-        # prepare input for GSSHA if user wants
-        if self.path_to_rapid_qout is not None and self.connection_list_file:
-            self.event_manager.prepare_rapid_streamflow(self.path_to_rapid_qout,
-                                                        self.connection_list_file)
-            self.simulation_modified_input_cards.append('CHAN_POINT_INPUT')
         # ----------------------------------------------------------------------
         # HOTSTART
         # ----------------------------------------------------------------------
-        if self.write_hotstart:
-            hotstart_time_str = self.event_manager.simulation_end.strftime("%Y%m%d_%H%M")
-            try:
-                os.mkdir('hotstart')
-            except OSError:
-                pass
-
-            ov_hotstart_path = os.path.join('..', 'hotstart',
-                                            '{0}_ov_hotstart_{1}.ovh'.format(self.project_manager.name,
-                                                                             hotstart_time_str))
-            self._update_card("WRITE_OV_HOTSTART", ov_hotstart_path, True)
-            chan_hotstart_path = os.path.join('..', 'hotstart',
-                                              '{0}_chan_hotstart_{1}'.format(self.project_manager.name,
-                                                                             hotstart_time_str))
-            self._update_card("WRITE_CHAN_HOTSTART", chan_hotstart_path, True)
-            sm_hotstart_path = os.path.join('..', 'hotstart',
-                                           '{0}_sm_hotstart_{1}.smh'.format(self.project_manager.name,
-                                                                            hotstart_time_str))
-            self._update_card("WRITE_SM_HOTSTART", sm_hotstart_path, True)
-        else:
-            self._delete_card("WRITE_OV_HOTSTART")
-            self._delete_card("WRITE_CHAN_HOTSTART")
-            self._delete_card("WRITE_SM_HOTSTART")
-
-        if self.read_hotstart:
-            hotstart_time_str = self.event_manager.simulation_start.strftime("%Y%m%d_%H%M")
-            # OVERLAND
-            expected_ov_hotstart = os.path.join('hotstart',
-                                                '{0}_ov_hotstart_{1}.ovh'.format(self.project_manager.name,
-                                                                                  hotstart_time_str))
-            if os.path.exists(expected_ov_hotstart):
-                self._update_card("READ_OV_HOTSTART", os.path.join("..", expected_ov_hotstart), True)
-            else:
-                self._delete_card("READ_OV_HOTSTART")
-                log.warn("READ_OV_HOTSTART not included as "
-                         "{0} does not exist ...".format(expected_ov_hotstart))
-
-            # CHANNEL
-            expected_chan_hotstart = os.path.join('hotstart',
-                                                  '{0}_chan_hotstart_{1}'.format(self.project_manager.name,
-                                                                                 hotstart_time_str))
-            if os.path.exists("{0}.qht".format(expected_chan_hotstart)) \
-                    and os.path.exists("{0}.dht".format(expected_chan_hotstart)):
-                self._update_card("READ_CHAN_HOTSTART", os.path.join("..", expected_chan_hotstart), True)
-            else:
-                self._delete_card("READ_CHAN_HOTSTART")
-                log.warn("READ_CHAN_HOTSTART not included as "
-                         "{0}.qht and/or {0}.dht does not exist ...".format(expected_chan_hotstart))
-
-            # INFILTRATION
-            expected_sm_hotstart = os.path.join('hotstart',
-                                                '{0}_sm_hotstart_{1}.smh'.format(self.project_manager.name,
-                                                                                 hotstart_time_str))
-            if os.path.exists(expected_sm_hotstart):
-                self._update_card("READ_SM_HOTSTART", os.path.join("..", expected_sm_hotstart), True)
-            else:
-                self._delete_card("READ_SM_HOTSTART")
-                log.warn("READ_SM_HOTSTART not included as"
-                         " {0} does not exist ...".format(expected_sm_hotstart))
+        self.hotstart()
 
         # ----------------------------------------------------------------------
         # Run GSSHA
