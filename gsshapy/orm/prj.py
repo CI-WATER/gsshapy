@@ -21,13 +21,13 @@ import re
 import shlex
 from timezonefinder import TimezoneFinder
 import xml.etree.ElementTree as ET
+from sloot.grid import GDALGrid
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from ..lib.grid_tools import GSSHAGrid
 from . import DeclarativeBase
 from ..base.file_base import GsshaPyFileObjectBase
 from .file_io import *
@@ -1107,13 +1107,13 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def getGridByCard(self, gssha_card_name):
         """
-        Returns GSSHAGrid object of GSSHA grid
+        Returns GDALGrid object of GSSHA grid
 
         Paramters:
             gssha_card_name(str): Name of GSSHA project card for grid.
 
         Returns:
-            GSSHAGrid
+            GDALGrid
         """
         if gssha_card_name not in (self.INPUT_MAPS+self.WMS_DATASETS):
             raise ValueError("Card {0} not found in valid grid cards ..."
@@ -1128,18 +1128,18 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             raise ValueError("#PROJECTION_FILE card not found ...")
 
         # return gssha grid
-        return GSSHAGrid(gssha_grid_card.value.strip('"').strip("'"),
-                         gssha_pro_card.value.strip('"').strip("'"))
+        return GDALGrid(gssha_grid_card.value.strip('"').strip("'"),
+                        gssha_pro_card.value.strip('"').strip("'"))
 
     def getGrid(self, use_mask=True):
         """
-        Returns GSSHAGrid object of GSSHA model bounds
+        Returns GDALGrid object of GSSHA model bounds
 
         Paramters:
             use_mask(bool): If True, uses watershed mask. Otherwise, it uses the elevaiton grid.
 
         Returns:
-            GSSHAGrid
+            GDALGrid
 
         """
         grid_card_name = "WATERSHED_MASK"
@@ -1150,13 +1150,13 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
     def getIndexGrid(self, name):
         """
-        Returns GSSHAGrid object of index map
+        Returns GDALGrid object of index map
 
         Paramters:
             name(str): Name of index map in 'cmt' file.
 
         Returns:
-            GSSHAGrid
+            GDALGrid
         """
         index_map = self.mapTableFile.indexMaps.filter_by(name=name).one()
 
@@ -1165,8 +1165,8 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             raise ValueError("#PROJECTION_FILE card not found ...")
 
         # return gssha grid
-        return GSSHAGrid(index_map.filename,
-                         gssha_pro_card.value.strip('"').strip("'"))
+        return GDALGrid(index_map.filename,
+                        gssha_pro_card.value.strip('"').strip("'"))
 
     def getWkt(self):
         '''

@@ -6,15 +6,16 @@
 #  Created by Alan D Snow, 2016.
 #  BSD 3-Clause
 
+from os import chdir
 from datetime import timedelta
 import logging
-from os import chdir
+
+from sloot.grid import GDALGrid
 
 from .event import EventMode, LongTermMode
 from ..orm import (ProjectFile, WatershedMaskFile, ElevationGridFile,
                          MapTableFile)
 from ..lib import db_tools as dbt
-from ..lib.grid_tools import GDALGrid
 
 log = logging.getLogger(__name__)
 

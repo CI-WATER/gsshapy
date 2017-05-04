@@ -11,7 +11,7 @@ __all__ = ['ElevationGridFile']
 
 import os
 from osgeo import gdalconst
-from ..lib.grid_tools import resample_grid
+from sloot.grid import resample_grid
 from .map import RasterMapFile
 
 

@@ -100,6 +100,5 @@ class TestERA5toGSSHA(TestGridTemplate):
                                   ignore_file="hmet_file_list.txt",
                                   raster=True)
 
-
 if __name__ == '__main__':
     unittest.main()

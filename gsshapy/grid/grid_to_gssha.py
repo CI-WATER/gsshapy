@@ -12,13 +12,14 @@ from io import open as io_open
 import logging
 import numpy as np
 from os import chdir, mkdir, path, remove, rename
+import pangaea as pa
 from past.builtins import basestring
 from pytz import utc
 from shutil import copy
 import xarray as xr
 import xarray.ufuncs as xu
 
-from ..lib.grid_tools import ArrayGrid, gdal_reproject
+from sloot.grid import ArrayGrid, gdal_reproject
 from ..lib import db_tools as dbt
 from ..orm import ProjectFile
 
@@ -531,32 +532,14 @@ class GRIDtoGSSHA(object):
             path_to_lsm_files = path.join(self.lsm_input_folder_path,
                                           self.lsm_search_card)
 
-            def define_coords(ds):
-                """xarray loader to ensure coordinates are loaded correctly"""
-                # remove time dimension from coordinates
-                if ds[self.lsm_lat_var].ndim == 3:
-                    ds[self.lsm_lat_var] = ds[self.lsm_lat_var].squeeze(self.lsm_time_dim)
-                if ds[self.lsm_lon_var].ndim == 3:
-                    ds[self.lsm_lon_var] = ds[self.lsm_lon_var].squeeze(self.lsm_time_dim)
-                # make sure coords are defined as coords
-                if self.lsm_lat_var not in ds.coords \
-                        or self.lsm_lon_var not in ds.coords:
-                    ds.set_coords([self.lsm_lat_var, self.lsm_lon_var],
-                                  inplace=True)
-                return ds
+            self._xd = pa.open_mfdataset(path_to_lsm_files,
+                                         lat_var=self.lsm_lat_var,
+                                         lon_var=self.lsm_lon_var,
+                                         time_var=self.lsm_time_var,
+                                         lat_dim=self.lsm_lat_dim,
+                                         lon_dim=self.lsm_lon_dim,
+                                         time_dim=self.lsm_time_dim)
 
-            self._xd = xr.open_mfdataset(path_to_lsm_files,
-                                         autoclose=True,
-                                         preprocess=define_coords,
-                                         concat_dim=self.lsm_time_dim)
-
-            self._xd.lsm.y_var = self.lsm_lat_var
-            self._xd.lsm.x_var = self.lsm_lon_var
-            self._xd.lsm.time_var = self.lsm_time_var
-            self._xd.lsm.y_dim = self.lsm_lat_dim
-            self._xd.lsm.x_dim = self.lsm_lon_dim
-            self._xd.lsm.time_dim = self.lsm_time_dim
-            self._xd.lsm.to_datetime()
         return self._xd
 
     def _set_subset_indices(self, y_min, y_max, x_min, x_max):
@@ -567,16 +550,22 @@ class GRIDtoGSSHA(object):
         dx = self.xd.lsm.dx
         dy = self.xd.lsm.dy
 
-        lsm_y_indices_from_y, lsm_x_indices_from_y = np.where((y_coords >= (y_min - 2*dy)) & (y_coords <= (y_max + 2*dy)))
-        lsm_y_indices_from_x, lsm_x_indices_from_x = np.where((x_coords >= (x_min - 2*dx)) & (x_coords <= (x_max + 2*dx)))
+        lsm_y_indices_from_y, lsm_x_indices_from_y = \
+            np.where((y_coords >= (y_min - 2*dy)) &
+                     (y_coords <= (y_max + 2*dy)))
+        lsm_y_indices_from_x, lsm_x_indices_from_x = \
+            np.where((x_coords >= (x_min - 2*dx)) &
+                     (x_coords <= (x_max + 2*dx)))
 
-        lsm_y_indices = np.intersect1d(lsm_y_indices_from_y, lsm_y_indices_from_x)
-        lsm_x_indices = np.intersect1d(lsm_x_indices_from_y, lsm_x_indices_from_x)
+        lsm_y_indices = np.intersect1d(lsm_y_indices_from_y,
+                                       lsm_y_indices_from_x)
+        lsm_x_indices = np.intersect1d(lsm_x_indices_from_y,
+                                       lsm_x_indices_from_x)
 
-        self.x_index_min = np.amin(lsm_x_indices)
-        self.x_index_max = np.amax(lsm_x_indices)
-        self.y_index_min = np.amin(lsm_y_indices)
-        self.y_index_max = np.amax(lsm_y_indices)
+        self.xslice = slice(np.amin(lsm_x_indices),
+                            np.amax(lsm_x_indices)+1)
+        self.yslice = slice(np.amin(lsm_y_indices),
+                            np.amax(lsm_y_indices)+1)
 
     def _load_modeling_extent(self):
         """
@@ -618,10 +607,8 @@ class GRIDtoGSSHA(object):
         This extracts the LSM data from a folder of netcdf files
         """
         data = self.xd.lsm.getvar(data_var,
-                                  x_index_start=self.x_index_min,
-                                  x_index_end=self.x_index_max,
-                                  y_index_start=self.y_index_min,
-                                  y_index_end=self.y_index_max,
+                                  yslice=self.yslice,
+                                  xslice=self.xslice,
                                   calc_4d_method=calc_4d_method,
                                   calc_4d_dim=calc_4d_dim,
                                   )

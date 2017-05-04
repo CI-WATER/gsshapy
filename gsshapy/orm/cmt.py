@@ -15,12 +15,14 @@ __all__ = ['MapTableFile',
            'MTContaminant',
            'MTSediment']
 
-from future.utils import iteritems
+import os
 import logging
+
+from future.utils import iteritems
 import numpy as np
 import pandas as pd
-import os
 from osgeo import gdalconst
+from sloot.grid import resample_grid
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship
@@ -31,7 +33,6 @@ from ..base.file_base import GsshaPyFileObjectBase
 from .idx import IndexMap
 from ..lib import parsetools as pt
 from ..lib import cmt_chunk as mtc
-from ..lib.grid_tools import resample_grid
 from ..lib.parsetools import valueReadPreprocessor as vrp, valueWritePreprocessor as vwp
 
 log = logging.getLogger(__name__)

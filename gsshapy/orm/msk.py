@@ -13,7 +13,7 @@ import os
 from osgeo import ogr, osr
 from shapely.wkb import loads as shapely_loads
 
-from ..lib.grid_tools import rasterize_shapefile
+from sloot.shape import rasterize_shapefile
 
 from .map import RasterMapFile
 from .pro import ProjectionFile

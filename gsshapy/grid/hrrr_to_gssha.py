@@ -7,11 +7,12 @@
 ##  License BSD 3-Clause
 
 import logging
+from os import mkdir, path, remove
+
 import numpy as np
 import pandas as pd
-from os import mkdir, path, remove
+import pangaea as pa
 import requests
-import xarray as xr
 
 from .grid_to_gssha import GRIDtoGSSHA
 
@@ -210,32 +211,12 @@ class HRRRtoGSSHA(GRIDtoGSSHA):
         if self._xd is None:
             path_to_lsm_files = path.join(self.lsm_input_folder_path,
                                           self.lsm_search_card)
-            def extract_date(ds):
-                for var in ds.variables:
-                    if 'initial_time' in ds[var].attrs.keys():
-                        grid_time = pd.to_datetime(ds[var].attrs['initial_time'],
-                                                   format="%m/%d/%Y (%H:%M)")
-                        if 'forecast_time' in ds[var].attrs.keys():
-                            time_units = 'h'
-                            if 'forecast_time_units' in ds[var].attrs.keys():
-                                time_units =  str(ds[var].attrs['forecast_time_units'][0])
-                            grid_time += np.timedelta64(int(ds[var].attrs['forecast_time'][0]),
-                                                        time_units)
-
-                        return ds.assign(time=grid_time)
-                raise ValueError("Time attribute missing: {0}".format(self.search_time_attr))
-
-            self._xd = xr.open_mfdataset(path_to_lsm_files,
-                                         autoclose=True,
-                                         concat_dim=self.lsm_time_dim,
-                                         preprocess=extract_date,
-                                         engine='pynio')
-
-            self._xd.lsm.y_var = self.lsm_lat_var
-            self._xd.lsm.x_var = self.lsm_lon_var
-            self._xd.lsm.time_var = self.lsm_time_var
-            self._xd.lsm.y_dim = self.lsm_lat_dim
-            self._xd.lsm.x_dim = self.lsm_lon_dim
-            self._xd.lsm.time_dim = self.lsm_time_dim
-            self._xd.lsm.to_datetime()
+            self._xd = pa.open_mfdataset(path_to_lsm_files,
+                                         lat_var=self.lsm_lat_var,
+                                         lon_var=self.lsm_lon_var,
+                                         time_var=self.lsm_time_var,
+                                         lat_dim=self.lsm_lat_dim,
+                                         lon_dim=self.lsm_lon_dim,
+                                         time_dim=self.lsm_time_dim,
+                                         loader='hrrr')
         return self._xd
