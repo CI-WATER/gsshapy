@@ -54,7 +54,7 @@ before_install:
 # Install additional required python packages
 #-----------------------------------------------------------------------------
 - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-    conda install --yes pynio;
+    conda install pynio;
   fi
 #-------------------------------------------------------------------------------
 #Installing GSSHApy
