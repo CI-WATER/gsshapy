@@ -1,11 +1,9 @@
 #-------------------------------------------------------------------------------
 #.travis.yml
 #-------------------------------------------------------------------------------
-#Authors: Alan D. Snow, 2016
-#based on .travis.yml by Cedric H. David
-
+# Author: Alan D. Snow, 2016
 #-------------------------------------------------------------------------------
-#System specifications for Travis CI
+# System specifications for Travis CI
 #-------------------------------------------------------------------------------
 language: c
 os:
@@ -14,20 +12,22 @@ os:
 env:
   - TRAVIS_PYTHON_VERSION="2.7"
   - TRAVIS_PYTHON_VERSION="3.5"
+  - TRAVIS_PYTHON_VERSION="3.6"
 matrix:
   fast_finish: true
   allow_failures:
     - os: osx
     - env: TRAVIS_PYTHON_VERSION="3.5"
+    - env: TRAVIS_PYTHON_VERSION="3.6"
 notifications:
   email: false
 
 #-------------------------------------------------------------------------------
-#Before installing GSSHApy
+# Before installing GSSHApy
 #-------------------------------------------------------------------------------
 before_install:
 #-------------------------------------------------------------------------------
-#Add miniconda - from https://gist.github.com/dan-blanchard/7045057
+# Add miniconda - from https://gist.github.com/dan-blanchard/7045057
 #-----------------------------------------------------------------------------
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
     wget -O miniconda.sh http://repo.continuum.io/miniconda/Miniconda${TRAVIS_PYTHON_VERSION:0:1}-latest-Linux-x86_64.sh;
@@ -38,46 +38,38 @@ before_install:
 - chmod +x miniconda.sh
 - ./miniconda.sh -b -p $HOME/miniconda
 - export PATH=$HOME/miniconda/bin:$PATH
-- conda update --yes conda python
-#create environment in conda
-- conda env create -f conda-env.yml python=$TRAVIS_PYTHON_VERSION
-- source activate gssha
-
-#-------------------------------------------------------------------------------
-# Install required python packages
+- conda config --set always_yes yes
+- conda update conda python
 #-----------------------------------------------------------------------------
+# Create conda environment for gsshapy
+#-----------------------------------------------------------------------------
+- conda create -n gsshapy python=$TRAVIS_PYTHON_VERSION
+- source activate gsshapy
 - conda config --add channels conda-forge
-- conda install --yes pynio
-- conda install --yes pytest pytest-cov
-- pip install coveralls
-
-#-------------------------------------------------------------------------------
-#Creating directory for installation of libraries used by GSSHApy
-#-------------------------------------------------------------------------------
-- export INSTALLZ_DIR=$TRAVIS_BUILD_DIR/installz
-- mkdir $INSTALLZ_DIR
-
-#-------------------------------------------------------------------------------
-# Install RAPIDpy
-#-------------------------------------------------------------------------------
-- cd $INSTALLZ_DIR
-- git clone https://github.com/erdc-cm/RAPIDpy.git
-- cd RAPIDpy
-- python setup.py install
-
+- conda install --file=conda-requirements.txt
+# restart environment
+- source deactivate
+- source activate gsshapy
+#-----------------------------------------------------------------------------
+# Install additional required python packages
+#-----------------------------------------------------------------------------
+- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+    conda install --yes pynio;
+  fi
 #-------------------------------------------------------------------------------
 #Installing GSSHApy
 #-------------------------------------------------------------------------------
 install:
 - cd $TRAVIS_BUILD_DIR
-- python setup.py install
+- pip install -e .[tests]
 
 #-------------------------------------------------------------------------------
 #Testing GSSHApy
 #-------------------------------------------------------------------------------
-- cd $TRAVIS_BUILD_DIR/tests
 script:
 - py.test --cov-report term-missing --cov=gsshapy
-##ADD Coveralls stats for code coverage
+#-------------------------------------------------------------------------------
+# Coveralls stats for code coverage
+#-------------------------------------------------------------------------------
 after_success:
   - coveralls

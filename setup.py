@@ -42,6 +42,7 @@ setup(name='gsshapy',
       install_requires=requires,
       extras_require={
         'tests': [
+            'coveralls',
             'pytest',
             'pytest-cov',
         ],

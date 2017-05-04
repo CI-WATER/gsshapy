@@ -1,62 +1,47 @@
+#-------------------------------------------------------------------------------
+# appveyor.yml
+# Author: Alan D. Snow, 2017
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#System specifications for Appveyor
+#-------------------------------------------------------------------------------
 #FROM: http://tjelvarolsson.com/blog/how-to-continuously-test-your-python-code-on-windows-using-appveyor/
 # and on: https://github.com/DynamicDevices/mono/blob/master/appveyor.yml
 environment:
-#  global:
-#    CYG_ROOT: "C:/cygwin64"
-#    CYG_MIRROR: "http://cygwin.mirror.constant.com"
-#    CYG_CACHE: "C:/cygwin/var/cache/setup"
   matrix:
     - PYTHON_VERSION: "2.7"
       MINICONDA: "C:\\Miniconda-x64"
     - PYTHON_VERSION: "3.5"
       MINICONDA: "C:\\Miniconda3-x64"
+    - PYTHON_VERSION: "3.6"
+      MINICONDA: "C:\\Miniconda3-x64"
 
 matrix:
   allow_failures:
   - PYTHON_VERSION: "3.5"
+  - PYTHON_VERSION: "3.6"
 
 install:
   - 'SET PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%'
-  #create environment in conda
   - conda config --set always_yes yes
   - conda update -q conda python
-  - conda env create -f conda-env.yml python=%PYTHON_VERSION%
-  - activate gssha
-  # Install required python packages
+#-----------------------------------------------------------------------------
+# Create conda environment for gsshapy
+#-----------------------------------------------------------------------------
+  - conda create -n gsshapy python=%PYTHON_VERSION%
+  - activate gsshapy
   - conda config --add channels conda-forge
-  - conda install --yes pytest pytest-cov
-  - pip install coveralls
-  #TODO: FIGURE OUT HOW TO INSTALL PYGRIB ON WINDOWS
-  # Create directory for install packages
-  #- 'SET INSTALLZ_DIR=%APPVEYOR_BUILD_FOLDER%\..\installz'
-  #- 'mkdir %INSTALLZ_DIR%'
-  #- deactivate gssha
-  #install cygwin
-  #- '%CYG_ROOT%\setup-x86_64.exe -qnNdO -R "%CYG_ROOT%" -s "%CYG_MIRROR%" -l "%CYG_CACHE%" -P cmake,gcc-core,gcc-g++,fcc-fortran,git,jasper,libjasper-devel,make,netcdf,libnetcdf-devel,wget > NULL'
-  #Install grib-api
-  #- '%CYG_ROOT%/bin/bash -lc "cd $(cygpath "$INSTALLZ_DIR"); wget -O grib_api-1.17.0-Source.tar.gz https://software.ecmwf.int/wiki/download/attachments/3473437/grib_api-1.17.0-Source.tar.gz?api=v2"'
-  #- '%CYG_ROOT%/bin/bash -lc "cd $(cygpath "$INSTALLZ_DIR"); tar xf grib_api-1.17.0-Source.tar.gz"'
-  #- 'cd %INSTALLZ_DIR%'
-  #- 'mkdir grib_api-build'
-  #- 'mkdir grib_api-install'
-  #- '%CYG_ROOT%/bin/bash -lc "cd $(cygpath "$INSTALLZ_DIR/grib_api-build"); cmake $(cygpath "$INSTALLZ_DIR/grib_api-1.17.0-Source") -DDISABLE_OS_CHECK=ON -DCMAKE_INSTALL_PREFIX=$(cygpath "$INSTALLZ_DIR/grib_api-install"); make; make install"'
-  #Install pygrib
-  #- 'cd %INSTALLZ_DIR%'
-  #- git clone https://github.com/jswhit/pygrib.git
-  #- cd pygrib
-  #- 'echo "[directories]" > setup.cfg'
-  #- 'echo "grib_api_dir = %INSTALLZ_DIR%/grib_api-install" >> setup.cfg'
-  #- activate gssha
-  #- python setup.py build
-  #- python setup.py install
-  #Installing GSSHApy
+  - conda install --file=conda-requirements.txt
+  # restart environment
+  - deactivate gsshapy
+  - activate gsshapy
+#-------------------------------------------------------------------------------
+# Install gsshapy
+#-------------------------------------------------------------------------------
   - 'cd %APPVEYOR_BUILD_FOLDER%'
-  - python setup.py install
-  - 'cd %APPVEYOR_BUILD_FOLDER%\tests'
+  - pip install -e .[tests]
 
 build: false
 
 test_script:
   - py.test --cov-report term-missing --cov=gsshapy
-#on_success:
-#  - coveralls
