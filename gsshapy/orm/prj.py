@@ -1195,21 +1195,21 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         gssha_grid = self.getGrid()
         return gssha_grid.pixel2lonlat(outcol, outrow)
 
-    def setOutlet(self, latitude, longitude, outslope=None):
+    def setOutlet(self, col, row, outslope=None):
         '''
         Sets the outlet grid cell information in the project file.
 
         Parameters:
-            latitude(float): Latitude of grid cell center.
-            longitude(float): Longitude of grid cell center.
+            col(float): 1-based column index.
+            row(float): 1-based row index.
             outslope(Optional[float]): River slope at outlet.
         '''
         #OUTROW, OUTCOL, OUTSLOPE
         gssha_grid = self.getGrid()
-        col, row = gssha_grid.lonlat2pixel(longitude, latitude)
+        # col, row = gssha_grid.lonlat2pixel(longitude, latitude)
         # add 1 to row & col becasue GSSHA is 1-based
-        self.setCard(name='OUTROW', value=str(row+1))
-        self.setCard(name='OUTCOL', value=str(col+1))
+        self.setCard(name='OUTROW', value=str(row))
+        self.setCard(name='OUTCOL', value=str(col))
         if outslope is None:
             self.calculateOutletSlope(mask_grid=gssha_grid)
         else:

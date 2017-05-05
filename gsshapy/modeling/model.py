@@ -141,7 +141,7 @@ class GSSHAModel(object):
                              .format(grid_cell_size=grid_cell_size))
 
                 self.set_mask_from_shapefile(mask_shapefile, grid_cell_size)
-                self.set_elevation(elevation_grid_path)
+                self.set_elevation(elevation_grid_path, mask_shapefile)
                 self.set_roughness(roughness=roughness,
                                    land_use_grid=land_use_grid,
                                    land_use_grid_id=land_use_grid_id,
@@ -162,14 +162,15 @@ class GSSHAModel(object):
                                                 out_raster_path=mask_name,
                                                 )
 
-    def set_elevation(self, elevation_grid_path):
+    def set_elevation(self, elevation_grid_path, mask_shapefile):
         '''
         Adds elevation file to project
         '''
         # ADD ELEVATION FILE
         ele_file = ElevationGridFile(project_file=self.project_manager,
                                      session=self.db_session)
-        ele_file.generateFromRaster(elevation_grid_path)
+        ele_file.generateFromRaster(elevation_grid_path,
+                                    mask_shapefile)
 
     def set_outlet(self, latitude, longitude, outslope):
         '''

@@ -10,8 +10,6 @@
 __all__ = ['WatershedMaskFile']
 
 import os
-from osgeo import ogr, osr
-from shapely.wkb import loads as shapely_loads
 
 from sloot.shape import rasterize_shapefile
 
@@ -138,19 +136,3 @@ class WatershedMaskFile(RasterMapFile):
             self.projectFile.setCard('#PROJECTION_FILE', proj_path, add_quotes=True)
         # read raster into object
         self._load_raster_text(out_raster_path)
-
-        # determine outlet from shapefile
-        # by getting outlet from first point in polygon
-        shapefile = ogr.Open(shapefile_path)
-        source_layer = shapefile.GetLayer(0)
-        source_lyr_proj = source_layer.GetSpatialRef()
-        osr_geographic_proj = osr.SpatialReference()
-        osr_geographic_proj.ImportFromEPSG(4326)
-        proj_transform = osr.CoordinateTransformation(source_lyr_proj, osr_geographic_proj)
-        boundary_feature = source_layer.GetFeature(0)
-        feat_geom = boundary_feature.GetGeometryRef()
-        feat_geom.Transform(proj_transform)
-        polygon = shapely_loads(feat_geom.ExportToWkb())
-        coordinates = list(polygon.exterior.coords)
-        outlet_pt = coordinates[0]
-        self.projectFile.setOutlet(latitude=outlet_pt[1], longitude=outlet_pt[0])

@@ -11,6 +11,6 @@ ROWS                     39
 COLS                     33
 #PROJECTION_FILE         "grid_standard_ele_prj.pro"
 OUTROW                   7
-OUTCOL                   1
+OUTCOL                   2
 ELEVATION                "grid_standard_ele.ele"
-OUTSLOPE                 0.01
+OUTSLOPE                 0.0078

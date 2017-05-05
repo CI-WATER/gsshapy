@@ -108,27 +108,12 @@ class TestMask(TestGridTemplate):
                                                      cell_size=1000,
                                                      out_raster_path=mask_name,
                                                      )
-        grid = self.project_manager.getGrid()
-        lon, lat = grid.pixel2lonlat(0,9)
-        self.project_manager.setOutlet(latitude=lat, longitude=lon)
+        self.project_manager.setOutlet(col=0, row=9)
         self.project_manager.writeInput(session=self.db_session,
                                         directory=self.gssha_project_directory,
                                         name=project_name)
         # compare results
         self._compare_output(project_name)
-
-    def test_rasterize_cell_size_ascii_utm_outlet_error(self):
-        '''
-        Tests rasterize_shapefile using cell size to ascii in utm
-        Then add outlet information for out of bounds location
-        '''
-        mask_name = 'grid_standard_msk.msk'
-        self.msk_file.generateFromWatershedShapefile(self.shapefile_path,
-                                                     cell_size=1000,
-                                                     out_raster_path=mask_name,
-                                                     )
-        with self.assertRaises(IndexError):
-            self.project_manager.setOutlet(latitude=12.8798, longitude=121.7740)
 
 if __name__ == '__main__':
     unittest.main()

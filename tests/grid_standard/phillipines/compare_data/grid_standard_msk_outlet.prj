@@ -5,6 +5,6 @@ GRIDSIZE                 1000.0
 ROWS                     38
 COLS                     33
 #PROJECTION_FILE         "grid_standard_msk_outlet_outlet_prj.pro"
-OUTROW                   10
-OUTCOL                   1
+OUTROW                   9
+OUTCOL                   0
 OUTSLOPE                 0.001

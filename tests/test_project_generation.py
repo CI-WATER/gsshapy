@@ -141,13 +141,11 @@ class TestProjectGenerate(TestGridTemplate):
         # ADD ELEVATION FILE
         ele_file = ElevationGridFile(project_file=project_manager,
                                      session=self.db_session)
-        ele_file.generateFromRaster(self.elevation_path)
+        ele_file.generateFromRaster(self.elevation_path,
+                                    self.shapefile_path)
 
         # ADD OUTLET POINT
-        grid = project_manager.getGrid()
-        lon, lat = grid.pixel2lonlat(0,6)
-
-        project_manager.setOutlet(latitude=lat, longitude=lon,
+        project_manager.setOutlet(col=0, row=6,
                                   outslope=0.002)
 
         # ADD ADDITIONAL REQUIRED FILES
@@ -199,7 +197,8 @@ class TestProjectGenerate(TestGridTemplate):
         # ADD ELEVATION FILE
         ele_file = ElevationGridFile(project_file=project_manager,
                                      session=self.db_session)
-        ele_file.generateFromRaster(self.elevation_path)
+        ele_file.generateFromRaster(self.elevation_path,
+                                    self.shapefile_path)
 
         # ADD ROUGHNESS FROM LAND COVER
         # see http://www.gsshawiki.com/Project_File:Overland_Flow_%E2%80%93_Required
