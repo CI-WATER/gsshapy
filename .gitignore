@@ -91,4 +91,7 @@ ENV/
 # Mac OS
 *.DS_Store
 
+# PyCharm
+.idea
+
 !gsshapy/lib
