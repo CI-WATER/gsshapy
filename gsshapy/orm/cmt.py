@@ -652,7 +652,6 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                                dtype={'id':'int', 'description':'str', 'roughness':'float'},
                                )
 
-
         # resample land use grid to gssha grid
         land_use_resampled = resample_grid(land_use_grid,
                                            self.projectFile.getGrid(),
@@ -662,11 +661,11 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         unique_land_use_ids = np.unique(land_use_resampled.np_array())
 
         #only add ids in index map subset
-        df = df[df['id'].isin(unique_land_use_ids)]
+        df = df[df.id.isin(unique_land_use_ids)]
 
         # make sure all needed land use IDs exist
         for land_use_id in unique_land_use_ids:
-            if land_use_id not in df.index:
+            if land_use_id not in df.id.values:
                 raise IndexError("Land use ID {0} not found in table.".format(land_use_id))
 
         # delete duplicate/old tables with same name if they exist
