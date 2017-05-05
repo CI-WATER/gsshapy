@@ -12,9 +12,7 @@ __all__ = ['ElevationGridFile']
 import os
 import sys
 
-import numpy as np
-from osgeo import gdalconst, ogr, osr
-from shapely.wkb import loads as shapely_loads
+from osgeo import gdalconst
 from sloot.grid import resample_grid
 
 from .map import RasterMapFile
@@ -43,10 +41,9 @@ class ElevationGridFile(RasterMapFile):
 
     def generateFromRaster(self,
                            elevation_raster,
-                           shapefile_path,
+                           shapefile_path=None,
                            out_elevation_grid=None,
-                           resample_method=gdalconst.GRA_Average,
-                           calculate_outlet_slope=True):
+                           resample_method=gdalconst.GRA_Average):
         '''
         Generates an elevation grid for the GSSHA simulation
         from an elevation raster
@@ -110,70 +107,5 @@ class ElevationGridFile(RasterMapFile):
         self.projectFile.setCard("ELEVATION", out_elevation_grid, add_quotes=True)
         # read raster into object
         self._load_raster_text(out_elevation_grid)
-
-        # determine outlet from shapefile
-        # by getting outlet from first point in polygon
-        shapefile = ogr.Open(shapefile_path)
-        source_layer = shapefile.GetLayer(0)
-        source_lyr_proj = source_layer.GetSpatialRef()
-        osr_geographic_proj = osr.SpatialReference()
-        osr_geographic_proj.ImportFromEPSG(4326)
-        proj_transform = osr.CoordinateTransformation(source_lyr_proj,
-                                                      osr_geographic_proj)
-        boundary_feature = source_layer.GetFeature(0)
-        feat_geom = boundary_feature.GetGeometryRef()
-        feat_geom.Transform(proj_transform)
-        polygon = shapely_loads(feat_geom.ExportToWkb())
-
-        # make lowest point on boundary outlet
-        min_elevation = sys.maxsize
-        outlet_pt = None
-
-        elevation_array = elevation_grid.np_array()
-        ma_elevation_array = np.ma.array(elevation_array,
-                                         mask=mask_grid.np_array()==0)
-        for coord in list(polygon.exterior.coords):
-            try:
-                col, row = mask_grid.lonlat2pixel(*coord)
-            except IndexError:
-                # out of bounds
-                continue
-
-            elevation_value = ma_elevation_array[row, col]
-            if elevation_value is np.ma.masked:
-                # search for closest value in mask to this point
-                # elevation within 5 pixels in any direction
-                actual_value = elevation_array[row, col]
-                max_diff = sys.maxsize
-                nrow = None
-                ncol = None
-                nval = None
-                for row_ix in range(max(row-5, 0), min(row+5, mask_grid.y_size)):
-                    for col_ix in range(max(col-5, 0), min(col+5, mask_grid.x_size)):
-                        val = ma_elevation_array[row_ix, col_ix]
-                        if not val is np.ma.masked:
-                            val_diff = abs(val-actual_value)
-                            if val_diff < max_diff:
-                                max_diff = val_diff
-                                nval = val
-                                nrow = row_ix
-                                ncol = col_ix
-
-                if None not in (nrow, ncol, nval):
-                    row = nrow
-                    col = ncol
-                    elevation_value = nval
-
-            if elevation_value < min_elevation:
-                min_elevation = elevation_value
-                outlet_pt = (col, row)
-
-        if outlet_pt is None:
-            raise IndexError('No valid outlet points found on boundary ...')
-
-        outcol, outrow = outlet_pt
-        self.projectFile.setOutlet(col=outcol+1, row=outrow+1)
-
-        if calculate_outlet_slope:
-            self.projectFile.calculateOutletSlope(elevation_grid=elevation_grid,
-                                                  mask_grid=mask_grid)
+        # find outlet and add slope
+        self.projectFile.findOutlet(shapefile_path)

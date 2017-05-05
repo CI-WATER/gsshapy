@@ -13,15 +13,19 @@ __all__ = ['ProjectFile',
 
 import json
 import logging
-import numpy as np
 import os
+import re
+import sys
+
+import numpy as np
+from osgeo import ogr, osr
 from pyproj import Proj, transform
 from pytz import timezone
-import re
+from shapely.wkb import loads as shapely_loads
 import shlex
+from sloot.grid import GDALGrid
 from timezonefinder import TimezoneFinder
 import xml.etree.ElementTree as ET
-from sloot.grid import GDALGrid
 
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, String
@@ -1211,19 +1215,85 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.setCard(name='OUTROW', value=str(row))
         self.setCard(name='OUTCOL', value=str(col))
         if outslope is None:
-            self.calculateOutletSlope(mask_grid=gssha_grid)
+            self.calculateOutletSlope()
         else:
             self.setCard(name='OUTSLOPE', value=str(outslope))
 
-    def calculateOutletSlope(self, elevation_grid=None, mask_grid=None):
+    def findOutlet(self, shapefile_path):
+        """
+        Calculate outlet location
+        """
+        # determine outlet from shapefile
+        # by getting outlet from first point in polygon
+        shapefile = ogr.Open(shapefile_path)
+        source_layer = shapefile.GetLayer(0)
+        source_lyr_proj = source_layer.GetSpatialRef()
+        osr_geographic_proj = osr.SpatialReference()
+        osr_geographic_proj.ImportFromEPSG(4326)
+        proj_transform = osr.CoordinateTransformation(source_lyr_proj,
+                                                      osr_geographic_proj)
+        boundary_feature = source_layer.GetFeature(0)
+        feat_geom = boundary_feature.GetGeometryRef()
+        feat_geom.Transform(proj_transform)
+        polygon = shapely_loads(feat_geom.ExportToWkb())
+
+        # make lowest point on boundary outlet
+        mask_grid = self.getGrid()
+        elevation_grid = self.getGrid(use_mask=False)
+        elevation_array = elevation_grid.np_array()
+        ma_elevation_array = np.ma.array(elevation_array,
+                                         mask=mask_grid.np_array()==0)
+        min_elevation = sys.maxsize
+        outlet_pt = None
+        for coord in list(polygon.exterior.coords):
+            try:
+                col, row = mask_grid.lonlat2pixel(*coord)
+            except IndexError:
+                # out of bounds
+                continue
+
+            elevation_value = ma_elevation_array[row, col]
+            if elevation_value is np.ma.masked:
+                # search for closest value in mask to this point
+                # elevation within 5 pixels in any direction
+                actual_value = elevation_array[row, col]
+                max_diff = sys.maxsize
+                nrow = None
+                ncol = None
+                nval = None
+                for row_ix in range(max(row-5, 0), min(row+5, mask_grid.y_size)):
+                    for col_ix in range(max(col-5, 0), min(col+5, mask_grid.x_size)):
+                        val = ma_elevation_array[row_ix, col_ix]
+                        if not val is np.ma.masked:
+                            val_diff = abs(val-actual_value)
+                            if val_diff < max_diff:
+                                max_diff = val_diff
+                                nval = val
+                                nrow = row_ix
+                                ncol = col_ix
+
+                if None not in (nrow, ncol, nval):
+                    row = nrow
+                    col = ncol
+                    elevation_value = nval
+
+            if elevation_value < min_elevation:
+                min_elevation = elevation_value
+                outlet_pt = (col, row)
+
+        if outlet_pt is None:
+            raise IndexError('No valid outlet points found on boundary ...')
+
+        outcol, outrow = outlet_pt
+        self.setOutlet(col=outcol+1, row=outrow+1)
+
+    def calculateOutletSlope(self):
         '''
         Attempt to determine the slope at the OUTLET
         '''
         try:
-            if mask_grid is None:
-                mask_grid = self.getGrid()
-            if elevation_grid is None:
-                elevation_grid = self.getGrid(use_mask=False)
+            mask_grid = self.getGrid()
+            elevation_grid = self.getGrid(use_mask=False)
 
             outrow = int(self.getCard("OUTROW").value)-1
             outcol = int(self.getCard("OUTCOL").value)-1
