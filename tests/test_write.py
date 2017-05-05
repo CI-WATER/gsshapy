@@ -436,9 +436,9 @@ class TestWriteMethods(unittest.TestCase):
 
         for afile in fileList:
             if afile != ".gitignore":
-            	path = os.path.join(self.writeDirectory, afile)
+                path = os.path.join(self.writeDirectory, afile)
                 try:
-            	    os.remove(path)
+                    os.remove(path)
                 except OSError:
                     pass
 
