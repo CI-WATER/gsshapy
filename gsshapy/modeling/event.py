@@ -50,7 +50,8 @@ class Event(object):
     '''
     PRECIP_INTERP_TYPES = ('THIESSEN', 'INV_DISTANCE')
     ET_CALC_MODES = ("PENMAN", "DEARDORFF")
-    EVENT_MODE_CARDS = ('PRECIP_UNIF', 'RAIN_INTENSITY', 'RAIN_DURATION')
+    UNIFORM_PRECIP_CARDS = ('PRECIP_UNIF', 'RAIN_INTENSITY', 'RAIN_DURATION')
+    EVENT_MODE_CARDS = UNIFORM_PRECIP_CARDS
     # http://www.gsshawiki.com/Long-term_Simulations:Global_parameters
     LONG_TERM_MODE_CARDS = ('LONG_TERM', 'SEASONAL_RS', 'GMT',
                             'LONGITUDE', 'LATITUDE',
@@ -159,6 +160,24 @@ class Event(object):
             self._update_card("START_DATE", self.simulation_start.strftime("%Y %m %d"))
             self._update_card("START_TIME", self.simulation_start.strftime("%H %M"))
 
+    def _update_simulation_end_from_lsm(self):
+        """
+        Update simulation end time from LSM
+        """
+        te = self.l2g.xd.lsm.datetime[-1]
+        simulation_end = te.replace(tzinfo=utc) \
+                           .astimezone(tz=self.tz) \
+                           .replace(tzinfo=None)
+
+        if self.simulation_end is None:
+            self.simulation_end = simulation_end
+        elif self.simulation_end > simulation_end:
+            self.simulation_end = simulation_end
+        self._update_card("END_TIME",
+                          self.simulation_end
+                              .strftime("%Y %m %d %H %M"))
+
+
     def _update_centroid_timezone(self):
         """
         This function updates the centroid and timezone
@@ -211,6 +230,10 @@ class Event(object):
         if self.l2g is None:
             raise ValueError("LSM converter not loaded ...")
 
+        # remove uniform precip cards
+        for unif_precip_card in self.UNIFORM_PRECIP_CARDS:
+            self.project_manager.deleteCard(unif_precip_card, self.db_session)
+
         # PRECIPITATION CARD
         out_gage_file = '{0}.gag'.format(self.project_manager.name)
         self.l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
@@ -218,12 +241,9 @@ class Event(object):
                                                  precip_type=lsm_precip_type)
 
         # SIMULATION TIME CARDS
-        if self.simulation_start is None:
-            ts = self.l2g.xd.lsm.datetime[0]
-            ts = ts.replace(tzinfo=utc) \
-                   .astimezone(tz=self.tz).replace(tzinfo=None)
-            self._update_simulation_start(ts)
+        self._update_simulation_end_from_lsm()
 
+        self.set_simulation_duration(self.simulation_end-self.simulation_start)
         # precip file read in
         self.add_precip_file(out_gage_file)
 
@@ -504,15 +524,7 @@ class LongTermMode(Event):
             raise ValueError("LSM converter not loaded ...")
 
         # GSSHA simulation does not work after HMET data is finished
-        te = self.l2g.xd.lsm.datetime[-1]
-        wrf_simulation_end = te.replace(tzinfo=utc) \
-                               .astimezone(tz=self.tz).replace(tzinfo=None)
-
-        if self.simulation_end is None:
-            self.simulation_end = wrf_simulation_end
-        elif self.simulation_end > wrf_simulation_end:
-            self.simulation_end = wrf_simulation_end
-        self._update_card("END_TIME", self.simulation_end.strftime("%Y %m %d %H %M"))
+        self._update_simulation_end_from_lsm()
 
         # HMET CARDS
         if netcdf_file_path is not None:
