@@ -656,11 +656,11 @@ class GSSHAFramework(object):
                 # write out GSSHA output
                 log_file_path = os.path.join(working_directory, 'simulation.log')
                 with open(log_file_path, mode='w') as logfile:
-                    logfile.write(out)
+                    logfile.write(out.decode('utf-8'))
                     # log to other logger if debug mode on
                     if log.isEnabledFor(logging.DEBUG):
                         for line in out.split(b'\n'):
-                            log.debug(line)
+                            log.debug(line.decode('utf-8'))
 
             except subprocess.CalledProcessError as ex:
                 log.error("{0}: {1}".format(ex.returncode, ex.output))
