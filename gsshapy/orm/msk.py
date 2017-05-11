@@ -11,7 +11,7 @@ __all__ = ['WatershedMaskFile']
 
 import os
 
-from sloot.shape import rasterize_shapefile
+from gazar.shape import rasterize_shapefile
 
 from .map import RasterMapFile
 from .pro import ProjectionFile

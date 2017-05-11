@@ -22,7 +22,7 @@ from future.utils import iteritems
 import numpy as np
 import pandas as pd
 from osgeo import gdalconst
-from sloot.grid import resample_grid
+from gazar.grid import resample_grid
 from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Integer, Float, String
 from sqlalchemy.orm import relationship

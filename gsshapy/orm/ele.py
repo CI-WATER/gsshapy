@@ -13,7 +13,7 @@ import os
 import sys
 
 from osgeo import gdalconst
-from sloot.grid import resample_grid
+from gazar.grid import resample_grid
 
 from .map import RasterMapFile
 

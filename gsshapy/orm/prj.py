@@ -23,7 +23,7 @@ from pyproj import Proj, transform
 from pytz import timezone
 from shapely.wkb import loads as shapely_loads
 import shlex
-from sloot.grid import GDALGrid
+from gazar.grid import GDALGrid
 from timezonefinder import TimezoneFinder
 import xml.etree.ElementTree as ET
 

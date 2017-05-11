@@ -19,7 +19,7 @@ from shutil import copy
 import xarray as xr
 import xarray.ufuncs as xu
 
-from sloot.grid import ArrayGrid, gdal_reproject
+from gazar.grid import ArrayGrid, gdal_reproject
 from ..lib import db_tools as dbt
 from ..orm import ProjectFile
 

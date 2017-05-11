@@ -10,7 +10,7 @@ from os import chdir
 from datetime import timedelta
 import logging
 
-from sloot.grid import GDALGrid
+from gazar.grid import GDALGrid
 
 from .event import EventMode, LongTermMode
 from ..orm import (ProjectFile, WatershedMaskFile, ElevationGridFile,
