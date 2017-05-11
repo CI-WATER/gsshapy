@@ -408,3 +408,11 @@ class ERAtoGSSHA(GRIDtoGSSHA):
             self._xd = super(ERAtoGSSHA, self).xd
             self._xd.lsm.lon_to_180 = True
         return self._xd
+
+    def _load_converted_gssha_data_from_lsm(self, gssha_var, lsm_var, load_type):
+        """
+        This function loads data from LSM and converts to GSSHA format
+        """
+        super(ERAtoGSSHA, self).\
+            _load_converted_gssha_data_from_lsm(gssha_var, lsm_var, load_type)
+        self.data.lsm.lon_to_180 = True
