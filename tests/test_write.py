@@ -7,7 +7,7 @@
 * License: BSD 2-Clause
 ********************************************************************************
 '''
-
+import sys
 import unittest, itertools, os, uuid
 
 from gsshapy.orm.file_io import *
@@ -383,6 +383,9 @@ class TestWriteMethods(unittest.TestCase):
         '''
         Compare the contents of two files
         '''
+        if ext == 'cmt' and sys.version_info.major == 3:
+            original = '{0}_py3'.format(original)
+
         filenameO = '%s.%s' % (original, ext)
         filePathO = os.path.join(self.readDirectory, filenameO)
         filenameN = '%s.%s' % (new, ext)
@@ -428,9 +431,10 @@ class TestWriteMethods(unittest.TestCase):
     def tearDown(self):
         self.writeSession.close()
         self._delete_extra_dirs()
+
         # Remove temp database
         dbt.del_sqlite_db(self.db_path)
-
+        
         # Clear out directory
         fileList = os.listdir(self.writeDirectory)
 
@@ -441,8 +445,6 @@ class TestWriteMethods(unittest.TestCase):
                     os.remove(path)
                 except OSError:
                     pass
-
-suite = unittest.TestLoader().loadTestsFromTestCase(TestWriteMethods)
 
 
 if __name__ == '__main__':
