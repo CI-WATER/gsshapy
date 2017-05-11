@@ -31,7 +31,7 @@ install:
   - conda create -n gsshapy python=%PYTHON_VERSION%
   - activate gsshapy
   - conda config --add channels conda-forge
-  - conda install --file=conda-requirements.txt
+  - conda env update -n gsshapy -f conda_env.yml
   # restart environment
   - deactivate gsshapy
   - activate gsshapy
