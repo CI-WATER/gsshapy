@@ -687,7 +687,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         mapTable.mapTableFile = self
         # add values to table
         for row in df.itertuples():
-            idx = MTIndex(row.id, row.description, '')
+            idx = MTIndex(str(row.id), row.description, '')
             idx.indexMap = indexMap
             val = MTValue('ROUGH', row.roughness)
             val.index = idx
