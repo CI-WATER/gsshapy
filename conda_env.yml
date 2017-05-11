@@ -9,7 +9,7 @@ channels:
 - conda-forge
 - defaults
 dependencies:
-- python=2
+- python
 - affine
 - appdirs
 - mapkit
