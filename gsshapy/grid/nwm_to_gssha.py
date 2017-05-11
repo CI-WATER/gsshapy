@@ -50,18 +50,18 @@ class NWMtoGSSHA(GRIDtoGSSHA):
 
         out_gage_file = 'E:\\GSSHA\\era5_rain1.gag
         e2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
-                                            lsm_data_var="tp",
-                                            precip_type="GAGES")
+                                            lsm_data_var="RAINRATE",
+                                            precip_type="ACCUM")
 
         data_var_map_array = [
-                               ['precipitation_inc', 'tp'],
-                               ['pressure', 'sp'],
-                               ['relative_humidity_dew', ['d2m','t2m']],
-                               ['wind_speed', ['u10', 'v10']],
-                               ['direct_radiation', 'aluvp'],
-                               ['diffusive_radiation', 'aluvd'],
-                               ['temperature', 't2m'],
-                               ['cloud_cover', 'tcc'],
+                               ['precipitation_acc', 'RAINRATE'],
+                               ['pressure', 'PSFC'],
+                               ['relative_humidity', ['Q2D','T2D', 'PSFC']],
+                               ['wind_speed', ['U2D', 'V2D']],
+                               ['direct_radiation', 'SWDOWN'], ???
+                               ['diffusive_radiation', 'SWDOWN'], ???
+                               ['temperature', 'T2D'],
+                               ['cloud_cover', '????'],
                               ]
 
         e2g.lsm_data_to_arc_ascii(data_var_map_array)
@@ -103,3 +103,11 @@ class NWMtoGSSHA(GRIDtoGSSHA):
             self._xd = super(NWMtoGSSHA, self).xd
             self._xd.lsm.coords_projected = True
         return self._xd
+
+    def _load_converted_gssha_data_from_lsm(self, gssha_var, lsm_var, load_type):
+        """
+        This function loads data from LSM and converts to GSSHA format
+        """
+        super(NWMtoGSSHA, self).\
+            _load_converted_gssha_data_from_lsm(gssha_var, lsm_var, load_type)
+        self.data.lsm.coords_projected = True
