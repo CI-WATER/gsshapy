@@ -76,7 +76,7 @@ Install gsshapy for development:
 
     $ git clone https://github.com/CI-WATER/gsshapy.git
     $ cd gsshapy
-    $ conda env create -f conda-env.yml
+    $ conda env create -f conda_env.yml
     $ source activate gssha
     (gssha)$ conda config --add channels conda-forge
     (gssha)$ conda install --yes pynio
@@ -124,7 +124,7 @@ Open up the CMD program. Then, enter each line separately.
 ::
 
     > cd gsshapy
-    > conda env create -f conda-env.yml
+    > conda env create -f conda_env.yml
     > activate gssha
     (gssha)> conda config --add channels conda-forge
     (gssha)> python setup.py develop
