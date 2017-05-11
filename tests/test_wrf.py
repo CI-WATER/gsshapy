@@ -92,7 +92,7 @@ class TestLSMtoGSSHA(TestGridTemplate):
 
         # Test
         compare_gag_file = os.path.join(self.readDirectory, 'gage_test_wrf.gag')
-        self._compare_files(out_gage_file, compare_gag_file)
+        self._compare_files(out_gage_file, compare_gag_file, precision=5)
 
     def test_wrf_netcdf_file_write(self):
         '''

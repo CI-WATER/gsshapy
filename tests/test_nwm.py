@@ -52,7 +52,7 @@ class TestNWMtoGSSHA(TestGridTemplate):
 
         # Test
         compare_gag_file = os.path.join(self.readDirectory, 'gage_test_nwm.gag')
-        self._compare_files(out_gage_file, compare_gag_file)
+        self._compare_files(out_gage_file, compare_gag_file, precision=5)
 
 if __name__ == '__main__':
     unittest.main()

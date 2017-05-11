@@ -317,7 +317,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
 
         # grid_standard.gag
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608231600to201608240700.gag"),
-                            self._generated_file_path('run_201608231600to201608240700', extension="gag"))
+                            self._generated_file_path('run_201608231600to201608240700', extension="gag"),
+                            precision=5)
 
         # compare yml files
         self._compare_files(os.path.join(self.readDirectory, 'framework', 'gssha_event_wrf_201608231600to201608240700.yml'),
@@ -366,7 +367,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
 
         # grid_standard.gag
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608231600to201608240700.gag"),
-                            self._generated_file_path('run_201608231600to201608240700', extension="gag"))
+                            self._generated_file_path('run_201608231600to201608240700', extension="gag"),
+                            precision=5)
 
         # compare yml files
         self._compare_files(os.path.join(self.readDirectory, 'framework', 'gssha_event_wrf_201608231600to201608240700.yml'),
@@ -414,7 +416,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
 
         # grid_standard.gag
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608231600to201608240700.gag"),
-                            self._generated_file_path('run_201608231600to201608240700', extension="gag"))
+                            self._generated_file_path('run_201608231600to201608240700', extension="gag"),
+                            precision=5)
 
         # compare yml files
         self._compare_files(os.path.join(self.readDirectory, 'framework', 'gssha_event_wrf_201608231600to201608240700.yml'),
@@ -465,7 +468,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
 
         # grid_standard.gag
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608230000to200208240359.gag"),
-                            self._generated_file_path('run_201608230000to200208240359', extension="gag"))
+                            self._generated_file_path('run_201608230000to200208240359', extension="gag"),
+                            precision=5)
 
         # compare yml files
         self._compare_files(os.path.join(self.readDirectory, 'framework', 'gssha_event_wrf_201608230000to200208240359.yml'),
@@ -517,7 +521,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
 
         # grid_standard.gag
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608231600to201608232200.gag"),
-                            self._generated_file_path('minimal_hotstart_run_201608231600to201608232200', extension="gag"))
+                            self._generated_file_path('minimal_hotstart_run_201608231600to201608232200', extension="gag"),
+                            precision=5)
 
         # compare yml files
         self._compare_files(os.path.join(self.readDirectory, 'framework', 'gssha_event_wrf_minimal_hotstart_201608231600to201608232200.yml'),

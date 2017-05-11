@@ -67,7 +67,7 @@ class TestGridTemplate(unittest.TestCase):
 
             # compare geotransform
             assert_almost_equal(dsO.GetGeoTransform(), dsN.GetGeoTransform(),
-                                decimal=10)
+                                decimal=5)
 
             # compare band counts
             assert dsO.RasterCount == dsN.RasterCount
@@ -86,12 +86,14 @@ class TestGridTemplate(unittest.TestCase):
                 linesN = contentsN.strip().split()
 
             for lineO, lineN in zip(linesO, linesN):
-                try:
-                    valO = float(lineO)
-                    valN = float(lineN)
-                    assert_almost_equal(valO, valN)
-                except ValueError:
-                    self.assertEqual(linesO, linesN)
+                for valO, valN in zip(lineO.split(), lineN.split()):
+                    try:
+                        valO = float(valO)
+                        valN = float(valN)
+                        assert_almost_equal(valO, valN, precision)
+                    except ValueError:
+                        self.assertEqual(valO, valN)
+                        pass
 
     def _compare_directories(self, dir1, dir2, ignore_file=None, raster=False, precision=7):
         '''

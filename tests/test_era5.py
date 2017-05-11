@@ -72,7 +72,7 @@ class TestERA5toGSSHA(TestGridTemplate):
                                                  precip_type='GAGES')
         # Test
         compare_gag_file = os.path.join(self.readDirectory, 'gage_test_era5.gag')
-        self._compare_files(out_gage_file, compare_gag_file)
+        self._compare_files(out_gage_file, compare_gag_file, precision=5)
 
     def test_era5_netcdf_file_write(self):
         '''
