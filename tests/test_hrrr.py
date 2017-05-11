@@ -29,7 +29,7 @@ from gsshapy.grid import HRRRtoGSSHA
 ##Precipitation rate, prate
 ##Downward short-wave radiation flux, dswrf
 
-@pytest.mark.skipif(sys.version_info > (3, 0),
+@pytest.mark.skipif(sys.version_info.major > 2,
                     reason="pynio only works on Python 2")
 @pytest.mark.skipif(os.name == 'nt',
                     reason="pynio not available on Windows")
