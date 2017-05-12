@@ -383,8 +383,8 @@ class TestWriteMethods(unittest.TestCase):
         '''
         Compare the contents of two files
         '''
-        if ext == 'cmt' and sys.version_info.major == 3:
-            original = '{0}_py3'.format(original)
+        if ext == 'cmt':
+            original = '{0}_compare'.format(original)
 
         filenameO = '%s.%s' % (original, ext)
         filePathO = os.path.join(self.readDirectory, filenameO)
@@ -434,7 +434,7 @@ class TestWriteMethods(unittest.TestCase):
 
         # Remove temp database
         dbt.del_sqlite_db(self.db_path)
-        
+
         # Clear out directory
         fileList = os.listdir(self.writeDirectory)
 

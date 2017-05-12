@@ -184,7 +184,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                 # Initiate index map write
                 indexMap.write(directory, session=session)
 
-        for mapTable in self.mapTables:
+        for mapTable in self.getOrderedMapTables(session):
             if mapTable.name == 'SEDIMENTS':
                 self._writeSedimentTable(session=session,
                                          fileObject=openFile,
