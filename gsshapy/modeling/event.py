@@ -12,7 +12,7 @@ import os
 from pytz import utc
 from RAPIDpy import RAPIDDataset
 
-from ..grid import ERAtoGSSHA. GRIDtoGSSHA, HRRRtoGSSHA, NWMtoGSSHA
+from ..grid import ERAtoGSSHA, GRIDtoGSSHA, HRRRtoGSSHA, NWMtoGSSHA
 
 log = logging.getLogger(__name__)
 
