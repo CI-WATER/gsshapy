@@ -17,7 +17,7 @@ from ..grid import ERAtoGSSHA. GRIDtoGSSHA, HRRRtoGSSHA, NWMtoGSSHA
 log = logging.getLogger(__name__)
 
 GRID_MODULES = {
-    'era' : ERAtoGSSHA
+    'era' : ERAtoGSSHA,
     'grid': GRIDtoGSSHA,
     'hrrr': HRRRtoGSSHA,
     'nwm': NWMtoGSSHA,
