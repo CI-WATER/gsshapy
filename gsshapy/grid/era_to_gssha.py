@@ -24,7 +24,8 @@ def download_era5_for_gssha(main_directory,
                             leftlon=-180,
                             rightlon=180,
                             toplat=90,
-                            bottomlat=-90):
+                            bottomlat=-90,
+                            precip_only=False):
     """
     Function to download ERA5 data for GSSHA
 
@@ -38,7 +39,7 @@ def download_era5_for_gssha(main_directory,
         rightlon(Optional[:obj:`float`]): Right bound for longitude. Default is 180.
         toplat(Optional[:obj:`float`]): Top bound for latitude. Default is 90.
         bottomlat(Optional[:obj:`float`]): Bottom bound for latitude. Default is -90.
-
+        precip_only(Optional[bool]): If True, will only download precipitation.
 
     Example::
 
@@ -71,7 +72,7 @@ def download_era5_for_gssha(main_directory,
     while download_datetime <= end_datetime:
         download_file = path.join(main_directory, "era5_gssha_{0}.nc".format(download_datetime.strftime("%Y%m%d")))
         download_date = download_datetime.strftime("%Y-%m-%d")
-        if not path.exists(download_file):
+        if not path.exists(download_file) and not precip_only:
             server.retrieve({
                 'dataset': "era5_test",
                 #  'oper' specifies the high resolution daily data, as opposed to monthly means, wave, eda edmm, etc.
@@ -107,6 +108,7 @@ def download_era5_for_gssha(main_directory,
         prec_download_file = path.join(main_directory, "era5_gssha_{0}_fc.nc".format(download_datetime.strftime("%Y%m%d")))
         loc_download_file0 = path.join(main_directory, "era5_gssha_{0}_0_fc.nc".format(download_datetime.strftime("%Y%m%d")))
         loc_download_file1 = path.join(main_directory, "era5_gssha_{0}_1_fc.nc".format(download_datetime.strftime("%Y%m%d")))
+        loc_download_file2 = path.join(main_directory, "era5_gssha_{0}_2_fc.nc".format(download_datetime.strftime("%Y%m%d")))
         if download_datetime <= start_datetime and not path.exists(loc_download_file0):
             loc_download_date = (download_datetime-timedelta(1)).strftime("%Y-%m-%d")
             # precipitation 0000-0600
@@ -116,20 +118,20 @@ def download_era5_for_gssha(main_directory,
             era5_request['date'] = loc_download_date
             server.retrieve(era5_request)
 
-        if download_datetime == end_datetime and not path.exists(loc_download_file0):
+        if download_datetime == end_datetime and not path.exists(loc_download_file1):
             loc_download_date = download_datetime.strftime("%Y-%m-%d")
             # precipitation 0600-1800
             era5_request['step'] = "1/to/12/by/1"
             era5_request['time'] = "06"
-            era5_request['target'] = loc_download_file0
+            era5_request['target'] = loc_download_file1
             era5_request['date'] = loc_download_date
             server.retrieve(era5_request)
-        if download_datetime == end_datetime and not path.exists(loc_download_file1):
+        if download_datetime == end_datetime and not path.exists(loc_download_file2):
             loc_download_date = download_datetime.strftime("%Y-%m-%d")
             # precipitation 1800-2300
             era5_request['step'] = "1/to/5/by/1"
             era5_request['time'] = "18"
-            era5_request['target'] = loc_download_file1
+            era5_request['target'] = loc_download_file2
             era5_request['date'] = loc_download_date
             server.retrieve(era5_request)
         if download_datetime < end_datetime and not path.exists(prec_download_file):
@@ -148,7 +150,8 @@ def download_interim_for_gssha(main_directory,
                                leftlon=-180,
                                rightlon=180,
                                toplat=90,
-                               bottomlat=-90):
+                               bottomlat=-90,
+                               precip_only=False):
     """
     Function to download ERA5 data for GSSHA
 
@@ -162,7 +165,7 @@ def download_interim_for_gssha(main_directory,
         rightlon(Optional[:obj:`float`]): Right bound for longitude. Default is 180.
         toplat(Optional[:obj:`float`]): Top bound for latitude. Default is 90.
         bottomlat(Optional[:obj:`float`]): Bottom bound for latitude. Default is -90.
-
+        precip_only(Optional[bool]): If True, will only download precipitation.
 
     Example::
 
@@ -206,28 +209,28 @@ def download_interim_for_gssha(main_directory,
     }
     while download_datetime <= end_datetime:
         interim_request['date'] = download_datetime.strftime("%Y-%m-%d")
+        if not precip_only:
+            download_file = path.join(main_directory, "erai_gssha_{0}_an.nc".format(download_datetime.strftime("%Y%m%d")))
+            if not path.exists(download_file):
+                #  We want instantaneous parameters, which are archived as type Analysis ('an') as opposed to forecast (fc)
+                interim_request['type'] = "an"
+                # For parameter codes see the ECMWF parameter database at http://apps.ecmwf.int/codes/grib/param-db
+                interim_request['param'] = "2t/2d/sp/10u/10v/tcc"
+                # step 0 is analysis, 3-12 is forecast
+                interim_request['step'] = "0"
+                # ERA Interim provides 6-hourly analysis
+                interim_request['time'] = "00/06/12/18"
+                interim_request['target'] = download_file
+                server.retrieve(interim_request)
 
-        download_file = path.join(main_directory, "erai_gssha_{0}_an.nc".format(download_datetime.strftime("%Y%m%d")))
-        if not path.exists(download_file):
-            #  We want instantaneous parameters, which are archived as type Analysis ('an') as opposed to forecast (fc)
-            interim_request['type'] = "an"
-            # For parameter codes see the ECMWF parameter database at http://apps.ecmwf.int/codes/grib/param-db
-            interim_request['param'] = "2t/2d/sp/10u/10v/tcc"
-            # step 0 is analysis, 3-12 is forecast
-            interim_request['step'] = "0"
-            # ERA Interim provides 6-hourly analysis
-            interim_request['time'] = "00/06/12/18"
-            interim_request['target'] = download_file
-            server.retrieve(interim_request)
-
-        download_file = path.join(main_directory, "erai_gssha_{0}_fc_3.nc".format(download_datetime.strftime("%Y%m%d")))
-        if not path.exists(download_file):
-            interim_request['type'] = "fc"
-            interim_request['param'] = "2t/2d/sp/10u/10v/tcc"
-            interim_request['step'] = "3"
-            interim_request['time'] = "00/06/12/18"
-            interim_request['target'] = download_file
-            server.retrieve(interim_request)
+            download_file = path.join(main_directory, "erai_gssha_{0}_1_fc.nc".format(download_datetime.strftime("%Y%m%d")))
+            if not path.exists(download_file):
+                interim_request['type'] = "fc"
+                interim_request['param'] = "2t/2d/sp/10u/10v/tcc"
+                interim_request['step'] = "3"
+                interim_request['time'] = "00/06/12/18"
+                interim_request['target'] = download_file
+                server.retrieve(interim_request)
 
         download_file = path.join(main_directory, "erai_gssha_{0}_fc.nc".format(download_datetime.strftime("%Y%m%d")))
         if not path.exists(download_file):
@@ -255,10 +258,10 @@ def download_interim_for_gssha(main_directory,
                 xd.ssrd[1:4] = diff_xd.ssrd[:3]
                 xd.ssrd[5:] = diff_xd.ssrd[4:]
                 xd.to_netcdf(tmp_download_file)
-            #remove(download_file)
-            #rename(tmp_download_file, download_file)
+            remove(download_file)
+            rename(tmp_download_file, download_file)
 
-        download_file = path.join(main_directory, "erai_gssha_{0}_fc_0.nc".format(download_datetime.strftime("%Y%m%d")))
+        download_file = path.join(main_directory, "erai_gssha_{0}_0_fc.nc".format(download_datetime.strftime("%Y%m%d")))
         if download_datetime <= start_datetime and not path.exists(download_file):
             loc_download_date = (download_datetime-timedelta(1)).strftime("%Y-%m-%d")
             interim_request['type'] = "fc"
