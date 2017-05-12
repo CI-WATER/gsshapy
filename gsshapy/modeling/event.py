@@ -12,14 +12,15 @@ import os
 from pytz import utc
 from RAPIDpy import RAPIDDataset
 
-from ..grid import GRIDtoGSSHA, HRRRtoGSSHA, ERAtoGSSHA
+from ..grid import ERAtoGSSHA. GRIDtoGSSHA, HRRRtoGSSHA, NWMtoGSSHA
 
 log = logging.getLogger(__name__)
 
 GRID_MODULES = {
+    'era' : ERAtoGSSHA
     'grid': GRIDtoGSSHA,
     'hrrr': HRRRtoGSSHA,
-    'era' : ERAtoGSSHA
+    'nwm': NWMtoGSSHA,
 }
 
 class Event(object):
