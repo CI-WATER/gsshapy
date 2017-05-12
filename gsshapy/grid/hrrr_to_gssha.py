@@ -21,27 +21,6 @@ log = logging.getLogger(__name__)
 #------------------------------------------------------------------------------
 # HELPER FUNCTIONS
 #------------------------------------------------------------------------------
-
-def get_grib_subset(grb, lat0, lat1, lon0, lon1):
-    """
-    Extracts a subset from the grib file based on lat/lon bounds
-    """
-    lats,lons = grb.latlons()
-
-    ##determine the bounds of the data with grid preservation
-    lat_where = np.where((lats >= lat0) & (lats <= lat1))[0]
-    lon_where = np.where((lons >= lon0) & (lons <= lon1))[1]
-
-    max_lat_index = lat_where.max()
-    min_lat_index = lat_where.min()
-    max_lon_index = lon_where.max()
-    min_lon_index = lon_where.min()
-
-    ##extract the subset of data
-    return (grb.values[min_lat_index:max_lat_index, min_lon_index:max_lon_index],
-            lats[min_lat_index:max_lat_index, min_lon_index:max_lon_index],
-            lons[min_lat_index:max_lat_index, min_lon_index:max_lon_index])
-
 def download_hrrr_for_gssha(main_directory,
                             forecast_start_date_string, #EX. '20160913'
                             forecast_start_hour_string, #EX. '00' to '23'
