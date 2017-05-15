@@ -61,6 +61,8 @@ GRID API
 
     api/grid/lsm_tools
     api/grid/hrrr_tools
+    api/grid/era_tools
+    api/grid/nwm_tools
 
 Modeling API
 ============

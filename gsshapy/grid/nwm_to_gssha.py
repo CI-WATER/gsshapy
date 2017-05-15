@@ -38,6 +38,7 @@ class NWMtoGSSHA(GRIDtoGSSHA):
 
     Example::
 
+
         from datetime import datetime
         from gsshapy.grid import NWMtoGSSHA
 
@@ -48,7 +49,7 @@ class NWMtoGSSHA(GRIDtoGSSHA):
                          )
 
 
-        out_gage_file = 'E:\\GSSHA\\era5_rain1.gag
+        out_gage_file = 'E:\\GSSHA\\era5_rain1.gag'
         e2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
                                             lsm_data_var="RAINRATE",
                                             precip_type="ACCUM")
@@ -58,13 +59,14 @@ class NWMtoGSSHA(GRIDtoGSSHA):
                                ['pressure', 'PSFC'],
                                ['relative_humidity', ['Q2D','T2D', 'PSFC']],
                                ['wind_speed', ['U2D', 'V2D']],
-                               ['direct_radiation', 'SWDOWN'], ???
-                               ['diffusive_radiation', 'SWDOWN'], ???
+                               ['direct_radiation', 'SWDOWN'],  # ???
+                               ['diffusive_radiation', 'SWDOWN'],  # ???
                                ['temperature', 'T2D'],
                                ['cloud_cover', '????'],
                               ]
 
         e2g.lsm_data_to_arc_ascii(data_var_map_array)
+
     """
     def __init__(self,
                  gssha_project_folder,
