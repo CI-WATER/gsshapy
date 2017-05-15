@@ -12,6 +12,7 @@ dependencies:
 - affine
 - appdirs
 - mapkit
+- pangaea
 - psycopg2
 # pynio does not work on Windows
 #- pynio
