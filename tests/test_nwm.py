@@ -1,11 +1,11 @@
-'''
+"""
 ********************************************************************************
 * Name: NWM Tests
 * Author: Alan D. Snow
 * Created On: September 16, 2016
 * License: BSD 3-Clause
 ********************************************************************************
-'''
+"""
 import os
 from osgeo import gdalconst
 import unittest
@@ -32,7 +32,6 @@ class TestNWMtoGSSHA(TestGridTemplate):
         except OSError:
             pass
 
-        nwm_folder = os.path.join(self.writeDirectory, 'nwm_raw_data')
         self.l2g = NWMtoGSSHA(gssha_project_folder=gssha_project_folder,
                               gssha_project_file_name='grid_standard.prj',
                               lsm_input_folder_path=nwm_input_folder)
@@ -42,9 +41,9 @@ class TestNWMtoGSSHA(TestGridTemplate):
         self.l2g = None
 
     def test_wrf_gage_file_write(self):
-        '''
+        """
         Test WRF lsm_precip_to_gssha_precip_gage write method
-        '''
+        """
         out_gage_file = os.path.join(self.writeDirectory, 'gage_test_nwm.gag')
         self.l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
                                                  lsm_data_var='RAINRATE',

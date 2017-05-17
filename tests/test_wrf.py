@@ -1,11 +1,11 @@
-'''
+"""
 ********************************************************************************
 * Name: WRF Tests
 * Author: Alan D. Snow
 * Created On: September 16, 2016
 * License: BSD 3-Clause
 ********************************************************************************
-'''
+"""
 import os
 from osgeo import gdalconst
 import unittest
@@ -82,9 +82,9 @@ class TestLSMtoGSSHA(TestGridTemplate):
         self.l2g = None
 
     def test_wrf_gage_file_write(self):
-        '''
+        """
         Test WRF lsm_precip_to_gssha_precip_gage write method
-        '''
+        """
         out_gage_file = os.path.join(self.writeDirectory, 'gage_test_wrf.gag')
         self.l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
                                                  lsm_data_var=['RAINC', 'RAINNC'],
@@ -95,9 +95,9 @@ class TestLSMtoGSSHA(TestGridTemplate):
         self._compare_files(out_gage_file, compare_gag_file, precision=5)
 
     def test_wrf_netcdf_file_write(self):
-        '''
+        """
         Test WRF lsm_data_to_subset_netcdf write method
-        '''
+        """
         netcdf_file_path = os.path.join(self.writeDirectory,
                                         'gssha_dynamic_wrf.nc')
         self.l2g.lsm_data_to_subset_netcdf(netcdf_file_path,
@@ -107,9 +107,9 @@ class TestLSMtoGSSHA(TestGridTemplate):
         self._compare_netcdf_files("gssha_dynamic_wrf", "gssha_dynamic_wrf")
 
     def test_wrf_netcdf_file_write_resample(self):
-        '''
+        """
         Test WRF lsm_data_to_subset_netcdf resample write method
-        '''
+        """
         netcdf_file_path = os.path.join(self.writeDirectory,
                                         'gssha_dynamic_wrf_resample.nc')
         self.l2g.lsm_data_to_subset_netcdf(netcdf_file_path,
@@ -121,9 +121,9 @@ class TestLSMtoGSSHA(TestGridTemplate):
                                    "gssha_dynamic_wrf_resample")
 
     def test_wrf_ascii_file_write(self):
-        '''
+        """
         Test WRF lsm_data_to_arc_ascii write method
-        '''
+        """
         self.l2g.lsm_data_to_arc_ascii(self.data_var_map_array,
                                        self.hmet_write_directory)
 
@@ -135,9 +135,9 @@ class TestLSMtoGSSHA(TestGridTemplate):
                                   raster=True)
 
     def test_wrf_ascii_file_write_pre(self):
-        '''
+        """
         Test WRF lsm_data_to_arc_ascii write method pre-computed
-        '''
+        """
         self.l2g.lsm_data_to_arc_ascii(self.data_var_map_array_pre,
                                        self.hmet_write_directory)
 

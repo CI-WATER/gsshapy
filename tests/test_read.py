@@ -1,4 +1,4 @@
-'''
+"""
 ********************************************************************************
 * Name: Read Tests
 * Author: Nathan Swain
@@ -6,16 +6,15 @@
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
-'''
-
+"""
 from builtins import zip
 import unittest
 import os
-import sqlalchemy
 
 from gsshapy.orm.file_io import *
 from gsshapy.orm import ProjectFile
 from gsshapy.lib import db_tools as dbt
+
 
 class TestReadMethods(unittest.TestCase):
     def setUp(self):
@@ -33,9 +32,9 @@ class TestReadMethods(unittest.TestCase):
         self.directory = os.path.join(here, 'standard')
 
     def test_project_file_read(self):
-        '''
+        """
         Test ProjectFile read method
-        '''
+        """
         prjR, prjQ = self._read_n_query(fileIO=ProjectFile,
                                         directory=self.directory,
                                         filename='standard.prj')
@@ -54,9 +53,9 @@ class TestReadMethods(unittest.TestCase):
             self.assertEqual(cardR.value, cardQ.value)
 
     def test_channel_input_read(self):
-        '''
+        """
         Test ChannelInputFile read method
-        '''
+        """
         # Read and Query
         cifR, cifQ = self._read_n_query(fileIO=ChannelInputFile,
                                         directory=self.directory,
@@ -128,9 +127,9 @@ class TestReadMethods(unittest.TestCase):
                 self._list_compare(bpR, bpQ)
 
     def test_map_table_file_read(self):
-        '''
+        """
         Test MapTableFile read method
-        '''
+        """
         # Read and Query
         cmtR, cmtQ = self._read_n_query(fileIO=MapTableFile,
                                         directory=self.directory,
@@ -181,9 +180,9 @@ class TestReadMethods(unittest.TestCase):
                 self.assertEqual(indexR, indexQ)
 
     def test_precip_file_read(self):
-        '''
+        """
         Test PrecipFile read method
-        '''
+        """
         gagR, gagQ = self._read_n_query(fileIO=PrecipFile,
                                         directory=self.directory,
                                         filename='standard.gag')
@@ -191,9 +190,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_grid_pipe_file_read(self):
-        '''
+        """
         Test GridPipeFile read method
-        '''
+        """
         gpiR, gpiQ = self._read_n_query(fileIO=GridPipeFile,
                                         directory=self.directory,
                                         filename='standard.gpi')
@@ -201,9 +200,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_grid_stream_file_read(self):
-        '''
+        """
         Test GridStreamFile read method
-        '''
+        """
         gstR, gstQ = self._read_n_query(fileIO=GridStreamFile,
                                         directory=self.directory,
                                         filename='standard.gst')
@@ -211,9 +210,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_hmet_file_read(self):
-        '''
+        """
         Test HmetFile read method
-        '''
+        """
         hmetR, hmetQ = self._read_n_query(fileIO=HmetFile,
                                           directory=self.directory,
                                           filename='hmet_wes.hmt')
@@ -221,9 +220,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_output_location_file_read(self):
-        '''
+        """
         Test OutputLocationFile read method
-        '''
+        """
         locR, locQ = self._read_n_query(fileIO=OutputLocationFile,
                                         directory=self.directory,
                                         filename='standard.ihl')
@@ -231,9 +230,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_link_node_dataset_file_read(self):
-        '''
+        """
         Test LinkNodeDatasetFile read method
-        '''
+        """
         lndR, lndQ = self._read_n_query(fileIO=LinkNodeDatasetFile,
                                         directory=self.directory,
                                         filename='standard.cdp')
@@ -241,9 +240,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_raster_map_file_read(self):
-        '''
+        """
         Test RasterMapFile read method
-        '''
+        """
         mapR, mapQ = self._read_n_query(fileIO=RasterMapFile,
                                         directory=self.directory,
                                         filename='standard.msk')
@@ -251,9 +250,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_projection_file_read(self):
-        '''
+        """
         Test ProjectionFile read method
-        '''
+        """
         proR, proQ = self._read_n_query(fileIO=ProjectionFile,
                                         directory=self.directory,
                                         filename='standard_prj.pro')
@@ -261,9 +260,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_replace_param_file_read(self):
-        '''
+        """
         Test ReplaceParamFile read method
-        '''
+        """
         repR, repQ = self._read_n_query(fileIO=ReplaceParamFile,
                                         directory=self.directory,
                                         filename='replace_param.txt')
@@ -271,9 +270,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_replace_val_file_read(self):
-        '''
+        """
         Test ReplaceValFile read method
-        '''
+        """
         repR, repQ = self._read_n_query(fileIO=ReplaceValFile,
                                         directory=self.directory,
                                         filename='replace_val.txt')
@@ -281,9 +280,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_nwsrfs_file_read(self):
-        '''
+        """
         Test NwsrfsFile read method
-        '''
+        """
         snwR, snwQ = self._read_n_query(fileIO=NwsrfsFile,
                                         directory=self.directory,
                                         filename='nwsrfs_elev.txt')
@@ -291,9 +290,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_oro_gage_file_read(self):
-        '''
+        """
         Test OrographicGageFile read method
-        '''
+        """
         snwR, snwQ = self._read_n_query(fileIO=OrographicGageFile,
                                         directory=self.directory,
                                         filename='oro_gages.txt')
@@ -301,9 +300,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_storm_pipe_network_file_read(self):
-        '''
+        """
         Test StormPipeNetworkFile read method
-        '''
+        """
         spnR, spnQ = self._read_n_query(fileIO=StormPipeNetworkFile,
                                         directory=self.directory,
                                         filename='standard.spn')
@@ -311,9 +310,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_time_series_file_read(self):
-        '''
+        """
         Test TimeSeriesFile read method
-        '''
+        """
         timR, timQ = self._read_n_query(fileIO=TimeSeriesFile,
                                         directory=self.directory,
                                         filename='standard.ohl')
@@ -327,9 +326,9 @@ class TestReadMethods(unittest.TestCase):
         self.assertAlmostEqual(dfR.index[7], 2002.42440068)
 
     def test_evt_yml_file_read(self):
-        '''
+        """
         Test ProjectFileEventManager read method
-        '''
+        """
         dir_list = ('run_2014_to_2017', 'run_2015_to_2017',
                     'run_2016_to_2017')
         for subdir in dir_list:
@@ -354,9 +353,9 @@ class TestReadMethods(unittest.TestCase):
                 pass
 
     def test_evt_yml_file_read_error(self):
-        '''
+        """
         Test ProjectFileEventManager read method integrity
-        '''
+        """
         dir_list = ('run_2014_to_2017', 'run_2015_to_2017',
                     'run_2016_to_2017')
         for subdir in dir_list:
@@ -381,9 +380,9 @@ class TestReadMethods(unittest.TestCase):
                 pass
 
     def test_evt_yml_file_read_nodir(self):
-        '''
+        """
         Test ProjectFileEventManager read method without directories
-        '''
+        """
         ymlR, ymlQ = self._read_n_query(fileIO=ProjectFileEventManager,
                                         directory=self.directory,
                                         filename='testyml.yml')
@@ -392,9 +391,9 @@ class TestReadMethods(unittest.TestCase):
         assert ymlR.events.count() == 0
 
     def test_index_map_read(self):
-        '''
+        """
         Test IndexMap read method
-        '''
+        """
         # Instantiate GSSHAPY object for reading to database
         idxR = IndexMap(name='Soil')
 
@@ -409,9 +408,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_project_file_read_all(self):
-        '''
+        """
         Test ProjectFile read all method
-        '''
+        """
         # Instantiate GSSHAPY ProjectFile object
         prjR = ProjectFile()
 
@@ -426,9 +425,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_project_file_read_input(self):
-        '''
+        """
         Test ProjectFile read input method
-        '''
+        """
         # Instantiate GSSHAPY ProjectFile object
         prjR = ProjectFile()
 
@@ -443,9 +442,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def test_project_file_read_output(self):
-        '''
+        """
         Test ProjectFile read output method
-        '''
+        """
         # Instantiate GSSHAPY ProjectFile object
         prjR = ProjectFile()
 
@@ -460,9 +459,9 @@ class TestReadMethods(unittest.TestCase):
         # Tests
 
     def _read_n_query(self, fileIO, directory, filename):
-        '''
+        """
         Read to database and Query from database
-        '''
+        """
         # Instantiate GSSHAPY object for reading to database
         instanceR = fileIO()
 

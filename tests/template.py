@@ -1,11 +1,11 @@
-'''
+"""
 ********************************************************************************
 * Name: Test Grid Template
 * Author: Alan D. Snow
 * Created On: September 16, 2016
 * License: BSD 3-Clause
 ********************************************************************************
-'''
+"""
 import itertools
 from netCDF4 import Dataset
 from numpy import array
@@ -24,9 +24,9 @@ class TestGridTemplate(unittest.TestCase):
     writeDirectory = os.path.join(SCRIPT_DIR, 'out')
 
     def _compare_netcdf_files(self, original, new, ext="nc"):
-        '''
+        """
         Compare the contents of two netcdf files
-        '''
+        """
         filenameO = '%s.%s' % (original, ext)
         filePathO = os.path.join(self.readDirectory, filenameO)
         filenameN = '%s.%s' % (new, ext)
@@ -53,9 +53,9 @@ class TestGridTemplate(unittest.TestCase):
         dN.close()
 
     def _compare_files(self, original, new, raster=False, precision=7):
-        '''
+        """
         Compare the contents of two files
-        '''
+        """
         if raster:
             dsO = gdal.Open(original)
             dsN = gdal.Open(new)
@@ -96,9 +96,9 @@ class TestGridTemplate(unittest.TestCase):
                         pass
 
     def _compare_directories(self, dir1, dir2, ignore_file=None, raster=False, precision=7):
-        '''
+        """
         Compare the contents of the files of two directories
-        '''
+        """
 
         for afile in os.listdir(dir2):
             if not os.path.basename(afile).startswith(".")\
@@ -120,15 +120,15 @@ class TestGridTemplate(unittest.TestCase):
             self.assertEqual(one, two)
 
     def _before_teardown(self):
-        '''
+        """
         Method to execute at beginning of tearDown
-        '''
+        """
         return
 
     def tearDown(self):
-        '''
+        """
         Method to cleanup after tests
-        '''
+        """
         self._before_teardown()
 
         os.chdir(SCRIPT_DIR)

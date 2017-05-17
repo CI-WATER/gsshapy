@@ -1,19 +1,19 @@
-'''
+"""
 ********************************************************************************
 * Name: WRF Tests (3hr)
 * Author: Alan D. Snow
 * Created On: April 25, 2017
 * License: BSD 3-Clause
 ********************************************************************************
-'''
+"""
 from glob import glob
 import os
-from osgeo import gdalconst
 import unittest
 from shutil import copy, copytree
 
 from .template import TestGridTemplate
 from gsshapy.grid import GRIDtoGSSHA
+
 
 class TestWRF3toGSSHA(TestGridTemplate):
     def setUp(self):
@@ -90,9 +90,9 @@ class TestWRF3toGSSHA(TestGridTemplate):
         self.l2g = None
 
     def test_wrf_gage_file_write(self):
-        '''
+        """
         Test WRF lsm_precip_to_gssha_precip_gage write method
-        '''
+        """
         out_gage_file = os.path.join(self.writeDirectory, 'gage_test_wrf_3hr.gag')
         self.l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
                                                  lsm_data_var=['RAINC', 'RAINNC'],
@@ -103,9 +103,9 @@ class TestWRF3toGSSHA(TestGridTemplate):
         self._compare_files(out_gage_file, compare_gag_file, precision=5)
 
     def test_wrf_netcdf_file_write(self):
-        '''
+        """
         Test WRF lsm_data_to_subset_netcdf write method
-        '''
+        """
         netcdf_file_path = os.path.join(self.writeDirectory,
                                         'gssha_dynamic_wrf_3hr.nc')
         self.l2g.lsm_data_to_subset_netcdf(netcdf_file_path,
@@ -115,9 +115,9 @@ class TestWRF3toGSSHA(TestGridTemplate):
         self._compare_netcdf_files("gssha_dynamic_wrf_3hr", "gssha_dynamic_wrf_3hr")
 
     def test_wrf_ascii_file_write(self):
-        '''
+        """
         Test WRF lsm_data_to_arc_ascii write method
-        '''
+        """
         self.l2g.lsm_data_to_arc_ascii(self.data_var_map_array,
                                        self.hmet_write_directory)
 
@@ -129,9 +129,9 @@ class TestWRF3toGSSHA(TestGridTemplate):
                                   raster=True)
 
     def test_wrf_ascii_file_write_pre(self):
-        '''
+        """
         Test WRF lsm_data_to_arc_ascii write method pre-computed
-        '''
+        """
         self.l2g.lsm_data_to_arc_ascii(self.data_var_map_array_pre,
                                        self.hmet_write_directory)
 

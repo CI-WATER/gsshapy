@@ -1,11 +1,11 @@
-'''
+"""
 ********************************************************************************
 * Name: Framework Tests
 * Author: Alan D. Snow
 * Created On: November 22, 2016
 * License: BSD 3-Clause
 ********************************************************************************
-'''
+"""
 from datetime import datetime, timedelta
 import os
 import unittest
@@ -57,9 +57,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
 # -----------------------------------------------------------------------------
 
     def test_rapid_to_gssha(self):
-        '''
+        """
         Test RAPID to GSSHA functionality
-        '''
+        """
 
         # INITIALIZE CLASS AND RUN
         gr = GSSHAWRFFramework(gssha_executable='',
@@ -96,9 +96,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 3 TODO: Check to make sure generated correctly
 
     def test_rapid_to_gssha_write_hotstart(self):
-        '''
+        """
         Test RAPID to GSSHA functionality write hotstart
-        '''
+        """
         # INITIALIZE CLASS AND RUN
         gr = GSSHAWRFFramework(gssha_executable='',
                                gssha_directory=self.gssha_project_directory,
@@ -136,9 +136,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 3 TODO: Check to make sure generated correctly
 
     def test_rapid_to_gssha_read_hotstart(self):
-        '''
+        """
         Test RAPID to GSSHA functionality read hotstart
-        '''
+        """
         # INITIALIZE CLASS AND RUN
         gr = GSSHAWRFFramework(gssha_executable='',
                                gssha_directory=self.gssha_project_directory,
@@ -169,9 +169,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 3 TODO: Check to make sure generated correctly
 
     def test_rapid_to_gssha_date_range(self):
-        '''
+        """
         Test RAPID to GSSHA functionality with date filters
-        '''
+        """
         # INITIALIZE CLASS AND RUN
         gr = GSSHAWRFFramework(gssha_executable="",
                                gssha_directory=self.gssha_project_directory,
@@ -204,9 +204,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 3 TODO: Check to make sure generated correctly
 
     def test_rapid_to_gssha_date_range_hotstart(self):
-        '''
+        """
         Test RAPID to GSSHA functionality with date filters
-        '''
+        """
         # INITIALIZE CLASS AND RUN
         gr = GSSHAWRFFramework(gssha_executable="",
                                gssha_directory=self.gssha_project_directory,
@@ -244,9 +244,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 3 TODO: Check to make sure generated correctly
 
     def test_rapid_to_gssha_min_hotstart(self):
-        '''
+        """
         Test RAPID to GSSHA functionality with minmal mode hotstart generation
-        '''
+        """
         # INITIALIZE CLASS AND RUN
         gr = GSSHAWRFFramework(gssha_executable="",
                                gssha_directory=self.gssha_project_directory,
@@ -289,9 +289,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
 # -----------------------------------------------------------------------------
 
     def test_wrf_to_gssha(self):
-        '''
+        """
         Test WRF to GSSHA functionality
-        '''
+        """
         # INITIALIZE CLASS AND RUN
         gr = GSSHAWRFFramework(gssha_executable='',
                                gssha_directory=self.gssha_project_directory,
@@ -338,9 +338,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
 
 
     def test_wrf_to_gssha_write_hotstart(self):
-        '''
+        """
         Test WRF to GSSHA functionality write hotstart
-        '''
+        """
         # INITIALIZE CLASS AND RUN
         gr = GSSHAWRFFramework(gssha_executable='',
                                gssha_directory=self.gssha_project_directory,
@@ -387,9 +387,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                   raster=True)
 
     def test_wrf_to_gssha_read_hotstart(self):
-        '''
+        """
         Test WRF to GSSHA functionality read hotstart
-        '''
+        """
         # INITIALIZE CLASS AND RUN
         gr = GSSHAWRFFramework(gssha_executable='',
                                gssha_directory=self.gssha_project_directory,
@@ -436,9 +436,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                   raster=True)
 
     def test_wrf_to_gssha_date_range(self):
-        '''
+        """
         Test WRF to GSSHA functionality with date filters
-        '''
+        """
         # INITIALIZE CLASS AND RUN
         gr = GSSHAWRFFramework(gssha_executable='',
                                gssha_directory=self.gssha_project_directory,
@@ -489,9 +489,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
 
 
     def test_wrf_to_gssha_min_hotstart(self):
-        '''
+        """
         Test WRF to GSSHA functionality with minmal mode hotstart generation
-        '''
+        """
         # INITIALIZE CLASS AND RUN
         gr = GSSHAWRFFramework(gssha_executable='',
                                gssha_directory=self.gssha_project_directory,
@@ -541,9 +541,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                   raster=True)
 
     def _generated_file_path(self, output_directory="", extension="prj"):
-        '''
+        """
         Returns path to generated file
-        '''
+        """
         return os.path.join(self.gssha_project_directory,
                             output_directory,
                             'grid_standard.{0}'.format(extension))

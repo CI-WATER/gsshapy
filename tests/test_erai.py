@@ -1,11 +1,11 @@
-'''
+"""
 ********************************************************************************
 * Name: ERA Interim Tests
 * Author: Alan D. Snow
 * Created On: April 27, 2017
 * License: BSD 3-Clause
 ********************************************************************************
-'''
+"""
 import os
 import unittest
 from shutil import copytree
@@ -63,9 +63,9 @@ class TestERAItoGSSHA(TestGridTemplate):
         self.l2g = None
 
     def test_erai_gage_file_write(self):
-        '''
+        """
         Test ERA Interim lsm_precip_to_gssha_precip_gage write method
-        '''
+        """
         out_gage_file = os.path.join(self.writeDirectory, 'gage_test_erai.gag')
         self.l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
                                                  lsm_data_var='tp',
@@ -75,9 +75,9 @@ class TestERAItoGSSHA(TestGridTemplate):
         self._compare_files(out_gage_file, compare_gag_file, precision=5)
 
     def test_erai_netcdf_file_write(self):
-        '''
+        """
         Test ERA Interim lsm_data_to_subset_netcdf write method
-        '''
+        """
         netcdf_file_path = os.path.join(self.writeDirectory,
                                         'gssha_dynamic_erai.nc')
         self.l2g.lsm_data_to_subset_netcdf(netcdf_file_path,
@@ -87,9 +87,9 @@ class TestERAItoGSSHA(TestGridTemplate):
         self._compare_netcdf_files("gssha_dynamic_erai", "gssha_dynamic_erai")
 
     def test_erai_ascii_file_write(self):
-        '''
+        """
         Test ERA Interim lsm_data_to_arc_ascii write method
-        '''
+        """
         self.l2g.lsm_data_to_arc_ascii(self.data_var_map_array,
                                        self.hmet_write_directory)
 

@@ -1,13 +1,12 @@
-'''
+"""
 ********************************************************************************
 * Name: Land Cover Tests
 * Author: Alan D. Snow
 * Created On: February 6, 2016
 * License: BSD 3-Clause
 ********************************************************************************
-'''
+"""
 from os import path, chdir
-from os import name as os_name
 import unittest
 from shutil import copy, copytree
 
@@ -15,6 +14,7 @@ from .template import TestGridTemplate
 
 from gsshapy.orm import ProjectFile
 from gsshapy.lib import db_tools as dbt
+
 
 class TestLandCover(TestGridTemplate):
     def setUp(self):
@@ -39,9 +39,9 @@ class TestLandCover(TestGridTemplate):
             pass
 
     def test_add_land_cover_map_table(self):
-        '''
+        """
         Tests adding land cover to map table
-        '''
+        """
         land_use_to_roughness_table = path.join(path.dirname(path.realpath(__file__)),
                                                 '..', 'gsshapy',
                                                 'grid', 'land_cover',
@@ -90,9 +90,9 @@ class TestLandCover(TestGridTemplate):
         self._compare_files(original_idx_file, new_idx_file, raster=True)
 
     def test_add_land_cover_map_table_twice(self):
-        '''
+        """
         Tests adding land cover to map table run twice
-        '''
+        """
         chdir(self.gssha_project_directory)
 
         # Create Test DB

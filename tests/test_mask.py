@@ -1,11 +1,11 @@
-'''
+"""
 ********************************************************************************
 * Name: Mask Tests
 * Author: Alan D. Snow
 * Created On: February 6, 2016
 * License: BSD 3-Clause
 ********************************************************************************
-'''
+"""
 from glob import glob
 from os import path
 import unittest
@@ -17,6 +17,7 @@ from gsshapy.orm import ProjectFile, WatershedMaskFile
 from gsshapy.lib import db_tools as dbt
 
 from os import path, chdir
+
 
 class TestMask(TestGridTemplate):
     def setUp(self):
@@ -56,9 +57,9 @@ class TestMask(TestGridTemplate):
         chdir(self.gssha_project_directory)
 
     def _compare_output(self, project_name):
-        '''
+        """
         compare mask files
-        '''
+        """
         # compare mask files
         mask_file_name = '{0}.msk'.format(project_name)
         new_mask_grid = path.join(self.writeDirectory, mask_file_name)
@@ -76,15 +77,15 @@ class TestMask(TestGridTemplate):
         self._compare_files(generated_proj_file, compare_proj_file)
 
     def _before_teardown(self):
-        '''
+        """
         Method to execute at beginning of tearDown
-        '''
+        """
         self.db_session.close()
 
     def test_rasterize_cell_size_ascii_utm(self):
-        '''
+        """
         Tests rasterize_shapefile using cell size to ascii in utm
-        '''
+        """
         project_name = 'grid_standard_msk'
         mask_name = '{0}.msk'.format(project_name)
         self.msk_file.generateFromWatershedShapefile(self.shapefile_path,
@@ -98,10 +99,10 @@ class TestMask(TestGridTemplate):
         self._compare_output(project_name)
 
     def test_rasterize_cell_size_ascii_utm_outlet(self):
-        '''
+        """
         Tests rasterize_shapefile using cell size to ascii in utm
         Then add outlet information
-        '''
+        """
         project_name = 'grid_standard_msk_outlet'
         mask_name = '{0}.msk'.format(project_name)
         self.msk_file.generateFromWatershedShapefile(self.shapefile_path,
