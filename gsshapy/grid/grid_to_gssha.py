@@ -716,7 +716,7 @@ class GRIDtoGSSHA(object):
                 time_step_hours = np.diff(self.xd[self.lsm_time_var].values)[0]/np.timedelta64(1, 'h')
                 self.data.values /= time_step_hours
 
-        if 'precipitation' in gssha_var and not isinstance(lsm_var, str):
+        if 'precipitation' in gssha_var:
             if 'units' in self.data.attrs:
                 if self.data.attrs['units'] == 'm':
                     # convert from m to mm
