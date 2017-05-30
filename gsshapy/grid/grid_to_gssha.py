@@ -110,7 +110,7 @@ class GRIDtoGSSHA(object):
     """
     # DEFAULT GSSHA NetCDF Attributes
     netcdf_attributes = {
-                        'precipitation_rate' :
+                        'precipitation_rate':
                             # NOTE: LSM INFO
                             # units = "kg m-2 s-1" ; i.e. mm s-1
                             {
@@ -126,11 +126,11 @@ class GRIDtoGSSHA(object):
                               'hmet_name' : 'Prcp',
                               'conversion_factor' : {
                                                         'gage': 3600,
-                                                        'ascii' : 3600,
-                                                        'netcdf' : 3600,
+                                                        'ascii': 3600,
+                                                        'netcdf': 3600,
                                                     },
                             },
-                        'precipitation_acc' :
+                        'precipitation_acc':
                             # NOTE: LSM INFO
                             # assumes units = "kg m-2" ; i.e. mm
                             # checks for units: "m"
@@ -146,9 +146,9 @@ class GRIDtoGSSHA(object):
                               'gssha_name': 'precipitation',
                               'hmet_name': 'Prcp',
                               'conversion_factor': {
-                                                        'gage' : 1,
-                                                        'ascii' : 1,
-                                                        'netcdf' : 1,
+                                                        'gage': 1,
+                                                        'ascii': 1,
+                                                        'netcdf': 1,
                                                     },
                             },
                         'precipitation_inc':
@@ -200,8 +200,8 @@ class GRIDtoGSSHA(object):
                               'gssha_name' : 'pressure',
                               'hmet_name' : 'Pres',
                               'conversion_factor' : {
-                                                        'ascii' : 1,
-                                                        'netcdf' : 33.863886667,
+                                                        'ascii': 1,
+                                                        'netcdf': 33.863886667,
                                                     },
                             },
                         'relative_humidity' :
@@ -623,7 +623,7 @@ class GRIDtoGSSHA(object):
         if 'radiation' in gssha_var:
             conversion_factor = self.netcdf_attributes[gssha_var]['conversion_factor'][load_type]
             if gssha_var.startswith('direct_radiation') and not isinstance(lsm_var, basestring):
-                #direct_radiation = (1-DIFFUSIVE_FRACION)*global_radiation
+                # direct_radiation = (1-DIFFUSIVE_FRACION)*global_radiation
                 global_radiation_var, diffusive_fraction_var = lsm_var
                 global_radiation = self._load_lsm_data(global_radiation_var, conversion_factor)
                 diffusive_fraction = self._load_lsm_data(diffusive_fraction_var)
@@ -633,7 +633,7 @@ class GRIDtoGSSHA(object):
                 self.data = ((1-diffusive_fraction)*global_radiation)
 
             elif gssha_var.startswith('diffusive_radiation') and not isinstance(lsm_var, basestring):
-                #diffusive_radiation = DIFFUSIVE_FRACION*global_radiation
+                # diffusive_radiation = DIFFUSIVE_FRACION*global_radiation
                 global_radiation_var, diffusive_fraction_var = lsm_var
                 global_radiation = self._load_lsm_data(global_radiation_var, conversion_factor)
                 diffusive_fraction = self._load_lsm_data(diffusive_fraction_var)
@@ -703,14 +703,12 @@ class GRIDtoGSSHA(object):
                 self.data.values = self.netcdf_attributes[gssha_var]['conversion_function'][load_type](self.data.values)
 
         if 'precipitation' in gssha_var:
+            # NOTE: Precipitation is converted from mm/s to mm/hr
+            # with the conversion factor when it is a rate.
             if 'units' in self.data.attrs:
                 if self.data.attrs['units'] == 'm':
                     # convert from m to mm
                     self.data.values *= 1000
-                if gssha_var == 'precipitation_rate':
-                    # convert from s-1 to hr-1
-                    if 's' in self.data.attrs['units']:
-                        self.data.values *= 3600
 
             if load_type == 'ascii' or load_type == 'netcdf':
                 # CONVERT TO INCREMENTAL
