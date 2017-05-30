@@ -702,20 +702,6 @@ class GRIDtoGSSHA(object):
             if conversion_function:
                 self.data.values = self.netcdf_attributes[gssha_var]['conversion_function'][load_type](self.data.values)
 
-        if load_type == 'ascii' or load_type == 'netcdf':
-            # CONVERT TO INCREMENTAL
-            if gssha_var == 'precipitation_acc':
-                self.data.values = np.lib.pad(self.data.diff(self.lsm_time_dim).values,
-                                              ((1,0),(0,0),(0,0)),
-                                              'constant',
-                                              constant_values=0)
-
-            # CONVERT PRECIP TO RADAR (mm/hr) IN FILE
-            if gssha_var == 'precipitation_inc' or gssha_var == 'precipitation_acc':
-                # convert from mm to mm/hr
-                time_step_hours = np.diff(self.xd[self.lsm_time_var].values)[0]/np.timedelta64(1, 'h')
-                self.data.values /= time_step_hours
-
         if 'precipitation' in gssha_var:
             if 'units' in self.data.attrs:
                 if self.data.attrs['units'] == 'm':
@@ -725,6 +711,20 @@ class GRIDtoGSSHA(object):
                     # convert from s-1 to hr-1
                     if 's' in self.data.attrs['units']:
                         self.data.values *= 3600
+
+            if load_type == 'ascii' or load_type == 'netcdf':
+                # CONVERT TO INCREMENTAL
+                if gssha_var == 'precipitation_acc':
+                    self.data.values = np.lib.pad(self.data.diff(self.lsm_time_dim).values,
+                                                  ((1, 0), (0, 0), (0, 0)),
+                                                  'constant',
+                                                  constant_values=0)
+
+                # CONVERT PRECIP TO RADAR (mm/hr) IN FILE
+                if gssha_var == 'precipitation_inc' or gssha_var == 'precipitation_acc':
+                    # convert from mm to mm/hr
+                    time_step_hours = np.diff(self.xd[self.lsm_time_var].values)[0]/np.timedelta64(1, 'h')
+                    self.data.values /= time_step_hours
 
         # convert to dataset
         gssha_data_var_name = self.netcdf_attributes[gssha_var]['gssha_name']
