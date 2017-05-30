@@ -15,6 +15,7 @@ from .grid_to_gssha import GRIDtoGSSHA
 
 log = logging.getLogger(__name__)
 
+
 # ------------------------------------------------------------------------------
 # HELPER FUNCTIONS
 # ------------------------------------------------------------------------------
@@ -143,6 +144,7 @@ def download_era5_for_gssha(main_directory,
             server.retrieve(era5_request)
 
         download_datetime += timedelta(1)
+
 
 def download_interim_for_gssha(main_directory,
                                start_datetime,
@@ -279,6 +281,7 @@ def download_interim_for_gssha(main_directory,
             remove(download_file)
             rename(tmp_download_file, download_file)
         download_datetime += timedelta(1)
+
 
 # ------------------------------------------------------------------------------
 # MAIN CLASS
