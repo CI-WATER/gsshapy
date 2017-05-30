@@ -42,20 +42,23 @@ class TestERAItoGSSHA(TestGridTemplate):
             pass
 
         self.data_var_map_array = [
-                                   ['precipitation_inc', 'tp'],
-                                   ['pressure', 'sp'],
-                                   ['relative_humidity_dew', ['d2m','t2m']],
-                                   ['wind_speed', ['u10', 'v10']],
-                                   ['direct_radiation_j', ['ssrd', 'tcc']],
-                                   ['diffusive_radiation_j', ['ssrd', 'tcc']],
-                                   ['temperature', 't2m'],
-                                   ['cloud_cover', 'tcc'],
-                                  ]
+           ['precipitation_inc', 'tp'],
+           ['pressure', 'sp'],
+           ['relative_humidity_dew', ['d2m','t2m']],
+           ['wind_speed', ['u10', 'v10']],
+           ['direct_radiation_j', ['ssrd', 'tcc']],
+           ['diffusive_radiation_j', ['ssrd', 'tcc']],
+           ['temperature', 't2m'],
+           ['cloud_cover', 'tcc'],
+        ]
 
         erai_folder = os.path.join(self.writeDirectory, 'erai_raw_data')
+        # from datetime import datetime
         self.l2g = ERAtoGSSHA(gssha_project_folder=self.gssha_project_folder,
                               gssha_project_file_name='grid_standard.prj',
                               lsm_input_folder_path=erai_folder,
+                              # download_end_datetime=datetime(2016, 1, 4),
+                              # download_start_datetime=datetime(2016, 1, 2)
                               )
 
     def _before_teardown(self):
