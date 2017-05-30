@@ -249,8 +249,7 @@ class TestProjectGenerate(TestGridTemplate):
         model.set_event(simulation_start=datetime(2017, 2, 28),
                         simulation_duration=timedelta(seconds=180*60),
                         rain_intensity=2.4,
-                        rain_duration=timedelta(seconds=30*60),
-                        )
+                        rain_duration=timedelta(seconds=30*60))
         model.write()
 
         # compare main project files
@@ -296,13 +295,40 @@ class TestProjectGenerate(TestGridTemplate):
                            simulation_timestep=10,
                            out_hydrograph_write_frequency=15,
                            land_use_grid=self.land_use_grid,
-                           land_use_grid_id='glcf',
-                           )
+                           land_use_grid_id='glcf')
+
         model.set_event(simulation_start=datetime(2017, 2, 28, 14, 33),
-                        simulation_duration=timedelta(seconds=180*60),
+                        simulation_duration=timedelta(seconds=180 * 60),
                         rain_intensity=2.4,
-                        rain_duration=timedelta(seconds=30*60),
-                        )
+                        rain_duration=timedelta(seconds=30 * 60))
+        model.write()
+
+        # compare main project files
+        self._compare_basic_model_idx_maps(project_name)
+
+    def test_generate_basic_nodb_project_manager(self):
+        """
+        Tests generating a basic GSSHA project with GSSHAModel with roughness
+        without loading to database
+        """
+
+        project_name = "grid_standard_basic_model_land_cover"
+
+        model = GSSHAModel(project_name=project_name,
+                           project_directory=self.gssha_project_directory,
+                           mask_shapefile=self.shapefile_path,
+                           grid_cell_size=1000,
+                           elevation_grid_path=self.elevation_path,
+                           simulation_timestep=10,
+                           out_hydrograph_write_frequency=15,
+                           land_use_grid=self.land_use_grid,
+                           land_use_grid_id='glcf',
+                           load_rasters_to_db=False)
+
+        model.set_event(simulation_start=datetime(2017, 2, 28, 14, 33),
+                        simulation_duration=timedelta(seconds=180 * 60),
+                        rain_intensity=2.4,
+                        rain_duration=timedelta(seconds=30 * 60))
         model.write()
 
         # compare main project files

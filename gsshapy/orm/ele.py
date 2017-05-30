@@ -10,7 +10,6 @@
 __all__ = ['ElevationGridFile']
 
 import os
-import sys
 
 from osgeo import gdalconst
 from gazar.grid import resample_grid

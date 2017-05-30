@@ -154,3 +154,10 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
         elif self.rasterText is not None:
             # Write file
             openFile.write(self.rasterText)
+
+    def write(self, session, directory, name, replaceParamFile=None, **kwargs):
+        """
+        Wrapper for GsshaPyFileObjectBase write method 
+        """
+        if self.raster is not None or self.rasterText is not None:
+            super(RasterMapFile, self).write(session, directory, name, replaceParamFile, **kwargs)
