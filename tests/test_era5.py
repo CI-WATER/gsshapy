@@ -42,15 +42,15 @@ class TestERA5toGSSHA(TestGridTemplate):
             pass
 
         self.data_var_map_array = [
-                                   ['precipitation_inc', 'tp'],
-                                   ['pressure', 'sp'],
-                                   ['relative_humidity_dew', ['d2m','t2m']],
-                                   ['wind_speed', ['u10', 'v10']],
-                                   ['direct_radiation_j', ['ssrd', 'tcc']],
-                                   ['diffusive_radiation_j', ['ssrd', 'tcc']],
-                                   ['temperature', 't2m'],
-                                   ['cloud_cover', 'tcc'],
-                                  ]
+           ['precipitation_inc', 'tp'],
+           ['pressure', 'sp'],
+           ['relative_humidity_dew', ['d2m','t2m']],
+           ['wind_speed', ['u10', 'v10']],
+           ['direct_radiation_j', ['ssrd', 'tcc']],
+           ['diffusive_radiation_j', ['ssrd', 'tcc']],
+           ['temperature', 't2m'],
+           ['cloud_cover', 'tcc'],
+        ]
 
         era5_folder = os.path.join(self.writeDirectory, 'era5_raw_data')
         self.l2g = ERAtoGSSHA(gssha_project_folder=self.gssha_project_folder,
