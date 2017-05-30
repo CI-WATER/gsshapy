@@ -21,3 +21,5 @@ dependencies:
 - timezonefinder
 - utm
 - wrf-python
+- pip:
+    - https://software.ecmwf.int/wiki/download/attachments/56664858/ecmwf-api-client-python.tgz
