@@ -721,6 +721,10 @@ class GRIDtoGSSHA(object):
                 if self.data.attrs['units'] == 'm':
                     # convert from m to mm
                     self.data.values *= 1000
+                if gssha_var == 'precipitation_rate':
+                    # convert from s-1 to hr-1
+                    if 's' in self.data.attrs['units']:
+                        self.data.values *= 3600
 
         # convert to dataset
         gssha_data_var_name = self.netcdf_attributes[gssha_var]['gssha_name']

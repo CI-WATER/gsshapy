@@ -42,29 +42,29 @@ class NWMtoGSSHA(GRIDtoGSSHA):
         from datetime import datetime
         from gsshapy.grid import NWMtoGSSHA
 
-        e2g = NWMtoGSSHA(gssha_project_folder='E:\\GSSHA',
+        n2g = NWMtoGSSHA(gssha_project_folder='E:\\GSSHA',
                          gssha_project_file_name='gssha.prj',
-                         lsm_input_folder_path='E:\\GSSHA\\era5-data',
-                         lsm_search_card="*.grib",
-                         )
+                         lsm_input_folder_path='E:\\GSSHA\\nwm-data',
+                         lsm_search_card="*.grib")
 
-
-        out_gage_file = 'E:\\GSSHA\\era5_rain1.gag'
-        e2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
+        # example rain gage
+        out_gage_file = 'E:\\GSSHA\\nwm_rain1.gag'
+        n2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
                                             lsm_data_var="RAINRATE",
-                                            precip_type="ACCUM")
+                                            precip_type="RADAR")
 
+        # example data var map array
+        # WARNING: This is not complete
         data_var_map_array = [
-                               ['precipitation_acc', 'RAINRATE'],
-                               ['pressure', 'PSFC'],
-                               ['relative_humidity', ['Q2D','T2D', 'PSFC']],
-                               ['wind_speed', ['U2D', 'V2D']],
-                               ['direct_radiation', 'SWDOWN'],  # ???
-                               ['diffusive_radiation', 'SWDOWN'],  # ???
-                               ['temperature', 'T2D'],
-                               ['cloud_cover', '????'],
-                              ]
-
+            ['precipitation_rate', 'RAINRATE'],
+            ['pressure', 'PSFC'],
+            ['relative_humidity', ['Q2D','T2D', 'PSFC']],
+            ['wind_speed', ['U2D', 'V2D']],
+            ['direct_radiation', 'SWDOWN'],  # ???
+            ['diffusive_radiation', 'SWDOWN'],  # ???
+            ['temperature', 'T2D'],
+            ['cloud_cover', '????'],
+        ]   
         e2g.lsm_data_to_arc_ascii(data_var_map_array)
 
     """

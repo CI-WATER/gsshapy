@@ -47,11 +47,12 @@ class TestNWMtoGSSHA(TestGridTemplate):
         out_gage_file = os.path.join(self.writeDirectory, 'gage_test_nwm.gag')
         self.l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
                                                  lsm_data_var='RAINRATE',
-                                                 precip_type='ACCUM')
+                                                 precip_type='RADAR')
 
         # Test
         compare_gag_file = os.path.join(self.readDirectory, 'gage_test_nwm.gag')
         self._compare_files(out_gage_file, compare_gag_file, precision=5)
+
 
 if __name__ == '__main__':
     unittest.main()
