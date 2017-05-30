@@ -19,8 +19,9 @@ from ..lib import db_tools as dbt
 
 log = logging.getLogger(__name__)
 
+
 class GSSHAModel(object):
-    '''
+    """
     This class manages the generation and modification of
     models for GSSHA.
 
@@ -63,7 +64,7 @@ class GSSHAModel(object):
                         )
         model.write()
 
-    '''
+    """
     def __init__(self,
                  project_directory,
                  project_name=None,
@@ -76,6 +77,7 @@ class GSSHAModel(object):
                  land_use_grid=None,
                  land_use_grid_id=None,
                  land_use_to_roughness_table=None,
+                 load_rasters_to_db=True,
                  db_session=None,
                  project_manager=None,
                 ):
@@ -84,6 +86,7 @@ class GSSHAModel(object):
         self.project_directory = project_directory
         self.db_session = db_session
         self.project_manager = project_manager
+        self.load_rasters_to_db = load_rasters_to_db
 
         if project_manager is not None and db_session is None:
             raise ValueError("'db_session' is required to edit existing model if 'project_manager' is given.")
@@ -149,9 +152,9 @@ class GSSHAModel(object):
                                    )
 
     def set_mask_from_shapefile(self, shapefile_path, cell_size):
-        '''
+        """
         Adds a mask from a shapefile
-        '''
+        """
         # ADD MASK
         mask_name = '{0}.msk'.format(self.project_manager.name)
         msk_file = WatershedMaskFile(project_file=self.project_manager,
@@ -160,22 +163,23 @@ class GSSHAModel(object):
         msk_file.generateFromWatershedShapefile(shapefile_path,
                                                 cell_size=cell_size,
                                                 out_raster_path=mask_name,
-                                                )
+                                                load_raster_to_db=self.load_rasters_to_db)
 
     def set_elevation(self, elevation_grid_path, mask_shapefile):
-        '''
+        """
         Adds elevation file to project
-        '''
+        """
         # ADD ELEVATION FILE
         ele_file = ElevationGridFile(project_file=self.project_manager,
                                      session=self.db_session)
         ele_file.generateFromRaster(elevation_grid_path,
-                                    mask_shapefile)
+                                    mask_shapefile,
+                                    load_raster_to_db=self.load_rasters_to_db)
 
     def set_outlet(self, latitude, longitude, outslope):
-        '''
+        """
         Adds outlet point to project
-        '''
+        """
         self.project_manager.setOutlet(latitude=latitude, longitude=longitude,
                                        outslope=outslope)
 
@@ -184,10 +188,10 @@ class GSSHAModel(object):
                       land_use_grid=None,
                       land_use_grid_id=None,
                       land_use_to_roughness_table=None):
-        '''
+        """
         ADD ROUGHNESS FROM LAND COVER
         See: http://www.gsshawiki.com/Project_File:Overland_Flow_%E2%80%93_Required
-        '''
+        """
         if roughness is not None:
             self.project_manager.setCard('MANNING_N', str(roughness))
         elif land_use_grid is not None and (land_use_grid_id is not None \
@@ -197,8 +201,7 @@ class GSSHAModel(object):
                                                     self.db_session,
                                                     land_use_grid,
                                                     land_use_to_roughness_table=land_use_to_roughness_table,
-                                                    land_use_grid_id=land_use_grid_id,
-                                                    )
+                                                    land_use_grid_id=land_use_grid_id)
         else:
             raise ValueError("Need to either set 'roughness', or need "
                              "to set values from land use grid ...")
@@ -211,9 +214,9 @@ class GSSHAModel(object):
                   rain_duration=timedelta(seconds=30*60),
                   event_type='EVENT',
                  ):
-        '''
+        """
         Initializes event for GSSHA model
-        '''
+        """
         # ADD TEMPORTAL EVENT INFORMAITON
         if event_type == 'LONG_TERM':
             self.event = LongTermMode(self.project_manager,
@@ -234,9 +237,9 @@ class GSSHAModel(object):
                                                 duration=rain_duration)
 
     def write(self):
-        '''
+        """
         Write project to directory
-        '''
+        """
         # write data
         self.project_manager.writeInput(session=self.db_session,
                                         directory=self.project_directory,

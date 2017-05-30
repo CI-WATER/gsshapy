@@ -43,8 +43,9 @@ class ElevationGridFile(RasterMapFile):
                            elevation_raster,
                            shapefile_path=None,
                            out_elevation_grid=None,
-                           resample_method=gdalconst.GRA_Average):
-        '''
+                           resample_method=gdalconst.GRA_Average,
+                           load_raster_to_db=True):
+        """
         Generates an elevation grid for the GSSHA simulation
         from an elevation raster
 
@@ -81,7 +82,7 @@ class ElevationGridFile(RasterMapFile):
             project_manager.writeInput(session=db_session,
                                        directory=gssha_directory,
                                        name='grid_standard')
-        '''
+        """
         if not self.projectFile:
             raise ValueError("Must be connected to project file ...")
 
@@ -106,6 +107,7 @@ class ElevationGridFile(RasterMapFile):
         self.filename = out_elevation_grid
         self.projectFile.setCard("ELEVATION", out_elevation_grid, add_quotes=True)
         # read raster into object
-        self._load_raster_text(out_elevation_grid)
+        if load_raster_to_db:
+            self._load_raster_text(out_elevation_grid)
         # find outlet and add slope
         self.projectFile.findOutlet(shapefile_path)

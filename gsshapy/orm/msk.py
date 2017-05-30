@@ -16,6 +16,7 @@ from gazar.shape import rasterize_shapefile
 from .map import RasterMapFile
 from .pro import ProjectionFile
 
+
 class WatershedMaskFile(RasterMapFile):
     """
     Object interface for generating a watershed mask.
@@ -41,8 +42,9 @@ class WatershedMaskFile(RasterMapFile):
     def generateFromWatershedShapefile(self,
                                        shapefile_path,
                                        cell_size,
-                                       out_raster_path=None):
-        '''
+                                       out_raster_path=None,
+                                       load_raster_to_db=True):
+        """
         Generates a mask from a watershed_shapefile
 
         Example::
@@ -80,7 +82,7 @@ class WatershedMaskFile(RasterMapFile):
             project_manager.writeInput(session=db_session,
                                        directory=gssha_directory,
                                        name='grid_standard')
-        '''
+        """
         if not self.projectFile:
             raise ValueError("Must be connected to project file ...")
 
@@ -135,4 +137,5 @@ class WatershedMaskFile(RasterMapFile):
             gr.write_prj(proj_path)
             self.projectFile.setCard('#PROJECTION_FILE', proj_path, add_quotes=True)
         # read raster into object
-        self._load_raster_text(out_raster_path)
+        if load_raster_to_db:
+            self._load_raster_text(out_raster_path)
