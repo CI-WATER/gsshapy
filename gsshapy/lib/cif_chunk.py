@@ -1,4 +1,4 @@
-'''
+"""
 ********************************************************************************
 * Name: ChannelInputChunk
 * Author: Nathan Swain
@@ -6,15 +6,15 @@
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
-'''
+"""
 from future.utils import iteritems
 
 from . import parsetools as pt
 
 def cardChunk(key, chunk):
-    '''
+    """
     Parse Card Chunk Method
-    '''
+    """
     for line in chunk:
         values = []
         sline = line.strip().split()
@@ -26,9 +26,9 @@ def cardChunk(key, chunk):
             'values': values}
 
 def connectChunk(key, chunk):
-    '''
+    """
     Parse Card Chunk Method
-    '''
+    """
     upLinks = []
     schunk = chunk[0].strip().split()
 
@@ -43,9 +43,9 @@ def connectChunk(key, chunk):
     return result
 
 def linkChunk(key, chunk):
-    '''
+    """
     Parse LINK Chunk Method
-    '''
+    """
     # Extract link type card
     linkType = chunk[1].strip().split()[0]
 
@@ -64,9 +64,9 @@ def linkChunk(key, chunk):
     return result
 
 def structureLink(lines):
-    '''
+    """
     Parse STRUCTURE LINK Method
-    '''
+    """
     # Constants
     KEYWORDS = ('LINK',
                 'STRUCTURE',
@@ -158,9 +158,9 @@ def structureLink(lines):
     return result
 
 def xSectionLink(lines):
-    '''
+    """
     Parse Cross Section Links Method
-    '''
+    """
     # Constants
     KEYWORDS = ('LINK',
                 'DX',
@@ -273,9 +273,9 @@ def xSectionLink(lines):
     return result
 
 def reservoirLink(lines):
-    '''
+    """
     Parse RESERVOIR Link Method
-    '''
+    """
     # Constants
     KEYWORDS = ('LINK',
                 'RESERVOIR',
@@ -342,9 +342,9 @@ def reservoirLink(lines):
     return result
 
 def nodeChunk(lines):
-    '''
+    """
     Parse NODE Method
-    '''
+    """
     # Constants
     KEYWORDS = ('NODE',
                 'X_Y',
@@ -371,9 +371,9 @@ def nodeChunk(lines):
     return result
 
 def xSectionChunk(lines):
-    '''
+    """
     Parse XSEC Method
-    '''
+    """
     # Constants
     KEYWORDS = ('MANNINGS_N',
                 'BOTTOM_WIDTH',
@@ -427,9 +427,9 @@ def xSectionChunk(lines):
     return result
 
 def structureChunk(keywords, resultDict, lines):
-    '''
+    """
     Parse Weir and Culvert Structures Method
-    '''
+    """
     chunks = pt.chunk(keywords, lines)
 
     # Parse chunks associated with each key

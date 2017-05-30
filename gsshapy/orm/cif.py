@@ -1111,10 +1111,10 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 fileObject.write('K_RIVER        %s\n' % kRiver)
 
     def _getUpdateGeometrySqlString(self, geometryID, tableName, spatialReferenceID, wktString):
-        statement = '''
+        statement = """
                     UPDATE {0} SET geometry=ST_GeomFromText('{1}', {2})
                     WHERE id={3};
-                    '''.format(tableName,
+                    """.format(tableName,
                                wktString,
                                spatialReferenceID,
                                geometryID)

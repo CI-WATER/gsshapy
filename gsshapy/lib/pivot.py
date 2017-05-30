@@ -1,4 +1,4 @@
-'''
+"""
 ********************************************************************************
 * Name: pivot
 * Author: S W
@@ -7,7 +7,7 @@
 * License: PSF License
 ********************************************************************************
 NOTE: This script was found at code.activestate.com/recipes/334695
-'''
+"""
 
 from past.builtins import xrange
 

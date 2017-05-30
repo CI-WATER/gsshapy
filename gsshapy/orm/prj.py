@@ -795,14 +795,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                           one()
 
         # Get mask map as a KML polygon
-        statement = '''
+        statement = """
                     SELECT val, ST_AsKML(geom) As polygon
                     FROM (
                     SELECT (ST_DumpAsPolygons({0})).*
                     FROM {1} WHERE id={2}
                     ) As foo
                     ORDER BY val;
-                    '''.format('raster', maskMap.tableName, maskMap.id)
+                    """.format('raster', maskMap.tableName, maskMap.id)
 
         result = session.execute(statement)
 
@@ -1005,14 +1005,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                           one()
 
         # Get mask map as a KML polygon
-        statement = '''
+        statement = """
                     SELECT val, ST_AsText(geom) As polygon
                     FROM (
                     SELECT (ST_DumpAsPolygons({0})).*
                     FROM {1} WHERE id={2}
                     ) As foo
                     ORDER BY val;
-                    '''.format('raster', maskMap.tableName, maskMap.id)
+                    """.format('raster', maskMap.tableName, maskMap.id)
 
         result = session.execute(statement)
 
@@ -1064,14 +1064,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                           one()
 
         # Get mask map as a KML polygon
-        statement = '''
+        statement = """
                     SELECT val, ST_AsGeoJSON(geom) As polygon
                     FROM (
                     SELECT (ST_DumpAsPolygons({0})).*
                     FROM {1} WHERE id={2}
                     ) As foo
                     ORDER BY val;
-                    '''.format('raster', maskMap.tableName, maskMap.id)
+                    """.format('raster', maskMap.tableName, maskMap.id)
 
         result = session.execute(statement)
 
@@ -1173,9 +1173,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                         gssha_pro_card.value.strip('"').strip("'"))
 
     def getWkt(self):
-        '''
+        """
         Returns GSSHA projection WKT string
-        '''
+        """
         gssha_pro_card = self.getCard("#PROJECTION_FILE")
         if gssha_pro_card is None:
             raise ValueError("#PROJECTION_FILE card not found ...")
@@ -1186,13 +1186,13 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         return wkt_string
 
     def getOutlet(self):
-        '''
+        """
         Gets the outlet latitude and longitude.
 
         Returns:
             latitude(float): Latitude of grid cell center.
             longitude(float): Longitude of grid cell center.
-        '''
+        """
         # OUTROW, OUTCOL
         outrow = int(self.getCard(name='OUTROW').value)-1
         outcol = int(self.getCard(name='OUTCOL').value)-1
@@ -1200,14 +1200,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         return gssha_grid.pixel2lonlat(outcol, outrow)
 
     def setOutlet(self, col, row, outslope=None):
-        '''
+        """
         Sets the outlet grid cell information in the project file.
 
         Parameters:
             col(float): 1-based column index.
             row(float): 1-based row index.
             outslope(Optional[float]): River slope at outlet.
-        '''
+        """
         #OUTROW, OUTCOL, OUTSLOPE
         gssha_grid = self.getGrid()
         # col, row = gssha_grid.lonlat2pixel(longitude, latitude)
@@ -1288,9 +1288,9 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.setOutlet(col=outcol+1, row=outrow+1)
 
     def calculateOutletSlope(self):
-        '''
+        """
         Attempt to determine the slope at the OUTLET
-        '''
+        """
         try:
             mask_grid = self.getGrid()
             elevation_grid = self.getGrid(use_mask=False)
@@ -1502,14 +1502,14 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                                      spatialReferenceID, maskMap=maskMap)
 
     def _readReplacementFiles(self, directory, session, spatial, spatialReferenceID):
-        '''
+        """
         Check for the parameter replacement file cards
         (REPLACE_PARAMS and REPLACE_VALS) and read the files into
         database if they exist.
 
         Returns:
             replaceParamFile or None if it doesn't exist
-        '''
+        """
         # Set default
         replaceParamFile = None
 

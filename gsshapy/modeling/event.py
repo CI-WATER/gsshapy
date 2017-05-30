@@ -24,7 +24,7 @@ GRID_MODULES = {
 }
 
 class Event(object):
-    '''
+    """
     Object for GSSHA event managment and creation
 
     An event can consist of various combinations of:
@@ -48,7 +48,7 @@ class Event(object):
         lsm_time_dim(:obj:`str`, optional): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
         lsm_search_card(:obj:`str`, optional): Glob search pattern for LSM files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
         grid_module(:obj:`str`, optional): The name of the LSM tool needed. Options are 'grid', 'hrrr', or 'era'.
-    '''
+    """
     PRECIP_INTERP_TYPES = ('THIESSEN', 'INV_DISTANCE')
     ET_CALC_MODES = ("PENMAN", "DEARDORFF")
     UNIFORM_PRECIP_CARDS = ('PRECIP_UNIF', 'RAIN_INTENSITY', 'RAIN_DURATION')
@@ -154,9 +154,9 @@ class Event(object):
         self._update_simulation_start_cards()
 
     def _update_simulation_start_cards(self):
-        '''
+        """
         Update GSSHA cards for simulation start
-        '''
+        """
         if self.simulation_start is not None:
             self._update_card("START_DATE", self.simulation_start.strftime("%Y %m %d"))
             self._update_card("START_TIME", self.simulation_start.strftime("%H %M"))
@@ -187,17 +187,17 @@ class Event(object):
         self.tz = self.project_manager.timezone
 
     def set_simulation_duration(self, simulation_duration):
-        '''
+        """
         set the simulation_duration
         see: http://www.gsshawiki.com/Project_File:Required_Inputs
         ONLY NEEDED FOR EVENT MODE
-        '''
+        """
         self.simulation_duration = simulation_duration
 
     def add_precip_file(self, precip_file_path, interpolation_type=None):
-        '''
+        """
         Adds a precip file to project with interpolation_type
-        '''
+        """
         # precip file read in
         self._update_card('PRECIP_FILE', precip_file_path, True)
 
@@ -312,7 +312,7 @@ class Event(object):
 
 
 class EventMode(Event):
-    '''
+    """
     Object for ensuring required cards are active for EventMode
 
     Parameters:
@@ -331,7 +331,7 @@ class EventMode(Event):
         lsm_time_dim(:obj:`str`, optional): Name of the time variable in the LSM netCDF files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
         lsm_search_card(:obj:`str`, optional): Glob search pattern for LSM files. See: :func:`~gsshapy.grid.GRIDtoGSSHA`.
         grid_module(:obj:`str`, optional): The name of the LSM tool needed. Options are 'grid', 'hrrr', or 'era'.            lsm_folder(:obj:`str`, optional): Path to folder with land surface model data. See: *lsm_input_folder_path* variable at :func:`~gsshapy.grid.GRIDtoGSSHA`.
-    '''
+    """
     def __init__(self,
                  project_manager,
                  db_session,
@@ -371,25 +371,25 @@ class EventMode(Event):
             self.set_simulation_duration(simulation_duration)
 
     def set_simulation_duration(self, simulation_duration):
-        '''
+        """
         set the simulation_duration
         see: http://www.gsshawiki.com/Project_File:Required_Inputs
-        '''
+        """
         self.project_manager.setCard('TOT_TIME', str(simulation_duration.total_seconds()/60.0))
         super(EventMode, self).set_simulation_duration(simulation_duration)
         self.simulation_duration = simulation_duration
 
     def add_uniform_precip_event(self, intensity, duration):
-        '''
+        """
         Add a uniform precip event
-        '''
+        """
         self.project_manager.setCard('PRECIP_UNIF', '')
         self.project_manager.setCard('RAIN_INTENSITY', str(intensity))
         self.project_manager.setCard('RAIN_DURATION', str(duration.total_seconds()/60.0))
 
 
 class LongTermMode(Event):
-    '''
+    """
     Object for ensuring required cards are active for LongTermMode
 
     Parameters:
@@ -411,7 +411,7 @@ class LongTermMode(Event):
         event_min_q(Optional[double]): Threshold discharge for continuing runoff events in m3/s. Default is 60.0.
         et_calc_mode(Optional[str]): Type of evapo-transpitation calculation for GSSHA. Can be "PENMAN" or "DEARDORFF". Default is "PENMAN".
         soil_moisture_depth(Optional[double]): Depth of the active soil moisture layer from which ET occurs (m). Default is 0.0.
-    '''
+    """
 
     def __init__(self,
                  project_manager,

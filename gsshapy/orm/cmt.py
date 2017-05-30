@@ -586,7 +586,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                                          land_use_grid_id=None,
 
                                          ):
-        '''
+        """
         Adds a roughness map from land use file
 
         Example::
@@ -626,7 +626,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                                        directory=gssha_directory,
                                        name='grid_standard')
 
-        '''
+        """
         LAND_USE_GRID_TABLES = {
                                  'nga'  : 'land_cover_nga.txt',
                                  'glcf' : 'land_cover_glcf_modis.txt',

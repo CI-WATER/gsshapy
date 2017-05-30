@@ -336,16 +336,16 @@ class GSSHAFramework(object):
 
     @property
     def _prepare_lsm_hmet(self):
-        '''
+        """
         Determines whether to prepare HMET data from LSM
-        '''
+        """
         return self.lsm_input_valid and self.lsm_data_var_map_array
 
     @property
     def _prepare_lsm_gag(self):
-        '''
+        """
         Determines whether to prepare gage data from LSM
-        '''
+        """
         lsm_required_vars =  (self.lsm_precip_data_var,
                               self.lsm_precip_type)
 

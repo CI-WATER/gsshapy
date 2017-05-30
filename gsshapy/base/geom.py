@@ -33,11 +33,11 @@ class GeometricObjectBase:
         Returns:
             str: KML string representation of geometry.
         """
-        statement = '''
+        statement = """
                     SELECT ST_AsKml({0}) AS kml
                     FROM {1}
                     WHERE id={2};
-                    '''.format(self.geometryColumnName,
+                    """.format(self.geometryColumnName,
                                self.tableName,
                                self.id)
 
@@ -58,11 +58,11 @@ class GeometricObjectBase:
         Returns:
             str: Well Known Text string representation of geometry.
         """
-        statement = '''
+        statement = """
                     SELECT ST_AsText({0}) AS wkt
                     FROM {1}
                     WHERE id={2};
-                    '''.format(self.geometryColumnName,
+                    """.format(self.geometryColumnName,
                                self.tableName,
                                self.id)
 
@@ -83,11 +83,11 @@ class GeometricObjectBase:
         Returns:
             str: GeoJSON string representation of geometry.
         """
-        statement = '''
+        statement = """
                     SELECT ST_AsGeoJSON({0}) AS json
                     FROM {1}
                     WHERE id={2};
-                    '''.format(self.geometryColumnName,
+                    """.format(self.geometryColumnName,
                                self.tableName,
                                self.id)
 
@@ -108,11 +108,11 @@ class GeometricObjectBase:
         Returns:
             str: PostGIS spatial reference ID.
         """
-        statement = '''
+        statement = """
                     SELECT ST_SRID({0}) AS srid
                     FROM {1}
                     WHERE id={2};
-                    '''.format(self.geometryColumnName,
+                    """.format(self.geometryColumnName,
                                self.tableName,
                                self.id)
 

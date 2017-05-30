@@ -32,16 +32,16 @@ def del_sqlite_db(path):
 
 
 def init_db(sqlalchemy_url):
-    '''
+    """
     Initialize database with gsshapy tables
-    '''
+    """
     engine = create_engine(sqlalchemy_url)
     start = time.time()
     metadata.create_all(engine)
     return time.time() - start
     
 def init_sqlite_memory(initTime=False):
-    '''
+    """
     Initialize SQLite in Memory Only Database
     
     Args:
@@ -65,7 +65,7 @@ def init_sqlite_memory(initTime=False):
         ##DO WORK
         
         db_work_session.close()
-    '''
+    """
     sqlalchemy_url = 'sqlite://'
     engine = create_engine(sqlalchemy_url,
                            poolclass=SingletonThreadPool)
@@ -79,7 +79,7 @@ def init_sqlite_memory(initTime=False):
     
     
 def init_sqlite_db(path, initTime=False):
-    '''
+    """
     Initialize SQLite Database
     
     Args:
@@ -101,7 +101,7 @@ def init_sqlite_db(path, initTime=False):
         ##DO WORK
         
         db_work_session.close()
-    '''
+    """
     sqlite_base_url = 'sqlite:///'
     
     sqlalchemy_url = sqlite_base_url + path
@@ -115,7 +115,7 @@ def init_sqlite_db(path, initTime=False):
     
     
 def init_postgresql_db(username, host, database, port='', password='', initTime=False):
-    '''
+    """
     Initialize PostgreSQL Database
     
     .. note:: psycopg2 or similar driver required
@@ -143,7 +143,7 @@ def init_postgresql_db(username, host, database, port='', password='', initTime=
         ##DO WORK
         
         db_work_session.close()
-    '''
+    """
     postgresql_base_url = 'postgresql://'
     
     if password != '':
@@ -169,7 +169,7 @@ def init_postgresql_db(username, host, database, port='', password='', initTime=
     return sqlalchemy_url
         
 def init_mysql_db(username, host, database, port='', password='', initTime=False):
-    '''
+    """
     Initialize MySQL Database
     
     .. note:: mysql-python or similar driver required
@@ -197,7 +197,7 @@ def init_mysql_db(username, host, database, port='', password='', initTime=False
         ##DO WORK
         
         db_work_session.close()
-    '''
+    """
     
     mysql_base_url = 'mysql://'
     
@@ -224,9 +224,9 @@ def init_mysql_db(username, host, database, port='', password='', initTime=False
     return sqlalchemy_url
 
 def create_session(sqlalchemy_url, engine=None):
-    '''
+    """
     Create session with database to work in
-    '''
+    """
     if engine is None:
         engine = create_engine(sqlalchemy_url)
     maker = sessionmaker(bind=engine)

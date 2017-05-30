@@ -1,4 +1,4 @@
-'''
+"""
 ********************************************************************************
 * Name: TimeSeriesModel
 * Author: Scott Christensen, Nathan Swain
@@ -6,7 +6,7 @@
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
-'''
+"""
 
 import time
 

@@ -78,9 +78,9 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
         return '<RasterMap: FileExtension=%s>' % self.fileExtension
 
     def _delete_existing(self, project_file, session):
-        '''
+        """
         This will delete existing instances with the same extension
-        '''
+        """
         # remove existing grid if exists
         existing_elev = session.query(RasterMapFile).\
                                       filter(RasterMapFile.projectFile == project_file).\
@@ -91,9 +91,9 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
             session.commit()
 
     def _load_raster_text(self, raster_path):
-        '''
+        """
         Loads grass ASCII to object
-        '''
+        """
         # Open file and read plain text into text field
         with open(raster_path, 'r') as f:
             self.rasterText = f.read()

@@ -1,4 +1,4 @@
-'''
+"""
 ********************************************************************************
 * Name: Precipitation File Chunk
 * Author: Nathan Swain
@@ -6,16 +6,16 @@
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
-'''
+"""
 from datetime import datetime
 from future.utils import iteritems
 
 from . import parsetools as pt
 
 def eventChunk(key, lines):
-    '''
+    """
     Parse EVENT chunks
-    '''
+    """
     ## NOTE: RADAR file format not supported currently.
     ## TODO: Add Support for RADAR file format type values
 

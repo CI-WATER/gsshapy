@@ -1,4 +1,4 @@
-'''
+"""
 ********************************************************************************
 * Name: Channel Input File Chunk
 * Author: Nathan Swain
@@ -6,16 +6,16 @@
 * Copyright: (c) Brigham Young University 2013
 * License: BSD 2-Clause
 ********************************************************************************
-'''
+"""
 
 from future.utils import iteritems
 
 from . import parsetools as pt
 
 def connectChunk(key, chunk):
-    '''
+    """
     Parse Storm Pipe CONNECT Chunk Method
-    '''
+    """
     schunk = chunk[0].strip().split()
 
     result = {'slinkNumber': schunk[1],
@@ -25,9 +25,9 @@ def connectChunk(key, chunk):
     return result
 
 def sjuncChunk(key, chunk):
-    '''
+    """
     Parse Super Junction (SJUNC) Chunk Method
-    '''
+    """
     schunk = chunk[0].strip().split()
 
     result = {'sjuncNumber': schunk[1],
@@ -43,9 +43,9 @@ def sjuncChunk(key, chunk):
     return result
 
 def slinkChunk(key, lines):
-    '''
+    """
     Parse Super Link (SLINK) Chunk Method
-    '''
+    """
     KEYWORDS = ('SLINK',
                 'NODE',
                 'PIPE')

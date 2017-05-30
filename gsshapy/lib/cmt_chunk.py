@@ -59,10 +59,10 @@ def mapTableChunk(key, chunk):
         valDict = {}
 
         if token == key:
-            '''
+            """
             DO NOTHING: The map table name and index map name
             has already been extracted above.
-            '''
+            """
         elif token in numVars:
             # Extract NUM type variables
             numVars[sline[0]] = sline[1]
@@ -112,7 +112,7 @@ def contamChunk(key, chunk):
             mtName = sline[0]
 
         elif token == 'NUM_CONTAM':
-            '''DO NOTHING'''
+            """DO NOTHING"""
 
         elif '\"' in token:
             # Append currContam to contamList and extract
@@ -183,7 +183,7 @@ def sedimentChunk(key, chunk):
                 numVars['NUM_SED'] = int(sline[1])
 
         elif token == 'Sediment':
-            '''DO NOTHING'''
+            """DO NOTHING"""
         else:
             valueList.append(sline)
 

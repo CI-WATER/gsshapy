@@ -68,7 +68,7 @@ class NwsrfsFile(DeclarativeBase, GsshaPyFileObjectBase):
                 if sline[0].lower() == 'number_bands:':
                     self.numBands = sline[1]
                 elif sline[0].lower() == 'lower_elevation':
-                    '''DO NOTHING'''
+                    """DO NOTHING"""
                 else:
                     # Create GSSHAPY NwsrfsRecord object
                     record = NwsrfsRecord(lowerElev=sline[0],
@@ -227,7 +227,7 @@ class OrographicGageFile(DeclarativeBase, GsshaPyFileObjectBase):
                 elif sline[0].lower() == 'elev_2':
                     self.elev2 = sline[1]
                 elif sline[0].lower() == 'year':
-                    '''DO NOTHING'''
+                    """DO NOTHING"""
                 else:
                     # Create datetime object
                     dateTime = datetime(year=int(sline[0]),
