@@ -42,7 +42,8 @@ class TestWriteMethods(unittest.TestCase):
                 pass
 
         # Create DB Sessions
-        readSession = dbt.create_session(sqlalchemy_url)
+        session_maker = dbt.get_sessionmaker(sqlalchemy_url)
+        readSession = session_maker()
 
         # Instantiate GSSHAPY ProjectFile object
         prjR = ProjectFile()
@@ -55,7 +56,7 @@ class TestWriteMethods(unittest.TestCase):
         readSession.close()
 
         # create write session
-        self.writeSession = dbt.create_session(sqlalchemy_url)
+        self.writeSession = session_maker()
 
 
     def test_project_file_write(self):

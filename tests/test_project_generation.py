@@ -63,12 +63,6 @@ class TestProjectGenerate(TestGridTemplate):
         except OSError:
             pass
 
-        # Create Test DB
-        sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
-
-        # Create DB Sessions
-        self.db_session = dbt.create_session(sqlalchemy_url, sql_engine)
-
     def _compare_basic_model(self, project_name):
         """
         Compare output from basic GSSHA model
@@ -110,11 +104,6 @@ class TestProjectGenerate(TestGridTemplate):
         original_idx_file = path.join(self.compare_path, 'roughness.idx')
         self._compare_files(original_idx_file, new_idx_file, raster=True)
 
-    def _before_teardown(self):
-        """
-        Method to execute at beginning of tearDown
-        """
-        self.db_session.close()
 
     def test_generate_basic_project(self):
         """
@@ -123,16 +112,20 @@ class TestProjectGenerate(TestGridTemplate):
 
         project_name = "grid_standard_basic"
         # Instantiate GSSHAPY object for reading to database
-        project_manager = ProjectFile(name=project_name,
-                                      project_directory=self.gssha_project_directory,
-                                      map_type=1)
-        self.db_session.add(project_manager)
-        self.db_session.commit()
+        # Create Test DB
+        project_manager, db_sessionmaker = \
+            dbt.get_project_session(project_name,
+                                    self.gssha_project_directory,
+                                    map_type=1)
+        # Create DB Sessions
+        db_session = db_sessionmaker()
+        db_session.add(project_manager)
+        db_session.commit()
 
         # ADD MASK
         mask_name = '{0}.msk'.format(project_name)
         msk_file = WatershedMaskFile(project_file=project_manager,
-                                     session=self.db_session)
+                                     session=db_session)
 
         msk_file.generateFromWatershedShapefile(self.shapefile_path,
                                                 cell_size=1000,
@@ -141,7 +134,7 @@ class TestProjectGenerate(TestGridTemplate):
 
         # ADD ELEVATION FILE
         ele_file = ElevationGridFile(project_file=project_manager,
-                                     session=self.db_session)
+                                     session=db_session)
         ele_file.generateFromRaster(self.elevation_path,
                                     self.shapefile_path)
 
@@ -167,9 +160,11 @@ class TestProjectGenerate(TestGridTemplate):
         project_manager.setCard('START_TIME', '14 33')
 
         # write data
-        project_manager.writeInput(session=self.db_session,
+        project_manager.writeInput(session=db_session,
                                    directory=self.gssha_project_directory,
                                    name=project_name)
+
+        db_session.close()
         # compare
         self._compare_basic_model(project_name)
 
@@ -180,16 +175,19 @@ class TestProjectGenerate(TestGridTemplate):
 
         project_name = "grid_standard_basic_land_cover"
         # Instantiate GSSHAPY object for reading to database
-        project_manager = ProjectFile(name=project_name,
-                                      project_directory=self.gssha_project_directory,
-                                      map_type=1)
-        self.db_session.add(project_manager)
-        self.db_session.commit()
+        project_manager, db_sessionmaker = \
+            dbt.get_project_session(project_name,
+                                    self.gssha_project_directory,
+                                    map_type=1)
+        # Create DB Sessions
+        db_session = db_sessionmaker()
+        db_session.add(project_manager)
+        db_session.commit()
 
         # ADD MASK
         mask_name = '{0}.msk'.format(project_name)
         msk_file = WatershedMaskFile(project_file=project_manager,
-                                     session=self.db_session)
+                                     session=db_session)
 
         msk_file.generateFromWatershedShapefile(self.shapefile_path,
                                                 cell_size=1000,
@@ -198,7 +196,7 @@ class TestProjectGenerate(TestGridTemplate):
 
         # ADD ELEVATION FILE
         ele_file = ElevationGridFile(project_file=project_manager,
-                                     session=self.db_session)
+                                     session=db_session)
         ele_file.generateFromRaster(self.elevation_path,
                                     self.shapefile_path)
 
@@ -206,7 +204,7 @@ class TestProjectGenerate(TestGridTemplate):
         # see http://www.gsshawiki.com/Project_File:Overland_Flow_%E2%80%93_Required
         mapTableFile = MapTableFile(project_file=project_manager)
         mapTableFile.addRoughnessMapFromLandUse("roughness",
-                                                self.db_session,
+                                                db_session,
                                                 self.land_use_grid,
                                                 land_use_grid_id='glcf',
                                                 )
@@ -227,9 +225,10 @@ class TestProjectGenerate(TestGridTemplate):
         project_manager.setCard('START_TIME', '14 33')
 
         # write data
-        project_manager.writeInput(session=self.db_session,
+        project_manager.writeInput(session=db_session,
                                    directory=self.gssha_project_directory,
                                    name=project_name)
+        db_session.close()
         # compare main project files
         self._compare_basic_model_idx_maps(project_name)
 

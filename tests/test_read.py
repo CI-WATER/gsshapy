@@ -25,8 +25,9 @@ class TestReadMethods(unittest.TestCase):
         sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
 
         # Create DB Sessions
-        self.readSession = dbt.create_session(sqlalchemy_url, sql_engine)
-        self.querySession = dbt.create_session(sqlalchemy_url, sql_engine)
+        session_maker = dbt.get_sessionmaker(sqlalchemy_url, sql_engine)
+        self.readSession = session_maker()
+        self.querySession = session_maker()
 
         # Define directory of test files to read
         self.directory = os.path.join(here, 'standard')

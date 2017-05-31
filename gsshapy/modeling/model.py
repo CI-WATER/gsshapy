@@ -92,16 +92,11 @@ class GSSHAModel(object):
             raise ValueError("'db_session' is required to edit existing model if 'project_manager' is given.")
 
         if project_manager is None and db_session is None:
-            # Create Test DB
-            sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
-
-            # Create DB Sessions
-            self.db_session = dbt.create_session(sqlalchemy_url, sql_engine)
 
             if project_name is not None and mask_shapefile is None and elevation_grid_path is None:
-                # Instantiate GSSHAPY object for reading to database
-                self.project_manager = ProjectFile()
-                # Call read method
+                self.project_manager, db_sessionmaker = \
+                    dbt.get_project_session(project_name, self.project_directory)
+                self.db_session = db_sessionmaker()
                 self.project_manager.readInput(directory=self.project_directory,
                                                projectFileName="{0}.prj".format(project_name),
                                                session=self.db_session)
@@ -112,9 +107,9 @@ class GSSHAModel(object):
                                      "and elevation_grid_path to generate "
                                      "a new GSSHA model.")
 
-                # Instantiate GSSHAPY object for reading to database
-                self.project_manager = ProjectFile(name=project_name, project_directory=self.project_directory,
-                                                   map_type=0)
+                self.project_manager, db_sessionmaker = \
+                    dbt.get_project_session(project_name, self.project_directory, map_type=0)
+                self.db_session = db_sessionmaker()
                 self.db_session.add(self.project_manager)
                 self.db_session.commit()
 

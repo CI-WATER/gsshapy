@@ -61,13 +61,11 @@ class TestElevation(TestGridTemplate):
                 pass
 
         # Create Test DB
-        sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
+        self.project_manager, db_sessionmaker = \
+            dbt.get_project_session('grid_standard_ele',
+                                    self.gssha_project_directory)
 
-        # Create DB Sessions
-        self.db_session = dbt.create_session(sqlalchemy_url, sql_engine)
-
-        # Instantiate GSSHAPY object for reading to database
-        self.project_manager = ProjectFile(name='grid_standard_ele')
+        self.db_session = db_sessionmaker()
 
         # read project file
         self.project_manager.readInput(directory=self.gssha_project_directory,

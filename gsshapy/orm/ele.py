@@ -57,14 +57,11 @@ class ElevationGridFile(RasterMapFile):
             gssha_directory = '/gsshapy/tests/grid_standard/gssha_project'
             elevation_raster = 'elevation.tif'
 
-            # Create Test DB
-            sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
+            project_manager, db_sessionmaker = \
+                dbt.get_project_session('grid_standard',
+                                        gssha_directory)
 
-            # Create DB Sessions
-            db_session = dbt.create_session(sqlalchemy_url, sql_engine)
-
-            # Instantiate GSSHAPY object for reading to database
-            project_manager = ProjectFile()
+            db_session = db_sessionmaker()
 
             # read project file
             project_manager.readInput(directory=gssha_directory,

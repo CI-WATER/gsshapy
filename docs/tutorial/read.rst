@@ -31,7 +31,8 @@ Open a Python console and execute the following commands to populate the databas
 This method returns an SQLAlchemy_ url. This url is used to create SQLAlchemy_ session objects for interacting with the
 database. In the Python console::
 
-    >>> session = dbt.create_session(sqlalchemy_url)
+    >>> session_maker = dbt.get_sessionmaker(sqlalchemy_url)
+    >>> session = session_maker()
 
 Create a GsshaPy Object
 =======================

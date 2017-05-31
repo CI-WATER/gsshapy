@@ -26,7 +26,8 @@ Create a new session for this part of the tutorial, but use the same database::
 
     >>> from gsshapy.lib import db_tools as dbt
     >>> sqlalchemy_url = dbt.sqlalchemy_url = dbt.init_postgresql_db(username='gsshapy', host='localhost', database='gsshapy_tutorial', port='5432', password='pass')
-    >>> all_session = dbt.create_session(sqlalchemy_url)
+    >>> session_maker = dbt.get_sessionmaker(sqlalchemy_url)
+    >>> all_session = session_maker()
 
 Instantiate a new :class:`gsshapy.orm.ProjectFile` object::
 

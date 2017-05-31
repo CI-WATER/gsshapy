@@ -252,20 +252,15 @@ class GSSHAFramework(object):
 
         self.simulation_modified_input_cards = ["MAPPING_TABLE"]
 
-        # Create Test DB
-        sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
+        # get project manager and session
+        self.project_manager, db_sessionmaker = \
+            dbt.get_project_session(os.path.splitext(self.project_filename)[0],
+                                    self.gssha_directory)
 
-        # Create DB Sessions
-        self.db_session = dbt.create_session(sqlalchemy_url, sql_engine)
-
-        # Instantiate GSSHAPY object for reading to database
-        self.project_manager = ProjectFile()
-
-        # Call read method
+        self.db_session = db_sessionmaker()
         self.project_manager.read(directory=self.gssha_directory,
                                   filename=self.project_filename,
                                   session=self.db_session)
-
         # read event manager card if exists
         eventyml_card = self.project_manager.getCard('#GSSHAPY_EVENT_YML')
         if eventyml_card is not None:

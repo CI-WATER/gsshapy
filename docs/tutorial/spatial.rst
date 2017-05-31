@@ -20,8 +20,9 @@ instance of the :class:`gsshapy.orm.ProjectFile` class::
 
     >>> from gsshapy.lib import db_tools as dbt
     >>> from gsshapy.orm import ProjectFile
-    >>> sqlalchemy_url = dbt.sqlalchemy_url = dbt.init_postgresql_db(username='gsshapy', host='localhost', database='gsshapy_tutorial', port='5432', password='pass')
-    >>> spatialSession = dbt.create_session(sqlalchemy_url)
+    >>> sqlalchemy_url =  dbt.init_postgresql_db(username='gsshapy', host='localhost', database='gsshapy_tutorial', port='5432', password='pass')
+    >>> session_maker = dbt.get_sessionmaker(sqlalchemy_url)
+    >>> spatiaSession = session_maker()
     >>> spatialProjectFile = ProjectFile()
 
 Then we call the ``readProject()`` method enabling spatial objects by setting the ``spatial`` argument to ``True``.

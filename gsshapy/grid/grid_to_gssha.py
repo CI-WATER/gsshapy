@@ -510,10 +510,13 @@ class GRIDtoGSSHA(object):
         self.lsm_time_dim = lsm_time_dim
         self.output_timezone = output_timezone
         self._xd = None
+
         # load in GSSHA model files
-        sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
-        db_session = dbt.create_session(sqlalchemy_url, sql_engine)
-        project_manager = ProjectFile()
+        project_manager, db_sessionmaker = \
+            dbt.get_project_session(path.splitext(self.gssha_project_file_name)[0],
+                                    self.gssha_project_folder)
+
+        db_session = db_sessionmaker()
         project_manager.read(directory=self.gssha_project_folder,
                              filename=self.gssha_project_file_name,
                              session=db_session)

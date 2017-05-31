@@ -47,14 +47,12 @@ class TestLandCover(TestGridTemplate):
                                                 'grid', 'land_cover',
                                                 'land_cover_glcf_modis.txt'
                                                 )
-        # Create Test DB
-        sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
-
-        # Create DB Sessions
-        db_session = dbt.create_session(sqlalchemy_url, sql_engine)
-
         # Instantiate GSSHAPY object for reading to database
-        project_manager = ProjectFile()
+        project_manager, db_sessionmaker = \
+            dbt.get_project_session('grid_standard',
+                                    self.gssha_project_directory)
+
+        db_session = db_sessionmaker()
 
         # Call read method
         project_manager.readInput(directory=self.gssha_project_directory,
@@ -93,11 +91,11 @@ class TestLandCover(TestGridTemplate):
         """
         # Create Test DB
         sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
-
+        session_maker = dbt.get_sessionmaker(sqlalchemy_url, sql_engine)
         # run twice to ensure uniqueness
         for i in range(2):
             # Create DB Sessions
-            db_session = dbt.create_session(sqlalchemy_url, sql_engine)
+            db_session = session_maker()
 
             # Instantiate GSSHAPY object for reading to database
             project_manager = ProjectFile()

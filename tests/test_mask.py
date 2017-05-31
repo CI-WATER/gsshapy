@@ -41,15 +41,12 @@ class TestMask(TestGridTemplate):
                 pass
 
         # Create Test DB
-        sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
+        self.project_manager, db_sessionmaker = \
+            dbt.get_project_session('grid_standard_msk',
+                                    self.gssha_project_directory,
+                                    map_type=1)
 
-        # Create DB Sessions
-        self.db_session = dbt.create_session(sqlalchemy_url, sql_engine)
-
-        # Instantiate GSSHAPY object for reading to database
-        self.project_manager = ProjectFile(name="grid_standard_msk",
-                                           project_directory=self.gssha_project_directory,
-                                           map_type=1)
+        self.db_session = db_sessionmaker()
         self.db_session.add(self.project_manager)
         self.db_session.commit()
 
