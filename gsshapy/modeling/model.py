@@ -6,9 +6,9 @@
 #  Created by Alan D Snow, 2016.
 #  BSD 3-Clause
 
-from os import chdir
 from datetime import timedelta
 import logging
+import os
 
 from gazar.grid import GDALGrid
 
@@ -16,6 +16,7 @@ from .event import EventMode, LongTermMode
 from ..orm import (ProjectFile, WatershedMaskFile, ElevationGridFile,
                          MapTableFile)
 from ..lib import db_tools as dbt
+from ..util.context import tmp_chdir
 
 log = logging.getLogger(__name__)
 
@@ -82,7 +83,6 @@ class GSSHAModel(object):
                  project_manager=None,
                 ):
 
-        chdir(project_directory)
         self.project_directory = project_directory
         self.db_session = db_session
         self.project_manager = project_manager
@@ -111,8 +111,10 @@ class GSSHAModel(object):
                     raise ValueError("Need to set project_name, mask_shapefile, "
                                      "and elevation_grid_path to generate "
                                      "a new GSSHA model.")
+
                 # Instantiate GSSHAPY object for reading to database
-                self.project_manager = ProjectFile(name=project_name, map_type=0)
+                self.project_manager = ProjectFile(name=project_name, project_directory=self.project_directory,
+                                                   map_type=0)
                 self.db_session.add(self.project_manager)
                 self.db_session.commit()
 
@@ -155,15 +157,18 @@ class GSSHAModel(object):
         """
         Adds a mask from a shapefile
         """
+        # make sure paths are absolute as the working directory changes
+        shapefile_path = os.path.abspath(shapefile_path)
         # ADD MASK
-        mask_name = '{0}.msk'.format(self.project_manager.name)
-        msk_file = WatershedMaskFile(project_file=self.project_manager,
-                                     session=self.db_session)
+        with tmp_chdir(self.project_directory):
+            mask_name = '{0}.msk'.format(self.project_manager.name)
+            msk_file = WatershedMaskFile(project_file=self.project_manager,
+                                         session=self.db_session)
 
-        msk_file.generateFromWatershedShapefile(shapefile_path,
-                                                cell_size=cell_size,
-                                                out_raster_path=mask_name,
-                                                load_raster_to_db=self.load_rasters_to_db)
+            msk_file.generateFromWatershedShapefile(shapefile_path,
+                                                    cell_size=cell_size,
+                                                    out_raster_path=mask_name,
+                                                    load_raster_to_db=self.load_rasters_to_db)
 
     def set_elevation(self, elevation_grid_path, mask_shapefile):
         """
@@ -196,6 +201,11 @@ class GSSHAModel(object):
             self.project_manager.setCard('MANNING_N', str(roughness))
         elif land_use_grid is not None and (land_use_grid_id is not None \
                 or land_use_to_roughness_table is not None):
+            # make sure paths are absolute as the working directory changes
+            land_use_grid = os.path.abspath(land_use_grid)
+            if land_use_to_roughness_table is not None:
+                land_use_to_roughness_table = os.path.abspath(land_use_to_roughness_table)
+
             mapTableFile = MapTableFile(project_file=self.project_manager)
             mapTableFile.addRoughnessMapFromLandUse("roughness",
                                                     self.db_session,

@@ -7,7 +7,7 @@
 ********************************************************************************
 """
 from glob import glob
-from os import path, chdir
+from os import path
 import unittest
 from shutil import copy, copytree
 
@@ -75,7 +75,6 @@ class TestElevation(TestGridTemplate):
                                        session=self.db_session)
         self.ele_file = ElevationGridFile(project_file=self.project_manager,
                                           session=self.db_session)
-        chdir(self.gssha_project_directory)
 
     def test_generate_elevation_grid(self):
         """

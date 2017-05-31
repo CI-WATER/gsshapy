@@ -34,6 +34,7 @@ from .idx import IndexMap
 from ..lib import parsetools as pt
 from ..lib import cmt_chunk as mtc
 from ..lib.parsetools import valueReadPreprocessor as vrp, valueWritePreprocessor as vwp
+from ..util.context import tmp_chdir
 
 log = logging.getLogger(__name__)
 
@@ -600,8 +601,6 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             land_use_grid = 'LC_5min_global_2012.tif'
             land_use_to_roughness_table = ''/gsshapy/gridtogssha/land_cover/land_cover_glcf_modis.txt'
 
-            chdir(gssha_directory)
-
             # Create Test DB
             sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
 
@@ -646,11 +645,17 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                                                            'land_cover',
                                                            LAND_USE_GRID_TABLES[land_use_grid_id])
 
+            # make sure paths are absolute as the working directory changes
+            land_use_to_roughness_table = os.path.abspath(land_use_to_roughness_table)
+
             df = pd.read_table(land_use_to_roughness_table, delim_whitespace=True,
                                header=None, skiprows=1,
                                names=('id', 'description', 'roughness'),
                                dtype={'id':'int', 'description':'str', 'roughness':'float'},
                                )
+
+        # make sure paths are absolute as the working directory changes
+        land_use_grid = os.path.abspath(land_use_grid)
 
         # resample land use grid to gssha grid
         land_use_resampled = resample_grid(land_use_grid,
@@ -660,7 +665,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         unique_land_use_ids = np.unique(land_use_resampled.np_array())
 
-        #only add ids in index map subset
+        # only add ids in index map subset
         df = df[df.id.isin(unique_land_use_ids)]
 
         # make sure all needed land use IDs exist
@@ -693,25 +698,17 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             val.index = idx
             val.mapTable = mapTable
 
-
-        project_path = ""
-        proj_path_card = self.projectFile.getCard('PROJECT_PATH')
-        if proj_path_card:
-            project_path = proj_path_card.value.strip('"').strip("'")
-
         # remove MANNING_N card becasue it is mutually exclusive
         manningn_card = self.projectFile.getCard('MANNING_N')
         if manningn_card:
             session.delete(manningn_card)
             session.commit()
 
-        # add path to file
-        mapTable.indexMap.filename = os.path.join(project_path,
-                                                  '{0}.idx'.format(name))
-
+        mapTable.indexMap.filename = '{0}.idx'.format(name)
         # write file
-        land_use_resampled.to_grass_ascii(mapTable.indexMap.filename,
-                                          print_nodata=False)
+        with tmp_chdir(self.projectFile.project_directory):
+            land_use_resampled.to_grass_ascii(mapTable.indexMap.filename,
+                                              print_nodata=False)
 
         # update project card
         if not self.projectFile.getCard('MAPPING_TABLE'):

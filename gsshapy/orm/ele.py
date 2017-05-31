@@ -15,7 +15,7 @@ from osgeo import gdalconst
 from gazar.grid import resample_grid
 
 from .map import RasterMapFile
-
+from ..util.context import tmp_chdir
 
 class ElevationGridFile(RasterMapFile):
     """
@@ -53,7 +53,6 @@ class ElevationGridFile(RasterMapFile):
             from gsshapy.orm import ProjectFile, ElevationGridFile
             from gsshapy.lib import db_tools as dbt
 
-            from os import path, chdir
 
             gssha_directory = '/gsshapy/tests/grid_standard/gssha_project'
             elevation_raster = 'elevation.tif'
@@ -85,28 +84,30 @@ class ElevationGridFile(RasterMapFile):
         if not self.projectFile:
             raise ValueError("Must be connected to project file ...")
 
+        # make sure paths are absolute as the working directory changes
+        elevation_raster = os.path.abspath(elevation_raster)
+        shapefile_path = os.path.abspath(shapefile_path)
+
         # must match elevation mask grid
         mask_grid = self.projectFile.getGrid()
         if out_elevation_grid is None:
-            project_path = ''
-            project_path_card = self.projectFile.getCard('PROJECT_PATH')
-            if project_path_card:
-                project_path = project_path_card.value.strip('"').strip("'")
-            out_elevation_grid = os.path.join(project_path,
-                                              '{0}.{1}'.format(self.projectFile.name,
-                                                               self.fileExtension),
-                                              )
+            out_elevation_grid = '{0}.{1}'.format(self.projectFile.name,
+                                                  self.fileExtension)
 
         elevation_grid = resample_grid(elevation_raster,
                                        mask_grid,
                                        resample_method=resample_method,
                                        as_gdal_grid=True)
-        elevation_grid.to_grass_ascii(out_elevation_grid, print_nodata=False)
+
+        with tmp_chdir(self.projectFile.project_directory):
+            elevation_grid.to_grass_ascii(out_elevation_grid, print_nodata=False)
+
+            # read raster into object
+            if load_raster_to_db:
+                self._load_raster_text(out_elevation_grid)
 
         self.filename = out_elevation_grid
         self.projectFile.setCard("ELEVATION", out_elevation_grid, add_quotes=True)
-        # read raster into object
-        if load_raster_to_db:
-            self._load_raster_text(out_elevation_grid)
+
         # find outlet and add slope
         self.projectFile.findOutlet(shapefile_path)

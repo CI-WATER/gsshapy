@@ -131,8 +131,6 @@ class TestGridTemplate(unittest.TestCase):
         """
         self._before_teardown()
 
-        os.chdir(SCRIPT_DIR)
-
         # Clear out directory
         fileList = os.listdir(self.writeDirectory)
 

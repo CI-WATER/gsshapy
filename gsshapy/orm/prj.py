@@ -35,6 +35,7 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from . import DeclarativeBase
 from ..base.file_base import GsshaPyFileObjectBase
 from .file_io import *
+from ..util.context import tmp_chdir
 
 log = logging.getLogger(__name__)
 
@@ -77,6 +78,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     name = Column(String, nullable=False)  #: STRING
     mapType = Column(Integer, nullable=False)  #: INTEGER
     fileExtension = Column(String, default='prj')  #: STRING
+    project_directory = Column(String)
 
     # Relationship Properties
     projectCards = relationship('ProjectCard', back_populates='projectFile')  #: RELATIONSHIP
@@ -223,7 +225,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
     COMMIT_ERROR_MESSAGE = ('Ensure the files listed in the project file '
                             'are not empty and try again.')
 
-    def __init__(self, name=None, map_type=None):
+    def __init__(self, name=None, map_type=None, project_directory=None):
         GsshaPyFileObjectBase.__init__(self)
         self.fileExtension = 'prj'
         if name is not None:
@@ -231,6 +233,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         if map_type is not None:
             self.mapType = map_type
             self.setCard(name='MAP_TYPE', value=str(map_type))
+        self.project_directory = project_directory
 
         # object Properties
         self._tz = None # grid timezone
@@ -241,51 +244,53 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Project File Read from File Method
         """
-        # Headers to ignore
-        HEADERS = ('GSSHAPROJECT',)
+        self.project_directory = directory
+        with tmp_chdir(directory):
+            # Headers to ignore
+            HEADERS = ('GSSHAPROJECT',)
 
-        # WMS Cards to include (don't discount as comments)
-        WMS_CARDS = ('#INDEXGRID_GUID', '#PROJECTION_FILE', '#LandSoil',
-                     '#CHANNEL_POINT_INPUT_WMS')
+            # WMS Cards to include (don't discount as comments)
+            WMS_CARDS = ('#INDEXGRID_GUID', '#PROJECTION_FILE', '#LandSoil',
+                         '#CHANNEL_POINT_INPUT_WMS')
 
-        GSSHAPY_CARDS = ('#GSSHAPY_EVENT_YML', )
+            GSSHAPY_CARDS = ('#GSSHAPY_EVENT_YML', )
 
-        with open(path, 'r') as f:
-            for line in f:
-                if not line.strip():
-                    # Skip empty lines
-                    continue
+            with open(path, 'r') as f:
+                for line in f:
+                    if not line.strip():
+                        # Skip empty lines
+                        continue
 
-                elif '#' in line.split()[0] and line.split()[0] \
-                        not in WMS_CARDS + GSSHAPY_CARDS:
-                    # Skip comments designated by the hash symbol
-                    # (with the exception of WMS_CARDS and GSSHAPY_CARDS)
-                    continue
+                    elif '#' in line.split()[0] and line.split()[0] \
+                            not in WMS_CARDS + GSSHAPY_CARDS:
+                        # Skip comments designated by the hash symbol
+                        # (with the exception of WMS_CARDS and GSSHAPY_CARDS)
+                        continue
 
-                try:
-                    card = self._extractCard(line, force_relative)
+                    try:
+                        card = self._extractCard(line, force_relative)
 
-                except:
-                    card = self._extractDirectoryCard(line, force_relative)
+                    except:
+                        card = self._extractDirectoryCard(line, force_relative)
 
-                # Now that the cardName and cardValue are separated
-                # load them into the gsshapy objects
-                if card['name'] not in HEADERS:
-                    # Create GSSHAPY Project Card object
-                    prjCard = ProjectCard(name=card['name'], value=card['value'])
+                    # Now that the cardName and cardValue are separated
+                    # load them into the gsshapy objects
+                    if card['name'] not in HEADERS:
+                        # Create GSSHAPY Project Card object
+                        prjCard = ProjectCard(name=card['name'], value=card['value'])
 
-                    # Associate ProjectCard with ProjectFile
-                    prjCard.projectFile = self
+                        # Associate ProjectCard with ProjectFile
+                        prjCard.projectFile = self
 
-                    # Extract MAP_TYPE card value for convenience working
-                    # with output maps
-                    if card['name'] == 'MAP_TYPE':
-                        self.mapType = int(card['value'])
+                        # Extract MAP_TYPE card value for convenience working
+                        # with output maps
+                        if card['name'] == 'MAP_TYPE':
+                            self.mapType = int(card['value'])
 
-        # Assign properties
-        self.srid = spatialReferenceID
-        self.name = name
-        self.fileExtension = extension
+            # Assign properties
+            self.srid = spatialReferenceID
+            self.name = name
+            self.fileExtension = extension
 
     def _write(self, session, openFile, replaceParamFile):
         """
@@ -379,36 +384,38 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 provided GsshaPy will attempt to automatically lookup the spatial reference ID. If this process fails,
                 default srid will be used (4326 for WGS 84).
         """
-        # Add project file to session
-        session.add(self)
+        self.project_directory = directory
+        with tmp_chdir(directory):
+            # Add project file to session
+            session.add(self)
 
-        # First read self
-        self.read(directory, projectFileName, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+            # First read self
+            self.read(directory, projectFileName, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
-        # Get the batch directory for output
-        batchDirectory = self._getBatchDirectory(directory)
+            # Get the batch directory for output
+            batchDirectory = self._getBatchDirectory(directory)
 
-        # Automatically derive the spatial reference system, if possible
-        if spatialReferenceID is None:
-            spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
+            # Automatically derive the spatial reference system, if possible
+            if spatialReferenceID is None:
+                spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
 
-        # Read in replace param file
-        replaceParamFile = self._readReplacementFiles(directory, session, spatial, spatialReferenceID)
+            # Read in replace param file
+            replaceParamFile = self._readReplacementFiles(directory, session, spatial, spatialReferenceID)
 
-        # Read Input Files
-        self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
+            # Read Input Files
+            self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
 
-        # Read Output Files
-        self._readXput(self.OUTPUT_FILES, batchDirectory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
+            # Read Output Files
+            self._readXput(self.OUTPUT_FILES, batchDirectory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
 
-        # Read Input Map Files
-        self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
+            # Read Input Map Files
+            self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
 
-        # Read WMS Dataset Files
-        self._readWMSDatasets(self.WMS_DATASETS, batchDirectory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+            # Read WMS Dataset Files
+            self._readWMSDatasets(self.WMS_DATASETS, batchDirectory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
-        # Commit to database
-        self._commit(session, self.COMMIT_ERROR_MESSAGE)
+            # Commit to database
+            self._commit(session, self.COMMIT_ERROR_MESSAGE)
 
     def readInput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=None):
         """
@@ -427,27 +434,29 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 provided GsshaPy will attempt to automatically lookup the spatial reference ID. If this process fails,
                 default srid will be used (4326 for WGS 84).
         """
-        # Add project file to session
-        session.add(self)
+        self.project_directory = directory
+        with tmp_chdir(directory):
+            # Add project file to session
+            session.add(self)
 
-        # Read Project File
-        self.read(directory, projectFileName, session, spatial, spatialReferenceID)
+            # Read Project File
+            self.read(directory, projectFileName, session, spatial, spatialReferenceID)
 
-        # Automatically derive the spatial reference system, if possible
-        if spatialReferenceID is None:
-            spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
+            # Automatically derive the spatial reference system, if possible
+            if spatialReferenceID is None:
+                spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
 
-        # Read in replace param file
-        replaceParamFile = self._readReplacementFiles(directory, session, spatial, spatialReferenceID)
+            # Read in replace param file
+            replaceParamFile = self._readReplacementFiles(directory, session, spatial, spatialReferenceID)
 
-        # Read Input Files
-        self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
+            # Read Input Files
+            self._readXput(self.INPUT_FILES, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
 
-        # Read Input Map Files
-        self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
+            # Read Input Map Files
+            self._readXputMaps(self.INPUT_MAPS, directory, session, spatial=spatial, spatialReferenceID=spatialReferenceID, replaceParamFile=replaceParamFile)
 
-        # Commit to database
-        self._commit(session, self.COMMIT_ERROR_MESSAGE)
+            # Commit to database
+            self._commit(session, self.COMMIT_ERROR_MESSAGE)
 
     def readOutput(self, directory, projectFileName, session, spatial=False, spatialReferenceID=None):
         """
@@ -466,33 +475,35 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 provided GsshaPy will attempt to automatically lookup the spatial reference ID. If this process fails,
                 default srid will be used (4326 for WGS 84).
         """
-        # Add project file to session
-        session.add(self)
+        self.project_directory = directory
+        with tmp_chdir(directory):
+            # Add project file to session
+            session.add(self)
 
-        # Read Project File
-        self.read(directory, projectFileName, session, spatial, spatialReferenceID)
+            # Read Project File
+            self.read(directory, projectFileName, session, spatial, spatialReferenceID)
 
-        # Get the batch directory for output
-        batchDirectory = self._getBatchDirectory(directory)
+            # Get the batch directory for output
+            batchDirectory = self._getBatchDirectory(directory)
 
-        # Read Mask (dependency of some output files)
-        maskMap = WatershedMaskFile()
-        maskMapFilename = self.getCard('WATERSHED_MASK').value.strip('"')
-        maskMap.read(session=session, directory=directory, filename=maskMapFilename, spatial=spatial)
-        maskMap.projectFile = self
+            # Read Mask (dependency of some output files)
+            maskMap = WatershedMaskFile()
+            maskMapFilename = self.getCard('WATERSHED_MASK').value.strip('"')
+            maskMap.read(session=session, directory=directory, filename=maskMapFilename, spatial=spatial)
+            maskMap.projectFile = self
 
-        # Automatically derive the spatial reference system, if possible
-        if spatialReferenceID is None:
-            spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
+            # Automatically derive the spatial reference system, if possible
+            if spatialReferenceID is None:
+                spatialReferenceID = self._automaticallyDeriveSpatialReferenceId(directory)
 
-        # Read Output Files
-        self._readXput(self.OUTPUT_FILES, batchDirectory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+            # Read Output Files
+            self._readXput(self.OUTPUT_FILES, batchDirectory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
-        # Read WMS Dataset Files
-        self._readWMSDatasets(self.WMS_DATASETS, batchDirectory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
+            # Read WMS Dataset Files
+            self._readWMSDatasets(self.WMS_DATASETS, batchDirectory, session, spatial=spatial, spatialReferenceID=spatialReferenceID)
 
-        # Commit to database
-        self._commit(session, self.COMMIT_ERROR_MESSAGE)
+            # Commit to database
+            self._commit(session, self.COMMIT_ERROR_MESSAGE)
 
     def _readXputFile(self, file_cards, card_name, directory, session,
                       spatial=False, spatialReferenceID=None,
@@ -538,11 +549,13 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         Returns:
             file object
         """
-        # Read in replace param file
-        replaceParamFile = self._readReplacementFiles(directory, session, spatial, spatialReferenceID)
-        return self._readXputFile(self.INPUT_FILES, card_name, directory,
-                                  session, spatial, spatialReferenceID,
-                                  replaceParamFile, **kwargs)
+        self.project_directory = directory
+        with tmp_chdir(directory):
+            # Read in replace param file
+            replaceParamFile = self._readReplacementFiles(directory, session, spatial, spatialReferenceID)
+            return self._readXputFile(self.INPUT_FILES, card_name, directory,
+                                      session, spatial, spatialReferenceID,
+                                      replaceParamFile, **kwargs)
 
     def readOutputFile(self, card_name, directory, session, spatial=False,
                       spatialReferenceID=None, **kwargs):
@@ -563,8 +576,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         Returns:
             file object
         """
-        return self._readXputFile(self.OUTPUT_FILES, card_name, directory,
-                                  session, spatial, spatialReferenceID, **kwargs)
+        self.project_directory = directory
+        with tmp_chdir(directory):
+            return self._readXputFile(self.OUTPUT_FILES, card_name, directory,
+                                      session, spatial, spatialReferenceID, **kwargs)
 
     def writeProject(self, session, directory, name):
         """
@@ -581,29 +596,31 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 'example.cmt', and 'example.gag'). Files that do not follow this convention will retain their original
                 file names.
         """
-        # Get the batch directory for output
-        batchDirectory = self._getBatchDirectory(directory)
+        self.project_directory = directory
+        with tmp_chdir(directory):
+            # Get the batch directory for output
+            batchDirectory = self._getBatchDirectory(directory)
 
-        # Get param file for writing
-        replaceParamFile = self.replaceParamFile
+            # Get param file for writing
+            replaceParamFile = self.replaceParamFile
 
-        # Write the replacement files
-        self._writeReplacementFiles(session=session, directory=directory, name=name)
+            # Write the replacement files
+            self._writeReplacementFiles(session=session, directory=directory, name=name)
 
-        # Write Project File
-        self.write(session=session, directory=directory, name=name)
+            # Write Project File
+            self.write(session=session, directory=directory, name=name)
 
-        # Write input files
-        self._writeXput(session=session, directory=directory, fileCards=self.INPUT_FILES, name=name, replaceParamFile=replaceParamFile)
+            # Write input files
+            self._writeXput(session=session, directory=directory, fileCards=self.INPUT_FILES, name=name, replaceParamFile=replaceParamFile)
 
-        # Write output files
-        self._writeXput(session=session, directory=batchDirectory, fileCards=self.OUTPUT_FILES, name=name)
+            # Write output files
+            self._writeXput(session=session, directory=batchDirectory, fileCards=self.OUTPUT_FILES, name=name)
 
-        # Write input map files
-        self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name, replaceParamFile=replaceParamFile)
+            # Write input map files
+            self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name, replaceParamFile=replaceParamFile)
 
-        # Write WMS Dataset Files
-        self._writeWMSDatasets(session=session, directory=batchDirectory, wmsDatasetCards=self.WMS_DATASETS, name=name)
+            # Write WMS Dataset Files
+            self._writeWMSDatasets(session=session, directory=batchDirectory, wmsDatasetCards=self.WMS_DATASETS, name=name)
 
     def writeInput(self, session, directory, name):
         """
@@ -617,17 +634,19 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 'example.cmt', and 'example.gag'). Files that do not follow this convention will retain their original
                 file names.
         """
-        # Get param file for writing
-        replaceParamFile = self.replaceParamFile
+        self.project_directory = directory
+        with tmp_chdir(directory):
+            # Get param file for writing
+            replaceParamFile = self.replaceParamFile
 
-        # Write Project File
-        self.write(session=session, directory=directory, name=name)
+            # Write Project File
+            self.write(session=session, directory=directory, name=name)
 
-        # Write input files
-        self._writeXput(session=session, directory=directory, fileCards=self.INPUT_FILES, name=name, replaceParamFile=replaceParamFile)
+            # Write input files
+            self._writeXput(session=session, directory=directory, fileCards=self.INPUT_FILES, name=name, replaceParamFile=replaceParamFile)
 
-        # Write input map files
-        self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name, replaceParamFile=replaceParamFile)
+            # Write input map files
+            self._writeXputMaps(session=session, directory=directory, mapCards=self.INPUT_MAPS, name=name, replaceParamFile=replaceParamFile)
 
 
 
@@ -643,20 +662,22 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 'example.cmt', and 'example.gag'). Files that do not follow this convention will retain their original
                 file names.
         """
-        # Get the batch directory for output
-        batchDirectory = self._getBatchDirectory(directory)
+        self.project_directory = directory
+        with tmp_chdir(directory):
+            # Get the batch directory for output
+            batchDirectory = self._getBatchDirectory(directory)
 
-        # Write the replacement files
-        self._writeReplacementFiles(session=session, directory=directory, name=name)
+            # Write the replacement files
+            self._writeReplacementFiles(session=session, directory=directory, name=name)
 
-        # Write Project File
-        self.write(session=session, directory=directory, name=name)
+            # Write Project File
+            self.write(session=session, directory=directory, name=name)
 
-        # Write output files
-        self._writeXput(session=session, directory=batchDirectory, fileCards=self.OUTPUT_FILES, name=name)
+            # Write output files
+            self._writeXput(session=session, directory=batchDirectory, fileCards=self.OUTPUT_FILES, name=name)
 
-        # Write WMS Dataset Files
-        self._writeWMSDatasets(session=session, directory=batchDirectory, wmsDatasetCards=self.WMS_DATASETS, name=name)
+            # Write WMS Dataset Files
+            self._writeWMSDatasets(session=session, directory=batchDirectory, wmsDatasetCards=self.WMS_DATASETS, name=name)
 
     def getFileKeys(self):
         """
@@ -1119,21 +1140,22 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         Returns:
             GDALGrid
         """
-        if gssha_card_name not in (self.INPUT_MAPS+self.WMS_DATASETS):
-            raise ValueError("Card {0} not found in valid grid cards ..."
-                             .format(gssha_card_name))
+        with tmp_chdir(self.project_directory):
+            if gssha_card_name not in (self.INPUT_MAPS+self.WMS_DATASETS):
+                raise ValueError("Card {0} not found in valid grid cards ..."
+                                 .format(gssha_card_name))
 
-        gssha_grid_card = self.getCard(gssha_card_name)
-        if gssha_grid_card is None:
-            raise ValueError("{0} card not found ...".format(gssha_card_name))
+            gssha_grid_card = self.getCard(gssha_card_name)
+            if gssha_grid_card is None:
+                raise ValueError("{0} card not found ...".format(gssha_card_name))
 
-        gssha_pro_card = self.getCard("#PROJECTION_FILE")
-        if gssha_pro_card is None:
-            raise ValueError("#PROJECTION_FILE card not found ...")
+            gssha_pro_card = self.getCard("#PROJECTION_FILE")
+            if gssha_pro_card is None:
+                raise ValueError("#PROJECTION_FILE card not found ...")
 
-        # return gssha grid
-        return GDALGrid(gssha_grid_card.value.strip('"').strip("'"),
-                        gssha_pro_card.value.strip('"').strip("'"))
+            # return gssha grid
+            return GDALGrid(gssha_grid_card.value.strip('"').strip("'"),
+                            gssha_pro_card.value.strip('"').strip("'"))
 
     def getGrid(self, use_mask=True):
         """
@@ -1180,10 +1202,11 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         if gssha_pro_card is None:
             raise ValueError("#PROJECTION_FILE card not found ...")
 
-        gssha_prj_file = gssha_pro_card.value.strip('"').strip("'")
-        with open(gssha_prj_file) as pro_file:
-            wkt_string = pro_file.read()
-        return wkt_string
+        with tmp_chdir(self.project_directory):
+            gssha_prj_file = gssha_pro_card.value.strip('"').strip("'")
+            with open(gssha_prj_file) as pro_file:
+                wkt_string = pro_file.read()
+            return wkt_string
 
     def getOutlet(self):
         """
@@ -1355,7 +1378,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                  [min_x, max_x, min_x, max_x],
                                  [min_y, max_y, max_y, min_y],
                                  )
-        return (np.mean(y_ext), np.mean(x_ext))
+        return np.mean(y_ext), np.mean(x_ext)
 
     def _automaticallyDeriveSpatialReferenceId(self, directory):
         """
