@@ -58,12 +58,11 @@ def init_sqlite_memory(initTime=False):
     
         from gsshapy.lib.db_tools import init_sqlite_memory, create_session
         
-        sqlite_db_path = '/home/username/my_sqlite.db'   
+        sqlalchemy_url, engine = init_sqlite_memory()
         
-        sqlalchemy_url, engine = init_postgresql_db(path=sqlite_db_path)
-        
-        db_work_session = create_session(sqlalchemy_url, engine)
-        
+        db_work_sessionmaker = get_sessionmaker(sqlalchemy_url, engine)
+
+        db_work_session = db_work_sessionmaker()
         ##DO WORK
         
         db_work_session.close()
@@ -96,9 +95,11 @@ def init_sqlite_db(path, initTime=False):
         
         init_postgresql_db(path=sqlite_db_path)
         
-        sqlalchemy_url = init_postgresql_db(path=sqlite_db_path)
+        sqlalchemy_url = init_sqlite_db(path=sqlite_db_path)
         
-        db_work_session = create_session(sqlalchemy_url)
+        db_work_sessionmaker = get_sessionmaker(sqlalchemy_url)
+
+        db_work_session = db_work_sessionmaker()
         
         ##DO WORK
         
@@ -140,7 +141,9 @@ def init_postgresql_db(username, host, database, port='', password='', initTime=
                                             port='5432', 
                                             password='pass')
 
-        db_work_session = create_session(sqlalchemy_url)
+        db_work_sessionmaker = get_sessionmaker(sqlalchemy_url)
+
+        db_work_session = db_work_sessionmaker()
         
         ##DO WORK
         
@@ -195,8 +198,9 @@ def init_mysql_db(username, host, database, port='', password='', initTime=False
                                        port='5432', 
                                        password='pass')
                                        
-        db_work_session = create_session(sqlalchemy_url)
-        
+        db_work_sessionmaker = get_sessionmaker(sqlalchemy_url)
+
+        db_work_session = db_work_sessionmaker()
         ##DO WORK
         
         db_work_session.close()
