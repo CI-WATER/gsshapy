@@ -6,7 +6,7 @@
 * License: BSD 3-Clause
 ********************************************************************************
 """
-from os import path, chdir
+from os import path
 import unittest
 from shutil import copy, copytree
 
@@ -47,8 +47,6 @@ class TestLandCover(TestGridTemplate):
                                                 'grid', 'land_cover',
                                                 'land_cover_glcf_modis.txt'
                                                 )
-        chdir(self.gssha_project_directory)
-
         # Create Test DB
         sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
 
@@ -93,8 +91,6 @@ class TestLandCover(TestGridTemplate):
         """
         Tests adding land cover to map table run twice
         """
-        chdir(self.gssha_project_directory)
-
         # Create Test DB
         sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
 

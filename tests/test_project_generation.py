@@ -8,7 +8,7 @@
 """
 from datetime import datetime, timedelta
 from glob import glob
-from os import path, chdir
+from os import path
 import unittest
 from shutil import copy
 
@@ -121,10 +121,11 @@ class TestProjectGenerate(TestGridTemplate):
         Tests generating a basic GSSHA project
         """
 
-        chdir(self.gssha_project_directory)
         project_name = "grid_standard_basic"
         # Instantiate GSSHAPY object for reading to database
-        project_manager = ProjectFile(name=project_name, map_type=1)
+        project_manager = ProjectFile(name=project_name,
+                                      project_directory=self.gssha_project_directory,
+                                      map_type=1)
         self.db_session.add(project_manager)
         self.db_session.commit()
 
@@ -177,10 +178,11 @@ class TestProjectGenerate(TestGridTemplate):
         Tests generating a basic GSSHA project with land cover
         """
 
-        chdir(self.gssha_project_directory)
         project_name = "grid_standard_basic_land_cover"
         # Instantiate GSSHAPY object for reading to database
-        project_manager = ProjectFile(name=project_name, map_type=1)
+        project_manager = ProjectFile(name=project_name,
+                                      project_directory=self.gssha_project_directory,
+                                      map_type=1)
         self.db_session.add(project_manager)
         self.db_session.commit()
 
@@ -244,8 +246,7 @@ class TestProjectGenerate(TestGridTemplate):
                            grid_cell_size=1000,
                            elevation_grid_path=self.elevation_path,
                            out_hydrograph_write_frequency=15,
-                           roughness=0.013,
-                           )
+                           roughness=0.013)
         model.set_event(simulation_start=datetime(2017, 2, 28),
                         simulation_duration=timedelta(seconds=180*60),
                         rain_intensity=2.4,
@@ -268,13 +269,11 @@ class TestProjectGenerate(TestGridTemplate):
                            mask_shapefile=self.shapefile_path,
                            elevation_grid_path=self.elevation_path,
                            out_hydrograph_write_frequency=15,
-                           roughness=0.013,
-                           )
+                           roughness=0.013)
         model.set_event(simulation_start=datetime(2017, 2, 28),
                         simulation_duration=timedelta(seconds=180*60),
                         rain_intensity=2.4,
-                        rain_duration=timedelta(seconds=30*60),
-                        )
+                        rain_duration=timedelta(seconds=30*60))
         model.write()
 
         # compare main project files

@@ -7,7 +7,6 @@
 ********************************************************************************
 """
 from glob import glob
-from os import path
 import unittest
 from shutil import copy
 
@@ -16,7 +15,7 @@ from .template import TestGridTemplate
 from gsshapy.orm import ProjectFile, WatershedMaskFile
 from gsshapy.lib import db_tools as dbt
 
-from os import path, chdir
+from os import path
 
 
 class TestMask(TestGridTemplate):
@@ -48,13 +47,14 @@ class TestMask(TestGridTemplate):
         self.db_session = dbt.create_session(sqlalchemy_url, sql_engine)
 
         # Instantiate GSSHAPY object for reading to database
-        self.project_manager = ProjectFile(name="grid_standard_msk", map_type=1)
+        self.project_manager = ProjectFile(name="grid_standard_msk",
+                                           project_directory=self.gssha_project_directory,
+                                           map_type=1)
         self.db_session.add(self.project_manager)
         self.db_session.commit()
 
         self.msk_file = WatershedMaskFile(project_file=self.project_manager,
                                           session=self.db_session)
-        chdir(self.gssha_project_directory)
 
     def _compare_output(self, project_name):
         """
