@@ -13,6 +13,7 @@ from pytz import utc
 from RAPIDpy import RAPIDDataset
 
 from ..grid import ERAtoGSSHA, GRIDtoGSSHA, HRRRtoGSSHA, NWMtoGSSHA
+from ..util.context import tmp_chdir
 
 log = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ GRID_MODULES = {
     'hrrr': HRRRtoGSSHA,
     'nwm': NWMtoGSSHA,
 }
+
 
 class Event(object):
     """
@@ -89,7 +91,6 @@ class Event(object):
         if end_time and load_simulation_datetime:
             self.simulation_end = datetime.strptime(end_time.value.strip(), "%Y %m %d %H %M")
 
-
         duration = self.project_manager.getCard("TOT_TIME")
         self.simulation_duration = simulation_duration
         if duration and load_simulation_datetime:
@@ -122,8 +123,7 @@ class Event(object):
                                                  lsm_lat_dim=lsm_lat_dim,
                                                  lsm_lon_dim=lsm_lon_dim,
                                                  lsm_time_dim=lsm_time_dim,
-                                                 output_timezone=self.tz,
-                                                 )
+                                                 output_timezone=self.tz)
         # SIMULATION TIME CARDS
         if self.simulation_start is None and self.l2g is not None:
             ts = self.l2g.xd.lsm.datetime[0]
@@ -178,7 +178,6 @@ class Event(object):
                           self.simulation_end
                               .strftime("%Y %m %d %H %M"))
 
-
     def _update_centroid_timezone(self):
         """
         This function updates the centroid and timezone
@@ -219,7 +218,6 @@ class Event(object):
                 self._update_card('RAIN_THIESSEN', '')
                 self.project_manager.deleteCard('RAIN_INV_DISTANCE', self.db_session)
 
-
     def prepare_gag_lsm(self, lsm_precip_data_var, lsm_precip_type):
         """
         Prepares Gage output for GSSHA simulation
@@ -235,80 +233,81 @@ class Event(object):
         for unif_precip_card in self.UNIFORM_PRECIP_CARDS:
             self.project_manager.deleteCard(unif_precip_card, self.db_session)
 
-        # PRECIPITATION CARD
-        out_gage_file = '{0}.gag'.format(self.project_manager.name)
-        self.l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
-                                                 lsm_data_var=lsm_precip_data_var,
-                                                 precip_type=lsm_precip_type)
+        with tmp_chdir(self.project_manager.project_directory):
+            # PRECIPITATION CARD
+            out_gage_file = '{0}.gag'.format(self.project_manager.name)
+            self.l2g.lsm_precip_to_gssha_precip_gage(out_gage_file,
+                                                     lsm_data_var=lsm_precip_data_var,
+                                                     precip_type=lsm_precip_type)
 
-        # SIMULATION TIME CARDS
-        self._update_simulation_end_from_lsm()
+            # SIMULATION TIME CARDS
+            self._update_simulation_end_from_lsm()
 
-        self.set_simulation_duration(self.simulation_end-self.simulation_start)
-        # precip file read in
-        self.add_precip_file(out_gage_file)
+            self.set_simulation_duration(self.simulation_end-self.simulation_start)
+            # precip file read in
+            self.add_precip_file(out_gage_file)
 
-        # make sure xarray dataset closed
-        self.l2g.xd.close()
+            # make sure xarray dataset closed
+            self.l2g.xd.close()
 
     def prepare_rapid_streamflow(self, path_to_rapid_qout, connection_list_file):
         """
         Prepares RAPID streamflow for GSSHA simulation
         """
         ihg_filename = '{0}.ihg'.format(self.project_manager.name)
+        with tmp_chdir(self.project_manager.project_directory):
+            # write out IHG file
+            time_index_range = []
+            with RAPIDDataset(path_to_rapid_qout, out_tzinfo=self.tz) as qout_nc:
 
-        # write out IHG file
-        time_index_range = []
-        with RAPIDDataset(path_to_rapid_qout, out_tzinfo=self.tz) as qout_nc:
+                time_index_range = qout_nc.get_time_index_range(date_search_start=self.simulation_start,
+                                                                date_search_end=self.simulation_end)
 
-            time_index_range = qout_nc.get_time_index_range(date_search_start=self.simulation_start,
-                                                            date_search_end=self.simulation_end)
+                if len(time_index_range) > 0:
+                    time_array = qout_nc.get_time_array(return_datetime=True,
+                                                        time_index_array=time_index_range)
+
+                    # GSSHA STARTS INGESTING STREAMFLOW AT SECOND TIME STEP
+                    if self.simulation_start is not None:
+                        if self.simulation_start == time_array[0]:
+                            log.warn("First timestep of streamflow skipped "
+                                     "in order for GSSHA to capture the streamflow.")
+                            time_index_range = time_index_range[1:]
+                            time_array = time_array[1:]
+
+                if len(time_index_range) > 0:
+                    start_datetime = time_array[0]
+
+                    if self.simulation_start is None:
+                       self._update_simulation_start(start_datetime)
+
+                    if self.simulation_end is None:
+                        self.simulation_end = time_array[-1]
+
+                    qout_nc.write_flows_to_gssha_time_series_ihg(ihg_filename,
+                                                                 connection_list_file,
+                                                                 date_search_start=start_datetime,
+                                                                 date_search_end=self.simulation_end,
+                                                                 )
+                else:
+                    log.warn("No streamflow values found in time range ...")
 
             if len(time_index_range) > 0:
-                time_array = qout_nc.get_time_array(return_datetime=True,
-                                                    time_index_array=time_index_range)
+                # update cards
+                self._update_simulation_start_cards()
 
-                # GSSHA STARTS INGESTING STREAMFLOW AT SECOND TIME STEP
-                if self.simulation_start is not None:
-                    if self.simulation_start == time_array[0]:
-                        log.warn("First timestep of streamflow skipped "
-                                 "in order for GSSHA to capture the streamflow.")
-                        time_index_range = time_index_range[1:]
-                        time_array = time_array[1:]
+                self._update_card("END_TIME", self.simulation_end.strftime("%Y %m %d %H %M"))
+                self._update_card("CHAN_POINT_INPUT", ihg_filename, True)
 
-            if len(time_index_range) > 0:
-                start_datetime = time_array[0]
+                # update duration
+                self.set_simulation_duration(self.simulation_end-self.simulation_start)
 
-                if self.simulation_start is None:
-                   self._update_simulation_start(start_datetime)
-
-                if self.simulation_end is None:
-                    self.simulation_end = time_array[-1]
-
-                qout_nc.write_flows_to_gssha_time_series_ihg(ihg_filename,
-                                                             connection_list_file,
-                                                             date_search_start=start_datetime,
-                                                             date_search_end=self.simulation_end,
-                                                             )
+                # UPDATE GMT CARD
+                self._update_gmt()
             else:
-                log.warn("No streamflow values found in time range ...")
-
-        if len(time_index_range) > 0:
-            # update cards
-            self._update_simulation_start_cards()
-
-            self._update_card("END_TIME", self.simulation_end.strftime("%Y %m %d %H %M"))
-            self._update_card("CHAN_POINT_INPUT", ihg_filename, True)
-
-            # update duration
-            self.set_simulation_duration(self.simulation_end-self.simulation_start)
-
-            # UPDATE GMT CARD
-            self._update_gmt()
-        else:
-            # cleanup
-            os.remove(ihg_filename)
-            self.project_manager.deleteCard('CHAN_POINT_INPUT', self.db_session)
+                # cleanup
+                os.remove(ihg_filename)
+                self.project_manager.deleteCard('CHAN_POINT_INPUT', self.db_session)
 
 
 class EventMode(Event):
@@ -524,23 +523,24 @@ class LongTermMode(Event):
         if self.l2g is None:
             raise ValueError("LSM converter not loaded ...")
 
-        # GSSHA simulation does not work after HMET data is finished
-        self._update_simulation_end_from_lsm()
+        with tmp_chdir(self.project_manager.project_directory):
+            # GSSHA simulation does not work after HMET data is finished
+            self._update_simulation_end_from_lsm()
 
-        # HMET CARDS
-        if netcdf_file_path is not None:
-            self.l2g.lsm_data_to_subset_netcdf(netcdf_file_path, lsm_data_var_map_array)
-            self._update_card("HMET_NETCDF", netcdf_file_path, True)
-            self.project_manager.deleteCard('HMET_ASCII', self.db_session)
-        else:
-            if "{0}" in hmet_ascii_output_folder and "{1}" in hmet_ascii_output_folder:
-                hmet_ascii_output_folder = hmet_ascii_output_folder.format(self.simulation_start.strftime("%Y%m%d%H%M"),
-                                                                           self.simulation_end.strftime("%Y%m%d%H%M"))
-            self.l2g.lsm_data_to_arc_ascii(lsm_data_var_map_array,
-                                           main_output_folder=os.path.join(self.gssha_directory,
-                                                                      hmet_ascii_output_folder))
-            self._update_card("HMET_ASCII", os.path.join(hmet_ascii_output_folder, 'hmet_file_list.txt'), True)
-            self.project_manager.deleteCard('HMET_NETCDF', self.db_session)
+            # HMET CARDS
+            if netcdf_file_path is not None:
+                self.l2g.lsm_data_to_subset_netcdf(netcdf_file_path, lsm_data_var_map_array)
+                self._update_card("HMET_NETCDF", netcdf_file_path, True)
+                self.project_manager.deleteCard('HMET_ASCII', self.db_session)
+            else:
+                if "{0}" in hmet_ascii_output_folder and "{1}" in hmet_ascii_output_folder:
+                    hmet_ascii_output_folder = hmet_ascii_output_folder.format(self.simulation_start.strftime("%Y%m%d%H%M"),
+                                                                               self.simulation_end.strftime("%Y%m%d%H%M"))
+                self.l2g.lsm_data_to_arc_ascii(lsm_data_var_map_array,
+                                               main_output_folder=os.path.join(self.gssha_directory,
+                                                                          hmet_ascii_output_folder))
+                self._update_card("HMET_ASCII", os.path.join(hmet_ascii_output_folder, 'hmet_file_list.txt'), True)
+                self.project_manager.deleteCard('HMET_NETCDF', self.db_session)
 
-        # UPDATE GMT CARD
-        self._update_gmt()
+            # UPDATE GMT CARD
+            self._update_gmt()

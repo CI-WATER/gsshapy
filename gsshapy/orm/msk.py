@@ -15,6 +15,7 @@ from gazar.shape import rasterize_shapefile
 
 from .map import RasterMapFile
 from .pro import ProjectionFile
+from ..util.context import tmp_chdir
 
 
 class WatershedMaskFile(RasterMapFile):
@@ -52,7 +53,6 @@ class WatershedMaskFile(RasterMapFile):
             from gsshapy.orm import ProjectFile, WatershedMaskFile
             from gsshapy.lib import db_tools as dbt
 
-            from os import path, chdir
 
             gssha_directory = '/gsshapy/tests/grid_standard/gssha_project'
             shapefile_path = 'watershed_boundary.shp'
@@ -101,14 +101,11 @@ class WatershedMaskFile(RasterMapFile):
             pass
 
         if out_raster_path is None:
-            project_path = ''
-            project_path_card = self.projectFile.getCard('PROJECT_PATH')
-            if project_path_card:
-                project_path = project_path_card.value.strip('"').strip("'")
-            out_raster_path = os.path.join(project_path,
-                                           '{0}.{1}'.format(self.projectFile.name,
-                                                            self.extension),
-                                            )
+            out_raster_path = '{0}.{1}'.format(self.projectFile.name, self.extension)
+
+        # make sure paths are absolute as the working directory changes
+        shapefile_path = os.path.abspath(shapefile_path)
+
         gr = rasterize_shapefile(shapefile_path,
                                  x_cell_size=cell_size,
                                  y_cell_size=cell_size,
@@ -116,26 +113,26 @@ class WatershedMaskFile(RasterMapFile):
                                  raster_nodata=0,
                                  as_gdal_grid=True,
                                  raster_wkt_proj=wkt_projection,
-                                 convert_to_utm=True,
-                                 )
+                                 convert_to_utm=True)
 
-        gr.to_grass_ascii(out_raster_path, print_nodata=False)
-        self.filename = out_raster_path
+        with tmp_chdir(self.projectFile.project_directory):
+            gr.to_grass_ascii(out_raster_path, print_nodata=False)
+            self.filename = out_raster_path
 
-        # update project file cards
-        self.projectFile.setCard('WATERSHED_MASK', out_raster_path, add_quotes=True)
-        self.projectFile.setCard('GRIDSIZE', str((gr.geotransform[1] - gr.geotransform[-1])/2.0))
-        self.projectFile.setCard('ROWS', str(gr.y_size))
-        self.projectFile.setCard('COLS', str(gr.x_size))
+            # update project file cards
+            self.projectFile.setCard('WATERSHED_MASK', out_raster_path, add_quotes=True)
+            self.projectFile.setCard('GRIDSIZE', str((gr.geotransform[1] - gr.geotransform[-1])/2.0))
+            self.projectFile.setCard('ROWS', str(gr.y_size))
+            self.projectFile.setCard('COLS', str(gr.x_size))
 
-        # write projection file if does not exist
-        if wkt_projection is None:
-            proj_file = ProjectionFile()
-            proj_file.projection = gr.wkt
-            proj_file.projectFile = self.projectFile
-            proj_path = "{0}_prj.pro".format(os.path.splitext(out_raster_path)[0])
-            gr.write_prj(proj_path)
-            self.projectFile.setCard('#PROJECTION_FILE', proj_path, add_quotes=True)
-        # read raster into object
-        if load_raster_to_db:
-            self._load_raster_text(out_raster_path)
+            # write projection file if does not exist
+            if wkt_projection is None:
+                proj_file = ProjectionFile()
+                proj_file.projection = gr.wkt
+                proj_file.projectFile = self.projectFile
+                proj_path = "{0}_prj.pro".format(os.path.splitext(out_raster_path)[0])
+                gr.write_prj(proj_path)
+                self.projectFile.setCard('#PROJECTION_FILE', proj_path, add_quotes=True)
+            # read raster into object
+            if load_raster_to_db:
+                self._load_raster_text(out_raster_path)

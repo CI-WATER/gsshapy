@@ -11,7 +11,7 @@ from datetime import datetime
 from io import open as io_open
 import logging
 import numpy as np
-from os import chdir, mkdir, path, remove, rename
+from os import mkdir, path, remove, rename
 import pangaea as pa
 from past.builtins import basestring
 from pytz import utc
@@ -66,6 +66,7 @@ def update_hmet_card_file(hmet_card_file_path, new_hmet_data_path):
 
     rename(hmet_card_file_path_temp, hmet_card_file_path)
 
+
 def esat(temp):
     """
     saturation water vapour pressure is expressed with the Teten’s formula
@@ -78,9 +79,10 @@ def esat(temp):
     """
     return 611.21*xu.exp(17.502*(temp-273.16)/(temp-32.19))
 
-#------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # MAIN CLASS
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 class GRIDtoGSSHA(object):
     """This class converts the LSM output data to GSSHA formatted input.
 
@@ -509,7 +511,6 @@ class GRIDtoGSSHA(object):
         self.output_timezone = output_timezone
         self._xd = None
         # load in GSSHA model files
-        chdir(self.gssha_project_folder)
         sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
         db_session = dbt.create_session(sqlalchemy_url, sql_engine)
         project_manager = ProjectFile()

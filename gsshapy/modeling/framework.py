@@ -25,6 +25,7 @@ except ImportError:
 from ..lib import db_tools as dbt
 from ..orm import ProjectFile
 from .event import EventMode, LongTermMode
+from ..util.context import tmp_chdir
 
 
 def replace_file(from_file, to_file):
@@ -250,8 +251,6 @@ class GSSHAFramework(object):
         self.hotstart_minimal_mode = hotstart_minimal_mode
 
         self.simulation_modified_input_cards = ["MAPPING_TABLE"]
-        # make sure execting from GSSHA project directory
-        os.chdir(self.gssha_directory)
 
         # Create Test DB
         sqlalchemy_url, sql_engine = dbt.init_sqlite_memory()
@@ -267,13 +266,13 @@ class GSSHAFramework(object):
                                   filename=self.project_filename,
                                   session=self.db_session)
 
-
         # read event manager card if exists
         eventyml_card = self.project_manager.getCard('#GSSHAPY_EVENT_YML')
         if eventyml_card is not None:
             self.project_manager.readInputFile('#GSSHAPY_EVENT_YML',
                                                directory=self.gssha_directory,
                                                session=self.db_session)
+
         # generate event manager card if does not exist already
         else:
             prj_evt_manager = self.project_manager.INPUT_FILES['#GSSHAPY_EVENT_YML']()
@@ -346,8 +345,8 @@ class GSSHAFramework(object):
         """
         Determines whether to prepare gage data from LSM
         """
-        lsm_required_vars =  (self.lsm_precip_data_var,
-                              self.lsm_precip_type)
+        lsm_required_vars = (self.lsm_precip_data_var,
+                             self.lsm_precip_type)
 
         return self.lsm_input_valid and (None not in lsm_required_vars)
 
@@ -374,18 +373,19 @@ class GSSHAFramework(object):
         """
         Moves card to new gssha working directory
         """
-        file_card = self.project_manager.getCard(card_name)
-        if file_card:
-            if file_card.value:
-                original_location = file_card.value.strip("'").strip('"')
-                new_location = os.path.join(new_directory,
-                                            os.path.basename(original_location))
-                file_card.value = '"{0}"'.format(os.path.basename(original_location))
-                try:
-                    move(original_location, new_location)
-                except OSError as ex:
-                    log.warn(ex)
-                    pass
+        with tmp_chdir(self.gssha_directory):
+            file_card = self.project_manager.getCard(card_name)
+            if file_card:
+                if file_card.value:
+                    original_location = file_card.value.strip("'").strip('"')
+                    new_location = os.path.join(new_directory,
+                                                os.path.basename(original_location))
+                    file_card.value = '"{0}"'.format(os.path.basename(original_location))
+                    try:
+                        move(original_location, new_location)
+                    except OSError as ex:
+                        log.warn(ex)
+                        pass
 
     def download_spt_forecast(self, extract_directory):
         """
@@ -417,8 +417,8 @@ class GSSHAFramework(object):
         else:
             raise ValueError("To download the forecasts, you need to set: \n"
                              "spt_watershed_name, spt_subbasin_name, spt_forecast_date_string \n"
-                             "ckan_engine_url, ckan_api_key, and ckan_owner_organization."
-                             )
+                             "ckan_engine_url, ckan_api_key, and ckan_owner_organization.")
+
     def prepare_hmet(self):
         """
         Prepare HMET data for simulation
@@ -427,9 +427,9 @@ class GSSHAFramework(object):
             netcdf_file_path = None
             hmet_ascii_output_folder = None
             if self.output_netcdf:
-                netcdf_file_path = os.path.join('{0}_hmet.nc'.format(self.project_manager.name))
+                netcdf_file_path = '{0}_hmet.nc'.format(self.project_manager.name)
                 if self.hotstart_minimal_mode:
-                    netcdf_file_path = os.path.join('{0}_hmet_hotstart.nc'.format(self.project_manager.name))
+                    netcdf_file_path = '{0}_hmet_hotstart.nc'.format(self.project_manager.name)
             else:
                 hmet_ascii_output_folder = 'hmet_data_{0}to{1}'
                 if self.hotstart_minimal_mode:
@@ -541,134 +541,131 @@ class GSSHAFramework(object):
         """
         Write out project file and run GSSHA simulation
         """
-        if self.hotstart_minimal_mode:
-            # remove all optional output cards
-            for gssha_optional_output_card in self.GSSHA_OPTIONAL_OUTPUT_CARDS:
-                self._delete_card(gssha_optional_output_card)
-            # make sure running in SUPER_QUIET mode
-            self._update_card('SUPER_QUIET', '')
-            if subdirectory is None:
+        with tmp_chdir(self.gssha_directory):
+            if self.hotstart_minimal_mode:
+                # remove all optional output cards
+                for gssha_optional_output_card in self.GSSHA_OPTIONAL_OUTPUT_CARDS:
+                    self._delete_card(gssha_optional_output_card)
+                # make sure running in SUPER_QUIET mode
+                self._update_card('SUPER_QUIET', '')
+                if subdirectory is None:
+                    # give execute folder name
+                    subdirectory = "minimal_hotstart_run_{0}to{1}" \
+                                   .format(self.event_manager.simulation_start.strftime("%Y%m%d%H%M"),
+                                           self.event_manager.simulation_end.strftime("%Y%m%d%H%M"))
+            else:
                 # give execute folder name
-                subdirectory = "minimal_hotstart_run_{0}to{1}" \
-                               .format(self.event_manager.simulation_start.strftime("%Y%m%d%H%M"),
-                                       self.event_manager.simulation_end.strftime("%Y%m%d%H%M"))
-        else:
-            # give execute folder name
-            subdirectory = "run_{0}to{1}".format(self.event_manager.simulation_start.strftime("%Y%m%d%H%M"),
-                                                 self.event_manager.simulation_end.strftime("%Y%m%d%H%M"))
+                subdirectory = "run_{0}to{1}".format(self.event_manager.simulation_start.strftime("%Y%m%d%H%M"),
+                                                     self.event_manager.simulation_end.strftime("%Y%m%d%H%M"))
 
+            # ensure unique folder naming conventions and add to exisitng event manager
+            prj_evt_manager = self.project_manager.projectFileEventManager
+            prj_event = prj_evt_manager.add_event(name=subdirectory,
+                                                  subfolder=subdirectory,
+                                                  session=self.db_session)
+            eventyml_path = self.project_manager.getCard('#GSSHAPY_EVENT_YML') \
+                                                .value.strip("'").strip('"')
+            prj_evt_manager.write(session=self.db_session,
+                                  directory=self.gssha_directory,
+                                  name=os.path.basename(eventyml_path))
+            # ensure event manager not propagated to child event
+            self.project_manager.deleteCard('#GSSHAPY_EVENT_YML',
+                                            db_session=self.db_session)
+            self.db_session.delete(self.project_manager.projectFileEventManager)
+            self.db_session.commit()
 
-        # ensure unique folder naming conventions and add to exisitng event manager
-        prj_evt_manager = self.project_manager.projectFileEventManager
-        prj_event = prj_evt_manager.add_event(name=subdirectory,
-                                              subfolder=subdirectory,
-                                              session=self.db_session)
-        eventyml_path = self.project_manager.getCard('#GSSHAPY_EVENT_YML') \
-                                            .value.strip("'").strip('"')
-        prj_evt_manager.write(session=self.db_session,
-                              directory=self.gssha_directory,
-                              name=os.path.basename(eventyml_path))
-        # ensure event manager not propagated to child event
-        self.project_manager.deleteCard('#GSSHAPY_EVENT_YML',
-                                        db_session=self.db_session)
-        self.db_session.delete(self.project_manager.projectFileEventManager)
-        self.db_session.commit()
-
-        # make working directory
-        working_directory = os.path.join(self.gssha_directory, prj_event.subfolder)
-        try:
-            os.mkdir(working_directory)
-        except OSError:
-            pass
-
-        # move simulation generated files to working directory
-        # PRECIP_FILE, HMET_NETCDF, HMET_ASCII, CHAN_POINT_INPUT
-        # TODO: Move HMET_ASCII files
-        for sim_card in self.simulation_modified_input_cards:
-            if sim_card != 'MAPPING_TABLE':
-                self._update_card_file_location(sim_card, working_directory)
-
-        mapping_table_card = self.project_manager.getCard('MAPPING_TABLE')
-        if mapping_table_card:
-            # read in mapping table
-            map_table_object = self.project_manager.readInputFile('MAPPING_TABLE',
-                                                                  self.gssha_directory,
-                                                                  self.db_session,
-                                                                  readIndexMaps=False)
-
-            # connect index maps to main gssha directory
-            for indexMap in map_table_object.indexMaps:
-                indexMap.filename = os.path.join("..", os.path.basename(indexMap.filename))
-
-            # write copy of mapping table to working directory
-            map_table_filename = os.path.basename(mapping_table_card.value.strip("'").strip('"'))
-            map_table_object.write(session=self.db_session,
-                                   directory=working_directory,
-                                   name=map_table_filename,
-                                   writeIndexMaps=False)
-
-        # connect to other output files in main gssha directory
-        for gssha_card in self.project_manager.projectCards:
-            if gssha_card.name not in self.GSSHA_REQUIRED_OUTPUT_PATH_CARDS + \
-                                        self.GSSHA_OPTIONAL_OUTPUT_PATH_CARDS + \
-                                        tuple(self.simulation_modified_input_cards):
-                if gssha_card.value:
-                    updated_value = gssha_card.value.strip('"').strip("'")
-                    if updated_value:
-                        if os.path.exists(updated_value):
-                            updated_path = os.path.join("..", os.path.basename(updated_value))
-                            gssha_card.value = '"{0}"'.format(updated_path)
-                        elif gssha_card.name == '#INDEXGRID_GUID':
-                            path_split = updated_value.split()
-                            updated_path = os.path.basename(path_split[0].strip('"').strip("'"))
-                            if os.path.exists(updated_path):
-                                new_path = os.path.join("..", os.path.basename(updated_path))
-                                try:
-                                    # Get WMS ID for Index Map as part of value
-                                    gssha_card.value = '"{0}" "{1}"'.format(new_path, path_split[1])
-                                except:
-                                    # Like normal if the ID isn't there
-                                    gssha_card.value = '"{0}"'.format(new_path)
-                            else:
-                                log.warn("{0} {1} not found in project directory ...".format("#INDEXGRID_GUID", updated_path))
-
-        # make sure project path is ""
-        self._update_card("PROJECT_PATH", "", True)
-
-        # make execute directory main working directory
-        os.chdir(working_directory)
-
-        # WRITE OUT UPDATED GSSHA PROJECT FILE
-        self.project_manager.write(session=self.db_session,
-                                   directory=working_directory,
-                                   name=self.project_manager.name)
-
-        # RUN SIMULATION
-        if self.gssha_executable and find_executable(self.gssha_executable) is not None:
-            log.info("Running GSSHA simulation ...")
-
+            # make working directory
+            working_directory = os.path.join(self.gssha_directory, prj_event.subfolder)
             try:
-                run_gssha_command = [self.gssha_executable,
-                                     os.path.join(working_directory, self.project_filename)]
-                # run GSSHA
-                out = subprocess.check_output(run_gssha_command)
+                os.mkdir(working_directory)
+            except OSError:
+                pass
 
-                # write out GSSHA output
-                log_file_path = os.path.join(working_directory, 'simulation.log')
-                with open(log_file_path, mode='w') as logfile:
-                    logfile.write(out.decode('utf-8'))
-                    # log to other logger if debug mode on
-                    if log.isEnabledFor(logging.DEBUG):
-                        for line in out.split(b'\n'):
-                            log.debug(line.decode('utf-8'))
+            # move simulation generated files to working directory
+            # PRECIP_FILE, HMET_NETCDF, HMET_ASCII, CHAN_POINT_INPUT
+            # TODO: Move HMET_ASCII files
+            for sim_card in self.simulation_modified_input_cards:
+                if sim_card != 'MAPPING_TABLE':
+                    self._update_card_file_location(sim_card, working_directory)
 
-            except subprocess.CalledProcessError as ex:
-                log.error("{0}: {1}".format(ex.returncode, ex.output))
+            mapping_table_card = self.project_manager.getCard('MAPPING_TABLE')
+            if mapping_table_card:
+                # read in mapping table
+                map_table_object = self.project_manager.readInputFile('MAPPING_TABLE',
+                                                                      self.gssha_directory,
+                                                                      self.db_session,
+                                                                      readIndexMaps=False)
 
-        else:
-            log.warning("GSSHA executable not found. Skipping GSSHA simulation run ...")
+                # connect index maps to main gssha directory
+                for indexMap in map_table_object.indexMaps:
+                    indexMap.filename = os.path.join("..", os.path.basename(indexMap.filename))
 
-        return working_directory
+                # write copy of mapping table to working directory
+                map_table_filename = os.path.basename(mapping_table_card.value.strip("'").strip('"'))
+                map_table_object.write(session=self.db_session,
+                                       directory=working_directory,
+                                       name=map_table_filename,
+                                       writeIndexMaps=False)
+
+            # connect to other output files in main gssha directory
+            for gssha_card in self.project_manager.projectCards:
+                if gssha_card.name not in self.GSSHA_REQUIRED_OUTPUT_PATH_CARDS + \
+                                            self.GSSHA_OPTIONAL_OUTPUT_PATH_CARDS + \
+                                            tuple(self.simulation_modified_input_cards):
+                    if gssha_card.value:
+                        updated_value = gssha_card.value.strip('"').strip("'")
+                        if updated_value:
+                            if os.path.exists(updated_value):
+                                updated_path = os.path.join("..", os.path.basename(updated_value))
+                                gssha_card.value = '"{0}"'.format(updated_path)
+                            elif gssha_card.name == '#INDEXGRID_GUID':
+                                path_split = updated_value.split()
+                                updated_path = os.path.basename(path_split[0].strip('"').strip("'"))
+                                if os.path.exists(updated_path):
+                                    new_path = os.path.join("..", os.path.basename(updated_path))
+                                    try:
+                                        # Get WMS ID for Index Map as part of value
+                                        gssha_card.value = '"{0}" "{1}"'.format(new_path, path_split[1])
+                                    except:
+                                        # Like normal if the ID isn't there
+                                        gssha_card.value = '"{0}"'.format(new_path)
+                                else:
+                                    log.warn("{0} {1} not found in project directory ...".format("#INDEXGRID_GUID", updated_path))
+
+            # make sure project path is ""
+            self._update_card("PROJECT_PATH", "", True)
+
+            # WRITE OUT UPDATED GSSHA PROJECT FILE
+            self.project_manager.write(session=self.db_session,
+                                       directory=working_directory,
+                                       name=self.project_manager.name)
+
+            # RUN SIMULATION
+            if self.gssha_executable and find_executable(self.gssha_executable) is not None:
+                log.info("Running GSSHA simulation ...")
+
+                try:
+                    run_gssha_command = [self.gssha_executable,
+                                         os.path.join(working_directory, self.project_filename)]
+                    # run GSSHA
+                    out = subprocess.check_output(run_gssha_command)
+
+                    # write out GSSHA output
+                    log_file_path = os.path.join(working_directory, 'simulation.log')
+                    with open(log_file_path, mode='w') as logfile:
+                        logfile.write(out.decode('utf-8'))
+                        # log to other logger if debug mode on
+                        if log.isEnabledFor(logging.DEBUG):
+                            for line in out.split(b'\n'):
+                                log.debug(line.decode('utf-8'))
+
+                except subprocess.CalledProcessError as ex:
+                    log.error("{0}: {1}".format(ex.returncode, ex.output))
+
+            else:
+                log.warning("GSSHA executable not found. Skipping GSSHA simulation run ...")
+
+            return working_directory
 
     def run_forecast(self):
 
