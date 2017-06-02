@@ -1190,9 +1190,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         if gssha_pro_card is None:
             raise ValueError("#PROJECTION_FILE card not found ...")
 
-        # return gssha grid
-        return GDALGrid(index_map.filename,
-                        gssha_pro_card.value.strip('"').strip("'"))
+        with tmp_chdir(self.project_directory):
+            # return gssha grid
+            return GDALGrid(index_map.filename,
+                            gssha_pro_card.value.strip('"').strip("'"))
 
     def getWkt(self):
         """
