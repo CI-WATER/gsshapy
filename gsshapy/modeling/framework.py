@@ -635,30 +635,31 @@ class GSSHAFramework(object):
                                        directory=working_directory,
                                        name=self.project_manager.name)
 
-            # RUN SIMULATION
-            if self.gssha_executable and find_executable(self.gssha_executable) is not None:
-                log.info("Running GSSHA simulation ...")
+            with tmp_chdir(working_directory):
+                # RUN SIMULATION
+                if self.gssha_executable and find_executable(self.gssha_executable) is not None:
+                    log.info("Running GSSHA simulation ...")
 
-                try:
-                    run_gssha_command = [self.gssha_executable,
-                                         os.path.join(working_directory, self.project_filename)]
-                    # run GSSHA
-                    out = subprocess.check_output(run_gssha_command)
+                    try:
+                        run_gssha_command = [self.gssha_executable,
+                                             os.path.join(working_directory, self.project_filename)]
+                        # run GSSHA
+                        out = subprocess.check_output(run_gssha_command)
 
-                    # write out GSSHA output
-                    log_file_path = os.path.join(working_directory, 'simulation.log')
-                    with open(log_file_path, mode='w') as logfile:
-                        logfile.write(out.decode('utf-8'))
-                        # log to other logger if debug mode on
-                        if log.isEnabledFor(logging.DEBUG):
-                            for line in out.split(b'\n'):
-                                log.debug(line.decode('utf-8'))
+                        # write out GSSHA output
+                        log_file_path = os.path.join(working_directory, 'simulation.log')
+                        with open(log_file_path, mode='w') as logfile:
+                            logfile.write(out.decode('utf-8'))
+                            # log to other logger if debug mode on
+                            if log.isEnabledFor(logging.DEBUG):
+                                for line in out.split(b'\n'):
+                                    log.debug(line.decode('utf-8'))
 
-                except subprocess.CalledProcessError as ex:
-                    log.error("{0}: {1}".format(ex.returncode, ex.output))
+                    except subprocess.CalledProcessError as ex:
+                        log.error("{0}: {1}".format(ex.returncode, ex.output))
 
-            else:
-                log.warning("GSSHA executable not found. Skipping GSSHA simulation run ...")
+                else:
+                    log.warning("GSSHA executable not found. Skipping GSSHA simulation run ...")
 
             return working_directory
 
