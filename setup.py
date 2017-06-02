@@ -15,7 +15,7 @@ requires = [
 ]
 
 setup(name='gsshapy',
-      version='2.3.2',
+      version='2.3.3',
       description='An SQLAlchemy ORM for GSSHA model files and a toolkit'
                   ' to convert gridded input into GSSHA input.',
       long_description='Documentation can be found at '
