@@ -343,7 +343,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     card = self._extractDirectoryCard(line)
 
                 # Determine number of spaces between card and value for nice alignment
-                numSpaces = max(1, 25 - len(card['name']))
+                numSpaces = max(2, 25 - len(card['name']))
 
                 if card['value'] is None:
                     rewriteLine = '%s\n' % (card['name'])
@@ -2027,7 +2027,7 @@ class ProjectCard(DeclarativeBase):
             str: Card and value as they would be written to the project file.
         """
         # Determine number of spaces between card and value for nice alignment
-        numSpaces = 25 - len(self.name)
+        numSpaces = max(2, 25 - len(self.name))
 
         # Handle special case of booleans
         if self.value is None:
