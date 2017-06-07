@@ -23,7 +23,6 @@ except ImportError:
     pass
 
 from ..lib import db_tools as dbt
-from ..orm import ProjectFile
 from .event import EventMode, LongTermMode
 from ..util.context import tmp_chdir
 
@@ -610,7 +609,14 @@ class GSSHAFramework(object):
                     if gssha_card.value:
                         updated_value = gssha_card.value.strip('"').strip("'")
                         if updated_value:
-                            if os.path.exists(updated_value):
+                            if gssha_card.name == "READ_CHAN_HOTSTART":
+                                # there are two required files
+                                # the .dht and .qht
+                                if os.path.exists(updated_value + '.dht') \
+                                        and os.path.exists(updated_value + '.qht'):
+                                    updated_path = os.path.join("..", os.path.basename(updated_value))
+                                    gssha_card.value = '"{0}"'.format(updated_path)
+                            elif os.path.exists(updated_value):
                                 updated_path = os.path.join("..", os.path.basename(updated_value))
                                 gssha_card.value = '"{0}"'.format(updated_path)
                             elif gssha_card.name == '#INDEXGRID_GUID':
