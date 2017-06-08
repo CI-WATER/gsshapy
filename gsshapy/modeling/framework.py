@@ -6,7 +6,6 @@
 #  Created by Alan D Snow, 2016.
 #  BSD 3-Clause
 
-from datetime import datetime
 from distutils.spawn import find_executable
 from glob import glob
 import logging
@@ -244,6 +243,7 @@ class GSSHAFramework(object):
         self.lsm_data_var_map_array = lsm_data_var_map_array
         self.lsm_precip_data_var = lsm_precip_data_var
         self.lsm_precip_type = lsm_precip_type
+        self.precip_interpolation_type = precip_interpolation_type
         self.output_netcdf = output_netcdf
         self.write_hotstart = write_hotstart
         self.read_hotstart = read_hotstart
@@ -443,7 +443,8 @@ class GSSHAFramework(object):
         """
         if self._prepare_lsm_gag:
             self.event_manager.prepare_gag_lsm(self.lsm_precip_data_var,
-                                               self.lsm_precip_type)
+                                               self.lsm_precip_type,
+                                               self.precip_interpolation_type)
             self.simulation_modified_input_cards.append("PRECIP_FILE")
         else:
             log.info("Gage file preparation skipped due to missing parameters ...")

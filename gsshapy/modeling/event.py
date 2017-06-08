@@ -62,6 +62,7 @@ class Event(object):
                             'HMET_ASCII', 'HMET_NETCDF', 'HMET_WES',
                             'HMET_SAMSON', 'HMET_SURFAWAYS', 'HMET_OROG_GAGES',
                             ) + ET_CALC_MODES
+
     def __init__(self,
                  project_manager,
                  db_session,
@@ -218,13 +219,14 @@ class Event(object):
                 self._update_card('RAIN_THIESSEN', '')
                 self.project_manager.deleteCard('RAIN_INV_DISTANCE', self.db_session)
 
-    def prepare_gag_lsm(self, lsm_precip_data_var, lsm_precip_type):
+    def prepare_gag_lsm(self, lsm_precip_data_var, lsm_precip_type, interpolation_type=None):
         """
         Prepares Gage output for GSSHA simulation
 
         Parameters:
             lsm_precip_data_var(list or str): String of name for precipitation variable name or list of precip variable names.  See: :func:`~gsshapy.grid.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
             lsm_precip_type(str): Type of precipitation. See: :func:`~gsshapy.grid.GRIDtoGSSHA.lsm_precip_to_gssha_precip_gage`.
+            interpolation_type(str): Type of interpolation for LSM precipitation. Can be "INV_DISTANCE" or "THIESSEN". Default is "THIESSEN".
         """
         if self.l2g is None:
             raise ValueError("LSM converter not loaded ...")
@@ -245,7 +247,7 @@ class Event(object):
 
             self.set_simulation_duration(self.simulation_end-self.simulation_start)
             # precip file read in
-            self.add_precip_file(out_gage_file)
+            self.add_precip_file(out_gage_file, interpolation_type)
 
             # make sure xarray dataset closed
             self.l2g.xd.close()
