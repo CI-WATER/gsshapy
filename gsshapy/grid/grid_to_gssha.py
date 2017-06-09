@@ -19,9 +19,8 @@ from shutil import copy
 import xarray as xr
 import xarray.ufuncs as xu
 
-from gazar.grid import ArrayGrid, gdal_reproject
+from gazar.grid import ArrayGrid
 from ..lib import db_tools as dbt
-from ..orm import ProjectFile
 
 log = logging.getLogger(__name__)
 
@@ -580,12 +579,7 @@ class GRIDtoGSSHA(object):
         # STEP 1: Get extent from GSSHA Grid in LSM coordinates
         ####
         # reproject GSSHA grid and get bounds
-        lsm_proj = self.xd.lsm.projection
-        ggrid = gdal_reproject(self.gssha_grid.dataset,
-                               src_srs=self.gssha_grid.projection,
-                               dst_srs=lsm_proj,
-                               as_gdal_grid=True)
-        min_x, max_x, min_y, max_y = ggrid.bounds()
+        min_x, max_x, min_y, max_y = ggrid.bounds(as_projection=self.xd.lsm.projection)
 
         # set subset indices
         self._set_subset_indices(min_y,
