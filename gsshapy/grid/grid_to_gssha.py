@@ -579,7 +579,7 @@ class GRIDtoGSSHA(object):
         # STEP 1: Get extent from GSSHA Grid in LSM coordinates
         ####
         # reproject GSSHA grid and get bounds
-        min_x, max_x, min_y, max_y = ggrid.bounds(as_projection=self.xd.lsm.projection)
+        min_x, max_x, min_y, max_y = self.gssha_grid.bounds(as_projection=self.xd.lsm.projection)
 
         # set subset indices
         self._set_subset_indices(min_y,
