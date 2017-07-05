@@ -34,7 +34,7 @@ START_TIME               16 00
 LONG_TERM                
 SEASONAL_RS              
 LATITUDE                 40.2642628925
-LONGITUDE                -111.580676957
+LONGITUDE                111.580676957
 EVENT_MIN_Q              0.0
 SOIL_MOIST_DEPTH         0.0
 ET_CALC_PENMAN           
