@@ -130,5 +130,6 @@ class TestLandCover(TestGridTemplate):
         new_idx_file = path.join(self.gssha_project_directory, 'roughness.idx')
         self._compare_files(original_idx_file, new_idx_file, raster=True)
 
+
 if __name__ == '__main__':
     unittest.main()

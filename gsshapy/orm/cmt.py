@@ -238,7 +238,8 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                                     numIDs=mt['numVars']['NUM_IDS'],
                                     maxNumCells=mt['numVars']['MAX_NUMBER_CELLS'],
                                     numSed=mt['numVars']['NUM_SED'],
-                                    numContam=mt['numVars']['NUM_CONTAM'])
+                                    numContam=mt['numVars']['NUM_CONTAM'],
+                                    maxSoilID=mt['numVars']['MAX_SOIL_ID'])
 
                 # Associate MapTable with this MapTableFile and IndexMaps
                 mapTable.mapTableFile = self
@@ -301,21 +302,31 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Populate GSSHAPY MTValue and MTIndex Objects Method
         """
-        for row in valueList:
-            # Create GSSHAPY MTIndex object and associate with IndexMap
-            mtIndex = MTIndex(index=row['index'], description1=row['description1'], description2=row['description2'])
-            mtIndex.indexMap = indexMap
 
-            for i, value in enumerate(row['values']):
+        def assign_values_to_table(value_list, layer_id):
+            for i, value in enumerate(value_list):
                 value = vrp(value, replaceParamFile)
                 # Create MTValue object and associate with MTIndex and MapTable
                 mtValue = MTValue(variable=varList[i], value=float(value))
                 mtValue.index = mtIndex
                 mtValue.mapTable = mapTable
+                mtValue.layer_id = layer_id
 
                 # MTContaminant handler (associate MTValue with MTContaminant)
                 if contaminant:
                     mtValue.contaminant = contaminant
+
+        for row in valueList:
+            # Create GSSHAPY MTIndex object and associate with IndexMap
+            mtIndex = MTIndex(index=row['index'], description1=row['description1'], description2=row['description2'])
+            mtIndex.indexMap = indexMap
+
+            if len(np.shape(row['values'])) == 2:
+                # this is for ids with multiple layers
+                for layer_id, values in enumerate(row['values']):
+                    assign_values_to_table(values, layer_id)
+            else:
+                assign_values_to_table(row['values'], 0)
 
     def _readContaminantOutputFiles(self, directory, baseFileName, session, spatial, spatialReferenceID):
         """
@@ -376,6 +387,9 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         if mapTable.numSed:
             fileObject.write('NUM_SED %s\n' % (mapTable.numSed))
+
+        if mapTable.maxSoilID:
+            fileObject.write('MAX_SOIL_ID %s\n' % (mapTable.maxSoilID))
 
         # Write value lines from the database
         self._writeValues(session, fileObject, mapTable, None, replaceParamFile)
@@ -474,6 +488,11 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             order_by(MTIndex.index). \
             all()
 
+        # determine number of layers
+        layer_indices = [0]
+        if mapTable.name == 'MULTI_LAYER_SOIL':
+            layer_indices = range(3)
+
         # ----------------------------------------
         # Construct each line in the mapping table
         #-----------------------------------------
@@ -482,46 +501,55 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         lines = []
         values = {}
         for idx in indexes:
-            # Retrieve values for the current index
-            values = session.query(MTValue). \
-                     filter(MTValue.mapTable == mapTable). \
-                     filter(MTValue.contaminant == contaminant). \
-                     filter(MTValue.index == idx). \
-                     order_by(MTValue.id). \
-                     all()
+            for layer_index in layer_indices:
+                # Retrieve values for the current index
+                values = session.query(MTValue). \
+                         filter(MTValue.mapTable == mapTable). \
+                         filter(MTValue.contaminant == contaminant). \
+                         filter(MTValue.index == idx). \
+                         filter(MTValue.layer_id == layer_index). \
+                         order_by(MTValue.id). \
+                         all()
 
-            # NOTE: The second order_by modifier in the query above handles the special ordering of XSEDIMENT columns
-            # in soil erosion properties table (i.e. these columns must be in the same order as the sediments in the
-            # sediments table. Accomplished by using the sedimentID field). Similarly, the contaminant filter is only
-            # used in the case of the contaminant transport table. Values that don't belong to a contaminant will have
-            # a contaminant attribute equal to None. Compare usage of this function by _writeMapTable and
-            # _writeContaminant.
+                # NOTE: The second order_by modifier in the query above handles the special ordering of XSEDIMENT columns
+                # in soil erosion properties table (i.e. these columns must be in the same order as the sediments in the
+                # sediments table. Accomplished by using the sedimentID field). Similarly, the contaminant filter is only
+                # used in the case of the contaminant transport table. Values that don't belong to a contaminant will have
+                # a contaminant attribute equal to None. Compare usage of this function by _writeMapTable and
+                # _writeContaminant.
 
-            #Value string
-            valString = ''
+                #Value string
+                valString = ''
 
-            # Define valString
-            for val in values:
-                # Format value with trailing zeros up to 6 digits
-                processedValue = vwp(val.value, replaceParaFile)
-                try:
-                    numString = '%.6f' % processedValue
-                except:
-                    numString = '%s' % processedValue
+                # Define valString
+                for val in values:
+                    if val.value <= -9999:
+                        continue
+                    # Format value with trailing zeros up to 6 digits
+                    processedValue = vwp(val.value, replaceParaFile)
+                    try:
+                        numString = '%.6f' % processedValue
+                    except:
+                        numString = '%s' % processedValue
 
-                valString = '%s%s%s' % (valString, numString, ' ' * 3)
+                    valString = '%s%s%s' % (valString, numString, ' ' * 3)
 
-            # Determine spacing for aesthetics (so each column lines up)
-            spacing1 = 6 - len(str(idx.index))
-            spacing2 = 40 - len(idx.description1)
-            spacing3 = 40 - len(idx.description2)
+                # Determine spacing for aesthetics (so each column lines up)
+                spacing1 = max(1, 6 - len(str(idx.index)))
+                spacing2 = max(1, 40 - len(idx.description1))
+                spacing3 = max(1, 40 - len(idx.description2))
 
-            # Compile each mapping table line
-            line = '%s%s%s%s%s%s%s\n' % (
-                idx.index, ' ' * spacing1, idx.description1, ' ' * spacing2, idx.description2, ' ' * spacing3, valString)
+                # Compile each mapping table line
+                if layer_index == 0:
+                    line = '%s%s%s%s%s%s%s\n' % (
+                        idx.index, ' ' * spacing1, idx.description1, ' ' * spacing2, idx.description2, ' ' * spacing3, valString)
+                else:
+                    num_prepend_spaces = len(str(idx.index)) + spacing1 + len(idx.description1) \
+                                         + spacing2 + len(idx.description2) + spacing3
+                    line = '{0}{1}\n'.format(' ' * num_prepend_spaces, valString)
 
-            # Compile each lines into a list
-            lines.append(line)
+                # Compile each lines into a list
+                lines.append(line)
 
         #-----------------------------
         # Define the value header line
@@ -738,6 +766,7 @@ class MapTable(DeclarativeBase):
     maxNumCells = Column(Integer)  #: INTEGER
     numSed = Column(Integer)  #: INTEGER
     numContam = Column(Integer)  #: INTEGER
+    maxSoilID = Column(Integer)
 
     # Relationship Properties
     mapTableFile = relationship('MapTableFile', back_populates='mapTables')  #: RELATIONSHIP
@@ -746,7 +775,7 @@ class MapTable(DeclarativeBase):
     sediments = relationship('MTSediment', back_populates='mapTable',
                              cascade='all, delete, delete-orphan')  #: RELATIONSHIP
 
-    def __init__(self, name, numIDs=None, maxNumCells=None, numSed=None, numContam=None):
+    def __init__(self, name, numIDs=None, maxNumCells=None, numSed=None, numContam=None, maxSoilID=None):
         """
         Constructor
         """
@@ -755,22 +784,25 @@ class MapTable(DeclarativeBase):
         self.maxNumCells = maxNumCells
         self.numSed = numSed
         self.numContam = numContam
+        self.maxSoilID = maxSoilID
 
     def __repr__(self):
-        return '<MapTable: Name=%s, IndexMap=%s, NumIDs=%s, MaxNumCells=%s, NumSediments=%s, NumContaminants=%s>' % (
+        return '<MapTable: Name=%s, IndexMap=%s, NumIDs=%s, MaxNumCells=%s, NumSediments=%s, NumContaminants=%s, MaxSoilID=%s>' % (
             self.name,
             self.idxMapID,
             self.numIDs,
             self.maxNumCells,
             self.numSed,
-            self.numContam)
+            self.numContam,
+            self.maxSoilID)
 
     def __eq__(self, other):
         return (self.name == other.name and
                 self.numIDs == other.numIDs and
                 self.maxNumCells == other.maxNumCells and
                 self.numSed == other.numSed and
-                self.numContam == other.numContam)
+                self.numContam == other.numContam and
+                self.maxSoilID == other.maxSoilID)
 
 
 class MTIndex(DeclarativeBase):
@@ -833,6 +865,7 @@ class MTValue(DeclarativeBase):
     # Value Columns
     variable = Column(String)  #: STRING
     value = Column(Float)  #: FLOAT
+    layer_id = Column(Integer, default=0) # for tables with multiple layers
 
     # Relationship Properties
     mapTable = relationship('MapTable', back_populates='values')  #: RELATIONSHIP
