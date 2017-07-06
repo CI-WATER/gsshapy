@@ -454,7 +454,7 @@ class LongTermMode(Event):
         self._update_card('LONG_TERM', '')
         self._update_card('SEASONAL_RS', '')
         self._update_card('LATITUDE', str(center_lat))
-        self._update_card('LONGITUDE', str(center_lon))
+        self._update_card('LONGITUDE', str(abs(center_lon)))
 
         # EVENT_MIN_Q
         if event_min_q is None:
