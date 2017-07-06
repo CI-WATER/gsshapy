@@ -15,6 +15,7 @@ __all__ = ['MapTableFile',
            'MTContaminant',
            'MTSediment']
 
+from io import open as io_open
 import os
 import logging
 
@@ -116,7 +117,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         mapTables = []
 
         # Parse file into chunks associated with keywords/cards
-        with open(path, 'r') as f:
+        with io_open(path, 'r') as f:
             chunks = pt.chunk(KEYWORDS, f)
 
         # Parse chunks associated with each key
@@ -579,7 +580,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Write map table value lines to file
         for valLine in valueLines:
-            fileObject.write(valLine)
+            fileObject.write(valLine.encode('utf-8'))
 
     @staticmethod
     def _preprocessContaminantOutFilePath(outPath):
