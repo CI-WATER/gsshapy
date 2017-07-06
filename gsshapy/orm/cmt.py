@@ -237,9 +237,9 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                 mapTable = MapTable(name=mt['name'],
                                     numIDs=mt['numVars']['NUM_IDS'],
                                     maxNumCells=mt['numVars']['MAX_NUMBER_CELLS'],
-                                    numSed=mt['numVars']['NUM_SED'],
-                                    numContam=mt['numVars']['NUM_CONTAM'],
-                                    maxSoilID=mt['numVars']['MAX_SOIL_ID'])
+                                    numSed=mt['numVars'].get('NUM_SED'),
+                                    numContam=mt['numVars'].get('NUM_CONTAM'),
+                                    maxSoilID=mt['numVars'].get('MAX_SOIL_ID'))
 
                 # Associate MapTable with this MapTableFile and IndexMaps
                 mapTable.mapTableFile = self
@@ -302,7 +302,6 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         Populate GSSHAPY MTValue and MTIndex Objects Method
         """
-
         def assign_values_to_table(value_list, layer_id):
             for i, value in enumerate(value_list):
                 value = vrp(value, replaceParamFile)
@@ -320,7 +319,6 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             # Create GSSHAPY MTIndex object and associate with IndexMap
             mtIndex = MTIndex(index=row['index'], description1=row['description1'], description2=row['description2'])
             mtIndex.indexMap = indexMap
-
             if len(np.shape(row['values'])) == 2:
                 # this is for ids with multiple layers
                 for layer_id, values in enumerate(row['values']):
@@ -490,7 +488,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # determine number of layers
         layer_indices = [0]
-        if mapTable.name == 'MULTI_LAYER_SOIL':
+        if mapTable.name in ('MULTI_LAYER_SOIL', 'RICHARDS_EQN_INFILTRATION_BROOKS'):
             layer_indices = range(3)
 
         # ----------------------------------------

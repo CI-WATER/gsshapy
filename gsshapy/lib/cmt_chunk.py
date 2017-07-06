@@ -41,7 +41,7 @@ def mapTableChunk(key, chunk):
                'MAX_SOIL_ID': None}
     varList = []
     valueList = []
-    value3DList = []
+
     # Extract MapTable Name and Index Map Name
     mtName = shlex.split(chunk[0])[0]
     idxName = shlex.split(chunk[0])[1]
@@ -56,7 +56,7 @@ def mapTableChunk(key, chunk):
         return None
 
     soil_3d_layer = False
-    if key == 'MULTI_LAYER_SOIL':
+    if key in ('MULTI_LAYER_SOIL', 'RICHARDS_EQN_INFILTRATION_BROOKS'):
         soil_3d_layer = True
     num_layers_loaded = 0
 
@@ -80,7 +80,12 @@ def mapTableChunk(key, chunk):
         else:
             if valDict and soil_3d_layer:
                 if len(np.shape(valDict['values'])) == 2:
-                    valDict['values'].append(sline + ['-9999'])
+                    # this is for when there are no values
+                    # for the DEPTH of the bottom groundwater
+                    # layer as it is infinity
+                    if len(sline) < len(varList):
+                        sline += ['-9999']
+                    valDict['values'].append(sline)
                 else:
                     valDict['values'] = [valDict['values'], sline]
             else:
