@@ -10,6 +10,8 @@
 
 import logging
 import shlex
+import numpy as np
+
 #local
 from . import parsetools as pt
 
@@ -35,7 +37,8 @@ def mapTableChunk(key, chunk):
     numVars = {'NUM_IDS': None,
                'MAX_NUMBER_CELLS': None,
                'NUM_SED': None,
-               'NUM_CONTAM': None}
+               'NUM_CONTAM': None,
+               'MAX_SOIL_ID': None}
     varList = []
     valueList = []
 
@@ -52,11 +55,16 @@ def mapTableChunk(key, chunk):
         # No need to process if the index map is empty
         return None
 
+    soil_3d_layer = False
+    if key in ('MULTI_LAYER_SOIL', 'RICHARDS_EQN_INFILTRATION_BROOKS'):
+        soil_3d_layer = True
+    num_layers_loaded = 0
+
     # Parse the chunk into a datastructure
+    valDict = {}
     for line in chunk:
         sline = line.strip().split()
         token = sline[0]
-        valDict = {}
 
         if token == key:
             """
@@ -70,8 +78,24 @@ def mapTableChunk(key, chunk):
         elif token == 'ID':
             varList = _buildVarList(sline=sline, mapTableName=mtName, numVars=numVars)
         else:
-            valDict = _extractValues(line)
-            valueList.append(valDict)
+            if valDict and soil_3d_layer:
+                if len(np.shape(valDict['values'])) == 2:
+                    # this is for when there are no values
+                    # for the DEPTH of the bottom groundwater
+                    # layer as it is infinity
+                    if len(sline) < len(varList):
+                        sline += ['-9999']
+                    valDict['values'].append(sline)
+                else:
+                    valDict['values'] = [valDict['values'], sline]
+            else:
+                valDict = _extractValues(line)
+
+            num_layers_loaded += 1
+            if not soil_3d_layer or num_layers_loaded >=3:
+                valueList.append(valDict)
+                valDict = {}
+                num_layers_loaded = 0
 
     # Create return/result object
     result = {'name': mtName,

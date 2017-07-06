@@ -82,7 +82,7 @@ def valueReadPreprocessor(valueString, replaceParamsFile=None):
         str: Processed value as a string
     """
     if type(valueString) is bool:
-        log.warn("Only numerical variable types can be handled by the valueReadPreprocessor function.")
+        log.warning("Only numerical variable types can be handled by the valueReadPreprocessor function.")
         return valueString
 
     # Default
@@ -116,7 +116,7 @@ def valueWritePreprocessor(valueString, replaceParamsFile=None):
         str: Processed value as a string
     """
     if type(valueString) is bool:
-        log.warn("Only numerical variable types can be handled by the valueReadPreprocessor function.")
+        log.warning("Only numerical variable types can be handled by the valueReadPreprocessor function.")
         return valueString
 
     # Default
