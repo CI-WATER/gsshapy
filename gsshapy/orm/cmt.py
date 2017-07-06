@@ -7,6 +7,7 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
+from __future__ import unicode_literals
 
 __all__ = ['MapTableFile',
            'MapTable',
@@ -580,7 +581,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         # Write map table value lines to file
         for valLine in valueLines:
-            fileObject.write(valLine.encode('utf-8'))
+            fileObject.write(valLine)
 
     @staticmethod
     def _preprocessContaminantOutFilePath(outPath):

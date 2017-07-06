@@ -1,7 +1,7 @@
 import os
 import re
-from sqlalchemy import Column, ForeignKey, or_, func
-from sqlalchemy.exc import IntegrityError
+from builtins import str as text
+from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import String, Integer
 import yaml
@@ -49,9 +49,14 @@ class ProjectFileEventManager(DeclarativeBase, GsshaPyFileObjectBase):
         """
         ProjectFileEvent Write to File Method
         """
-        openFile.write(yaml.dump([evt.as_yml() for evt in
-                                  self.events.order_by(ProjectFileEvent.name,
-                                                       ProjectFileEvent.subfolder)]))
+        openFile.write(
+            text(
+                yaml.dump([evt.as_yml() for evt in
+                           self.events.order_by(ProjectFileEvent.name,
+                           ProjectFileEvent.subfolder)]
+                          )
+            )
+        )
 
     def next_id(self, subfolder):
         """

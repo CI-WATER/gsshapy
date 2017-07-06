@@ -6,6 +6,7 @@
 * License: BSD 3-Clause
 ********************************************************************************
 """
+from __future__ import unicode_literals
 
 __all__ = ['ElevationGridFile']
 

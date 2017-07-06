@@ -7,6 +7,7 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
+from __future__ import unicode_literals
 
 __all__ = ['ReplaceParamFile',
            'TargetParameter',

@@ -7,6 +7,7 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
+from __future__ import unicode_literals
 
 ## TODO: Add capability to store RATING_CURVE, RULE_CURVE, and SCHEDULED_RELEASE data
 

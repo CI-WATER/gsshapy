@@ -10,8 +10,10 @@
 
 __all__ = ['ProjectionFile']
 
+from io import open as io_open
 import os
 
+from builtins import str as text
 from sqlalchemy import Column
 from sqlalchemy.types import Integer, String
 from sqlalchemy.orm import relationship
@@ -84,7 +86,7 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
         self.fileExtension = extension
 
         # Open file and parse into a data structure
-        with open(path, 'r') as f:
+        with io_open(path, 'r') as f:
             self.projection = f.read()
 
     def _write(self, session, openFile, replaceParamFile):
@@ -92,7 +94,7 @@ class ProjectionFile(DeclarativeBase, GsshaPyFileObjectBase):
         Projection File Write to File Method
         """
         # Write lines
-        openFile.write(self.projection)
+        openFile.write(text(self.projection))
 
     def _namePreprocessor(self, name):
         """

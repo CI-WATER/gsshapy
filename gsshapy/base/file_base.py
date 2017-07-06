@@ -7,6 +7,8 @@
 * License: BSD 2-Clause
 ********************************************************************************
 """
+
+from io import open as io_open
 import logging
 import os
 
@@ -112,7 +114,7 @@ class GsshaPyFileObjectBase:
 
         filePath = os.path.join(directory, filename)
 
-        with open(filePath, 'w') as openFile:
+        with io_open(filePath, 'w') as openFile:
             # Write Lines
             self._write(session=session,
                         openFile=openFile,
