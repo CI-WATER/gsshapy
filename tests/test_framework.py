@@ -334,7 +334,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_directories(output_directory,
                                   compare_directory,
                                   ignore_file="hmet_file_list.txt",
-                                  raster=True)
+                                  raster=True,
+                                  precision=4)
 
 
     def test_wrf_to_gssha_write_hotstart(self):
@@ -384,7 +385,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_directories(output_directory,
                                   compare_directory,
                                   ignore_file="hmet_file_list.txt",
-                                  raster=True)
+                                  raster=True,
+                                  precision=4)
 
     def test_wrf_to_gssha_read_hotstart(self):
         """
@@ -433,7 +435,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_directories(output_directory,
                                   compare_directory,
                                   ignore_file="hmet_file_list.txt",
-                                  raster=True)
+                                  raster=True,
+                                  precision=4)
 
     def test_wrf_to_gssha_date_range(self):
         """
@@ -485,7 +488,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_directories(compare_directory,
                                   output_directory,
                                   ignore_file="hmet_file_list.txt",
-                                  raster=True)
+                                  raster=True,
+                                  precision=4)
 
 
     def test_wrf_to_gssha_min_hotstart(self):
@@ -538,7 +542,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_directories(compare_directory,
                                   output_directory,
                                   ignore_file="hmet_file_list.txt",
-                                  raster=True)
+                                  raster=True,
+                                  precision=4)
 
     def _generated_file_path(self, output_directory="", extension="prj"):
         """

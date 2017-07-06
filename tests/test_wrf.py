@@ -132,7 +132,8 @@ class TestLSMtoGSSHA(TestGridTemplate):
         self._compare_directories(self.hmet_write_directory,
                                   compare_directory,
                                   ignore_file="hmet_file_list.txt",
-                                  raster=True)
+                                  raster=True,
+                                  precision=4)
 
     def test_wrf_ascii_file_write_pre(self):
         """
