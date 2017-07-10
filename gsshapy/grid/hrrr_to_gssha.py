@@ -182,20 +182,5 @@ class HRRRtoGSSHA(GRIDtoGSSHA):
                                           lsm_lat_dim,
                                           lsm_lon_dim,
                                           lsm_time_dim,
-                                          output_timezone)
-
-    @property
-    def xd(self):
-        """get xarray dataset file handle to LSM files"""
-        if self._xd is None:
-            path_to_lsm_files = path.join(self.lsm_input_folder_path,
-                                          self.lsm_search_card)
-            self._xd = pa.open_mfdataset(path_to_lsm_files,
-                                         lat_var=self.lsm_lat_var,
-                                         lon_var=self.lsm_lon_var,
-                                         time_var=self.lsm_time_var,
-                                         lat_dim=self.lsm_lat_dim,
-                                         lon_dim=self.lsm_lon_dim,
-                                         time_dim=self.lsm_time_dim,
-                                         loader='hrrr')
-        return self._xd
+                                          output_timezone,
+                                          pangaea_loader='hrrr')

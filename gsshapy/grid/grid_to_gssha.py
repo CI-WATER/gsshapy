@@ -13,6 +13,7 @@ import logging
 import numpy as np
 from os import mkdir, path, remove, rename
 import pangaea as pa
+import pandas as pd
 from past.builtins import basestring
 from pytz import utc
 from shutil import copy
@@ -97,6 +98,7 @@ class GRIDtoGSSHA(object):
         lsm_lon_dim(Optional[:obj:`str`]): Name of the longitude dimension in the LSM netCDF files. Defaults to 'lon'.
         lsm_time_dim(Optional[:obj:`str`]): Name of the time dimension in the LSM netCDF files. Defaults to 'time'.
         output_timezone(Optional[:obj:`tzinfo`]): This is the timezone to output the dates for the data. Default is the timezone of your GSSHA model. This option does NOT currently work for NetCDF output.
+        pangaea_loader(Optional[:obj:`str`]): String to define loader used when opening pangaea dataset (Ex. 'hrrr'). Default is None.
 
     Example::
 
@@ -238,6 +240,23 @@ class GRIDtoGSSHA(object):
                               'conversion_factor' : {
                                                         'ascii' : 1,
                                                         'netcdf' : 1,
+                                                    },
+                            },
+                        'swe' :
+                            # Snow Water Eqivalent (SWE)
+                            # units = "kg m-2", i.e. "mm"
+                            # NOT IN HMET, USED FOR INITIALIZATION
+                            # INIT_SWE_DEPTH
+                            # http://www.gsshawiki.com/Snow_Card_Inputs_-_Optional
+                            {
+                              'units' : {
+                                            'grid': 'm',
+                                        },
+                              'standard_name' : 'snow_water_eqivalent',
+                              'long_name' : 'Snow Water Eqivalent',
+                              'gssha_name' : 'snow_water_eqivalent',
+                              'conversion_factor' : {
+                                                        'grid' : 0.001,
                                                     },
                             },
                         'wind_speed' :
@@ -493,6 +512,7 @@ class GRIDtoGSSHA(object):
                  lsm_lon_dim='lon',
                  lsm_time_dim='time',
                  output_timezone=None,
+                 pangaea_loader=None,
                  ):
         """
         Initializer function for the GRIDtoGSSHA class
@@ -508,6 +528,7 @@ class GRIDtoGSSHA(object):
         self.lsm_lon_dim = lsm_lon_dim
         self.lsm_time_dim = lsm_time_dim
         self.output_timezone = output_timezone
+        self.pangaea_loader = pangaea_loader
         self._xd = None
 
         # load in GSSHA model files
@@ -541,8 +562,11 @@ class GRIDtoGSSHA(object):
                                          time_var=self.lsm_time_var,
                                          lat_dim=self.lsm_lat_dim,
                                          lon_dim=self.lsm_lon_dim,
-                                         time_dim=self.lsm_time_dim)
+                                         time_dim=self.lsm_time_dim,
+                                         loader=self.pangaea_loader)
 
+            self.lsm_time_dim = 'time'
+            self.lsm_time_var = 'time'
         return self._xd
 
     def _set_subset_indices(self, y_min, y_max, x_min, x_max):
@@ -600,7 +624,8 @@ class GRIDtoGSSHA(object):
     def _load_lsm_data(self, data_var,
                        conversion_factor=1,
                        calc_4d_method=None,
-                       calc_4d_dim=None):
+                       calc_4d_dim=None,
+                       time_step=None):
         """
         This extracts the LSM data from a folder of netcdf files
         """
@@ -608,13 +633,16 @@ class GRIDtoGSSHA(object):
                                   yslice=self.yslice,
                                   xslice=self.xslice,
                                   calc_4d_method=calc_4d_method,
-                                  calc_4d_dim=calc_4d_dim,
-                                  )
+                                  calc_4d_dim=calc_4d_dim)
+        if isinstance(time_step, datetime):
+            data = data.loc[{self.lsm_time_dim: [pd.to_datetime(time_step)]}]
+        elif time_step is not None:
+            data = data[{self.lsm_time_dim: [time_step]}]
         data = data.fillna(0)
         data.values *= conversion_factor
         return data
 
-    def _load_converted_gssha_data_from_lsm(self, gssha_var, lsm_var, load_type):
+    def _load_converted_gssha_data_from_lsm(self, gssha_var, lsm_var, load_type, time_step=None):
         """
         This function loads data from LSM and converts to GSSHA format
         """
@@ -695,7 +723,7 @@ class GRIDtoGSSHA(object):
                                             self.netcdf_attributes[gssha_var]['conversion_factor'][load_type],
                                             self.netcdf_attributes[gssha_var].get('calc_4d_method'),
                                             self.netcdf_attributes[gssha_var].get('calc_4d_dim'),
-                                            )
+                                            time_step=time_step)
             conversion_function = self.netcdf_attributes[gssha_var].get('conversion_function')
             if conversion_function:
                 self.data.values = self.netcdf_attributes[gssha_var]['conversion_function'][load_type](self.data.values)
@@ -725,15 +753,15 @@ class GRIDtoGSSHA(object):
         # convert to dataset
         gssha_data_var_name = self.netcdf_attributes[gssha_var]['gssha_name']
         self.data = self.data.to_dataset(name=gssha_data_var_name)
-        self.data.rename({self.lsm_time_dim: 'time',
-                          self.lsm_lon_dim: 'x',
-                          self.lsm_lat_dim: 'y',
-                          self.lsm_time_var: 'time',
-                          self.lsm_lon_var: 'lon',
-                          self.lsm_lat_var: 'lat'
-                          },
-                         inplace=True)
-
+        self.data.rename(
+            {
+                self.lsm_lon_dim: 'x',
+                self.lsm_lat_dim: 'y',
+                self.lsm_lon_var: 'lon',
+                self.lsm_lat_var: 'lat'
+            },
+            inplace=True
+        )
         self.data.attrs = {'proj4': self.xd.lsm.projection.ExportToProj4()}
         self.data[gssha_data_var_name].attrs = {
            'standard_name': self.netcdf_attributes[gssha_var]['standard_name'],
@@ -843,6 +871,61 @@ class GRIDtoGSSHA(object):
                 resampled_data.coords[self.data.lsm.y_var] = self.data.coords[self.data.lsm.y_var]
             self.data = resampled_data
 
+
+    def lsm_var_to_grid(self, out_grid_file, lsm_data_var, gssha_convert_var, time_step=0, ascii_format='grass'):
+        """This function takes array data and writes out a GSSHA ascii grid.
+
+        Parameters:
+            out_grid_file(str): Location of ASCII file to generate.
+            lsm_data_var(str or list): This is the variable name for precipitation in the LSM files.
+            gssha_convert_var(str): This is the name of the variable used in GRIDtoGSSHA to convert data with.
+            time_step(Optional[int, datetime]): Time step in file to export data from. Default is the initial time step.
+            ascii_format(Optional[str]): Default is 'grass' for GRASS ASCII. If you want Arc ASCII, use 'arc'.
+
+        GRIDtoGSSHA Example:
+
+        .. code:: python
+
+            from gsshapy.grid import GRIDtoGSSHA
+
+            # STEP 1: Initialize class
+            g2g = GRIDtoGSSHA(gssha_project_folder='/path/to/gssha_project',
+                              gssha_project_file_name='gssha_project.prj',
+                              lsm_input_folder_path='/path/to/wrf-data',
+                              lsm_search_card='*.nc',
+                              lsm_lat_var='XLAT',
+                              lsm_lon_var='XLONG',
+                              lsm_time_var='Times',
+                              lsm_lat_dim='south_north',
+                              lsm_lon_dim='west_east',
+                              lsm_time_dim='Time',
+                              )
+
+            # STEP 2: Generate init snow grid (from LSM)
+            # NOTE: Card is INIT_SWE_DEPTH
+            g2g.lsm_var_to_grid(out_grid_file="E:/GSSHA/swe_grid.asc",
+                                lsm_data_var='SWE_inst',
+                                gssha_convert_var='swe')
+
+
+        """
+        self._load_converted_gssha_data_from_lsm(gssha_convert_var, lsm_data_var, 'grid', time_step)
+        gssha_data_var_name = self.netcdf_attributes[gssha_convert_var]['gssha_name']
+        self.data = self.data.lsm.to_projection(gssha_data_var_name,
+                                                projection=self.gssha_grid.projection)
+        self._resample_data(gssha_data_var_name)
+        arr_grid = ArrayGrid(in_array=self.data[gssha_data_var_name].values,
+                             wkt_projection=self.data.lsm.projection.ExportToWkt(),
+                             geotransform=self.data.lsm.geotransform)
+
+        if ascii_format.strip().lower() == 'grass':
+            arr_grid.to_grass_ascii(out_grid_file)
+        elif ascii_format.strip().lower() == 'arc':
+            arr_grid.to_arc_ascii(out_grid_file)
+        else:
+            raise ValueError("Invalid argument for 'ascii_format'. Only 'grass' or 'arc' allowed.")
+
+
     def lsm_precip_to_gssha_precip_gage(self, out_gage_file, lsm_data_var, precip_type="RADAR"):
         """This function takes array data and writes out a GSSHA precip gage file.
         See: http://www.gsshawiki.com/Precipitation:Spatially_and_Temporally_Varied_Precipitation
@@ -937,6 +1020,7 @@ class GRIDtoGSSHA(object):
                 date_str = self._time_to_string(self.data.lsm.datetime[time_idx])
                 data_str = " ".join(self.data[gssha_data_var_name][time_idx].values.ravel().astype(str))
                 gage_file.write(u"{0} {1} {2}\n".format(precip_type, date_str, data_str))
+
 
     def _write_hmet_card_file(self, hmet_card_file_path, main_output_folder):
         """

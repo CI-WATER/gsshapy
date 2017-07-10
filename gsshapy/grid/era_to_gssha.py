@@ -409,16 +409,14 @@ class ERAtoGSSHA(GRIDtoGSSHA):
             if None not in (self.download_start_datetime, self.download_end_datetime):
                 self._download()
 
-            path_to_lsm_files = path.join(self.lsm_input_folder_path,
-                                          self.lsm_search_card)
             self._xd = super(ERAtoGSSHA, self).xd
             self._xd.lsm.lon_to_180 = True
         return self._xd
 
-    def _load_converted_gssha_data_from_lsm(self, gssha_var, lsm_var, load_type):
+    def _load_converted_gssha_data_from_lsm(self, gssha_var, lsm_var, load_type, time_step=None):
         """
         This function loads data from LSM and converts to GSSHA format
         """
         super(ERAtoGSSHA, self).\
-            _load_converted_gssha_data_from_lsm(gssha_var, lsm_var, load_type)
+            _load_converted_gssha_data_from_lsm(gssha_var, lsm_var, load_type, time_step)
         self.data.lsm.lon_to_180 = True

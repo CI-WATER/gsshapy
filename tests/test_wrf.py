@@ -6,6 +6,7 @@
 * License: BSD 3-Clause
 ********************************************************************************
 """
+from datetime import datetime
 import os
 from osgeo import gdalconst
 import unittest
@@ -149,6 +150,33 @@ class TestLSMtoGSSHA(TestGridTemplate):
                                   ignore_file="hmet_file_list.txt",
                                   raster=True,
                                   precision=1)
+
+    def test_wrf_grid_snow_file_write(self):
+        """
+        Test WRF lsm_var_to_grid write method
+        """
+        out_grid_file = os.path.join(self.writeDirectory, 'swe_grid_wrf.asc')
+        self.l2g.lsm_var_to_grid(out_grid_file=out_grid_file,
+                                 lsm_data_var='RAINC',
+                                 gssha_convert_var='swe')
+
+        # Test
+        compare_grid_file = os.path.join(self.readDirectory, 'swe_grid_wrf.asc')
+        self._compare_files(out_grid_file, compare_grid_file, precision=5)
+
+    def test_wrf_grid_snow_file_write_time(self):
+        """
+        Test WRF lsm_var_to_grid write method
+        """
+        out_grid_file = os.path.join(self.writeDirectory, 'swe_grid_wrf.asc')
+        self.l2g.lsm_var_to_grid(out_grid_file=out_grid_file,
+                                 lsm_data_var='RAINC',
+                                 gssha_convert_var='swe',
+                                 time_step=datetime(2016, 8, 23, 22))
+
+        # Test
+        compare_grid_file = os.path.join(self.readDirectory, 'swe_grid_wrf.asc')
+        self._compare_files(out_grid_file, compare_grid_file, precision=5)
 
 
 if __name__ == '__main__':
