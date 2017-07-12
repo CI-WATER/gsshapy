@@ -501,14 +501,8 @@ class LongTermMode(Event):
         if self.simulation_start is not None:
             # NOTE: Because of daylight savings time,
             # offset result depends on time of the year
-            offset_string = self.simulation_start.replace(tzinfo=self.tz).strftime('%z')
-            if not offset_string:
-                offset_string = '0' # assume UTC
-            else:
-                sign = offset_string[0]
-                hr_offset = int(offset_string[1:3]) + int(offset_string[-2:])/60.0
-                offset_string = "{0}{1:.1f}".format(sign, hr_offset)
-
+            offset_string = str(self.simulation_start.replace(tzinfo=self.tz)
+                                .utcoffset().total_seconds()/3600.)
             self._update_card('GMT', offset_string)
 
     def prepare_hmet_lsm(self, lsm_data_var_map_array,
