@@ -177,7 +177,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 zScale = styles['zScale']
 
             except ValueError:
-                log.warn('zScale must be a valid number representing z dimension multiplier.')
+                log.warning('zScale must be a valid number representing z dimension multiplier.')
 
         if 'radius' in styles:
             try:
@@ -185,7 +185,7 @@ class LinkNodeDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
                 radiusMeters = styles['radius'] * DECMIAL_DEGREE_METER
 
             except ValueError:
-                log.warn('radius must be a number representing the radius of the value cylinders in meters.')
+                log.warning('radius must be a number representing the radius of the value cylinders in meters.')
 
         if 'colorRampEnum' in styles:
             colorRampEnum = styles['colorRampEnum']

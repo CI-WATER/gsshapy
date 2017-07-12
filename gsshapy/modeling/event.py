@@ -272,7 +272,7 @@ class Event(object):
                     # GSSHA STARTS INGESTING STREAMFLOW AT SECOND TIME STEP
                     if self.simulation_start is not None:
                         if self.simulation_start == time_array[0]:
-                            log.warn("First timestep of streamflow skipped "
+                            log.warning("First timestep of streamflow skipped "
                                      "in order for GSSHA to capture the streamflow.")
                             time_index_range = time_index_range[1:]
                             time_array = time_array[1:]
@@ -292,7 +292,7 @@ class Event(object):
                                                                  date_search_end=self.simulation_end,
                                                                  )
                 else:
-                    log.warn("No streamflow values found in time range ...")
+                    log.warning("No streamflow values found in time range ...")
 
             if len(time_index_range) > 0:
                 # update cards

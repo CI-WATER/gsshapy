@@ -77,7 +77,7 @@ class GsshaPyFileObjectBase:
             session.rollback()
 
             # Print warning
-            log.warn('Could not find file named {0}. File not read.'.format(filename))
+            log.warning('Could not find file named {0}. File not read.'.format(filename))
 
     def write(self, session, directory, name, replaceParamFile=None, **kwargs):
         """
