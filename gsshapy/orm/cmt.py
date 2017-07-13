@@ -613,7 +613,6 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
                                          land_use_grid,
                                          land_use_to_roughness_table=None,
                                          land_use_grid_id=None,
-
                                          ):
         """
         Adds a roughness map from land use file
