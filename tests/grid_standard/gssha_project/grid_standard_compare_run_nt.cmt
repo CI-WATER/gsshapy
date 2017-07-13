@@ -1,6 +1,6 @@
 GSSHA_INDEX_MAP_TABLES
-INDEX_MAP                "..\\land_use_soil.idx" "Land Use with Soil Type"
-INDEX_MAP                "..\\land_use.idx" "Land Use"
+INDEX_MAP                "..\land_use_soil.idx" "Land Use with Soil Type"
+INDEX_MAP                "..\land_use.idx" "Land Use"
 EVAPOTRANSPIRATION "Land Use"
 NUM_IDS 15
 ID    DESCRIPTION1                            DESCRIPTION2                            ALBEDO  VEG_HEIGHT  V_RAD_COEF  CANOPY_RESIST  
