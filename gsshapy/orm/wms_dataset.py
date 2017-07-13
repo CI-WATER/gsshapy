@@ -139,7 +139,7 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             session.rollback()
 
             # Issue warning
-            log.warn('{0} listed in project file, but no such file exists.'.format(filename))
+            log.warning('{0} listed in project file, but no such file exists.'.format(filename))
 
     def write(self, session, directory, name, maskMap):
         """
@@ -386,7 +386,7 @@ class WMSDatasetFile(DeclarativeBase, GsshaPyFileObjectBase):
             session.add(self)
 
         else:
-            log.warn("Could not read {0}. Mask Map must be supplied "
+            log.warning("Could not read {0}. Mask Map must be supplied "
                      "to read WMS Datasets.".format(filename))
 
     def _write(self, session, openFile, maskMap):

@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 try:
     from spt_dataset_manager import ECMWFRAPIDDatasetManager
 except ImportError:
-    log.warn("spt_dataset_manager is not installed. The SPT functionality will not work.")
+    log.warning("spt_dataset_manager is not installed. The SPT functionality will not work.")
     pass
 
 from ..lib import db_tools as dbt
@@ -378,7 +378,7 @@ class GSSHAFramework(object):
                     try:
                         move(original_location, new_location)
                     except OSError as ex:
-                        log.warn(ex)
+                        log.warning(ex)
                         pass
 
     def download_spt_forecast(self, extract_directory):
@@ -506,7 +506,7 @@ class GSSHAFramework(object):
                 self._update_card("READ_OV_HOTSTART", os.path.join("..", expected_ov_hotstart), True)
             else:
                 self._delete_card("READ_OV_HOTSTART")
-                log.warn("READ_OV_HOTSTART not included as "
+                log.warning("READ_OV_HOTSTART not included as "
                          "{0} does not exist ...".format(expected_ov_hotstart))
 
             # CHANNEL
@@ -518,7 +518,7 @@ class GSSHAFramework(object):
                 self._update_card("READ_CHAN_HOTSTART", os.path.join("..", expected_chan_hotstart), True)
             else:
                 self._delete_card("READ_CHAN_HOTSTART")
-                log.warn("READ_CHAN_HOTSTART not included as "
+                log.warning("READ_CHAN_HOTSTART not included as "
                          "{0}.qht and/or {0}.dht does not exist ...".format(expected_chan_hotstart))
 
             # INFILTRATION
@@ -529,7 +529,7 @@ class GSSHAFramework(object):
                 self._update_card("READ_SM_HOTSTART", os.path.join("..", expected_sm_hotstart), True)
             else:
                 self._delete_card("READ_SM_HOTSTART")
-                log.warn("READ_SM_HOTSTART not included as"
+                log.warning("READ_SM_HOTSTART not included as"
                          " {0} does not exist ...".format(expected_sm_hotstart))
 
     def run(self, subdirectory=None):
@@ -632,7 +632,7 @@ class GSSHAFramework(object):
                                         # Like normal if the ID isn't there
                                         gssha_card.value = '"{0}"'.format(new_path)
                                 else:
-                                    log.warn("{0} {1} not found in project directory ...".format("#INDEXGRID_GUID", updated_path))
+                                    log.warning("{0} {1} not found in project directory ...".format("#INDEXGRID_GUID", updated_path))
 
             # make sure project path is ""
             self._update_card("PROJECT_PATH", "", True)

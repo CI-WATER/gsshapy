@@ -158,7 +158,7 @@ class TimeSeriesFile(DeclarativeBase, GsshaPyFileObjectBase):
                     # Associate with appropriate TimeSeries object via the index
                     tsVal.timeSeries = series[index]
         except IndexError:
-            log.warn(('%s was opened, but the contents of the file were empty.'
+            log.warning(('%s was opened, but the contents of the file were empty.'
                      'This file will not be read into the database.') % filename)
         except:
             raise

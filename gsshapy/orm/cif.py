@@ -161,7 +161,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         if 'lineColor' in styles:
             if len(styles['lineColor']) < 4:
-                log.warn('lineColor style must be a list or a tuple of four elements containing integer RGBA values.')
+                log.warning('lineColor style must be a list or a tuple of four elements containing integer RGBA values.')
             else:
                 userLineColor = styles['lineColor']
                 lineColorValue = (userLineColor[3], userLineColor[2], userLineColor[1], userLineColor[0])
@@ -172,7 +172,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 lineWidthValue = styles['lineWidth']
 
             except ValueError:
-                log.warn('lineWidth must be a valid number containing the width of the line in pixels.')
+                log.warning('lineWidth must be a valid number containing the width of the line in pixels.')
 
         if 'nodeIconHref' in styles:
             nodeIconHrefValue = styles['nodeIconHref']
@@ -183,7 +183,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 nodeIconScaleValue = styles['nodeIconScale']
 
             except ValueError:
-                log.warn('nodeIconScaleValue must be a valid number containing the width of the line in pixels.')
+                log.warning('nodeIconScaleValue must be a valid number containing the width of the line in pixels.')
 
 
         # Initialize KML Document
@@ -213,7 +213,7 @@ class ChannelInputFile(DeclarativeBase, GsshaPyFileObjectBase):
                 lineString = ET.fromstring(linkKML)
                 placemark.append(lineString)
             else:
-                log.warn("No geometry found for link with id {0}".format(link.id))
+                log.warning("No geometry found for link with id {0}".format(link.id))
 
             if withNodes:
                 # Create the node styles

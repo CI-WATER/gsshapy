@@ -272,7 +272,7 @@ class Event(object):
                     # GSSHA STARTS INGESTING STREAMFLOW AT SECOND TIME STEP
                     if self.simulation_start is not None:
                         if self.simulation_start == time_array[0]:
-                            log.warn("First timestep of streamflow skipped "
+                            log.warning("First timestep of streamflow skipped "
                                      "in order for GSSHA to capture the streamflow.")
                             time_index_range = time_index_range[1:]
                             time_array = time_array[1:]
@@ -292,7 +292,7 @@ class Event(object):
                                                                  date_search_end=self.simulation_end,
                                                                  )
                 else:
-                    log.warn("No streamflow values found in time range ...")
+                    log.warning("No streamflow values found in time range ...")
 
             if len(time_index_range) > 0:
                 # update cards
@@ -501,14 +501,8 @@ class LongTermMode(Event):
         if self.simulation_start is not None:
             # NOTE: Because of daylight savings time,
             # offset result depends on time of the year
-            offset_string = self.simulation_start.replace(tzinfo=self.tz).strftime('%z')
-            if not offset_string:
-                offset_string = '0' # assume UTC
-            else:
-                sign = offset_string[0]
-                hr_offset = int(offset_string[1:3]) + int(offset_string[-2:])/60.0
-                offset_string = "{0}{1:.1f}".format(sign, hr_offset)
-
+            offset_string = str(self.simulation_start.replace(tzinfo=self.tz)
+                                .utcoffset().total_seconds()/3600.)
             self._update_card('GMT', offset_string)
 
     def prepare_hmet_lsm(self, lsm_data_var_map_array,

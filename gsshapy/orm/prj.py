@@ -844,7 +844,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         # Validate
         if 'streamLineColor' in styles:
             if len(styles['streamLineColor']) < 4:
-                log.warn('streamLineColor style must be a list or a tuple of '
+                log.warning('streamLineColor style must be a list or a tuple of '
                          'four elements representing integer RGBA values.')
             else:
                 userLineColor = styles['streamLineColor']
@@ -856,7 +856,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 streamLineWidthValue = styles['streamLineWidth']
 
             except ValueError:
-                log.warn('streamLineWidth must be a valid '
+                log.warning('streamLineWidth must be a valid '
                          'number representing the width of the line in pixels.')
 
         if 'nodeIconHref' in styles:
@@ -868,12 +868,12 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 nodeIconScaleValue = styles['nodeIconScale']
 
             except ValueError:
-                log.warn('nodeIconScaleValue must be a valid number representing'
+                log.warning('nodeIconScaleValue must be a valid number representing'
                          ' the width of the line in pixels.')
 
         if 'maskLineColor' in styles:
             if len(styles['maskLineColor']) < 4:
-                log.warn('maskLineColor style must be a list or a tuple of four '
+                log.warning('maskLineColor style must be a list or a tuple of four '
                          'elements representing integer RGBA values.')
             else:
                 userLineColor = styles['maskLineColor']
@@ -881,7 +881,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
 
         if 'maskFillColor' in styles:
             if len(styles['maskFillColor']) < 4:
-                log.warn('maskFillColor style must be a list or a tuple of four '
+                log.warning('maskFillColor style must be a list or a tuple of four '
                          'elements representing integer RGBA values.')
             else:
                 userLineColor = styles['maskFillColor']
@@ -893,7 +893,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                 maskLineWidthValue = styles['maskLineWidth']
 
             except ValueError:
-                log.warn('maskLineWidth must be a valid number representing '
+                log.warning('maskLineWidth must be a valid number representing '
                          'the width of the line in pixels.')
 
         if not documentName:
@@ -1409,11 +1409,11 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             except:
                 # Otherwise, use the default id
                 spatialReferenceID = DEFAULT_SPATIAL_REFERENCE_ID
-                log.warn("Automatic spatial reference ID lookup failed. Using default id: {0}".format(DEFAULT_SPATIAL_REFERENCE_ID))
+                log.warning("Automatic spatial reference ID lookup failed. Using default id: {0}".format(DEFAULT_SPATIAL_REFERENCE_ID))
         else:
             # If there is no projection card in the project file, use default
             spatialReferenceID = DEFAULT_SPATIAL_REFERENCE_ID
-            log.warn("Automatic spatial reference ID lookup failed. Using default id: {0}".format(DEFAULT_SPATIAL_REFERENCE_ID))
+            log.warning("Automatic spatial reference ID lookup failed. Using default id: {0}".format(DEFAULT_SPATIAL_REFERENCE_ID))
 
         return spatialReferenceID
 
@@ -1491,7 +1491,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                                          spatialReferenceID=spatialReferenceID,
                                          replaceParamFile=replaceParamFile)
 
-            log.warn('Could not read map files. '
+            log.warning('Could not read map files. '
                      'MAP_TYPE {0} not supported.'.format(self.mapType))
 
     def _readWMSDatasets(self, datasetCards, directory, session, spatial=False, spatialReferenceID=4236):
@@ -1607,7 +1607,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                      'replacement variable {0}.'.format(filename))
 
         elif numFilesRead == 0:
-            log.warn('{0} listed in project file, but no such '
+            log.warning('{0} listed in project file, but no such '
                      'file exists.'.format(filename))
 
         else:
@@ -1736,7 +1736,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     except NoResultFound:
                         # Handle case when there is no file in database but
                         # the card is listed in the project file
-                        log.warn('{0} listed as card in project file, '
+                        log.warning('{0} listed as card in project file, '
                                  'but the file is not found in the database.'.format(filename))
 
                     except MultipleResultsFound:
@@ -1822,7 +1822,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
             except NoResultFound:
                 # Handle case when there is no file in database but the
                 # card is listed in the project file
-                log.warn('{0} listed as card in project file, but '
+                log.warning('{0} listed as card in project file, but '
                          'the file is not found in the database.'.format(filename))
             except MultipleResultsFound:
                 self._invokeWriteForMultipleOfType(directory, extension, fileIO,

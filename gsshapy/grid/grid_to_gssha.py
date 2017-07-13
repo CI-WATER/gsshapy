@@ -1145,9 +1145,9 @@ class GRIDtoGSSHA(object):
                 arr_grid = ArrayGrid(in_array=self.data[gssha_data_var_name][time_idx].values,
                                      wkt_projection=self.data.lsm.projection.ExportToWkt(),
                                      geotransform=self.data.lsm.geotransform,
-                                     )
+                                     nodata_value=-9999)
                 date_str = self._time_to_string(self.data.lsm.datetime[time_idx], "%Y%m%d%H")
-                ascii_file_path = path.join(main_output_folder,"{0}_{1}.asc".format(date_str, gssha_data_hmet_name))
+                ascii_file_path = path.join(main_output_folder, "{0}_{1}.asc".format(date_str, gssha_data_hmet_name))
                 arr_grid.to_arc_ascii(ascii_file_path)
 
         #PART 3: HMET_ASCII card input file with ASCII file list
