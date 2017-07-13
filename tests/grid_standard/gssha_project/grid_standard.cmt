@@ -1,38 +1,37 @@
 GSSHA_INDEX_MAP_TABLES
-ROUGHNESS ""
-NUM_IDS 0
-ID    DESCRIPTION1                            DESCRIPTION2                                   ROUGH
-GREEN_AMPT_INFILTRATION ""
-NUM_IDS 0
-ID    DESCRIPTION1                            DESCRIPTION2                               HYDR_COND  CAPIL_HEAD    POROSITY  PORE_INDEX   RESID_SAT FIELD_CAPACITY  WILTING_PT
-GREEN_AMPT_INITIAL_SOIL_MOISTURE ""
-NUM_IDS 0
-ID    DESCRIPTION1                            DESCRIPTION2                            SOIL_MOISTURE
-RICHARDS_EQN_INFILTRATION_BROOKS  ""
-NUM_IDS 0
-MAX_NUMBER_CELLS 0
-ID    DESCRIPTION1                            DESCRIPTION2                                HYD_COND    POROSITY   RESID_SAT  SOIL_MOIST  WILTING_PT FIELD_CAPACITY       DEPTH      LAMBDA   BUB_PRESS     DELTA_Z
-RICHARDS_EQN_INFILTRATION_HAVERCAMP  ""
-NUM_IDS 0
-MAX_NUMBER_CELLS 0
-ID    DESCRIPTION1                            DESCRIPTION2                                HYD_COND    POROSITY   RESID_SAT  SOIL_MOIST  WILTING_PT FIELD_CAPACITY       DEPTH       ALPHA        BETA        AHAV        BHAV     DELTA_Z
-MULTI_LAYER_SOIL  ""
-NUM_IDS 0
-MAX_SOIL_ID 0
-ID    DESCRIPTION1                            DESCRIPTION2                                HYD_COND  PORE_INDEX  CAPIL_HEAD    POROSITY   FIELD_CAP  WILTING_PT   RESID_SAT  SOIL_MOIST       DEPTH
-EVAPOTRANSPIRATION ""
-NUM_IDS 0
+INDEX_MAP                "land_use_soil.idx" "Land Use with Soil Type"
+INDEX_MAP                "land_use.idx" "Land Use"
+EVAPOTRANSPIRATION "Land Use"
+NUM_IDS 15
 ID    DESCRIPTION1                            DESCRIPTION2                                  ALBEDO  VEG_HEIGHT  V_RAD_COEF CANOPY_RESIST
-SEDIMENTS
-NUM_SED  0
-Sediment Description                      Spec. Grav   Part. Dia     Output Filename
-SOIL_EROSION_PROPS ""
-NUM_IDS 0
-NUM_SED 0
-ID    DESCRIPTION1                            DESCRIPTION2                             SPLASH_COEF DETACH_COEF  DETACH_EXP DETACH_CRIT    SED_COEF   0 SEDIMENTS....
-GROUNDWATER ""
-NUM_IDS 0
-ID    DESCRIPTION1                            DESCRIPTION2                                HYD_COND    POROSITY
-WETLAND_PROPERTIES "wetlands"
-NUM_IDS 0
-ID                                                                                      INIT_DEPTH   RET_DEPTH RET_HYD_CON  VEG_HEIGHT VEG_HYD_CON   OVR_VEG_N
+11    Water                                                                               0.030000    0.000001    1.000000    1.000000
+21    Developed Open space                                                                0.200000    0.045000    0.950000  100.000000
+22    Developed Low Intensity                                                             0.150000    0.500000    0.950000   86.000000
+23    Developed Medium Intensity                                                          0.250000    3.000000    0.950000  100.000000
+24    Developed High Intensity                                                            0.200000    3.000000    1.000000  100.000000
+31    Barren Land                                                                         0.200000    0.100000    1.000000  200.000000
+41    Deciduous Forest                                                                    0.175000   17.000000    0.150000  120.000000
+42    Evergreen Forest                                                                    0.100000   16.500000    0.100000  140.000000
+43    Mixed Forest                                                                        0.140000   16.500000    0.125000  130.000000
+52    Shrub                                                                               0.190000    2.000000    0.180000  150.000000
+71    Grassland                                                                           0.190000    0.200000    0.300000  150.000000
+81    Pasture                                                                             0.190000    0.100000    0.680000  150.000000
+82    Crops                                                                               0.250000    0.500000    0.360000   30.000000
+90    Woody Wetlands                                                                      0.150000    1.350000    0.180000   86.000000
+95    Emergent Herbaceous Wetlands                                                        0.150000    1.000000    0.300000   86.000000
+MULTI_LAYER_SOIL "Land Use with Soil Type"
+NUM_IDS 4
+MAX_SOIL_ID 9069
+ID    DESCRIPTION1                            DESCRIPTION2                                HYD_COND  PORE_INDEX  CAPIL_HEAD    POROSITY   FIELD_CAP  WILTING_PT   RESID_SAT  SOIL_MOIST       DEPTH
+1002  LU: Water                               ST: Clay Loam                               0.100000    0.242000   20.880000    0.464000    0.318000    0.197000    0.075000    0.318000   23.000000
+      GG                                                                                  1.090000    0.378000   11.010000    0.453000    0.207000    0.095000    0.041000    0.207000   84.000000
+                                                                                          1.090000    0.378000   11.010000    0.453000    0.207000    0.095000    0.041000    0.207000
+1037  LU: Water                               ST: Clay Loam                               0.100000    0.242000   20.880000    0.464000    0.318000    0.197000    0.075000    0.318000   25.000000
+                                              PP                                          0.100000    0.242000   20.880000    0.464000    0.318000    0.197000    0.075000    0.318000  100.000000
+                                                                                          0.100000    0.242000   20.880000    0.464000    0.318000    0.197000    0.075000    0.318000
+1039  LU: Water                               ST: Clay Loam                               0.100000    0.242000   20.880000    0.464000    0.318000    0.197000    0.075000    0.318000   20.000000
+                                              GG                                          0.100000    0.242000   20.880000    0.464000    0.318000    0.197000    0.075000    0.318000   36.000000
+                                              PP                                          0.030000    0.165000   31.630000    0.475000    0.396000    0.272000    0.090000    0.396000
+1043  LU: Water                               ST: Clay Loam                               0.100000    0.242000   20.880000    0.464000    0.318000    0.197000    0.075000    0.318000   20.000000
+                                                                                          0.030000    0.165000   31.630000    0.475000    0.396000    0.272000    0.090000    0.396000  104.000000
+                                                                                          0.150000    0.319000   21.850000    0.398000    0.255000    0.148000    0.068000    0.255000

@@ -1,7 +1,6 @@
 GSSHA_INDEX_MAP_TABLES
-INDEX_MAP                "land_use_soil.idx" "Land Use with Soil Type"
-INDEX_MAP                "land_use.idx" "Land Use"
-INDEX_MAP                "roughness.idx" "roughness"
+INDEX_MAP                "../land_use_soil.idx" "Land Use with Soil Type"
+INDEX_MAP                "../land_use.idx" "Land Use"
 EVAPOTRANSPIRATION "Land Use"
 NUM_IDS 15
 ID    DESCRIPTION1                            DESCRIPTION2                            ALBEDO  VEG_HEIGHT  V_RAD_COEF  CANOPY_RESIST  
@@ -35,8 +34,4 @@ ID    DESCRIPTION1                            DESCRIPTION2                      
                                                                                       0.030000   0.165000   31.630000   0.475000   0.396000   0.272000   0.090000   0.396000   
 1043  LU: Water                               ST: Clay Loam                           0.100000   0.242000   20.880000   0.464000   0.318000   0.197000   0.075000   0.318000   20.000000   
                                                                                       0.030000   0.165000   31.630000   0.475000   0.396000   0.272000   0.090000   0.396000   104.000000   
-                                                                                      0.150000   0.319000   21.850000   0.398000   0.255000   0.148000   0.068000   0.255000   
-ROUGHNESS "roughness"
-NUM_IDS 1
-ID    DESCRIPTION1                            DESCRIPTION2                            ROUGH  
-10    Grasslands                                                                      0.025000   
+                                                                                      0.150000   0.319000   21.850000   0.398000   0.255000   0.148000   0.068000   0.255000

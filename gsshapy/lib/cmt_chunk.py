@@ -79,15 +79,16 @@ def mapTableChunk(key, chunk):
             varList = _buildVarList(sline=sline, mapTableName=mtName, numVars=numVars)
         else:
             if valDict and soil_3d_layer:
+                tmpValDict = _extractValues(line)
                 if len(np.shape(valDict['values'])) == 2:
                     # this is for when there are no values
                     # for the DEPTH of the bottom groundwater
                     # layer as it is infinity
-                    if len(sline) < len(varList):
-                        sline += ['-9999']
-                    valDict['values'].append(sline)
+                    if len(tmpValDict['values']) < len(varList):
+                        tmpValDict['values'] += ['-9999']
+                    valDict['values'].append(tmpValDict['values'])
                 else:
-                    valDict['values'] = [valDict['values'], sline]
+                    valDict['values'] = [valDict['values'], tmpValDict['values']]
             else:
                 valDict = _extractValues(line)
 

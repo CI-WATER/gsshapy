@@ -20,6 +20,7 @@ SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Test_GSSHA_WRF_Framework(TestGridTemplate):
     def setUp(self):
+        self.tearDown()
         # define global variables
         self.gssha_project_directory = os.path.join(self.writeDirectory,
                                                     'gssha_project')
@@ -55,12 +56,10 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
 # -----------------------------------------------------------------------------
 # RAPID ONLY SECTION
 # -----------------------------------------------------------------------------
-
     def test_rapid_to_gssha(self):
         """
         Test RAPID to GSSHA functionality
         """
-
         # INITIALIZE CLASS AND RUN
         gr = GSSHAWRFFramework(gssha_executable='',
                                gssha_directory=self.gssha_project_directory,
@@ -91,9 +90,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 1 file in main directory not modified
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
-        # 2 file in working directory exists
-        assert os.path.exists(self._generated_file_path('run_200208291800to200208311800', extension="cmt"))
-        # 3 TODO: Check to make sure generated correctly
+        # 2 file in working directory correct
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+                            self._generated_file_path('run_200208291800to200208311800', extension="cmt"))
 
     def test_rapid_to_gssha_write_hotstart(self):
         """
@@ -131,9 +130,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 1 file in main directory not modified
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
-        # 2 file in working directory exists
-        assert os.path.exists(self._generated_file_path('run_200208291800to200208311800', extension="cmt"))
-        # 3 TODO: Check to make sure generated correctly
+        # 2 file in working directory correct
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+                            self._generated_file_path('run_200208291800to200208311800', extension="cmt"))
 
     def test_rapid_to_gssha_read_hotstart(self):
         """
@@ -164,9 +163,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 1 file in main directory not modified
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
-        # 2 file in working directory exists
-        assert os.path.exists(self._generated_file_path('run_200208291800to200208311800', extension="cmt"))
-        # 3 TODO: Check to make sure generated correctly
+        # 2 file in working directory correct
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+                            self._generated_file_path('run_200208291800to200208311800', extension="cmt"))
 
     def test_rapid_to_gssha_date_range(self):
         """
@@ -199,9 +198,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 1 file in main directory not modified
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
-        # 2 file in working directory exists
-        assert os.path.exists(self._generated_file_path('run_200208300000to200208302359', extension="cmt"))
-        # 3 TODO: Check to make sure generated correctly
+        # 2 file in working directory correct
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+                            self._generated_file_path('run_200208300000to200208302359', extension="cmt"))
 
     def test_rapid_to_gssha_date_range_hotstart(self):
         """
@@ -239,9 +238,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 1 file in main directory not modified
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
-        # 2 file in working directory exists
-        assert os.path.exists(self._generated_file_path('run_200208300000to200208302359', extension="cmt"))
-        # 3 TODO: Check to make sure generated correctly
+        # 2 file in working directory correct
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+                            self._generated_file_path('run_200208300000to200208302359', extension="cmt"))
 
     def test_rapid_to_gssha_min_hotstart(self):
         """
@@ -280,9 +279,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 1 file in main directory not modified
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
-        # 2 file in working directory exists
-        assert os.path.exists(self._generated_file_path('minimal_hotstart_run_200208291800to200208300000', extension="cmt"))
-        # 3 TODO: Check to make sure generated correctly
+        # 2 file in working directory correct
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+                            self._generated_file_path('minimal_hotstart_run_200208291800to200208300000', extension="cmt"))
 
 # -----------------------------------------------------------------------------
 # WRF ONLY SECTION
@@ -311,9 +310,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 1 file in main directory not modified
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
-        # 2 file in working directory exists
-        assert os.path.exists(self._generated_file_path('run_201608231600to201608240700', extension="cmt"))
-        # 3 TODO: Check to make sure generated correctly
+        # 2 file in working directory correct
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+                            self._generated_file_path('run_201608231600to201608240700', extension="cmt"))
 
         # grid_standard.gag
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608231600to201608240700.gag"),
@@ -362,9 +361,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 1 file in main directory not modified
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
-        # 2 file in working directory exists
-        assert os.path.exists(self._generated_file_path('run_201608231600to201608240700', extension="cmt"))
-        # 3 TODO: Check to make sure generated correctly
+        # 2 file in working directory correct
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+                            self._generated_file_path('run_201608231600to201608240700', extension="cmt"))
 
         # grid_standard.gag
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608231600to201608240700.gag"),
@@ -412,9 +411,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 1 file in main directory not modified
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
-        # 2 file in working directory exists
-        assert os.path.exists(self._generated_file_path('run_201608231600to201608240700', extension="cmt"))
-        # 3 TODO: Check to make sure generated correctly
+        # 2 file in working directory correct
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+                            self._generated_file_path('run_201608231600to201608240700', extension="cmt"))
 
         # grid_standard.gag
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608231600to201608240700.gag"),
@@ -465,9 +464,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 1 file in main directory not modified
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
-        # 2 file in working directory exists
-        assert os.path.exists(self._generated_file_path('run_201608230000to200208240359', extension="cmt"))
-        # 3 TODO: Check to make sure generated correctly
+        # 2 file in working directory correct
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+                            self._generated_file_path('run_201608230000to200208240359', extension="cmt"))
 
         # grid_standard.gag
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608230000to200208240359.gag"),
@@ -519,9 +518,9 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         # 1 file in main directory not modified
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
-        # 2 file in working directory exists
-        assert os.path.exists(self._generated_file_path('minimal_hotstart_run_201608231600to201608232200', extension="cmt"))
-        # 3 TODO: Check to make sure generated correctly
+        # 2 file in working directory correct
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+                            self._generated_file_path('minimal_hotstart_run_201608231600to201608232200', extension="cmt"))
 
         # grid_standard.gag
         self._compare_files(os.path.join(self.readDirectory, "framework", "grid_standard_wrf_201608231600to201608232200.gag"),
