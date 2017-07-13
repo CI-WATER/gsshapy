@@ -20,7 +20,6 @@ SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Test_GSSHA_WRF_Framework(TestGridTemplate):
     def setUp(self):
-        self.tearDown()
         # define global variables
         self.gssha_project_directory = os.path.join(self.writeDirectory,
                                                     'gssha_project')
@@ -91,7 +90,7 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
         # 2 file in working directory correct
-        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run_{0}.cmt".format(self.os_name)),
                             self._generated_file_path('run_200208291800to200208311800', extension="cmt"))
 
     def test_rapid_to_gssha_write_hotstart(self):
@@ -131,7 +130,7 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
         # 2 file in working directory correct
-        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run_{0}.cmt".format(self.os_name)),
                             self._generated_file_path('run_200208291800to200208311800', extension="cmt"))
 
     def test_rapid_to_gssha_read_hotstart(self):
@@ -164,7 +163,7 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
         # 2 file in working directory correct
-        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run_{0}.cmt".format(self.os_name)),
                             self._generated_file_path('run_200208291800to200208311800', extension="cmt"))
 
     def test_rapid_to_gssha_date_range(self):
@@ -199,7 +198,7 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
         # 2 file in working directory correct
-        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run_{0}.cmt".format(self.os_name)),
                             self._generated_file_path('run_200208300000to200208302359', extension="cmt"))
 
     def test_rapid_to_gssha_date_range_hotstart(self):
@@ -239,7 +238,7 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
         # 2 file in working directory correct
-        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run_{0}.cmt".format(self.os_name)),
                             self._generated_file_path('run_200208300000to200208302359', extension="cmt"))
 
     def test_rapid_to_gssha_min_hotstart(self):
@@ -280,7 +279,7 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
         # 2 file in working directory correct
-        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run_{0}.cmt".format(self.os_name)),
                             self._generated_file_path('minimal_hotstart_run_200208291800to200208300000', extension="cmt"))
 
 # -----------------------------------------------------------------------------
@@ -311,7 +310,7 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
         # 2 file in working directory correct
-        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run_{0}.cmt".format(self.os_name)),
                             self._generated_file_path('run_201608231600to201608240700', extension="cmt"))
 
         # grid_standard.gag
@@ -362,7 +361,7 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
         # 2 file in working directory correct
-        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run_{0}.cmt".format(self.os_name)),
                             self._generated_file_path('run_201608231600to201608240700', extension="cmt"))
 
         # grid_standard.gag
@@ -412,7 +411,7 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
         # 2 file in working directory correct
-        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run_{0}.cmt".format(self.os_name)),
                             self._generated_file_path('run_201608231600to201608240700', extension="cmt"))
 
         # grid_standard.gag
@@ -465,7 +464,7 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
         # 2 file in working directory correct
-        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run_{0}.cmt".format(self.os_name)),
                             self._generated_file_path('run_201608230000to200208240359', extension="cmt"))
 
         # grid_standard.gag
@@ -519,7 +518,7 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
         self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard.cmt"),
                             os.path.join(self.gssha_project_directory, "grid_standard.cmt"))
         # 2 file in working directory correct
-        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run.cmt"),
+        self._compare_files(os.path.join(self.readDirectory, "gssha_project", "grid_standard_compare_run_{0}.cmt".format(self.os_name)),
                             self._generated_file_path('minimal_hotstart_run_201608231600to201608232200', extension="cmt"))
 
         # grid_standard.gag
