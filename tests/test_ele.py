@@ -19,6 +19,7 @@ from gsshapy.lib import db_tools as dbt
 
 class TestElevation(TestGridTemplate):
     def setUp(self):
+        self.tearDown()
         self.gssha_project_directory = path.join(self.writeDirectory,
                                                  'gssha_project')
         self.gssha_project_file = 'grid_standard_basic.prj'
