@@ -118,7 +118,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
         mapTables = []
 
         # Parse file into chunks associated with keywords/cards
-        with io_open(path, 'r') as f:
+        with io_open(path, 'r', encoding="utf-8") as f:
             chunks = pt.chunk(KEYWORDS, f)
 
         # Parse chunks associated with each key
