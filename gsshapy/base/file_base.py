@@ -114,7 +114,7 @@ class GsshaPyFileObjectBase:
 
         filePath = os.path.join(directory, filename)
 
-        with io_open(filePath, 'w') as openFile:
+        with io_open(filePath, 'w', encoding="utf-8") as openFile:
             # Write Lines
             self._write(session=session,
                         openFile=openFile,
