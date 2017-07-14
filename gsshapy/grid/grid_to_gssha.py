@@ -80,6 +80,12 @@ def esat(temp):
     return 611.21*xu.exp(17.502*(temp-273.16)/(temp-32.19))
 
 
+def xdataset_binary(xdataset):
+    """Makes a dataset with values greater than zero 1"""
+    xdataset.values[xdataset.values > 0] = 1
+    return xdataset
+
+
 # ------------------------------------------------------------------------------
 # MAIN CLASS
 # ------------------------------------------------------------------------------
@@ -518,8 +524,8 @@ class GRIDtoGSSHA(object):
                                     'netcdf': 10,
                                 },
                                 'conversion_function': {
-                                    'ascii': lambda cloud_amount: 1 if cloud_amount > 0 else 0,
-                                    'netcdf': lambda cloud_amount: 1 if cloud_amount > 0 else 0,
+                                    'ascii': xdataset_binary,
+                                    'netcdf': xdataset_binary,
                                 },
                                 'calc_4d_method': 'max',
                                 'calc_4d_dim': 'bottom_top',
