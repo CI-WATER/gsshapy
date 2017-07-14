@@ -483,6 +483,8 @@ class GRIDtoGSSHA(object):
                               'calc_4d_dim' : 'bottom_top',
                             },
                         'cloud_cover_pc' :
+                            #NOTE: LSM
+                            #Between 0-100 (0=No Clouds; 100=Full Clouds) ;
                             {
                               'units' : {
                                             'ascii': '%',
@@ -496,9 +498,33 @@ class GRIDtoGSSHA(object):
                                                         'ascii' : 1,
                                                         'netcdf' : 0.1,
                                                     },
+                                'calc_4d_method': 'max',
+                                'calc_4d_dim': 'bottom_top',
                             },
-
-                    }
+                        'cloud_cover_bin':
+                            # NOTE: LSM
+                            # (0=No Clouds; 0>Clouds) ;
+                            {
+                                'units': {
+                                    'ascii': '%',
+                                    'netcdf': '%/10',
+                                },
+                                'standard_name': 'cloud_cover_fraction',
+                                'long_name': 'Cloud cover fraction',
+                                'gssha_name': 'cloud_cover',
+                                'hmet_name': 'Clod',
+                                'conversion_factor': {
+                                    'ascii': 100,
+                                    'netcdf': 10,
+                                },
+                                'conversion_function': {
+                                    'ascii': lambda cloud_amount: 1 if cloud_amount > 0 else 0,
+                                    'netcdf': lambda cloud_amount: 1 if cloud_amount > 0 else 0,
+                                },
+                                'calc_4d_method': 'max',
+                                'calc_4d_dim': 'bottom_top',
+                            },
+                        }
 
     def __init__(self,
                  gssha_project_folder,
