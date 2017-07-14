@@ -123,418 +123,418 @@ class GRIDtoGSSHA(object):
     """
     # DEFAULT GSSHA NetCDF Attributes
     netcdf_attributes = {
-                        'precipitation_rate':
-                            # NOTE: LSM INFO
-                            # units = "kg m-2 s-1" ; i.e. mm s-1
-                            {
-                              'units' : {
-                                            'gage': 'mm hr-1',
-                                            'ascii': 'mm hr-1',
-                                            'netcdf': 'mm hr-1',
-                                        },
-                              'units_netcdf' : 'mm hr-1',
-                              'standard_name' : 'rainfall_flux',
-                              'long_name' : 'Rain precipitation rate',
-                              'gssha_name' : 'precipitation',
-                              'hmet_name' : 'Prcp',
-                              'conversion_factor' : {
-                                                        'gage': 3600,
-                                                        'ascii': 3600,
-                                                        'netcdf': 3600,
-                                                    },
-                            },
-                        'precipitation_acc':
-                            # NOTE: LSM INFO
-                            # assumes units = "kg m-2" ; i.e. mm
-                            # checks for units: "m"
-                            {
-                              'units' : {
-                                            'gage': 'mm hr-1',
-                                            'ascii': 'mm hr-1',
-                                            'netcdf': 'mm hr-1',
-                                        },
-                              'units_netcdf' : 'mm hr-1',
-                              'standard_name' : 'rainfall_flux',
-                              'long_name': 'Rain precipitation rate',
-                              'gssha_name': 'precipitation',
-                              'hmet_name': 'Prcp',
-                              'conversion_factor': {
-                                                        'gage': 1,
-                                                        'ascii': 1,
-                                                        'netcdf': 1,
-                                                    },
-                            },
-                        'precipitation_inc':
-                            # NOTE: LSM INFO
-                            # assumes units = "kg m-2" ; i.e. mm
-                            # checks for units: "m"
-                            {
-                              'units' : {
-                                            'gage': 'mm hr-1',
-                                            'ascii': 'mm hr-1',
-                                            'netcdf': 'mm hr-1',
-                                        },
-                              'units_netcdf': 'mm hr-1',
-                              'standard_name': 'rainfall_flux',
-                              'long_name': 'Rain precipitation rate',
-                              'gssha_name': 'precipitation',
-                              'hmet_name': 'Prcp',
-                              'conversion_factor': {
-                                                        'gage' : 1,
-                                                        'ascii' : 1,
-                                                        'netcdf' : 1,
-                                                    },
-                            },
-                        'pressure':
-                            # NOTE: LSM INFO
-                            # units = "Pa" ;
-                            {
-                              'units': {
-                                            'ascii': 'in. Hg',
-                                            'netcdf': 'mb',
-                                        },
-                              'standard_name' : 'surface_air_pressure',
-                              'long_name' : 'Pressure',
-                              'gssha_name' : 'pressure',
-                              'hmet_name' : 'Pres',
-                              'conversion_factor' : {
-                                                        'ascii' : 0.000295299830714,
-                                                        'netcdf' : 0.01,
-                                                    },
-                            },
-                        'pressure_hg':
-                            {
-                              'units': {
-                                            'ascii': 'in. Hg',
-                                            'netcdf': 'mb',
-                                        },
-                              'standard_name' : 'surface_air_pressure',
-                              'long_name' : 'Pressure',
-                              'gssha_name' : 'pressure',
-                              'hmet_name' : 'Pres',
-                              'conversion_factor' : {
-                                                        'ascii': 1,
-                                                        'netcdf': 33.863886667,
-                                                    },
-                            },
-                        'relative_humidity' :
-                            #NOTE: LSM Usually Specific Humidity
-                            #units = "kg kg-1" ;
-                            #standard_name = "specific_humidity" ;
-                            #long_name = "Specific humidity" ;
-                            {
-                              'units' : {
-                                            'ascii': '%',
-                                            'netcdf': '%',
-                                        },
-                              'standard_name' : 'relative_humidity',
-                              'long_name' : 'Relative humidity',
-                              'gssha_name' : 'relative_humidity',
-                              'hmet_name' : 'RlHm',
-                              'conversion_factor' : {
-                                                        'ascii' : 1,
-                                                        'netcdf' : 1,
-                                                    },
-                            },
-                        'relative_humidity_dew' :
-                            #NOTE: ECMWF provides dew point temperature
-                            {
-                              'units' : {
-                                            'ascii': '%',
-                                            'netcdf': '%',
-                                        },
-                              'standard_name' : 'relative_humidity',
-                              'long_name' : 'Relative humidity',
-                              'gssha_name' : 'relative_humidity',
-                              'hmet_name' : 'RlHm',
-                              'conversion_factor' : {
-                                                        'ascii' : 1,
-                                                        'netcdf' : 1,
-                                                    },
-                            },
-                        'swe' :
-                            # Snow Water Eqivalent (SWE)
-                            # units = "kg m-2", i.e. "mm"
-                            # NOT IN HMET, USED FOR INITIALIZATION
-                            # INIT_SWE_DEPTH
-                            # http://www.gsshawiki.com/Snow_Card_Inputs_-_Optional
-                            {
-                              'units' : {
-                                            'grid': 'm',
-                                        },
-                              'standard_name' : 'snow_water_eqivalent',
-                              'long_name' : 'Snow Water Eqivalent',
-                              'gssha_name' : 'snow_water_eqivalent',
-                              'conversion_factor' : {
-                                                        'grid' : 0.001,
-                                                    },
-                            },
-                        'wind_speed' :
-                            #NOTE: LSM
-                            #units = "m s-1" ;
-                            {
-                              'units' : {
-                                            'ascii': 'kts',
-                                            'netcdf': 'kts',
-                                        },
-                              'standard_name' : 'wind_speed',
-                              'long_name' : 'Wind speed',
-                              'gssha_name' : 'wind_speed',
-                              'hmet_name' : 'WndS',
-                              'conversion_factor' : {
-                                                        'ascii' : 1.94,
-                                                        'netcdf' : 1.94,
-                                                    },
-                            },
-                        'wind_speed_kmd' :
-                            #NOTE: LSM
-                            #units = "km/day" ;
-                            {
-                              'units' : {
-                                            'ascii': 'kts',
-                                            'netcdf': 'kts',
-                                        },
-                              'standard_name' : 'wind_speed',
-                              'long_name' : 'Wind speed',
-                              'gssha_name' : 'wind_speed',
-                              'hmet_name' : 'WndS',
-                              'conversion_factor' : {
-                                                        'ascii' : 0.0224537037,
-                                                        'netcdf' : 0.0224537037,
-                                                    },
-                            },
-                        'wind_speed_kts' :
-                            {
-                              'units' : {
-                                            'ascii': 'kts',
-                                            'netcdf': 'kts',
-                                        },
-                              'standard_name' : 'wind_speed',
-                              'long_name' : 'Wind speed',
-                              'gssha_name' : 'wind_speed',
-                              'hmet_name' : 'WndS',
-                              'conversion_factor' : {
-                                                        'ascii' : 1,
-                                                        'netcdf' : 1,
-                                                    },
-                            },
-                        'temperature' :
-                            #NOTE: LSM
-                            #units = "K" ;
-                            {
-                              'units' : {
-                                            'ascii': 'F',
-                                            'netcdf': 'C',
-                                        },
-                              'standard_name' : 'air_temperature',
-                              'long_name' : 'Temperature',
-                              'gssha_name' : 'temperature',
-                              'hmet_name' : 'Temp',
-                              'conversion_factor' : {
-                                                        'ascii' : 1,
-                                                        'netcdf' : 1,
-                                                    },
-                              'conversion_function' : {
-                                                        'ascii' : lambda temp_kelvin: temp_kelvin * 9.0/5.0 - 459.67,
-                                                        'netcdf' : lambda temp_celcius: temp_celcius - 273.15,
-                                                    },
-                            },
-                        'temperature_f' :
-                            {
-                              'units' : {
-                                            'ascii': 'F',
-                                            'netcdf': 'C',
-                                        },
-                              'standard_name' : 'air_temperature',
-                              'long_name' : 'Temperature',
-                              'gssha_name' : 'temperature',
-                              'hmet_name' : 'Temp',
-                              'conversion_factor' : {
-                                                        'ascii' : 1,
-                                                        'netcdf' : 1,
-                                                    },
-                              'conversion_function' : {
-                                                        'ascii' : lambda temp_farenheight: temp_farenheight,
-                                                        'netcdf' : lambda temp_farenheight: (temp_farenheight - 32) * 5.0/9.0,
-                                                    },
-                            },
-                        'direct_radiation' :
-                            #DIRECT/BEAM/SOLAR RADIATION
-                            #NOTE: LSM
-                            #WRF: global_radiation * (1-DIFFUSIVE_FRACTION)
-                            #units = "W m-2" ;
-                            {
-                              'units' : {
-                                            'ascii': 'W hr m-2',
-                                            'netcdf': 'W hr m-2',
-                                        },
-                              'standard_name' : 'surface_direct_downward_shortwave_flux',
-                              'long_name' : 'Direct short wave radiation flux',
-                              'gssha_name' : 'direct_radiation',
-                              'hmet_name' : 'Drad',
-                              'conversion_factor' : {
-                                                        'ascii' : 1,
-                                                        'netcdf' : 1,
-                                                    },
-                            },
-                        'direct_radiation_j' :
-                            #DIRECT/BEAM/SOLAR RADIATION
-                            #NOTE: LSM
-                            #units = "J m-2" ;
-                            {
-                              'units' : {
-                                            'ascii': 'W hr m-2',
-                                            'netcdf': 'W hr m-2',
-                                        },
-                              'standard_name' : 'surface_direct_downward_shortwave_flux',
-                              'long_name' : 'Direct short wave radiation flux',
-                              'gssha_name' : 'direct_radiation',
-                              'hmet_name' : 'Drad',
-                              'conversion_factor' : {
-                                                        'ascii' : 1/3600.0,
-                                                        'netcdf' : 1/3600.0,
-                                                    },
-                            },
-                        'diffusive_radiation' :
-                            #DIFFUSIVE RADIATION
-                            #NOTE: LSM
-                            #WRF: global_radiation * DIFFUSIVE_FRACTION
-                            #units = "W m-2" ;
-                            {
-                              'units' : {
-                                            'ascii': 'W hr m-2',
-                                            'netcdf': 'W hr m-2',
-                                        },
-                              'standard_name' : 'surface_diffusive_downward_shortwave_flux',
-                              'long_name' : 'Diffusive short wave radiation flux',
-                              'gssha_name' : 'diffusive_radiation',
-                              'hmet_name' : 'Grad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
-                              'conversion_factor' : {
-                                                        'ascii' : 1,
-                                                        'netcdf' : 1,
-                                                    },
-                            },
-                        'diffusive_radiation_j' :
-                            #DIFFUSIVE RADIATION
-                            #NOTE: LSM
-                            #ERA5: global_radiation - diffusive_radiation
-                            #units = "J m-2" ;
-                            {
-                              'units' : {
-                                            'ascii': 'W hr m-2',
-                                            'netcdf': 'W hr m-2',
-                                        },
-                              'standard_name' : 'surface_diffusive_downward_shortwave_flux',
-                              'long_name' : 'Diffusive short wave radiation flux',
-                              'gssha_name' : 'diffusive_radiation',
-                              'hmet_name' : 'Grad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
-                              'conversion_factor' : {
-                                                        'ascii' : 1/3600.0,
-                                                        'netcdf' : 1/3600.0,
-                                                    },
-                            },
-                        'direct_radiation_cc' :
-                            #DIRECT/BEAM/SOLAR RADIATION
-                            #NOTE: LSM
-                            #DIFFUSIVE_FRACTION = cloud_cover_pc/100
-                            #WRF: global_radiation * (1-DIFFUSIVE_FRACTION)
-                            #units = "W m-2" ;
-                            {
-                              'units' : {
-                                            'ascii': 'W hr m-2',
-                                            'netcdf': 'W hr m-2',
-                                        },
-                              'standard_name' : 'surface_direct_downward_shortwave_flux',
-                              'long_name' : 'Direct short wave radiation flux',
-                              'gssha_name' : 'direct_radiation',
-                              'hmet_name' : 'Drad',
-                              'conversion_factor' : {
-                                                        'ascii' : 1,
-                                                        'netcdf' : 1,
-                                                    },
-                            },
-                        'diffusive_radiation_cc' :
-                            #DIFFUSIVE RADIATION
-                            #NOTE: LSM
-                            #DIFFUSIVE_FRACTION = cloud_cover_pc/100
-                            #WRF: global_radiation * DIFFUSIVE_FRACTION
-                            #units = "W m-2" ;
-                            {
-                              'units' : {
-                                            'ascii': 'W hr m-2',
-                                            'netcdf': 'W hr m-2',
-                                        },
-                              'standard_name' : 'surface_diffusive_downward_shortwave_flux',
-                              'long_name' : 'Diffusive short wave radiation flux',
-                              'gssha_name' : 'diffusive_radiation',
-                              'hmet_name' : 'Grad', #6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
-                              'conversion_factor' : {
-                                                        'ascii' : 1,
-                                                        'netcdf' : 1,
-                                                    },
-                            },
-                        'cloud_cover' :
-                            #NOTE: LSM
-                            #Between 0-1 (0=No Clouds; 1=Clouds) ;
-                            {
-                              'units' : {
-                                            'ascii': '%',
-                                            'netcdf': '%/10',
-                                        },
-                              'standard_name' : 'cloud_cover_fraction',
-                              'long_name' : 'Cloud cover fraction',
-                              'gssha_name' : 'cloud_cover',
-                              'hmet_name' : 'Clod',
-                              'conversion_factor' : {
-                                                        'ascii' : 100,
-                                                        'netcdf' : 10,
-                                                    },
-                              'calc_4d_method' : 'max',
-                              'calc_4d_dim' : 'bottom_top',
-                            },
-                        'cloud_cover_pc' :
-                            #NOTE: LSM
-                            #Between 0-100 (0=No Clouds; 100=Full Clouds) ;
-                            {
-                              'units' : {
-                                            'ascii': '%',
-                                            'netcdf': '%/10',
-                                        },
-                              'standard_name' : 'cloud_cover_fraction',
-                              'long_name' : 'Cloud cover fraction',
-                              'gssha_name' : 'cloud_cover',
-                              'hmet_name' : 'Clod',
-                              'conversion_factor' : {
-                                                        'ascii' : 1,
-                                                        'netcdf' : 0.1,
-                                                    },
-                                'calc_4d_method': 'max',
-                                'calc_4d_dim': 'bottom_top',
-                            },
-                        'cloud_cover_bin':
-                            # NOTE: LSM
-                            # (0=No Clouds; 0>Clouds) ;
-                            {
-                                'units': {
-                                    'ascii': '%',
-                                    'netcdf': '%/10',
-                                },
-                                'standard_name': 'cloud_cover_fraction',
-                                'long_name': 'Cloud cover fraction',
-                                'gssha_name': 'cloud_cover',
-                                'hmet_name': 'Clod',
-                                'conversion_factor': {
-                                    'ascii': 1,
-                                    'netcdf': 1,
-                                },
-                                'conversion_function': {
-                                    'ascii': array_binary_percent,
-                                    'netcdf': array_binary_percent_10,
-                                },
-                                'calc_4d_method': 'max',
-                                'calc_4d_dim': 'bottom_top',
-                            },
-                        }
+        'precipitation_rate':
+        # NOTE: LSM INFO
+        # units = "kg m-2 s-1" ; i.e. mm s-1
+        {
+            'units': {
+                'gage': 'mm hr-1',
+                'ascii': 'mm hr-1',
+                'netcdf': 'mm hr-1',
+            },
+            'units_netcdf': 'mm hr-1',
+            'standard_name': 'rainfall_flux',
+            'long_name': 'Rain precipitation rate',
+            'gssha_name': 'precipitation',
+            'hmet_name': 'Prcp',
+            'conversion_factor': {
+                'gage': 3600,
+                'ascii': 3600,
+                'netcdf': 3600,
+            },
+        },
+        'precipitation_acc':
+        # NOTE: LSM INFO
+        # assumes units = "kg m-2" ; i.e. mm
+        # checks for units: "m"
+        {
+            'units': {
+                'gage': 'mm hr-1',
+                'ascii': 'mm hr-1',
+                'netcdf': 'mm hr-1',
+            },
+            'units_netcdf': 'mm hr-1',
+            'standard_name': 'rainfall_flux',
+            'long_name': 'Rain precipitation rate',
+            'gssha_name': 'precipitation',
+            'hmet_name': 'Prcp',
+            'conversion_factor': {
+                'gage': 1,
+                'ascii': 1,
+                'netcdf': 1,
+            },
+        },
+        'precipitation_inc':
+        # NOTE: LSM INFO
+        # assumes units = "kg m-2" ; i.e. mm
+        # checks for units: "m"
+        {
+            'units': {
+                'gage': 'mm hr-1',
+                'ascii': 'mm hr-1',
+                'netcdf': 'mm hr-1',
+            },
+            'units_netcdf': 'mm hr-1',
+            'standard_name': 'rainfall_flux',
+            'long_name': 'Rain precipitation rate',
+            'gssha_name': 'precipitation',
+            'hmet_name': 'Prcp',
+            'conversion_factor': {
+                'gage': 1,
+                'ascii': 1,
+                'netcdf': 1,
+            },
+        },
+        'pressure':
+        # NOTE: LSM INFO
+        # units = "Pa" ;
+        {
+            'units': {
+                'ascii': 'in. Hg',
+                'netcdf': 'mb',
+            },
+            'standard_name': 'surface_air_pressure',
+            'long_name': 'Pressure',
+            'gssha_name': 'pressure',
+            'hmet_name': 'Pres',
+            'conversion_factor': {
+                'ascii': 0.000295299830714,
+                'netcdf': 0.01,
+            },
+        },
+        'pressure_hg':
+        {
+            'units': {
+                'ascii': 'in. Hg',
+                'netcdf': 'mb',
+            },
+            'standard_name': 'surface_air_pressure',
+            'long_name': 'Pressure',
+            'gssha_name': 'pressure',
+            'hmet_name': 'Pres',
+            'conversion_factor': {
+                'ascii': 1,
+                'netcdf': 33.863886667,
+            },
+        },
+        'relative_humidity':
+        # NOTE: LSM Usually Specific Humidity
+        # units = "kg kg-1" ;
+        # standard_name = "specific_humidity" ;
+        # long_name = "Specific humidity" ;
+        {
+            'units': {
+                'ascii': '%',
+                'netcdf': '%',
+            },
+            'standard_name': 'relative_humidity',
+            'long_name': 'Relative humidity',
+            'gssha_name': 'relative_humidity',
+            'hmet_name': 'RlHm',
+            'conversion_factor': {
+                'ascii': 1,
+                'netcdf': 1,
+            },
+        },
+        'relative_humidity_dew':
+        # NOTE: ECMWF provides dew point temperature
+        {
+            'units': {
+                'ascii': '%',
+                'netcdf': '%',
+            },
+            'standard_name': 'relative_humidity',
+            'long_name': 'Relative humidity',
+            'gssha_name': 'relative_humidity',
+            'hmet_name': 'RlHm',
+            'conversion_factor': {
+                'ascii': 1,
+                'netcdf': 1,
+            },
+        },
+        'swe':
+        # Snow Water Eqivalent (SWE)
+        # units = "kg m-2", i.e. "mm"
+        # NOT IN HMET, USED FOR INITIALIZATION
+        # INIT_SWE_DEPTH
+        # http://www.gsshawiki.com/Snow_Card_Inputs_-_Optional
+        {
+            'units': {
+                'grid': 'm',
+            },
+            'standard_name': 'snow_water_eqivalent',
+            'long_name': 'Snow Water Eqivalent',
+            'gssha_name': 'snow_water_eqivalent',
+            'conversion_factor': {
+                'grid': 0.001,
+            },
+        },
+        'wind_speed':
+        # NOTE: LSM
+        # units = "m s-1" ;
+        {
+            'units': {
+                'ascii': 'kts',
+                'netcdf': 'kts',
+            },
+            'standard_name': 'wind_speed',
+            'long_name': 'Wind speed',
+            'gssha_name': 'wind_speed',
+            'hmet_name': 'WndS',
+            'conversion_factor': {
+                'ascii': 1.94,
+                'netcdf': 1.94,
+            },
+        },
+        'wind_speed_kmd':
+        # NOTE: LSM
+        # units = "km/day" ;
+        {
+            'units': {
+                'ascii': 'kts',
+                'netcdf': 'kts',
+            },
+            'standard_name': 'wind_speed',
+            'long_name': 'Wind speed',
+            'gssha_name': 'wind_speed',
+            'hmet_name': 'WndS',
+            'conversion_factor': {
+                'ascii': 0.0224537037,
+                'netcdf': 0.0224537037,
+            },
+        },
+        'wind_speed_kts':
+        {
+            'units': {
+                'ascii': 'kts',
+                'netcdf': 'kts',
+            },
+            'standard_name': 'wind_speed',
+            'long_name': 'Wind speed',
+            'gssha_name': 'wind_speed',
+            'hmet_name': 'WndS',
+            'conversion_factor': {
+                'ascii': 1,
+                'netcdf': 1,
+            },
+        },
+        'temperature':
+        # NOTE: LSM
+        # units = "K" ;
+        {
+            'units': {
+                'ascii': 'F',
+                'netcdf': 'C',
+            },
+            'standard_name': 'air_temperature',
+            'long_name': 'Temperature',
+            'gssha_name': 'temperature',
+            'hmet_name': 'Temp',
+            'conversion_factor': {
+                'ascii': 1,
+                'netcdf': 1,
+            },
+            'conversion_function': {
+                'ascii': lambda temp_kelvin: temp_kelvin * 9.0 / 5.0 - 459.67,
+                'netcdf': lambda temp_celcius: temp_celcius - 273.15,
+            },
+        },
+        'temperature_f':
+        {
+            'units': {
+                'ascii': 'F',
+                'netcdf': 'C',
+            },
+            'standard_name': 'air_temperature',
+            'long_name': 'Temperature',
+            'gssha_name': 'temperature',
+            'hmet_name': 'Temp',
+            'conversion_factor': {
+                'ascii': 1,
+                'netcdf': 1,
+            },
+            'conversion_function': {
+                'ascii': lambda temp_farenheight: temp_farenheight,
+                'netcdf': lambda temp_farenheight: (temp_farenheight - 32) * 5.0 / 9.0,
+            },
+        },
+        'direct_radiation':
+        # DIRECT/BEAM/SOLAR RADIATION
+        # NOTE: LSM
+        # WRF: global_radiation * (1-DIFFUSIVE_FRACTION)
+        # units = "W m-2" ;
+        {
+            'units': {
+                'ascii': 'W hr m-2',
+                'netcdf': 'W hr m-2',
+            },
+            'standard_name': 'surface_direct_downward_shortwave_flux',
+            'long_name': 'Direct short wave radiation flux',
+            'gssha_name': 'direct_radiation',
+            'hmet_name': 'Drad',
+            'conversion_factor': {
+                'ascii': 1,
+                'netcdf': 1,
+            },
+        },
+        'direct_radiation_j':
+        # DIRECT/BEAM/SOLAR RADIATION
+        # NOTE: LSM
+        # units = "J m-2" ;
+        {
+            'units': {
+                'ascii': 'W hr m-2',
+                'netcdf': 'W hr m-2',
+            },
+            'standard_name': 'surface_direct_downward_shortwave_flux',
+            'long_name': 'Direct short wave radiation flux',
+            'gssha_name': 'direct_radiation',
+            'hmet_name': 'Drad',
+            'conversion_factor': {
+                'ascii': 1 / 3600.0,
+                'netcdf': 1 / 3600.0,
+            },
+        },
+        'diffusive_radiation':
+        # DIFFUSIVE RADIATION
+        # NOTE: LSM
+        # WRF: global_radiation * DIFFUSIVE_FRACTION
+        # units = "W m-2" ;
+        {
+            'units': {
+                'ascii': 'W hr m-2',
+                'netcdf': 'W hr m-2',
+            },
+            'standard_name': 'surface_diffusive_downward_shortwave_flux',
+            'long_name': 'Diffusive short wave radiation flux',
+            'gssha_name': 'diffusive_radiation',
+            'hmet_name': 'Grad',  # 6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
+            'conversion_factor': {
+                'ascii': 1,
+                'netcdf': 1,
+            },
+        },
+        'diffusive_radiation_j':
+        # DIFFUSIVE RADIATION
+        # NOTE: LSM
+        # ERA5: global_radiation - diffusive_radiation
+        # units = "J m-2" ;
+        {
+            'units': {
+                'ascii': 'W hr m-2',
+                'netcdf': 'W hr m-2',
+            },
+            'standard_name': 'surface_diffusive_downward_shortwave_flux',
+            'long_name': 'Diffusive short wave radiation flux',
+            'gssha_name': 'diffusive_radiation',
+            'hmet_name': 'Grad',  # 6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
+            'conversion_factor': {
+                'ascii': 1 / 3600.0,
+                'netcdf': 1 / 3600.0,
+            },
+        },
+        'direct_radiation_cc':
+        # DIRECT/BEAM/SOLAR RADIATION
+        # NOTE: LSM
+        # DIFFUSIVE_FRACTION = cloud_cover_pc/100
+        # WRF: global_radiation * (1-DIFFUSIVE_FRACTION)
+        # units = "W m-2" ;
+        {
+            'units': {
+                'ascii': 'W hr m-2',
+                'netcdf': 'W hr m-2',
+            },
+            'standard_name': 'surface_direct_downward_shortwave_flux',
+            'long_name': 'Direct short wave radiation flux',
+            'gssha_name': 'direct_radiation',
+            'hmet_name': 'Drad',
+            'conversion_factor': {
+                'ascii': 1,
+                'netcdf': 1,
+            },
+        },
+        'diffusive_radiation_cc':
+        # DIFFUSIVE RADIATION
+        # NOTE: LSM
+        # DIFFUSIVE_FRACTION = cloud_cover_pc/100
+        # WRF: global_radiation * DIFFUSIVE_FRACTION
+        # units = "W m-2" ;
+        {
+            'units': {
+                'ascii': 'W hr m-2',
+                'netcdf': 'W hr m-2',
+            },
+            'standard_name': 'surface_diffusive_downward_shortwave_flux',
+            'long_name': 'Diffusive short wave radiation flux',
+            'gssha_name': 'diffusive_radiation',
+            'hmet_name': 'Grad',  # 6.1 GSSHA CODE INCORRECTLY SAYS IT IS GRAD
+            'conversion_factor': {
+                'ascii': 1,
+                'netcdf': 1,
+            },
+        },
+        'cloud_cover':
+        # NOTE: LSM
+        # Between 0-1 (0=No Clouds; 1=Clouds) ;
+        {
+            'units': {
+                'ascii': '%',
+                'netcdf': '%/10',
+            },
+            'standard_name': 'cloud_cover_fraction',
+            'long_name': 'Cloud cover fraction',
+            'gssha_name': 'cloud_cover',
+            'hmet_name': 'Clod',
+            'conversion_factor': {
+                'ascii': 100,
+                'netcdf': 10,
+            },
+            'calc_4d_method': 'max',
+            'calc_4d_dim': 'bottom_top',
+        },
+        'cloud_cover_pc':
+        # NOTE: LSM
+        # Between 0-100 (0=No Clouds; 100=Full Clouds) ;
+        {
+            'units': {
+                'ascii': '%',
+                'netcdf': '%/10',
+            },
+            'standard_name': 'cloud_cover_fraction',
+            'long_name': 'Cloud cover fraction',
+            'gssha_name': 'cloud_cover',
+            'hmet_name': 'Clod',
+            'conversion_factor': {
+                'ascii': 1,
+                'netcdf': 0.1,
+            },
+            'calc_4d_method': 'max',
+            'calc_4d_dim': 'bottom_top',
+        },
+        'cloud_cover_bin':
+        # NOTE: LSM
+        # (0=No Clouds; 0>Clouds) ;
+        {
+            'units': {
+                'ascii': '%',
+                'netcdf': '%/10',
+            },
+            'standard_name': 'cloud_cover_fraction',
+            'long_name': 'Cloud cover fraction',
+            'gssha_name': 'cloud_cover',
+            'hmet_name': 'Clod',
+            'conversion_factor': {
+                'ascii': 1,
+                'netcdf': 1,
+            },
+            'conversion_function': {
+                'ascii': array_binary_percent,
+                'netcdf': array_binary_percent_10,
+            },
+            'calc_4d_method': 'max',
+            'calc_4d_dim': 'bottom_top',
+        },
+    }
 
     def __init__(self,
                  gssha_project_folder,
