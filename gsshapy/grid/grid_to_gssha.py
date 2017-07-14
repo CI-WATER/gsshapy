@@ -80,11 +80,15 @@ def esat(temp):
     return 611.21*xu.exp(17.502*(temp-273.16)/(temp-32.19))
 
 
-def array_binary(in_array):
-    """Makes a dataset with values greater than zero 1"""
-    in_array[in_array > 0] = 1
+def array_binary_percent(in_array):
+    """Makes a dataset with values greater than zero 100 percent"""
+    in_array[in_array > 0] = 100
     return in_array
 
+def array_binary_percent_10(in_array):
+    """Makes a dataset with values greater than zero 100/10 percent"""
+    in_array[in_array > 0] = 10
+    return in_array
 
 # ------------------------------------------------------------------------------
 # MAIN CLASS
@@ -520,12 +524,12 @@ class GRIDtoGSSHA(object):
                                 'gssha_name': 'cloud_cover',
                                 'hmet_name': 'Clod',
                                 'conversion_factor': {
-                                    'ascii': 100,
-                                    'netcdf': 10,
+                                    'ascii': 1,
+                                    'netcdf': 1,
                                 },
                                 'conversion_function': {
-                                    'ascii': array_binary,
-                                    'netcdf': array_binary,
+                                    'ascii': array_binary_percent,
+                                    'netcdf': array_binary_percent_10,
                                 },
                                 'calc_4d_method': 'max',
                                 'calc_4d_dim': 'bottom_top',

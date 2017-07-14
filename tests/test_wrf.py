@@ -7,6 +7,7 @@
 ********************************************************************************
 """
 from datetime import datetime
+from glob import glob
 import os
 from osgeo import gdalconst
 import unittest
@@ -63,6 +64,17 @@ class TestLSMtoGSSHA(TestGridTemplate):
                                    ['wind_speed_kts', 'SPEED10'],
                                    ['temperature_f', 'T2F'],
                                    ['cloud_cover_pc' , 'SKYCOVER'],
+                                  ]
+        # binary cloud cover
+        self.data_var_map_array_bin = [
+                                   ['precipitation_acc', 'RUNPCP'],
+                                   ['pressure_hg', 'PSFCInHg'],
+                                   ['relative_humidity', 'RH2'],
+                                   ['direct_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
+                                   ['diffusive_radiation', ['SWDOWN', 'DIFFUSE_FRAC']],
+                                   ['wind_speed_kts', 'SPEED10'],
+                                   ['temperature_f', 'T2F'],
+                                   ['cloud_cover_bin' , 'CLDFRA'],
                                   ]
 
         wrf_folder = os.path.join(self.writeDirectory, 'wrf_raw_data')
@@ -150,6 +162,27 @@ class TestLSMtoGSSHA(TestGridTemplate):
                                   ignore_file="hmet_file_list.txt",
                                   raster=True,
                                   precision=1)
+
+    def test_wrf_ascii_file_write_bin(self):
+        """
+        Test WRF lsm_data_to_arc_ascii write method with binary cloud cover
+        """
+        self.l2g.lsm_data_to_arc_ascii(self.data_var_map_array_bin,
+                                       self.hmet_write_directory)
+
+        # Compare all cloud files
+        compare_files = sorted(glob(os.path.join(self.readDirectory,
+                                                 "wrf_hmet_clod_bin_data",
+                                                 "*_Clod_bin.asc")))
+        output_files = sorted(glob(os.path.join(self.hmet_write_directory,
+                                                "*_Clod.asc")))
+
+        assert len(compare_files) == len(output_files)
+        for compare_file, output_file in zip(compare_files, output_files):
+            self._compare_files(compare_file,
+                                output_file,
+                                raster=True,
+                                precision=4)
 
     def test_wrf_grid_snow_file_write(self):
         """
