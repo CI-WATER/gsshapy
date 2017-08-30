@@ -14,6 +14,7 @@ import os
 
 from gazar.shape import rasterize_shapefile
 
+from ..lib.check_geometry import check_watershed_boundary_geometry
 from .map import RasterMapFile
 from .pro import ProjectionFile
 from ..util.context import tmp_chdir
@@ -106,6 +107,9 @@ class WatershedMaskFile(RasterMapFile):
 
         # make sure paths are absolute as the working directory changes
         shapefile_path = os.path.abspath(shapefile_path)
+
+        # make sure the polygon is valid
+        check_watershed_boundary_geometry(shapefile_path)
 
         gr = rasterize_shapefile(shapefile_path,
                                  x_cell_size=cell_size,

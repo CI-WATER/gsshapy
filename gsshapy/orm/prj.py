@@ -17,6 +17,7 @@ import logging
 import os
 import re
 import sys
+import uuid
 
 import numpy as np
 from osgeo import ogr, osr
@@ -36,6 +37,7 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from . import DeclarativeBase
 from ..base.file_base import GsshaPyFileObjectBase
 from .file_io import *
+from ..lib.check_geometry import check_watershed_boundary_geometry
 from ..util.context import tmp_chdir
 
 log = logging.getLogger(__name__)
@@ -1250,6 +1252,10 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
         """
         # determine outlet from shapefile
         # by getting outlet from first point in polygon
+
+        # make sure the boundary geometry is valid
+        check_watershed_boundary_geometry(shapefile_path)
+
         shapefile = ogr.Open(shapefile_path)
         source_layer = shapefile.GetLayer(0)
         source_lyr_proj = source_layer.GetSpatialRef()

@@ -8,13 +8,14 @@
 
 from datetime import timedelta
 import logging
+import uuid
 import os
 
 from gazar.grid import GDALGrid
+import geopandas as gpd
 
 from .event import EventMode, LongTermMode
-from ..orm import (ProjectFile, WatershedMaskFile, ElevationGridFile,
-                         MapTableFile)
+from ..orm import WatershedMaskFile, ElevationGridFile, MapTableFile
 from ..lib import db_tools as dbt
 from ..util.context import tmp_chdir
 
@@ -30,6 +31,7 @@ class GSSHAModel(object):
          project_directory(str): Directory to write GSSHA project files to.
          project_name(Optional[str]): Name of GSSHA project. Required for new model.
          mask_shapefile(Optional[str]): Path to watershed boundary shapefile. Required for new model.
+         auto_clean_mask_shapefile(Optional[bool]): Chooses the largest region if the input is a multipolygon. Default is False.
          grid_cell_size(Optional[str]): Cell size of model (meters). Required for new model.
          elevation_grid_path(Optional[str]): Path to elevation raster used for GSSHA grid. Required for new model.
          simulation_timestep(Optional[float]): Overall model timestep (seconds). Sets TIMESTEP card. Required for new model.
@@ -38,6 +40,7 @@ class GSSHAModel(object):
          land_use_grid(Optional[str]): Path to land use grid to use for roughness. Mutually exlusive with roughness. Required for new model.
          land_use_grid_id(Optional[str]): ID of default grid supported in GSSHApy. Mutually exlusive with roughness. Required for new model.
          land_use_to_roughness_table(Optional[str]): Path to land use to roughness table. Use if not using land_use_grid_id. Mutually exlusive with roughness. Required for new model.
+         load_rasters_to_db(Optional[bool]): If True, it will load the created rasters into the database. IF you are generating a large model, it is recommended to set this to False. Default is True.
          db_session(Optional[database session]): Active database session object. Required for existing model.
          project_manager(Optional[ProjectFile]): Initialized ProjectFile object. Required for existing model.
 
@@ -51,12 +54,14 @@ class GSSHAModel(object):
         model = GSSHAModel(project_name="gssha_project",
                            project_directory="/path/to/gssha_project",
                            mask_shapefile="/path/to/watershed_boundary.shp",
+                           auto_clean_mask_shapefile=True,
                            grid_cell_size=1000,
                            elevation_grid_path="/path/to/elevation.tif",
                            simulation_timestep=10,
                            out_hydrograph_write_frequency=15,
                            land_use_grid='/path/to/land_use.tif',
                            land_use_grid_id='glcf',
+                           load_rasters_to_db=False,
                            )
         model.set_event(simulation_start=datetime(2017, 2, 28, 14, 33),
                         simulation_duration=timedelta(seconds=180*60),
@@ -70,6 +75,7 @@ class GSSHAModel(object):
                  project_directory,
                  project_name=None,
                  mask_shapefile=None,
+                 auto_clean_mask_shapefile=False,
                  grid_cell_size=None,
                  elevation_grid_path=None,
                  simulation_timestep=30,
@@ -140,6 +146,9 @@ class GSSHAModel(object):
                     log.info("Calculated cell size is {grid_cell_size}"
                              .format(grid_cell_size=grid_cell_size))
 
+                if auto_clean_mask_shapefile:
+                    mask_shapefile = self.clean_boundary_shapefile(mask_shapefile)
+
                 self.set_mask_from_shapefile(mask_shapefile, grid_cell_size)
                 self.set_elevation(elevation_grid_path, mask_shapefile)
                 self.set_roughness(roughness=roughness,
@@ -147,6 +156,42 @@ class GSSHAModel(object):
                                    land_use_grid_id=land_use_grid_id,
                                    land_use_to_roughness_table=land_use_to_roughness_table,
                                    )
+    @staticmethod
+    def clean_boundary_shapefile(shapefile_path):
+        """
+        Cleans the boundary shapefile to that there is only one main polygon.
+        :param shapefile_path:
+        :return:
+        """
+        wfg =  gpd.read_file(shapefile_path)
+        first_shape = wfg.iloc[0].geometry
+        if hasattr(first_shape, 'geoms'):
+            log.warning("MultiPolygon found in boundary. "
+                        "Picking largest area ...")
+            # pick largest shape to be the watershed boundary
+            # and assume the other ones are islands to be removed
+            max_area = -9999.0
+            main_geom = None
+            for geom in first_shape.geoms:
+                if geom.area > max_area:
+                    main_geom = geom
+                    max_area = geom.area
+
+            # remove self intersections
+            if not main_geom.is_valid:
+                log.warning("Invalid geometry found in boundary. "
+                            "Attempting to self clean ...")
+                main_geom = main_geom.buffer(0)
+            wfg.loc[0, 'geometry'] = main_geom
+            out_cleaned_boundary_shapefile = \
+                os.path.splitext(shapefile_path)[0] +\
+                str(uuid.uuid4()) +\
+                '.shp'
+            wfg.to_file(out_cleaned_boundary_shapefile)
+            log.info("Cleaned boundary shapefile written to:"
+                     "{}".format(out_cleaned_boundary_shapefile))
+            return out_cleaned_boundary_shapefile
+        return shapefile_path
 
     def set_mask_from_shapefile(self, shapefile_path, cell_size):
         """

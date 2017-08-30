@@ -3,6 +3,7 @@ from setuptools import setup, find_packages
 requires = [
     'affine',
     'appdirs',
+    'geopandas',
     'mapkit>=1.2.0',
     'psycopg2',
     'rapidpy',

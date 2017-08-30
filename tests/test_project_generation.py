@@ -12,6 +12,8 @@ from os import path
 import unittest
 from shutil import copy
 
+import pytest
+
 from .template import TestGridTemplate
 
 
@@ -21,7 +23,52 @@ from gsshapy.orm import (ProjectFile, WatershedMaskFile, ElevationGridFile,
 from gsshapy.lib import db_tools as dbt
 
 
-class TestProjectGenerate(TestGridTemplate):
+class TestProjectGenerateBase(TestGridTemplate):
+    def _compare_basic_model(self, project_name):
+        """
+        Compare output from basic GSSHA model
+        """
+        # compare msk
+        mask_name = '{0}.msk'.format(project_name)
+        new_mask_grid = path.join(self.gssha_project_directory, mask_name)
+        compare_msk_file = path.join(self.compare_path, mask_name)
+        self._compare_files(compare_msk_file, new_mask_grid, raster=True)
+        # compare ele
+        ele_grid_name = '{0}.ele'.format(project_name)
+        new_ele_grid = path.join(self.gssha_project_directory, ele_grid_name)
+        compare_ele_file = path.join(self.compare_path, ele_grid_name)
+        self._compare_files(compare_ele_file, new_ele_grid, raster=True)
+        # compare project files
+        prj_file_name = '{0}.prj'.format(project_name)
+        generated_prj_file = path.join(self.gssha_project_directory,
+                                       prj_file_name)
+        compare_prj_file = path.join(self.compare_path, prj_file_name)
+        self._compare_files(generated_prj_file, compare_prj_file)
+        # check to see if projection file generated
+        proj_file_name = '{0}_prj.pro'.format(project_name)
+        generated_proj_file = path.join(self.gssha_project_directory,
+                                        proj_file_name)
+        compare_proj_file = path.join(self.compare_path, proj_file_name)
+        self._compare_files(generated_proj_file, compare_proj_file)
+
+    def _compare_basic_model_idx_maps(self, project_name):
+        """
+        Compare output from basic GSSHA model with index maps
+        """
+        # compare main project files
+        self._compare_basic_model(project_name)
+        # compare cmt
+        cmt_file_name = '{0}.cmt'.format(project_name)
+        new_cmt_file = path.join(self.gssha_project_directory, cmt_file_name)
+        compare_cmt_file = path.join(self.compare_path, cmt_file_name)
+        self._compare_files(new_cmt_file, compare_cmt_file)
+        # compare idx
+        new_idx_file = path.join(self.gssha_project_directory, 'roughness.idx')
+        original_idx_file = path.join(self.compare_path, 'roughness.idx')
+        self._compare_files(original_idx_file, new_idx_file, raster=True)
+
+
+class TestProjectGenerate(TestProjectGenerateBase):
     def setUp(self):
         self.compare_path = path.join(self.readDirectory,
                                       'phillipines',
@@ -62,48 +109,6 @@ class TestProjectGenerate(TestGridTemplate):
                  self.land_use_grid)
         except OSError:
             pass
-
-    def _compare_basic_model(self, project_name):
-        """
-        Compare output from basic GSSHA model
-        """
-        # compare msk
-        mask_name = '{0}.msk'.format(project_name)
-        new_mask_grid = path.join(self.gssha_project_directory, mask_name)
-        compare_msk_file = path.join(self.compare_path, mask_name)
-        self._compare_files(compare_msk_file, new_mask_grid, raster=True)
-        # compare ele
-        ele_grid_name = '{0}.ele'.format(project_name)
-        new_ele_grid = path.join(self.gssha_project_directory, ele_grid_name)
-        compare_ele_file = path.join(self.compare_path, ele_grid_name)
-        self._compare_files(compare_ele_file, new_ele_grid, raster=True)
-        # compare project files
-        prj_file_name = '{0}.prj'.format(project_name)
-        generated_prj_file = path.join(self.gssha_project_directory, prj_file_name)
-        compare_prj_file = path.join(self.compare_path, prj_file_name)
-        self._compare_files(generated_prj_file, compare_prj_file)
-        # check to see if projection file generated
-        proj_file_name = '{0}_prj.pro'.format(project_name)
-        generated_proj_file = path.join(self.gssha_project_directory, proj_file_name)
-        compare_proj_file = path.join(self.compare_path, proj_file_name)
-        self._compare_files(generated_proj_file, compare_proj_file)
-
-    def _compare_basic_model_idx_maps(self, project_name):
-        """
-        Compare output from basic GSSHA model with index maps
-        """
-        # compare main project files
-        self._compare_basic_model(project_name)
-        # compare cmt
-        cmt_file_name = '{0}.cmt'.format(project_name)
-        new_cmt_file = path.join(self.gssha_project_directory, cmt_file_name)
-        compare_cmt_file = path.join(self.compare_path, cmt_file_name)
-        self._compare_files(new_cmt_file, compare_cmt_file)
-        # compare idx
-        new_idx_file = path.join(self.gssha_project_directory, 'roughness.idx')
-        original_idx_file = path.join(self.compare_path, 'roughness.idx')
-        self._compare_files(original_idx_file, new_idx_file, raster=True)
-
 
     def test_generate_basic_project(self):
         """
@@ -331,6 +336,85 @@ class TestProjectGenerate(TestGridTemplate):
 
         # compare main project files
         self._compare_basic_model_idx_maps(project_name)
+
+
+class TestProjectGenerateClean(TestProjectGenerateBase):
+    def setUp(self):
+        self.compare_path = path.join(self.readDirectory,
+                                      'multi_polygon_boundary',
+                                      'compare_data')
+
+        self.gssha_project_directory = self.writeDirectory
+
+        self.shapefile_path = path.join(self.writeDirectory,
+                                        'corpus_christy.shp')
+
+        self.elevation_path = path.join(self.writeDirectory,
+                                        'corpus_christy_dem.tif')
+
+        # copy shapefile
+        shapefile_basename = path.join(self.readDirectory,
+                                       'multi_polygon_boundary',
+                                       'corpus_christy.*')
+
+        for shapefile_part in glob(shapefile_basename):
+            try:
+                copy(shapefile_part,
+                     path.join(self.writeDirectory, path.basename(shapefile_part)))
+            except OSError:
+                pass
+
+        # copy elevation grid
+        try:
+            copy(path.join(self.readDirectory, 'multi_polygon_boundary',
+                           'corpus_christy_dem.tif'),
+                 self.elevation_path)
+        except OSError:
+            pass
+
+
+    def test_multi_polygon_error(self):
+        """
+        Tests generating a basic GSSHA project with GSSHAModel using a
+        polygon that has saparate parts
+        """
+
+        project_name = "grid_standard_basic_model"
+
+        with pytest.raises(ValueError):
+            model = GSSHAModel(project_name=project_name,
+                               project_directory=self.gssha_project_directory,
+                               mask_shapefile=self.shapefile_path,
+                               grid_cell_size=1000,
+                               elevation_grid_path=self.elevation_path,
+                               simulation_timestep=10,
+                               out_hydrograph_write_frequency=15,
+                               roughness=0.013,
+                               load_rasters_to_db=False)
+
+    def test_multi_polygon_clean(self):
+        """
+        Tests generating a basic GSSHA project with GSSHAModel using a
+        polygon that has saparate parts
+        """
+
+        project_name = "grid_standard_basic_model_clean"
+
+        model = GSSHAModel(project_name=project_name,
+                           project_directory=self.gssha_project_directory,
+                           mask_shapefile=self.shapefile_path,
+                           grid_cell_size=1000,
+                           elevation_grid_path=self.elevation_path,
+                           simulation_timestep=10,
+                           out_hydrograph_write_frequency=15,
+                           roughness=0.013,
+                           load_rasters_to_db=False,
+                           auto_clean_mask_shapefile=True,
+                           )
+        model.write()
+        # compare main project files
+        self._compare_basic_model(project_name)
+
 
 if __name__ == '__main__':
     unittest.main()

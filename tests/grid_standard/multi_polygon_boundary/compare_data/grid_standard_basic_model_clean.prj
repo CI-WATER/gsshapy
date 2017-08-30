@@ -1,0 +1,16 @@
+GSSHAPROJECT
+MAP_TYPE                 0
+TIMESTEP                 10
+HYD_FREQ                 15
+SUMMARY                  "grid_standard_basic_model_clean.sum"
+OUTLET_HYDRO             "grid_standard_basic_model_clean.otl"
+WATERSHED_MASK           "grid_standard_basic_model_clean.msk"
+GRIDSIZE                 1000.0
+ROWS                     102
+COLS                     118
+#PROJECTION_FILE         "grid_standard_basic_model_clean_prj.pro"
+ELEVATION                "grid_standard_basic_model_clean.ele"
+OUTROW                   97
+OUTCOL                   61
+OUTSLOPE                 0.012
+MANNING_N                0.013
