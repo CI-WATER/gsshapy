@@ -11,6 +11,7 @@ channels:
 dependencies:
 - affine
 - appdirs
+- gdal 2.1.*
 - geopandas
 - mapkit
 - pangaea
