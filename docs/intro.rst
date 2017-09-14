@@ -54,8 +54,7 @@ Install Miniconda
 
 ::
 
-    $ chmod +x miniconda.sh
-    $ ./miniconda.sh -b
+    $ bash miniconda.sh -b
     $ export PATH=$HOME/miniconda2/bin:$PATH
     $ conda update --yes conda python
 
@@ -66,7 +65,7 @@ Install gsshapy
 
     $ conda create --name gssha python=2
     $ source activate gssha
-    $ conda config --add channels conda-forge
+    (gssha)$ conda config --add channels conda-forge
     (gssha)$ conda install --yes gsshapy
 
 Install gsshapy for development:
