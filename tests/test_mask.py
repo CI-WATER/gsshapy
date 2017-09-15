@@ -23,15 +23,15 @@ class TestMask(TestGridTemplate):
         self.gssha_project_directory = self.writeDirectory
 
         self.shapefile_path = path.join(self.writeDirectory,
-                                        'phillipines_5070115700.shp')
+                                        'philippines_5070115700.shp')
 
         self.compare_path = path.join(self.readDirectory,
-                                      'phillipines',
+                                      'philippines',
                                       'compare_data')
         # copy shapefile
         shapefile_basename = path.join(self.readDirectory,
-                                       'phillipines',
-                                       'phillipines_5070115700.*')
+                                       'philippines',
+                                       'philippines_5070115700.*')
 
         for shapefile_part in glob(shapefile_basename):
             try:

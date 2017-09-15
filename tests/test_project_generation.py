@@ -71,13 +71,13 @@ class TestProjectGenerateBase(TestGridTemplate):
 class TestProjectGenerate(TestProjectGenerateBase):
     def setUp(self):
         self.compare_path = path.join(self.readDirectory,
-                                      'phillipines',
+                                      'philippines',
                                       'compare_data')
 
         self.gssha_project_directory = self.writeDirectory
 
         self.shapefile_path = path.join(self.writeDirectory,
-                                        'phillipines_5070115700.shp')
+                                        'philippines_5070115700.shp')
 
         self.elevation_path = path.join(self.writeDirectory,
                                         'gmted_elevation.tif')
@@ -85,8 +85,8 @@ class TestProjectGenerate(TestProjectGenerateBase):
 
         # copy shapefile
         shapefile_basename = path.join(self.readDirectory,
-                                       'phillipines',
-                                       'phillipines_5070115700.*')
+                                       'philippines',
+                                       'philippines_5070115700.*')
 
         for shapefile_part in glob(shapefile_basename):
             try:
@@ -97,7 +97,7 @@ class TestProjectGenerate(TestProjectGenerateBase):
 
         # copy elevation grid
         try:
-            copy(path.join(self.readDirectory, 'phillipines',
+            copy(path.join(self.readDirectory, 'philippines',
                            'gmted_elevation.tif'),
                  self.elevation_path)
         except OSError:
