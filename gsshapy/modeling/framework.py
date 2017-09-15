@@ -666,7 +666,10 @@ class GSSHAFramework(object):
                         log.error("{0}: {1}".format(ex.returncode, ex.output))
 
                 else:
-                    log.warning("GSSHA executable not found. Skipping GSSHA simulation run ...")
+                    missing_exe_error = ("GSSHA executable not found. "
+                                         "Skipping GSSHA simulation run ...")
+                    log.error(missing_exe_error)
+                    raise ValueError(missing_exe_error)
 
             return working_directory
 

@@ -30,16 +30,31 @@ moisture as well as runoff and flooding on watersheds.
 
 .. _gsshawiki: http://www.gsshawiki.com/Main_Page
 
+GSSHA Installation
+==================
+1. Download & Install GSSHA: http://www.gsshawiki.com/GSSHA_Download
+2. Next, ensure that the GSSHA executable is on your PATH.
+
+.. note::
+
+   For Windows, add GSSHA executable to Path:
+
+   1. Go to: "Control Panel\System and Security\System"
+   2. Click "Advanced system settings"
+   3. Click "Environmental variables ..."
+   4. Edit the "Path" variable under "User variables" and add the path to the directory containing GSSHA (i.e. C:\\Program Files\\U.S. Army\\gssha70)
+
 .. _gsshapy-installation:
 
-Installation
-============
+GSSHApy Installation
+====================
 
 .. note::
 
   The spatial components of GsshaPy can rely heavily on the PostGIS spatial
   extension for the PostgreSQL database. To work with spatial data in GsshaPy
   you will need to use a PostgreSQL database with PostGIS 2.1 or greater enabled.
+
 
 Linux/Mac
 ---------

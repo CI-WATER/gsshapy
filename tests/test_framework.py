@@ -11,9 +11,12 @@ import os
 import unittest
 from shutil import copytree
 
-from .template import TestGridTemplate
+import pytest
+
 from gsshapy.modeling import GSSHAWRFFramework
 from RAPIDpy.helper_functions import compare_csv_timeseries_files
+
+from .template import TestGridTemplate
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -66,8 +69,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                path_to_rapid_qout=self.path_to_rapid_qout,
                                connection_list_file=self.connection_list_file
                                )
-
-        gr.run_forecast()
+        with pytest.raises(ValueError):
+            gr.run_forecast()
 
         # COMPARE FILES
         # grid_standard.prj
@@ -105,7 +108,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                connection_list_file=self.connection_list_file,
                                write_hotstart=True,
                                )
-        gr.run_forecast()
+        with pytest.raises(ValueError):
+            gr.run_forecast()
 
         # check folders exist
         assert os.path.exists(os.path.join(self.gssha_project_directory, "hotstart"))
@@ -145,7 +149,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                connection_list_file=self.connection_list_file,
                                read_hotstart=True,
                                )
-        gr.run_forecast()
+        with pytest.raises(ValueError):
+            gr.run_forecast()
 
         # COMPARE FILES
         # grid_standard.prj
@@ -181,7 +186,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                read_hotstart=True,  # SHOULD NOT CHANGE ANYTHING
                                )
 
-        gr.run_forecast()
+        with pytest.raises(ValueError):
+            gr.run_forecast()
 
         # COMPARE FILES
         # grid_standard.prj
@@ -217,7 +223,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                write_hotstart=True,
                                )
 
-        gr.run_forecast()
+        with pytest.raises(ValueError):
+            gr.run_forecast()
 
         # check folder exists
         assert os.path.exists(os.path.join(self.gssha_project_directory, "hotstart"))
@@ -255,7 +262,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                write_hotstart=True,
                                hotstart_minimal_mode=True,
                                )
-        gr.run_forecast()
+        with pytest.raises(ValueError):
+            gr.run_forecast()
 
         # check folder exists
         assert os.path.exists(os.path.join(self.gssha_project_directory, "hotstart"))
@@ -297,7 +305,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                lsm_folder=self.lsm_folder,
                                )
 
-        gr.run_forecast()
+        with pytest.raises(ValueError):
+            gr.run_forecast()
 
         # COMPARE FILES
         # grid_standard.prj
@@ -335,7 +344,6 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                   raster=True,
                                   precision=4)
 
-
     def test_wrf_to_gssha_write_hotstart(self):
         """
         Test WRF to GSSHA functionality write hotstart
@@ -348,7 +356,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                write_hotstart=True,
                                )
 
-        gr.run_forecast()
+        with pytest.raises(ValueError):
+            gr.run_forecast()
 
         # COMPARE FILES
         # grid_standard.prj
@@ -398,7 +407,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                read_hotstart=True,
                                )
 
-        gr.run_forecast()
+        with pytest.raises(ValueError):
+            gr.run_forecast()
 
         # COMPARE FILES
         # grid_standard.prj
@@ -451,7 +461,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                write_hotstart=True,
                                )
 
-        gr.run_forecast()
+        with pytest.raises(ValueError):
+            gr.run_forecast()
 
         # COMPARE FILES
         # grid_standard.prj
@@ -489,7 +500,6 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                   raster=True,
                                   precision=4)
 
-
     def test_wrf_to_gssha_min_hotstart(self):
         """
         Test WRF to GSSHA functionality with minmal mode hotstart generation
@@ -505,7 +515,8 @@ class Test_GSSHA_WRF_Framework(TestGridTemplate):
                                hotstart_minimal_mode=True,
                                )
 
-        gr.run_forecast()
+        with pytest.raises(ValueError):
+            gr.run_forecast()
 
         # COMPARE FILES
         # grid_standard.prj
