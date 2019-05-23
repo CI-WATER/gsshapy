@@ -675,11 +675,10 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             # make sure paths are absolute as the working directory changes
             land_use_to_roughness_table = os.path.abspath(land_use_to_roughness_table)
 
-            df = pd.read_table(land_use_to_roughness_table, delim_whitespace=True,
-                               header=None, skiprows=1,
-                               names=('id', 'description', 'roughness'),
-                               dtype={'id':'int', 'description':'str', 'roughness':'float'},
-                               )
+            df = pd.read_csv(land_use_to_roughness_table,
+                             delim_whitespace=True, sep='\t', skiprows=1,
+                             names=('id', 'description', 'roughness'),
+                             dtype={'id': 'int', 'description': 'str', 'roughness': 'float'})
 
         # make sure paths are absolute as the working directory changes
         land_use_grid = os.path.abspath(land_use_grid)

@@ -18,7 +18,6 @@ from past.builtins import basestring
 from pytz import utc
 from shutil import copy
 import xarray as xr
-import xarray.ufuncs as xu
 
 from gazar.grid import ArrayGrid
 from ..lib import db_tools as dbt
@@ -77,7 +76,7 @@ def esat(temp):
     T0 = 273.16 K
     note: ignoring saturation over ice & mixed
     """
-    return 611.21*xu.exp(17.502*(temp-273.16)/(temp-32.19))
+    return 611.21 * np.exp(17.502 * (temp - 273.16) / (temp - 32.19))
 
 
 def array_binary_percent(in_array):
@@ -744,7 +743,7 @@ class GRIDtoGSSHA(object):
             conversion_factor = self.netcdf_attributes[gssha_var]['conversion_factor'][load_type]
             u_vector = self._load_lsm_data(u_vector_var, conversion_factor)
             v_vector = self._load_lsm_data(v_vector_var, conversion_factor)
-            self.data = (xu.sqrt(u_vector**2 + v_vector**2))
+            self.data = (np.sqrt(u_vector ** 2 + v_vector ** 2))
 
         elif 'precipitation' in gssha_var and not isinstance(lsm_var, str):
             # WRF:  http://www.meteo.unican.es/wiki/cordexwrf/OutputVariables
@@ -789,14 +788,13 @@ class GRIDtoGSSHA(object):
         # convert to dataset
         gssha_data_var_name = self.netcdf_attributes[gssha_var]['gssha_name']
         self.data = self.data.to_dataset(name=gssha_data_var_name)
-        self.data.rename(
+        self.data = self.data.rename(
             {
                 self.lsm_lon_dim: 'x',
                 self.lsm_lat_dim: 'y',
                 self.lsm_lon_var: 'lon',
                 self.lsm_lat_var: 'lat'
-            },
-            inplace=True
+            }
         )
         self.data.attrs = {'proj4': self.xd.lsm.projection.ExportToProj4()}
         self.data[gssha_data_var_name].attrs = {
