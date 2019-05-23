@@ -3,16 +3,18 @@ from setuptools import setup, find_packages
 requires = [
     'affine',
     'appdirs',
+    'dask',
+    'gdal',  #: Install w/ Conda for best results
     'geopandas',
     'mapkit>=1.2.4',
+    'pangaea',
     'psycopg2',
+    'pyyaml',
     'rapidpy',
     'sqlalchemy',
     'timezonefinder',
     'utm',
-    'pangaea',
-    'pyyaml',
-    'wrf-python',
+    'wrf-python'
 ]
 
 setup(name='gsshapy',

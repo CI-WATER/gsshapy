@@ -11,6 +11,7 @@ channels:
 dependencies:
 - affine
 - appdirs
+- dask
 - gdal
 - geopandas
 - mapkit
@@ -20,8 +21,10 @@ dependencies:
 #- pynio
 - pyyaml
 - rapidpy
+- sqlalchemy
 - timezonefinder
 - utm
 - wrf-python
+
 - pip:
     - https://software.ecmwf.int/wiki/download/attachments/56664858/ecmwf-api-client-python.tgz
