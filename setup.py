@@ -4,7 +4,7 @@ requires = [
     'affine',
     'appdirs',
     'geopandas',
-    'mapkit>=1.2.0',
+    'mapkit>=1.2.4',
     'psycopg2',
     'rapidpy',
     'sqlalchemy',
@@ -16,7 +16,7 @@ requires = [
 ]
 
 setup(name='gsshapy',
-      version='2.3.8',
+      version='2.3.9',
       description='An SQLAlchemy ORM for GSSHA model files and a toolkit'
                   ' to convert gridded input into GSSHA input.',
       long_description='Documentation can be found at '
