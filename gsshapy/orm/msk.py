@@ -28,6 +28,8 @@ class WatershedMaskFile(RasterMapFile):
 
     See: http://www.gsshawiki.com/Project_File:Project_File
     """
+    readDataType = "8BUI"  #: Default data type of mask raster
+    writeDataType = 'Int32'  #: Default data type of raster values written to file
 
     def __init__(self, session=None, project_file=None):
         """
