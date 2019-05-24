@@ -676,7 +676,7 @@ class MapTableFile(DeclarativeBase, GsshaPyFileObjectBase):
             land_use_to_roughness_table = os.path.abspath(land_use_to_roughness_table)
 
             df = pd.read_csv(land_use_to_roughness_table,
-                             delim_whitespace=True, sep='\t', skiprows=1,
+                             delim_whitespace=True, skiprows=1,
                              names=('id', 'description', 'roughness'),
                              dtype={'id': 'int', 'description': 'str', 'roughness': 'float'})
 

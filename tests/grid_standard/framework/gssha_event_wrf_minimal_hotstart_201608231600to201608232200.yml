@@ -1,1 +1,3 @@
-- !ProjectFileEvent {name: minimal_hotstart_run_201608231600to201608232200, subfolder: minimal_hotstart_run_201608231600to201608232200}
+- !ProjectFileEvent
+  name: minimal_hotstart_run_201608231600to201608232200
+  subfolder: minimal_hotstart_run_201608231600to201608232200
