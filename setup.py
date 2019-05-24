@@ -6,7 +6,7 @@ requires = [
     'dask',
     'gdal',  #: Install w/ Conda for best results
     'geopandas',
-    'mapkit>=1.2.4',
+    'mapkit>=1.2.6',
     'pangaea',
     'psycopg2',
     'pyyaml',
