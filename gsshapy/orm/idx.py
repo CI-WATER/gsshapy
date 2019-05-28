@@ -127,7 +127,8 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
             wkbRaster = RasterLoader.grassAsciiRasterToWKB(session=session,
                                                            grassRasterPath=path,
                                                            srid=str(spatialReferenceID),
-                                                           noData='-1')
+                                                           noData='-1',
+                                                           dataType="32BSI")
             self.raster = wkbRaster
             self.srid = spatialReferenceID
 
@@ -155,7 +156,8 @@ class IndexMap(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
             grassAsciiGrid = converter.getAsGrassAsciiRaster(rasterFieldName='raster',
                                                              tableName=self.__tablename__,
                                                              rasterIdFieldName='id',
-                                                             rasterId=self.id)
+                                                             rasterId=self.id,
+                                                             dataType='Int32')
 
             # Write to file
             with open(filePath, 'w') as mapFile:

@@ -49,6 +49,8 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
     tableName = __tablename__  #: Database tablename
     rasterColumnName = 'raster'  #: Raster column name
     defaultNoDataValue = 0  #: Default no data value
+    readDataType = '32BF'  #: Default data type of raster values stored in database
+    writeDataType = 'Float32'  #: Default data type of raster values written to file
 
     # Primary and Foreign Keys
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
@@ -132,7 +134,8 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
             wkbRaster = RasterLoader.grassAsciiRasterToWKB(session=session,
                                                            grassRasterPath=path,
                                                            srid=str(spatialReferenceID),
-                                                           noData='0')
+                                                           noData='0',
+                                                           dataType=self.readDataType)
             self.raster = wkbRaster
 
     def _write(self, session, openFile, replaceParamFile):
@@ -148,7 +151,8 @@ class RasterMapFile(DeclarativeBase, GsshaPyFileObjectBase, RasterObjectBase):
             grassAsciiGrid = converter.getAsGrassAsciiRaster(rasterFieldName='raster',
                                                              tableName=self.__tablename__,
                                                              rasterIdFieldName='id',
-                                                             rasterId=self.id)
+                                                             rasterId=self.id,
+                                                             dataType=self.writeDataType)
             # Write to file
             openFile.write(grassAsciiGrid)
 

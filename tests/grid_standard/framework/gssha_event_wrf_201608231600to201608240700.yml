@@ -1,1 +1,3 @@
-- !ProjectFileEvent {name: run_201608231600to201608240700, subfolder: run_201608231600to201608240700}
+- !ProjectFileEvent
+  name: run_201608231600to201608240700
+  subfolder: run_201608231600to201608240700

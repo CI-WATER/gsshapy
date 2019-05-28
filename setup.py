@@ -3,20 +3,22 @@ from setuptools import setup, find_packages
 requires = [
     'affine',
     'appdirs',
+    'dask',
+    'gdal',  #: Install w/ Conda for best results
     'geopandas',
-    'mapkit>=1.2.0',
+    'mapkit>=1.2.6',
+    'pangaea',
     'psycopg2',
+    'pyyaml',
     'rapidpy',
     'sqlalchemy',
     'timezonefinder',
     'utm',
-    'pangaea',
-    'pyyaml',
-    'wrf-python',
+    'wrf-python'
 ]
 
 setup(name='gsshapy',
-      version='2.3.8',
+      version='2.3.9',
       description='An SQLAlchemy ORM for GSSHA model files and a toolkit'
                   ' to convert gridded input into GSSHA input.',
       long_description='Documentation can be found at '

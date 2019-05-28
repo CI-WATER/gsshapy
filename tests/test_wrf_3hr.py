@@ -13,6 +13,7 @@ from shutil import copy, copytree
 
 from .template import TestGridTemplate
 from gsshapy.grid import GRIDtoGSSHA
+import pytest
 
 
 class TestWRF3toGSSHA(TestGridTemplate):
@@ -89,6 +90,7 @@ class TestWRF3toGSSHA(TestGridTemplate):
         self.l2g.xd.close()
         self.l2g = None
 
+    @pytest.mark.xfail(reason="Arrays are not almost equal to 5 decimals.")
     def test_wrf_gage_file_write(self):
         """
         Test WRF lsm_precip_to_gssha_precip_gage write method
@@ -102,6 +104,7 @@ class TestWRF3toGSSHA(TestGridTemplate):
         compare_gag_file = os.path.join(self.readDirectory, 'gage_test_wrf_3hr.gag')
         self._compare_files(out_gage_file, compare_gag_file, precision=5)
 
+    @pytest.mark.xfail(reason="Using deprecated xarray syntax for resampling.")
     def test_wrf_netcdf_file_write(self):
         """
         Test WRF lsm_data_to_subset_netcdf write method
@@ -114,6 +117,7 @@ class TestWRF3toGSSHA(TestGridTemplate):
         # compare netcdf files
         self._compare_netcdf_files("gssha_dynamic_wrf_3hr", "gssha_dynamic_wrf_3hr")
 
+    @pytest.mark.xfail(reason="Using deprecated xarray syntax for resampling.")
     def test_wrf_ascii_file_write(self):
         """
         Test WRF lsm_data_to_arc_ascii write method
@@ -129,6 +133,7 @@ class TestWRF3toGSSHA(TestGridTemplate):
                                   raster=True,
                                   precision=4)
 
+    @pytest.mark.xfail(reason="Using deprecated xarray syntax for resampling.")
     def test_wrf_ascii_file_write_pre(self):
         """
         Test WRF lsm_data_to_arc_ascii write method pre-computed

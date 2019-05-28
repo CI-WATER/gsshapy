@@ -1475,7 +1475,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     filename = card.value.strip('"')
 
                     # Invoke read method on each map
-                    self._invokeRead(fileIO=RasterMapFile,
+                    self._invokeRead(fileIO=WatershedMaskFile if card.name.lower() == 'watershed_mask' else RasterMapFile,
                                      directory=directory,
                                      filename=filename,
                                      session=session,
@@ -1489,7 +1489,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                     fileExtension = filename.split('.')[1]
                     if fileExtension in self.ALWAYS_READ_AND_WRITE_MAPS:
                         # Invoke read method on each map
-                        self._invokeRead(fileIO=RasterMapFile,
+                        self._invokeRead(fileIO=WatershedMaskFile if card.name.lower() == 'watershed_mask' else RasterMapFile,
                                          directory=directory,
                                          filename=filename,
                                          session=session,

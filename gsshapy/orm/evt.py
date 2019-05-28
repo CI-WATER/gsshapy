@@ -34,7 +34,7 @@ class ProjectFileEventManager(DeclarativeBase, GsshaPyFileObjectBase):
         """
         yml_events = []
         with open(path) as fo:
-            yml_events = yaml.load(fo)
+            yml_events = yaml.load(fo, Loader=yaml.SafeLoader)
 
         for yml_event in yml_events:
             if os.path.exists(os.path.join(directory, yml_event.subfolder)):
@@ -121,7 +121,7 @@ class ProjectFileEvent(DeclarativeBase):
 
 
 class YmlFileEvent(yaml.YAMLObject):
-
+    yaml_loader = yaml.SafeLoader
     yaml_tag = u'!ProjectFileEvent'
 
     def __init__(self, name, subfolder):
