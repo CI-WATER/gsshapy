@@ -146,6 +146,7 @@ class ProjectFile(DeclarativeBase, GsshaPyFileObjectBase):
                    'OUT_WELL_LOCATION': OutputLocationFile,
                    'SIMULATION_INPUT': GenericFile,
                    '#GSSHAPY_EVENT_YML': ProjectFileEventManager,
+                   'TIME_SERIES_FILE': GenericFile,
                    }
 
     INPUT_MAPS = ('ELEVATION',  # Required Inputs
