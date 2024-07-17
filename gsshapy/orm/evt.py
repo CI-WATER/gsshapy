@@ -14,8 +14,8 @@ class ProjectFileEventManager(DeclarativeBase, GsshaPyFileObjectBase):
 
     id = Column(Integer, autoincrement=True, primary_key=True)  #: PK
     project_file_id = Column(Integer, ForeignKey('prj_project_files.id'))
-    projectFile = relationship('ProjectFile')
     fileExtension = Column(String, default='yml')
+    projectFile = relationship('ProjectFile', back_populates='projectFileEventManager')
     events = relationship('ProjectFileEvent',
                           lazy='dynamic',
                           cascade="save-update,merge,delete,delete-orphan")  #: RELATIONSHIP
